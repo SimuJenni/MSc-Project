@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, UpSampling2D
+from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, UpSampling2D, BatchNormalization
 from keras.models import Model
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
@@ -24,24 +24,30 @@ print(X_test.shape[0], 'test samples')
 input_img = Input(shape=(img_rows, img_cols, img_channels))
 
 x = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(input_img)
+x = BatchNormalization()(x)
 x = MaxPooling2D((2, 2), border_mode='same')(x)
 x = Convolution2D(64, 3, 3, activation='relu', border_mode='same')(x)
+x = BatchNormalization()(x)
 x = MaxPooling2D((2, 2), border_mode='same')(x)
 x = Convolution2D(128, 3, 3, activation='relu', border_mode='same')(x)
+x = BatchNormalization()(x)
 encoded = MaxPooling2D((2, 2), border_mode='same')(x)
 
 # at this point the representation is (8, 4, 4) i.e. 128-dimensional
 
 x = Convolution2D(128, 3, 3, activation='relu', border_mode='same')(encoded)
+x = BatchNormalization()(x)
 x = UpSampling2D((2, 2))(x)
 x = Convolution2D(64, 3, 3, activation='relu', border_mode='same')(x)
+x = BatchNormalization()(x)
 x = UpSampling2D((2, 2))(x)
 x = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(x)
+x = BatchNormalization()(x)
 x = UpSampling2D((2, 2))(x)
 decoded = Convolution2D(3, 3, 3, activation='sigmoid', border_mode='same')(x)
 
 autoencoder = Model(input_img, decoded)
-autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
 
 
 X_train = X_train.astype('float32') / 255.

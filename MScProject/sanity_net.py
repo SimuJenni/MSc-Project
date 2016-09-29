@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, UpSampling2D, BatchNormalization
+from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, UpSampling2D, BatchNormalization, Deconvolution2D
 from keras.models import Model
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
@@ -7,7 +7,7 @@ import numpy as np
 from keras.callbacks import TensorBoard
 
 
-batch_size = 32
+batch_size = 128
 nb_epoch = 50
 
 # Image dimensions
@@ -23,30 +23,26 @@ print(X_test.shape[0], 'test samples')
 
 input_img = Input(shape=(img_rows, img_cols, img_channels))
 
-x = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(input_img)
+x = Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(input_img)
+print(x)
 x = BatchNormalization()(x)
-x = MaxPooling2D((2, 2), border_mode='same')(x)
-x = Convolution2D(64, 3, 3, activation='relu', border_mode='same')(x)
+x = Convolution2D(128, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization()(x)
-x = MaxPooling2D((2, 2), border_mode='same')(x)
-x = Convolution2D(128, 3, 3, activation='relu', border_mode='same')(x)
-x = BatchNormalization()(x)
-encoded = MaxPooling2D((2, 2), border_mode='same')(x)
+x = Convolution2D(256, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(x)
+encoded = BatchNormalization()(x)
 
 # at this point the representation is (8, 4, 4) i.e. 128-dimensional
-
-x = Convolution2D(128, 3, 3, activation='relu', border_mode='same')(encoded)
+x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, 7, 7, 128), activation='relu', border_mode='valid', subsample=(2, 2))(encoded)
 x = BatchNormalization()(x)
-x = UpSampling2D((2, 2))(x)
-x = Convolution2D(64, 3, 3, activation='relu', border_mode='same')(x)
+x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, 15, 15, 64), activation='relu', border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization()(x)
-x = UpSampling2D((2, 2))(x)
-x = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(x)
+x = Deconvolution2D(32, 3, 3, output_shape=(batch_size, 31, 31, 32), activation='relu', border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization()(x)
-x = UpSampling2D((2, 2))(x)
-decoded = Convolution2D(3, 3, 3, activation='sigmoid', border_mode='same')(x)
+decoded = Deconvolution2D(3, 2, 2, output_shape=(batch_size, 32, 32, 3), activation='tanh', border_mode='valid')(x)
 
 autoencoder = Model(input_img, decoded)
+autoencoder.summary()
+
 autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
 
 

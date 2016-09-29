@@ -91,3 +91,6 @@ ENV/
 # Added by me
 .idea
 *.jpg
+
+# Ignore the Tensorboard logs
+MScProject/logs/

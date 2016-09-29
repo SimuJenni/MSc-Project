@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from keras.layers import Input, Dense, Convolution2D, MaxPooling2D, UpSampling2D, BatchNormalization, Deconvolution2D
+from keras.layers import Input, Dense, Convolution2D, Flatten, Reshape, BatchNormalization, Deconvolution2D
 from keras.models import Model
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
@@ -24,21 +24,26 @@ print(X_test.shape[0], 'test samples')
 
 input_img = Input(shape=(img_rows, img_cols, img_channels))
 
-x = Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(input_img)
-x = BatchNormalization()(x)
-x = Convolution2D(128, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(x)
+x = Convolution2D(128, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(input_img)
 x = BatchNormalization()(x)
 x = Convolution2D(256, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(x)
+x = BatchNormalization()(x)
+x = Convolution2D(512, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(x)
 encoded = BatchNormalization()(x)
 
+flat = Flatten()(encoded)
+hidden = Dense(3*3*512, activation='relu')(flat)
+decoder_reshape = Reshape((3, 3, 512))(hidden)
+
 # at this point the representation is (8, 4, 4) i.e. 128-dimensional
-x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, 7, 7, 128), activation='relu', border_mode='valid', subsample=(2, 2))(encoded)
+x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, 7, 7, 256), activation='relu', border_mode='valid', subsample=(2, 2))(decoder_reshape)
 x = BatchNormalization()(x)
-x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, 15, 15, 64), activation='relu', border_mode='valid', subsample=(2, 2))(x)
+x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, 15, 15, 128), activation='relu', border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization()(x)
-x = Deconvolution2D(32, 3, 3, output_shape=(batch_size, 31, 31, 32), activation='relu', border_mode='valid', subsample=(2, 2))(x)
+x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, 31, 31, 64), activation='relu', border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization()(x)
-decoded = Deconvolution2D(3, 2, 2, output_shape=(batch_size, 32, 32, 3), activation='tanh', border_mode='valid')(x)
+decoded = Deconvolution2D(3, 2, 2, output_shape=(batch_size, 32, 32, 3), activation='sigmoid', border_mode='valid', subsample=(1, 1))(x)
+
 
 autoencoder = Model(input_img, decoded)
 autoencoder.summary()

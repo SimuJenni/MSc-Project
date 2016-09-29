@@ -7,8 +7,8 @@ import numpy as np
 from keras.callbacks import TensorBoard
 
 
-batch_size = 100
-nb_epoch = 50
+batch_size = 250
+nb_epoch = 10
 
 # Image dimensions
 img_rows, img_cols = 32, 32
@@ -21,7 +21,7 @@ print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
 
 
-input_img = Input(shape=(img_rows, img_cols, img_channels), batch_shape=(batch_size,img_rows, img_cols, img_channels))
+input_img = Input(shape=(img_rows, img_cols, img_channels))
 
 x = Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(2, 2))(input_img)
 x = BatchNormalization()(x)

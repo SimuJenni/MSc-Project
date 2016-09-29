@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+
 from keras.layers import Input, Dense, Convolution2D, Flatten, Reshape, BatchNormalization, Deconvolution2D
 from keras.models import Model
 from keras.datasets import cifar10
@@ -6,6 +6,11 @@ from image import ImageDataGenerator
 import numpy as np
 from keras.callbacks import TensorBoard
 from cartooning import cartoonify_Bilateral
+import matplotlib
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
+
 
 batch_size = 250
 nb_epoch = 50
@@ -20,7 +25,6 @@ img_channels = 3
 print('X_train shape:', X_train.shape)
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
-
 
 input_img = Input(shape=(img_rows, img_cols, img_channels))
 
@@ -44,12 +48,9 @@ x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, 31, 31, 64), activation=
 x = BatchNormalization()(x)
 decoded = Deconvolution2D(3, 2, 2, output_shape=(batch_size, 32, 32, 3), activation='sigmoid', border_mode='valid', subsample=(1, 1))(x)
 
-
 autoencoder = Model(input_img, decoded)
 autoencoder.summary()
-
 autoencoder.compile(optimizer='adam', loss='mse')
-
 
 X_train = X_train.astype('float32') / 255.
 X_test = X_test.astype('float32') / 255.
@@ -101,3 +102,4 @@ for i in range(n):
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
 plt.show()
+plt.savefig('test.pdf')

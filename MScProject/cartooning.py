@@ -1,8 +1,6 @@
-import numpy as np
-import timeit
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-from skimage import data, img_as_float
 from skimage.restoration import denoise_tv_chambolle
 import cv2
 

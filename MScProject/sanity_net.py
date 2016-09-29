@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 from keras.layers import Input, Dense, Convolution2D, Flatten, Reshape, BatchNormalization, Deconvolution2D
 from keras.models import Model
 from keras.datasets import cifar10
-from keras.preprocessing.image import ImageDataGenerator
+from image import ImageDataGenerator
 import numpy as np
 from keras.callbacks import TensorBoard
-
+from cartooning import cartoonify_Bilateral
 
 batch_size = 250
 nb_epoch = 50
@@ -58,6 +58,7 @@ X_test = np.reshape(X_test, (len(X_test), img_rows, img_cols, img_channels))
 
 # this will do preprocessing and realtime data augmentation
 datagen = ImageDataGenerator(
+    augment_fun=cartoonify_Bilateral,
     featurewise_center=False,  # set input mean to 0 over the dataset
     samplewise_center=False,  # set each sample mean to 0
     featurewise_std_normalization=False,  # divide inputs by std of the dataset

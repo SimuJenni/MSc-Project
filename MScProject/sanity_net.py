@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard
 
 
 batch_size = 250
-nb_epoch = 10
+nb_epoch = 50
 
 # Image dimensions
 img_rows, img_cols = 32, 32
@@ -16,6 +16,7 @@ img_channels = 3
 
 # the data, shuffled and split between train and test sets
 (X_train, _), (X_test, _) = cifar10.load_data()
+
 print('X_train shape:', X_train.shape)
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
@@ -42,7 +43,7 @@ decoded = Deconvolution2D(3, 2, 2, output_shape=(batch_size, 32, 32, 3), activat
 autoencoder = Model(input_img, decoded)
 autoencoder.summary()
 
-autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+autoencoder.compile(optimizer='adam', loss='mse')
 
 
 X_train = X_train.astype('float32') / 255.
@@ -75,7 +76,7 @@ autoencoder.fit_generator(datagen.flow(X_train, X_train,
                           validation_data=(X_test, X_test),
                           callbacks=[TensorBoard(log_dir='./logs')])
 
-decoded_imgs = autoencoder.predict(X_test)
+decoded_imgs = autoencoder.predict(X_test, batch_size=batch_size)
 
 n = 10
 plt.figure(figsize=(20, 4))

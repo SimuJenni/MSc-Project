@@ -1,8 +1,9 @@
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from skimage.restoration import denoise_tv_chambolle
 import cv2
+from threading import Thread
+import os
+import numpy as np
 
 
 def cartoonify_TV1(im, numDownSamples=2, weight=0.1):
@@ -21,7 +22,7 @@ def cartoonify_TV1(im, numDownSamples=2, weight=0.1):
     return im
 
 
-def cartoonify_Bilateral(im, numDownSamples=2, numBilateralFilters=50):
+def cartoonify_Bilateral(im, numDownSamples=1, numBilateralFilters=50):
 
     # Downsample
     for _ in xrange(numDownSamples):
@@ -36,6 +37,44 @@ def cartoonify_Bilateral(im, numDownSamples=2, numBilateralFilters=50):
         im = cv2.pyrUp(im)
 
     return im
+
+def process_data(X, num_threads=10):
+    X_proc = np.zeros_like(X)
+    num_samples = X.shape[0]
+
+    # Process data in num_threads equally sized slices
+    slice_length = num_samples // num_threads
+    starts = np.arange(0, num_samples-slice_length+1, slice_length)
+    ends = np.arange(slice_length, num_samples+1, slice_length)
+
+    # Store results of slices in a list
+    results = [{} for x in range(0, num_threads)]
+    def process_array(X, results, idx):
+        num_im = X.shape[0]
+        X_toon = np.zeros_like(X)
+        for i in range(0, num_im):
+            if i%1000==0:
+                print('Thread {}: {}/{}'.format(idx, i, num_im))
+            X_toon[i, :, :] = cartoonify_Bilateral(X[i, :, :])
+        results[idx] = X_toon
+
+    # Create threads and feed slices
+    threads = []
+    for ii in range(0, num_threads):
+        process = Thread(target=process_array, args=[X[starts[ii]:ends[ii], :, :], results, ii])
+        process.start()
+        threads.append(process)
+    print('Processing all the images with {} threads'.format(num_threads))
+    for process in threads:
+        process.join()
+    print('Done!')
+
+    # Merge results
+    for ii, value in enumerate(results):
+        X_proc[starts[ii]:ends[ii], :, :] = value
+
+    return X_proc
+
 
 
 def test_cartoon():

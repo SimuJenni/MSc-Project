@@ -93,4 +93,4 @@ ENV/
 *.jpg
 
 # Ignore the Tensorboard logs
-MScProject/logs/
+logs/

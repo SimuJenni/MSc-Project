@@ -91,6 +91,8 @@ ENV/
 # Added by me
 .idea
 *.jpg
+data
+*.png
 
 # Ignore the Tensorboard logs
 logs/

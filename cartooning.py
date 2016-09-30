@@ -1,12 +1,11 @@
 import matplotlib.pyplot as plt
-from skimage.restoration import denoise_tv_chambolle
+from skimage.restoration import denoise_tv_chambolle, denoise_bilateral
 import cv2
 from threading import Thread
-import os
 import numpy as np
 
 
-def cartoonify_TV1(im, numDownSamples=2, weight=0.1):
+def cartoonify_TV1(im, numDownSamples=1, weight=0.1):
 
     # Downsample
     for _ in xrange(numDownSamples):
@@ -22,7 +21,7 @@ def cartoonify_TV1(im, numDownSamples=2, weight=0.1):
     return im
 
 
-def cartoonify_Bilateral(im, numDownSamples=1, numBilateralFilters=50):
+def cartoonify_Bilateral(im, numDownSamples=1, numBilateralFilters=100):
 
     # Downsample
     for _ in xrange(numDownSamples):
@@ -78,7 +77,8 @@ def process_data(X, num_threads=10):
 
 
 def test_cartoon():
-    im = plt.imread('pizza.jpg')
+    im = plt.imread('knit.jpg')
+
     cartoon_BL = cartoonify_Bilateral(im)
     cartoon_TV = cartoonify_TV1(im)
 

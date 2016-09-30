@@ -1,7 +1,6 @@
 import os
 from constants import CIFAR10_DATADIR
 from keras.datasets import cifar10
-from cartooning import process_data
 import h5py
 
 
@@ -19,6 +18,7 @@ def load_cartoon_data():
             return (data['X_train'][:], data['Y_train'][:]), (data['X_test'][:], data['Y_test'][:])
 
     # Otherwise get the data set and process it
+    from cartooning import process_data
     (Y_train, _), (Y_test, _) = cifar10.load_data()
     X_train = process_data(Y_train)
     X_test = process_data(Y_test)

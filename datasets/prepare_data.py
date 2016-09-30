@@ -158,12 +158,12 @@ def find_image_files(data_dir):
     unique_labels = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
     if not unique_labels:
-        jpeg_file_pattern = '%s/*.JPEG' % (data_dir)
+        jpeg_file_pattern = '%s*.JPEG' % (data_dir)
         matching_files = glob.glob(jpeg_file_pattern)
         filenames.extend(matching_files)
     else:
         for text in unique_labels:
-            jpeg_file_pattern = '%s/%s/*' % (data_dir, text)
+            jpeg_file_pattern = '%s%s/*' % (data_dir, text)
             matching_files = glob.glob(jpeg_file_pattern)
             filenames.extend(matching_files)
             if not label_index % 100:

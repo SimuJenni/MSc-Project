@@ -4,7 +4,6 @@ import os
 import h5py
 
 from constants import TINYIMAGENET_DATADIR, TINYIMAGENET_SRC_DIR
-from prepare_data import process_dataset
 from utils import montage
 
 # For tiny-imagenet data preparation (100.000 train, 10.000 val)
@@ -58,6 +57,7 @@ class TinyImagenet:
         """
             Pre-processes the source data and stores in batches for training
         """
+        from prepare_data import process_dataset
         val_dir = os.path.join(self.src_data_dir, 'val/images/')
         train_dir = os.path.join(self.src_data_dir, 'train/')
         print(val_dir)

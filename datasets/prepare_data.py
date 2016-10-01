@@ -2,20 +2,21 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import glob
 import os
 import random
 import sys
 import threading
 from datetime import datetime
-import glob
-import h5py
 
+import h5py
 import numpy as np
 from scipy import misc
 
+from cartooning import cartoonify_bilateral
 from constants import DATA_DIR, NUM_THREADS
 from utils import imcrop_tosquare
-from cartooning import cartoonify_Bilateral
+
 
 def process_image(filename, im_dim):
     """Process a single image
@@ -31,9 +32,8 @@ def process_image(filename, im_dim):
     image_data = misc.imread(filename, mode='RGB') / 255.
     image_data = imcrop_tosquare(image_data)
     image_data = misc.imresize(image_data, im_dim)
-    image_cartoon = cartoonify_Bilateral(image_data)
+    image_cartoon = cartoonify_bilateral(image_data)
     return (image_cartoon, image_data)
-
 
 
 def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, num_shards, im_dim):
@@ -43,6 +43,7 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, nu
       thread_index (int): Unique batch to run index is within [0, len(ranges)).
       ranges: List of pairs of integers specifying ranges of each batches to    analyze in parallel.
       name (str): Unique identifier specifying the data set
+      out_dir: Diriectory for storing results
       filenames: List of strings; each string is a path to an image file
       num_shards (int): Number of shards for this data set.
       im_dim: Tuple (height, width) defining the size of the images
@@ -61,7 +62,7 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, nu
     num_files_in_thread = ranges[thread_index][1] - ranges[thread_index][0]
 
     counter = 0
-    for s in xrange(num_shards_per_batch):
+    for s in range(num_shards_per_batch):
         # Generate a sharded version of the file name, e.g. 'train-00002-of-00010'
         shard = thread_index * num_shards_per_batch + s
         output_filename = '%s-%.5d-of-%.5d' % (name, shard, num_shards)
@@ -98,6 +99,7 @@ def process_image_files(name, out_dir, filenames, num_shards, im_dim):
 
     Args:
       name (str): Unique identifier specifying the data set
+      out_dir: Diriectory for storing results
       filenames: List of strings; each string is a path to an image file
       num_shards (int): Number of shards for this data set.
       im_dim: Tuple (height, width) defining the size of the images
@@ -106,7 +108,7 @@ def process_image_files(name, out_dir, filenames, num_shards, im_dim):
     # Break all images into batches with a [ranges[i][0], ranges[i][1]].
     spacing = np.linspace(0, len(filenames), NUM_THREADS + 1).astype(np.int)
     ranges = []
-    for i in xrange(len(spacing) - 1):
+    for i in range(len(spacing) - 1):
         ranges.append([spacing[i], spacing[i + 1]])
 
     # Launch a thread for each batch.
@@ -114,7 +116,7 @@ def process_image_files(name, out_dir, filenames, num_shards, im_dim):
     sys.stdout.flush()
 
     threads = []
-    for thread_index in xrange(len(ranges)):
+    for thread_index in range(len(ranges)):
         args = (thread_index, ranges, name, out_dir, filenames, num_shards, im_dim)
         t = threading.Thread(target=process_image_files_batch, args=args)
         t.start()
@@ -143,7 +145,6 @@ def find_image_files(data_dir):
     Returns:
       filenames: list of strings; each string is a path to an image file.
     """
-
 
     print('Determining list of input files and labels from %s.' % data_dir)
 
@@ -191,22 +192,9 @@ def process_dataset(name, src_dir, out_dir, num_shards, im_dim=(256, 256)):
     Args:
       name: string, unique identifier specifying the data set.
       src_dir: string, root path to the data set.
+      out_dir: Directory for storing results
       num_shards: integer number of shards for this data set.
       im_dim: Tuple (height, width) defining the size of the images
     """
     filenames = find_image_files(src_dir)
     process_image_files(name, out_dir, filenames, num_shards, im_dim)
-
-
-def main():
-    print('Saving results to %s' % DATA_DIR)
-
-    # Run it!
-    val_dir = '/Users/simujenni/Data/tiny-imagenet-200-prepped/val/images/'
-    train_dir = '/Users/simujenni/Data/tiny-imagenet-200-prepped/train'
-    process_dataset('validation', val_dir, NUM_THREADS)
-    process_dataset('train', train_dir, NUM_THREADS)
-
-
-if __name__ == '__main__':
-    main()

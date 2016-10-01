@@ -9,12 +9,13 @@ from datasets.TinyImagenet import TinyImagenet
 batch_size = 250
 nb_epoch = 5
 
-# Image dimensions
+# Get the data-set object
 data = TinyImagenet()
+
+# Image dimensions
 img_rows, img_cols, img_channels = data.get_dims()
 
 input_img = Input(shape=(img_rows, img_cols, img_channels))
-
 x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2))(input_img)
 x = BatchNormalization(axis=3)(x)
 x = Activation('relu')(x)
@@ -24,7 +25,6 @@ x = Activation('relu')(x)
 x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization(axis=3)(x)
 encoded = Activation('relu')(x)
-
 
 x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, 15, 15, 256), border_mode='valid', subsample=(2, 2))(
     encoded)

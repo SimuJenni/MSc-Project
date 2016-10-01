@@ -2,7 +2,8 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution
 from keras.models import Model
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 128, 256, 512, 1024]
+F_DIMS = [32, 64, 128, 256, 512]
+NUM_RES_LAYERS = 10
 
 def ToonNet(input_shape, batch_size):
 
@@ -103,6 +104,10 @@ def ToonResNet(input_shape, batch_size):
     x = BatchNormalization(axis=3)(x)
     encoded = Activation('relu')(x)
 
+    #TODO add some resnet layers with bottleneck here
+    for i in range(NUM_RES_LAYERS):
+        encoded = res_layer(encoded, F_DIMS[4], 64)
+
     # Layer 6
     x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
                         subsample=(2, 2))(encoded)
@@ -143,6 +148,23 @@ def ToonResNet(input_shape, batch_size):
     toon_net.compile(optimizer='adam', loss='mse')
 
     return toon_net, encoded
+
+
+def res_layer(in_layer, out_dim, bn_dim):
+    # 1x1 Bottleneck
+    x = Convolution2D(bn_dim, 1, 1, border_mode='same', subsample=(1, 1))(in_layer)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation('relu')(x)
+    # 3x3 conv
+    x = Convolution2D(bn_dim, 3, 3, border_mode='same', subsample=(1, 1))(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation('relu')(x)
+    # 1x1 to out_dim
+    x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1))(x)
+    x = BatchNormalization(axis=3)(x)
+    x = merge([x, in_layer], mode='sum')
+    x = Activation('relu')(x)
+    return x
 
 
 def compute_layer_dims(input_shape):

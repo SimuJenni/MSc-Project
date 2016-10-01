@@ -1,5 +1,6 @@
 from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
+import numpy as np
 
 from ToonNet import ToonNet, ToonResNet
 from datasets.TinyImagenet import TinyImagenet
@@ -43,6 +44,7 @@ for e in range(nb_epoch):
                           callbacks=[TensorBoard(log_dir='./logs')])
 
 decoded_imgs = net.predict(X_test, batch_size=batch_size) + X_test
+decoded_imgs = np.clip(decoded_imgs, 0.0, 1.0)
 
 montage(X_test[:100, :, :], 'ToonResNet-X')
 montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')

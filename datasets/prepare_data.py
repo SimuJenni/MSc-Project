@@ -29,7 +29,7 @@ def process_image(filename, im_dim):
         np.array of processed image data
     """
     # Read the image file.
-    image_data = misc.imread(filename, mode='RGB') / 255.
+    image_data = misc.imread(filename, mode='RGB')
     image_data = imcrop_tosquare(image_data)
     image_data = misc.imresize(image_data, im_dim)
     image_cartoon = cartoonify_bilateral(image_data)

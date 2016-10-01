@@ -4,7 +4,7 @@ import os
 import h5py
 
 from constants import TINYIMAGENET_DATADIR, TINYIMAGENET_SRC_DIR
-from utils import montage
+from utils import montage, im2float_array
 
 # For tiny-imagenet data preparation (100.000 train, 10.000 val)
 NUM_SHARDS_TRAIN = 10
@@ -43,7 +43,10 @@ class TinyImagenet:
         for i in range(0, len(self.train_files)):
             val = h5py.File(self.val_files[i % num_val], 'r')
             train = h5py.File(self.train_files[i], 'r')
-            yield (train['X'][:], train['Y'][:], val['X'][:], val['Y'][:])
+            yield (im2float_array(train['X'][:]),
+                   im2float_array(train['Y'][:]),
+                   im2float_array(val['X'][:]),
+                   im2float_array(val['Y'][:]))
 
     def get_sample(self, sample_size):
         """
@@ -51,7 +54,7 @@ class TinyImagenet:
         """
         train = h5py.File(self.train_files[0], 'r')
         sample_size = min(sample_size, len(train))
-        return train['X'][:sample_size]
+        return im2float_array(train['X'][:sample_size])
 
     def process_tiny_imagenet(self):
         """

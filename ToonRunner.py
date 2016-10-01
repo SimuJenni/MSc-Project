@@ -44,6 +44,6 @@ for e in range(nb_epoch):
 
 decoded_imgs = net.predict(X_test, batch_size=batch_size) + X_test
 
-montage(X_test[:100, :, :], 'ToonNet-X')
-montage(decoded_imgs[:100, :, :], 'ToonNet-Out')
-montage(Y_test[:100, :, :], 'ToonNet-Y')
+montage(X_test[:100, :, :], 'ToonResNet-X')
+montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')
+montage(Y_test[:100, :, :], 'ToonResNet-Y')

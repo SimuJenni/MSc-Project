@@ -2,7 +2,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution
 from keras.models import Model
 
 NUM_CONV_LAYERS = 5
-
+F_DIMS = [64, 128, 256, 512, 1024]
 
 def ToonNet(input_shape, batch_size):
 
@@ -11,50 +11,50 @@ def ToonNet(input_shape, batch_size):
     input_im = Input(shape=input_shape)
 
     # Layer 1
-    x = Convolution2D(32, 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
+    x = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 2
-    x = Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2))(x)
+    x = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 3
-    x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    x = Convolution2D(F_DIMS[2], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 4
-    x = Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    x = Convolution2D(F_DIMS[3], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 5
-    x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    x = Convolution2D(F_DIMS[4], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     encoded = Activation('relu')(x)
 
     # Layer 6
-    x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], 256), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
                         subsample=(2, 2))(encoded)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 7
-    x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], 128), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], F_DIMS[2]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 8
-    x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], 64), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], F_DIMS[1]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
 
     # Layer 9
-    x = Deconvolution2D(32, 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], 32), border_mode='same',
+    x = Deconvolution2D(F_DIMS[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], F_DIMS[0]), border_mode='same',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
@@ -79,53 +79,53 @@ def ToonResNet(input_shape, batch_size):
     input_im = Input(shape=input_shape)
 
     # Layer 1
-    l1 = Convolution2D(32, 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
+    l1 = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
     x = BatchNormalization(axis=3)(l1)
     x = Activation('relu')(x)
 
     # Layer 2
-    l2 = Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2))(x)
+    l2 = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(l2)
     x = Activation('relu')(x)
 
     # Layer 3
-    l3 = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    l3 = Convolution2D(F_DIMS[2], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(l3)
     x = Activation('relu')(x)
 
     # Layer 4
-    l4 = Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    l4 = Convolution2D(F_DIMS[3], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(l4)
     x = Activation('relu')(x)
 
     # Layer 5
-    x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+    x = Convolution2D(F_DIMS[4], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     encoded = Activation('relu')(x)
 
     # Layer 6
-    x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], 256), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
                         subsample=(2, 2))(encoded)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
     x = merge([x, l4], mode='sum')
 
     # Layer 7
-    x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], 128), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], F_DIMS[2]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
     x = merge([x, l3], mode='sum')
 
     # Layer 8
-    x = Deconvolution2D(64, 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], 64), border_mode='valid',
+    x = Deconvolution2D(F_DIMS[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], F_DIMS[1]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)
     x = merge([x, l2], mode='sum')
 
     # Layer 9
-    x = Deconvolution2D(32, 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], 32), border_mode='same',
+    x = Deconvolution2D(F_DIMS[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], F_DIMS[0]), border_mode='same',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
     x = Activation('relu')(x)

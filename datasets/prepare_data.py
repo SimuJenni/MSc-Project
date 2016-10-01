@@ -70,8 +70,8 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, nu
         with h5py.File(output_file, 'w') as out_file:
             shard_counter = 0
             files_in_shard = np.arange(shard_ranges[s], shard_ranges[s + 1], dtype=int)
-            X = out_file.create_dataset('X', shape=(len(files_in_shard), im_dim[0], im_dim[1], 3))
-            Y = out_file.create_dataset('Y', shape=(len(files_in_shard), im_dim[0], im_dim[1], 3))
+            X = out_file.create_dataset('X', shape=(len(files_in_shard), im_dim[0], im_dim[1], 3), dtype=np.uint8)
+            Y = out_file.create_dataset('Y', shape=(len(files_in_shard), im_dim[0], im_dim[1], 3), dtype=np.uint8)
             for i, j in enumerate(files_in_shard):
                 filename = filenames[j]
                 image_data, image_cartoon = process_image(filename, im_dim)

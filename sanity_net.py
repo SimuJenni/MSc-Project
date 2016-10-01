@@ -7,7 +7,7 @@ from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 250
-nb_epoch = 20
+nb_epoch = 10
 
 # Get the data-set object
 data = TinyImagenet()
@@ -77,6 +77,6 @@ for e in range(nb_epoch):
 
 decoded_imgs = autoencoder.predict(X_test, batch_size=batch_size)
 
-montage(X_test[:100, :, :] / 255., 'ToonNet-X')
-montage(decoded_imgs[:100, :, :] / 255., 'ToonNet-Out')
-montage(Y_test[:100, :, :] / 255., 'ToonNet-Y')
+montage(X_test[:100, :, :], 'ToonNet-X')
+montage(decoded_imgs[:100, :, :], 'ToonNet-Out')
+montage(Y_test[:100, :, :], 'ToonNet-Y')

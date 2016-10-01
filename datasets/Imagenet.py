@@ -3,37 +3,37 @@ import os
 
 from Dataset import Dataset
 
-from constants import TINYIMAGENET_DATADIR, TINYIMAGENET_SRC_DIR
+from constants import IMAGENET_DATADIR, IMAGENET_SRC_DIR
 from utils import montage
 
-# For tiny-imagenet data preparation (100.000 train, 10.000 val)
-NUM_SHARDS_TRAIN = 10
+# For imagenet data preparation (12.000.000 train, 50.000 val)
+NUM_SHARDS_TRAIN = 240
 NUM_SHARDS_VAL = 10
-IM_HEIGHT = 64
-IM_WIDTH = 64
+IM_HEIGHT = 256
+IM_WIDTH = 256
 
 
-class TinyImagenet(Dataset):
+class Imagenet(Dataset):
 
     def __init__(self):
-        self.src_data_dir = TINYIMAGENET_SRC_DIR
-        self.data_dir = TINYIMAGENET_DATADIR
+        self.src_data_dir = IMAGENET_SRC_DIR
+        self.data_dir = IMAGENET_DATADIR
         self.dims = (IM_HEIGHT, IM_HEIGHT, 3)
         # Check if dataset has already been preprocessed
         if not os.path.exists(self.data_dir):
             os.mkdir(self.data_dir)
-            self.process_tiny_imagenet()
+            self.process_imagenet()
         # Paths to data-files with randomized train and test images
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
 
-    def process_tiny_imagenet(self):
+    def process_imagenet(self):
         """
             Pre-processes the source data and stores in batches for training
         """
         from prepare_data import process_dataset
-        val_dir = os.path.join(self.src_data_dir, 'val/images/')
-        train_dir = os.path.join(self.src_data_dir, 'train/')
+        val_dir = os.path.join(self.src_data_dir, 'ILSVRC2012_img_val/')
+        train_dir = os.path.join(self.src_data_dir, 'ILSVRC2012_img_train/')
         print(val_dir)
         print(train_dir)
 
@@ -42,9 +42,9 @@ class TinyImagenet(Dataset):
 
 
 if __name__ == '__main__':
-    data = TinyImagenet()
+    data = Imagenet()
     count = 1
     for train_x, train_y, _, _ in data.generator():
-        montage(train_x[:100, :, :], 'TiniImagenet-X-{}'.format(count))
-        montage(train_y[:100, :, :], 'TiniImagenet-Y-{}'.format(count))
+        montage(train_x[:100, :, :], 'Imagenet-X-{}'.format(count))
+        montage(train_y[:100, :, :], 'Imagenet-Y-{}'.format(count))
         count += 1

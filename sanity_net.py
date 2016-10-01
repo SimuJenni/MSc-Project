@@ -1,13 +1,13 @@
-import matplotlib.pyplot as plt
 from keras.callbacks import TensorBoard
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 
 from datasets.TinyImagenet import TinyImagenet
+from utils import montage
 
 batch_size = 250
-nb_epoch = 10
+nb_epoch = 50
 
 # Get the data-set object
 data = TinyImagenet()
@@ -24,10 +24,14 @@ x = BatchNormalization(axis=3)(x)
 x = Activation('relu')(x)
 x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization(axis=3)(x)
+x = Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2))(x)
+x = BatchNormalization(axis=3)(x)
 encoded = Activation('relu')(x)
 
-x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, 15, 15, 256), border_mode='valid', subsample=(2, 2))(
+x = Deconvolution2D(512, 3, 3, output_shape=(batch_size, 7, 7, 512), border_mode='valid', subsample=(2, 2))(
     encoded)
+x = BatchNormalization(axis=3)(x)
+x = Deconvolution2D(256, 3, 3, output_shape=(batch_size, 15, 15, 256), border_mode='valid', subsample=(2, 2))(x)
 x = BatchNormalization(axis=3)(x)
 x = Activation('relu')(x)
 x = Deconvolution2D(128, 3, 3, output_shape=(batch_size, 31, 31, 128), border_mode='valid', subsample=(2, 2))(x)
@@ -73,28 +77,6 @@ for e in range(nb_epoch):
 
 decoded_imgs = autoencoder.predict(X_test, batch_size=batch_size)
 
-n = 15
-plt.figure(figsize=(20, 6))
-for i in range(n):
-    # display original input
-    ax = plt.subplot(3, n, i + 1)
-    plt.imshow(X_test[i].reshape(img_rows, img_cols, img_channels))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-
-    # display reconstruction
-    ax = plt.subplot(3, n, i + n + 1)
-    plt.imshow(decoded_imgs[i].reshape(img_rows, img_cols, img_channels))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-
-    # display ground truth
-    ax = plt.subplot(3, n, i + n + n + 1)
-    plt.imshow(Y_test[i].reshape(img_rows, img_cols, img_channels))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-plt.savefig('test.pdf')
-plt.show()
+montage(X_test[:100, :, :] / 255., 'ToonNet-X')
+montage(decoded_imgs[:100, :, :] / 255., 'ToonNet-Out')
+montage(Y_test[:100, :, :] / 255., 'ToonNet-Y')

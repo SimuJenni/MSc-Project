@@ -75,6 +75,7 @@ def ToonNet(input_shape, batch_size):
 
 def ToonResNet(input_shape, batch_size):
 
+
     # Compute the dimensions of the layers
     l_dims = compute_layer_dims(input_shape=input_shape)
     input_im = Input(shape=input_shape)
@@ -83,6 +84,7 @@ def ToonResNet(input_shape, batch_size):
     x = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
     x = BatchNormalization(axis=3)(x)
     l1 = Activation('relu')(x)
+    #TODO add 1x1 conv to the bypass layers
 
     # Layer 2
     x = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(l1)

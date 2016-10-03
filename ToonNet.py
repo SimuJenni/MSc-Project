@@ -83,23 +83,33 @@ def ToonResNet(input_shape, batch_size):
     # Layer 1
     x = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
     x = BatchNormalization(axis=3)(x)
-    l1 = Activation('relu')(x)
-    #TODO add 1x1 conv to the bypass layers
+    x = Activation('relu')(x)
+    l1 = Convolution2D(F_DIMS[0], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+    l1 = BatchNormalization(axis=3)(l1)
+
 
     # Layer 2
-    x = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(l1)
+    x = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    l2 = Activation('relu')(x)
+    x = Activation('relu')(x)
+    l2 = Convolution2D(F_DIMS[1], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+    l2 = BatchNormalization(axis=3)(l2)
 
     # Layer 3
-    x = Convolution2D(F_DIMS[2], 3, 3, border_mode='valid', subsample=(2, 2))(l2)
+    x = Convolution2D(F_DIMS[2], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    l3 = Activation('relu')(x)
+    x = Activation('relu')(x)
+    l3 = Convolution2D(F_DIMS[2], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+    l3 = BatchNormalization(axis=3)(l3)
+
 
     # Layer 4
-    x = Convolution2D(F_DIMS[3], 3, 3, border_mode='valid', subsample=(2, 2))(l3)
+    x = Convolution2D(F_DIMS[3], 3, 3, border_mode='valid', subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    l4 = Activation('relu')(x)
+    x = Activation('relu')(x)
+    l4 = Convolution2D(F_DIMS[3], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+    l4 = BatchNormalization(axis=3)(l4)
+
 
     # Layer 5
     x = Convolution2D(F_DIMS[4], 3, 3, border_mode='valid', subsample=(2, 2))(x)

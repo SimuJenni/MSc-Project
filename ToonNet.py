@@ -3,9 +3,10 @@ from keras.models import Model
 
 NUM_CONV_LAYERS = 5
 #F_DIMS = [32, 64, 128, 256, 512]
-F_DIMS = [64, 128, 256, 512, 1024]
+#F_DIMS = [64, 128, 256, 512, 1024]
+F_DIMS = [64, 96, 192, 256, 512]
 
-NUM_RES_LAYERS = 10
+NUM_RES_LAYERS = 20
 
 def ToonNet(input_shape, batch_size):
 

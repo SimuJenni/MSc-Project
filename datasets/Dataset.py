@@ -33,12 +33,17 @@ class Dataset:
         for i in range(0, len(self.train_files)):
             val = h5py.File(self.val_files[i % num_val], 'r')
             train = h5py.File(self.train_files[i], 'r')
-            yield (im2float_array(train['X'][:]),
-                   im2float_array(train['Y'][:]),
-                   im2float_array(val['X'][:]),
-                   im2float_array(val['Y'][:]))
+            train_X = im2float_array(train['X'][:])
+            train_Y = im2float_array(train['Y'][:])
+            test_X = im2float_array(val['X'][:])
+            test_Y = im2float_array(val['Y'][:])
             val.close()
             train.close()
+            yield (train_X,
+                   train_Y,
+                   test_X,
+                   test_Y)
+
 
     def get_sample(self, sample_size):
         """

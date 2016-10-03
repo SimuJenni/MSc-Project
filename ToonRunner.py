@@ -7,7 +7,7 @@ from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 250
-nb_epoch = 50
+nb_epoch = 4
 
 # Get the data-set object
 data = TinyImagenet()

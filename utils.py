@@ -81,4 +81,6 @@ def montage(images, saveto='montage.png'):
     return m
 
 def im2float_array(imgs):
-    return imgs.astype('float32') / 255.
+    #TODO: remove halfing...
+    n = imgs.shape[0]
+    return imgs[:(n//2)].astype('float32') / 255.

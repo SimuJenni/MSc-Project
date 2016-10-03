@@ -39,12 +39,12 @@ class Dataset:
                 train_Y = im2float_array(train['Y'][:])
             yield (train_X, train_Y, test_X, test_Y)
 
-
     def get_sample(self, sample_size):
         """
             Returns a representative sample set of the training data.
         """
         with h5py.File(self.train_files[0], 'r') as train:
-            sample_size = min(sample_size, len(train))
-            sample = train['X'][:sample_size]
+            train_X = im2float_array(train['X'][:])
+            sample_size = min(sample_size, train_X.shape[0])
+            sample = train_X[:sample_size]
         return sample

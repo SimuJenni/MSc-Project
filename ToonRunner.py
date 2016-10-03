@@ -7,7 +7,7 @@ from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 250
-nb_epoch = 5
+nb_epoch = 50
 
 # Get the data-set object
 data = TinyImagenet()
@@ -40,8 +40,7 @@ for e in range(nb_epoch):
                                        batch_size=batch_size),
                           samples_per_epoch=X_train.shape[0],
                           nb_epoch=1,
-                          validation_data=(X_test, Y_test - X_test),
-                          callbacks=[TensorBoard(log_dir='./logs')])
+                          validation_data=(X_test, Y_test - X_test))
 
 decoded_imgs = net.predict(X_test, batch_size=batch_size) + X_test
 decoded_imgs = np.clip(decoded_imgs, 0.0, 1.0)

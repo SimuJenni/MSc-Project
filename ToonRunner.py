@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import gc
 
-from ToonNet import ToonNet, ToonResNet
+from ToonNet import ToonNet
 from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -16,7 +16,7 @@ with tf.device('/gpu:1'):
     data = TinyImagenet()
 
     # Load the net
-    net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid')
+    net, _ = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid')
 
     # Min reconstruction
     for e in range(nb_epoch):

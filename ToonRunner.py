@@ -16,7 +16,7 @@ with tf.device('/gpu:1'):
     data = TinyImagenet()
 
     # Load the net
-    net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size)
+    net, _ = ToonResNet1x1Outter(input_shape=data.get_dims(), batch_size=batch_size)
 
     datagen = ImageDataGenerator(
         featurewise_center=False,  # set input mean to 0 over the dataset

@@ -2,8 +2,8 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution
 from keras.models import Model
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [32, 64, 128, 256, 512]
-#F_DIMS = [64, 128, 256, 512, 1024]
+#F_DIMS = [32, 64, 128, 256, 512]
+F_DIMS = [64, 128, 256, 512, 1024]
 
 NUM_RES_LAYERS = 10
 
@@ -158,7 +158,6 @@ def ToonResNet1x1Outter(input_shape, batch_size, out_activation='sigmoid'):
     # Compute the dimensions of the layers
     l_dims = compute_layer_dims(input_shape=input_shape)
     input_im = Input(shape=input_shape)
-    l0 = Convolution2D(3, 1, 1, border_mode='valid', subsample=(1, 1), activation='sigmoid')(input_im)
 
     # Layer 1
     x = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
@@ -232,7 +231,6 @@ def ToonResNet1x1Outter(input_shape, batch_size, out_activation='sigmoid'):
     x = Deconvolution2D(3, 4, 4, output_shape=(batch_size, l_dims[0], l_dims[0], 3), border_mode='valid',
                         subsample=(1, 1))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l0], mode='sum')
     decoded = Activation(out_activation)(x)
 
     # Create the model

@@ -3,12 +3,12 @@ from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import gc
 
-from ToonNet import ToonNet, ToonResNet
+from ToonNet import ToonNet, ToonResNet, ToonResNet1x1Outter
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 250
-nb_epoch = 10
+nb_epoch = 5
 
 with tf.device('/gpu:1'):
 

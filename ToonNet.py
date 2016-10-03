@@ -107,7 +107,6 @@ def ToonResNet(input_shape, batch_size):
     x = BatchNormalization(axis=3)(x)
     encoded = Activation('relu')(x)
 
-    #TODO add some resnet layers with bottleneck here
     for i in range(NUM_RES_LAYERS):
         encoded = res_layer(encoded, F_DIMS[4], 64)
 
@@ -115,28 +114,28 @@ def ToonResNet(input_shape, batch_size):
     x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
                         subsample=(2, 2))(encoded)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l4], mode='sum') # TODO: other merge? maybe concat?
+    x = merge([x, l4], mode='concat') # TODO: other merge? maybe concat?
     x = Activation('relu')(x)
 
     # Layer 7
     x = Deconvolution2D(F_DIMS[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], F_DIMS[2]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l3], mode='sum')
+    x = merge([x, l3], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 8
     x = Deconvolution2D(F_DIMS[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], F_DIMS[1]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l2], mode='sum')
+    x = merge([x, l2], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 9
     x = Deconvolution2D(F_DIMS[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], F_DIMS[0]), border_mode='same',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l1], mode='sum')
+    x = merge([x, l1], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 10
@@ -204,28 +203,28 @@ def ToonResNet1x1Outter(input_shape, batch_size):
     x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
                         subsample=(2, 2))(encoded)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l4], mode='sum')
+    x = merge([x, l4], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 7
     x = Deconvolution2D(F_DIMS[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], F_DIMS[2]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l3], mode='sum')
+    x = merge([x, l3], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 8
     x = Deconvolution2D(F_DIMS[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], F_DIMS[1]), border_mode='valid',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l2], mode='sum')
+    x = merge([x, l2], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 9
     x = Deconvolution2D(F_DIMS[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], F_DIMS[0]), border_mode='same',
                         subsample=(2, 2))(x)
     x = BatchNormalization(axis=3)(x)
-    x = merge([x, l1], mode='sum')
+    x = merge([x, l1], mode='concat')
     x = Activation('relu')(x)
 
     # Layer 10

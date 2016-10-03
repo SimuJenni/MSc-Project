@@ -152,7 +152,7 @@ def ToonResNet(input_shape, batch_size):
     return toon_net, encoded
 
 
-def ToonResNet1x1Outter(input_shape, batch_size, out_activation='tanh'):
+def ToonResNet1x1Outter(input_shape, batch_size, out_activation='sigmoid'):
 
 
     # Compute the dimensions of the layers

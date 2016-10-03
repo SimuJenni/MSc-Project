@@ -23,7 +23,7 @@ class Dataset:
         """
         return self.dims
 
-    def generator(self):
+    def generator(self, batch_size):
         """
             A generator that loads training and validation data for training.
             Yields a tuple (X_train, Y_train, X_test, Y_test) where Xs are
@@ -37,7 +37,10 @@ class Dataset:
             with h5py.File(self.train_files[i], 'r') as train:
                 train_X = im2float_array(train['X'][:])
                 train_Y = im2float_array(train['Y'][:])
-            yield (train_X, train_Y, test_X, test_Y)
+            yield (trim2batchsize(train_X, batch_size),
+                   trim2batchsize(train_Y, batch_size),
+                   trim2batchsize(test_X, batch_size),
+                   trim2batchsize(test_Y, batch_size))
 
     def get_sample(self, sample_size):
         """
@@ -48,3 +51,9 @@ class Dataset:
             sample_size = min(sample_size, train_X.shape[0])
             sample = train_X[:sample_size]
         return sample
+
+
+def trim2batchsize(samples, batch_size):
+    num_samples = samples.shape[0]
+    l = (num_samples // batch_size) * batch_size
+    return samples[:l]

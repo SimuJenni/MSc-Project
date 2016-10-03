@@ -37,6 +37,8 @@ class Dataset:
                    im2float_array(train['Y'][:]),
                    im2float_array(val['X'][:]),
                    im2float_array(val['Y'][:]))
+            val.close()
+            train.close()
 
     def get_sample(self, sample_size):
         """

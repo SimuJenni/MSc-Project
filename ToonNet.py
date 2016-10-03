@@ -152,7 +152,7 @@ def ToonResNet(input_shape, batch_size):
     return toon_net, encoded
 
 
-def ToonResNet1x1Outter(input_shape, batch_size):
+def ToonResNet1x1Outter(input_shape, batch_size, out_activation='tanh'):
 
 
     # Compute the dimensions of the layers
@@ -231,7 +231,7 @@ def ToonResNet1x1Outter(input_shape, batch_size):
     x = Deconvolution2D(3, 4, 4, output_shape=(batch_size, l_dims[0], l_dims[0], 3), border_mode='valid',
                         subsample=(1, 1))(x)
     x = BatchNormalization(axis=3)(x)
-    decoded = Activation('tanh')(x)
+    decoded = Activation(out_activation)(x)
 
     # Create the model
     toon_net = Model(input_im, decoded)

@@ -19,9 +19,9 @@ with tf.device('/gpu:1'):
     net, _ = ToonResNet1x1Outter(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid')
 
     datagen = ImageDataGenerator(
-        featurewise_center=True,  # set input mean to 0 over the dataset
+        featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=True,  # divide inputs by std of the dataset
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
         samplewise_std_normalization=False,  # divide each input by its std
         zca_whitening=False,  # apply ZCA whitening
         rotation_range=False,  # randomly rotate images in the range (degrees, 0 to 180)

@@ -116,9 +116,14 @@ def main(_):
                                      global_step=global_step,
                                      save_model_secs=600)
 
+            sess_config = tf.ConfigProto(
+                allow_soft_placement=True,
+                log_device_placement=False,
+                device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
+
             # The supervisor takes care of session initialization, restoring from
             # a checkpoint, and closing when done or an error occurs.
-            with sv.managed_session(server.target) as sess:
+            with sv.managed_session(server.target, config=sess_config) as sess:
                 # Loop until the supervisor shuts down or 1000000 steps have completed.
                 batch_gen = data.train_batch_generator(batch_size=MINI_BATCH)
                 while not sv.should_stop():

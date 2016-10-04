@@ -23,7 +23,7 @@ net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_acti
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e+1, nb_epoch))
     # Generate batches of around 5000 samples
-    for X_train, Y_train in data.generator(batch_size):
+    for X_train, Y_train in data.generator_train(batch_size):
         net.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                           samples_per_epoch=X_train.shape[0],
                           nb_epoch=2,

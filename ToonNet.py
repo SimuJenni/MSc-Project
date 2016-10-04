@@ -6,7 +6,7 @@ NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 128, 256, 512]
 
 
-def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=15):
+def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -97,94 +97,6 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=15
 
     # Create the model
     toon_net = Model(input_im, decoded)
-    toon_net.summary()  # For debugging
-
-    # Define objective and solver
-    toon_net.compile(optimizer='adam', loss='mse')  # TODO: Try different objective
-
-    return toon_net, encoded
-
-
-def ToonResNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=15):
-    # Compute the dimensions of the layers
-    l_dims = compute_layer_dims(input_shape=input_shape)
-    input_im = Input(shape=input_shape)
-
-    # Layer 1
-    x = Convolution2D(F_DIMS[0], 4, 4, border_mode='valid', subsample=(1, 1))(input_im)
-    x = BatchNormalization(axis=3)(x)
-    x = Activation('relu')(x)
-    l1 = Convolution2D(F_DIMS[0], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l1 = BatchNormalization(axis=3)(l1)
-
-    # Layer 2
-    x = Convolution2D(F_DIMS[1], 3, 3, border_mode='same', subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = Activation('relu')(x)
-    l2 = Convolution2D(F_DIMS[1], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l2 = BatchNormalization(axis=3)(l2)
-
-    # Layer 3
-    x = Convolution2D(F_DIMS[2], 3, 3, border_mode='valid', subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = Activation('relu')(x)
-    l3 = Convolution2D(F_DIMS[2], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l3 = BatchNormalization(axis=3)(l3)
-
-    # Layer 4
-    x = Convolution2D(F_DIMS[3], 3, 3, border_mode='valid', subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = Activation('relu')(x)
-    l4 = Convolution2D(F_DIMS[3], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l4 = BatchNormalization(axis=3)(l4)
-
-    # Layer 5
-    x = Convolution2D(F_DIMS[4], 3, 3, border_mode='valid', subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    encoded = Activation('relu')(x)
-
-    # All the res-layers
-    for i in range(num_res_layers):
-        encoded = res_layer_bottleneck(encoded, F_DIMS[4], 64)
-
-    # Layer 6
-    x = Deconvolution2D(F_DIMS[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], F_DIMS[3]), border_mode='valid',
-                        subsample=(2, 2))(encoded)
-    x = BatchNormalization(axis=3)(x)
-    x = merge([x, l4], mode='concat')
-    x = Activation('relu')(x)
-
-    # Layer 7
-    x = Deconvolution2D(F_DIMS[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], F_DIMS[2]), border_mode='valid',
-                        subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = merge([x, l3], mode='concat')
-    x = Activation('relu')(x)
-
-    # Layer 8
-    x = Deconvolution2D(F_DIMS[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], F_DIMS[1]), border_mode='valid',
-                        subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = merge([x, l2], mode='concat')
-    x = Activation('relu')(x)
-
-    # Layer 9
-    x = Deconvolution2D(F_DIMS[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], F_DIMS[0]), border_mode='same',
-                        subsample=(2, 2))(x)
-    x = BatchNormalization(axis=3)(x)
-    x = merge([x, l1], mode='concat')
-    x = Activation('relu')(x)
-
-    # Layer 10
-    x = Deconvolution2D(3, 4, 4, output_shape=(batch_size, l_dims[0], l_dims[0], 3), border_mode='valid',
-                        subsample=(1, 1))(x)
-    x = BatchNormalization(axis=3)(x)
-    decoded = Activation(out_activation)(x)
-
-    # Create the model
-    toon_net = Model(input_im, decoded)
-    toon_net.summary()
-    toon_net.compile(optimizer='adam', loss='mse')
 
     return toon_net, encoded
 

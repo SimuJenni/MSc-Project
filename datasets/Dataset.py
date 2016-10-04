@@ -1,5 +1,5 @@
 import h5py
-
+import gc
 from utils import im2float_array
 
 IM_HEIGHT = 256
@@ -78,6 +78,12 @@ class Dataset:
             sample = train_X[:sample_size]
         return sample
 
+    def train_batch_generator(self, batch_size):
+        for X_train, Y_train in self.generator_train(batch_size):
+            num_data = X_train.shape[0]
+            for start in range(0, num_data, batch_size):
+                yield (X_train[start:(start + batch_size)], Y_train[start:(start + batch_size)])
+        gc.collect()
 
 def trim2batchsize(samples, batch_size):
     num_samples = samples.shape[0]

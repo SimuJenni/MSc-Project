@@ -98,7 +98,7 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10
     # Create the model
     toon_net = Model(input_im, decoded)
 
-    return toon_net, encoded
+    return toon_net, encoded, decoded
 
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):

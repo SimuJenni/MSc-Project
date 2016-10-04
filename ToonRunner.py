@@ -9,15 +9,15 @@ from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 125
-nb_epoch = 20
+batch_size = 100
+nb_epoch = 1
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid')
+net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid', num_res_layers=10)
 
 # Training
 for e in range(nb_epoch):
@@ -27,7 +27,7 @@ for e in range(nb_epoch):
         progbar = generic_utils.Progbar(X_train.shape[0])
         for X_batch, Y_batch in datagen.flow(X_train, Y_train, batch_size=batch_size):
             loss = net.train_on_batch(X_batch, Y_batch)
-            progbar.add(X_batch.shape[0], values=[("train loss", loss[0])])
+            progbar.add(X_batch.shape[0], values=[("train loss", loss)])
         gc.collect()
 
 decoded_imgs = net.predict(X_test, batch_size=batch_size)

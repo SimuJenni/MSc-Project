@@ -1,7 +1,7 @@
 import os
 
-DATA_DIR = '/Users/simujenni/MSc-Project/data/'
-#DATA_DIR = '/data/cvg/simon/data/'
+#DATA_DIR = '/Users/simujenni/MSc-Project/data/'
+DATA_DIR = '/data/cvg/simon/data/'
 
 NUM_THREADS = 10
 

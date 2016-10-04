@@ -9,7 +9,7 @@ from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 64
+batch_size = 32
 nb_epoch = 1
 
 # Get the data-set object
@@ -17,7 +17,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid', num_res_layers=8)
+net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid', num_res_layers=5)
 
 # Training
 for e in range(nb_epoch):
@@ -26,8 +26,7 @@ for e in range(nb_epoch):
     for X_train, Y_train in data.generator_train(batch_size):
         net.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                           samples_per_epoch=X_train.shape[0],
-                          nb_epoch=2,
-                          verbose=2)
+                          nb_epoch=2)
         gc.collect()
 
 # decoded_imgs = net.predict(X_test, batch_size=batch_size)

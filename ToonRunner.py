@@ -9,7 +9,7 @@ from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 32
+batch_size = 24
 nb_epoch = 1
 
 # Get the data-set object
@@ -23,18 +23,18 @@ net, _ = ToonResNet(input_shape=data.get_dims(), batch_size=batch_size, out_acti
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e+1, nb_epoch))
     # Generate batches of around 5000 samples
-    for X_train, Y_train in data.generator_train(batch_size):
+    for X_train, Y_train, X_test, Y_test in data.generator(batch_size):
         net.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                           samples_per_epoch=X_train.shape[0],
-                          nb_epoch=2)
+                          nb_epoch=1,
+                          validation_data=(X_test, Y_test))
         gc.collect()
 
-# decoded_imgs = net.predict(X_test, batch_size=batch_size)
-# decoded_imgs = np.clip(decoded_imgs, 0.0, 1.0)
-#
-#
-# montage(X_test[:100, :, :], 'ToonResNet-X')
-# montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')
-# montage(Y_test[:100, :, :], 'ToonResNet-Y')
+decoded_imgs = net.predict(X_test, batch_size=batch_size)
+decoded_imgs = np.clip(decoded_imgs, 0.0, 1.0)
+
+montage(X_test[:100, :, :], 'ToonResNet-X')
+montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')
+montage(Y_test[:100, :, :], 'ToonResNet-Y')
 
 net.save('ToonNet_tiny-imagenet.h5')

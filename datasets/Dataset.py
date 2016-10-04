@@ -7,7 +7,6 @@ IM_WIDTH = 256
 
 
 class Dataset:
-
     def __init__(self):
         """
             Base-class for all the datasets
@@ -47,6 +46,26 @@ class Dataset:
                 test_X = im2float_array(val['X'][:])
                 test_Y = im2float_array(val['Y'][:])
             yield (trim2batchsize(test_X, batch_size),
+                   trim2batchsize(test_Y, batch_size))
+
+    def generator(self, batch_size):
+        """
+            A generator that loads training and validation data for training.
+            Yields a tuple (X_train, Y_train, X_test, Y_test) where Xs are
+            cartooned and Ys are original images
+        """
+
+        num_val = len(self.val_files)
+        for i in range(0, len(self.train_files)):
+            with h5py.File(self.val_files[i % num_val], 'r') as val:
+                test_X = im2float_array(val['X'][:])
+                test_Y = im2float_array(val['Y'][:])
+            with h5py.File(self.train_files[i], 'r') as train:
+                train_X = im2float_array(train['X'][:])
+                train_Y = im2float_array(train['Y'][:])
+            yield (trim2batchsize(train_X, batch_size),
+                   trim2batchsize(train_Y, batch_size),
+                   trim2batchsize(test_X, batch_size),
                    trim2batchsize(test_Y, batch_size))
 
     def get_sample(self, sample_size):

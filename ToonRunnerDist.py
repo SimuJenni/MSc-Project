@@ -1,5 +1,6 @@
 import tempfile
 import time
+import gc
 
 import keras
 import tensorflow as tf
@@ -17,22 +18,13 @@ flags.DEFINE_integer("task_index", None,
                      "Worker task index, should be >= 0. task_index=0 is "
                      "the master worker task the performs the variable "
                      "initialization ")
-flags.DEFINE_integer("num_gpus", 4,
+flags.DEFINE_integer("num_gpus", 2,
                      "Total number of gpus for each machine."
                      "If you don't use GPU, please set it to '0'")
-flags.DEFINE_integer("train_steps", 100000,
-                     "Number of (global) training steps to perform")
-flags.DEFINE_integer("batch_size", 24, "Training batch size")
-flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
 flags.DEFINE_boolean("sync_replicas", False,
                      "Use the sync_replicas (synchronized replicas) mode, "
                      "wherein the parameter updates from workers are aggregated "
                      "before applied to avoid stale gradients")
-flags.DEFINE_boolean(
-    "existing_servers", False, "Whether servers already exists. If True, "
-                               "will use the worker hosts via their GRPC URLs (one client process "
-                               "per worker host). Otherwise, will create an in-process TensorFlow "
-                               "server.")
 flags.DEFINE_string("ps_hosts", "localhost:2222",
                     "Comma-separated list of hostname:port pairs")
 flags.DEFINE_string("worker_hosts", "localhost:2223,localhost:2224",
@@ -43,118 +35,113 @@ FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
+    # config
+    batch_size = 24
+    learning_rate = 0.001
+    training_epochs = 1
+    logs_path = "/tmp/toon-net/1"
+
     # Get the data-set object
     data = Imagenet()
 
-    # Construct the cluster and start the server
+    # Construct the cluster
     ps_spec = FLAGS.ps_hosts.split(",")
     worker_spec = FLAGS.worker_hosts.split(",")
-
-    # Get the number of workers.
     num_workers = len(worker_spec)
-
-    print("job name = %s" % FLAGS.job_name)
-    print("task index = %d" % FLAGS.task_index)
-    print("workers = %s" % worker_spec)
-    print("num workers = %s" % num_workers)
-    print("num gpus = %s" % FLAGS.num_gpus)
-
-    cluster = tf.train.ClusterSpec({
-        "ps": ps_spec,
-        "worker": worker_spec})
+    cluster = tf.train.ClusterSpec({"ps": ps_spec, "worker": worker_spec})
 
     # Not using existing servers. Create an in-process server.
     server = tf.train.Server(
         cluster, job_name=FLAGS.job_name, task_index=FLAGS.task_index)
-    if FLAGS.job_name == "ps":
-        server.join()
 
     is_chief = (FLAGS.task_index == 0)
 
-    if FLAGS.num_gpus > 0:
-        if FLAGS.num_gpus < num_workers:
-            raise ValueError("number of gpus is less than number of workers")
-        # Avoid gpu allocation conflict: now allocate task_num -> #gpu
-        # for each worker in the corresponding machine
-        gpu = (FLAGS.task_index % FLAGS.num_gpus)
-        worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, gpu)
-    elif FLAGS.num_gpus == 0:
-        # Just allocate the CPU to worker server
-        cpu = 0
-        worker_device = "/job:worker/task:%d/cpu:%d" % (FLAGS.task_index, cpu)
+    if FLAGS.job_name == "ps":
+        server.join()
+    elif FLAGS.job_name == "worker":
 
-    # The device setter will automatically place Variables ops on separate
-    # parameter servers (ps). The non-Variable ops will be placed on the workers.
-    # The ps use CPU and workers use corresponding GPU
-    with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
-                                                  # ps_device="/job:ps/cpu:0",
-                                                  cluster=cluster)):
-        global_step = tf.Variable(0, name="global_step", trainable=False)
+        if FLAGS.num_gpus > 0:
+            gpu = (FLAGS.task_index % FLAGS.num_gpus)
+            worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, gpu)
+        elif FLAGS.num_gpus == 0:
+            cpu = 0
+            worker_device = "/job:worker/task:%d/cpu:%d" % (FLAGS.task_index, cpu)
 
-        # set Keras learning phase to train
-        keras.backend.set_learning_phase(1)
-        # do not initialize variables on the fly
-        keras.backend.manual_variable_initialization(True)
+        # Between-graph replication
+        with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
+                                                      cluster=cluster)):
+            # count the number of updates
+            global_step = tf.Variable(0, name="global_step", trainable=False)
 
-        # Build Keras model
-        model, _, decoded = ToonNet(input_shape=data.get_dims(), batch_size=FLAGS.batch_size, out_activation='sigmoid',
-                                    num_res_layers=10)
+            # set Keras learning phase to train
+            keras.backend.set_learning_phase(1)
 
-        # keras model predictions
-        preds = model.outputs[0]
+            # do not initialize variables on the fly
+            keras.backend.manual_variable_initialization(True)
 
-        # placeholder for training targets
-        im_height, im_width, im_chan = data.get_dims()
-        targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
+            # build Keras model
+            model, _, decoded = ToonNet(input_shape=data.get_dims(),
+                                        batch_size=FLAGS.batch_size,
+                                        out_activation='sigmoid',
+                                        num_res_layers=10)
 
-        # Reconstruciton loss objective
-        recon_loss = tf.reduce_mean(
-            keras.objectives.mean_absolute_error(targets, preds))
+            # keras model predictions
+            preds = model.outputs[0]
 
-        # apply regularizers if any
-        if model.regularizers:
-            total_loss = recon_loss * 1.  # copy tensor
-            for regularizer in model.regularizers:
-                total_loss = regularizer(total_loss)
-        else:
-            total_loss = recon_loss
+            # placeholder for training targets
+            im_height, im_width, im_chan = data.get_dims()
+            targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
 
-        # set up TF optimizer
-        opt = tf.train.AdamOptimizer(FLAGS.learning_rate)
+            # reconstruction loss objective
+            recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))
 
-        if FLAGS.sync_replicas:
-            if FLAGS.replicas_to_aggregate is None:
-                replicas_to_aggregate = num_workers
+            # apply regularizers if any
+            if model.regularizers:
+                total_loss = recon_loss * 1.  # copy tensor
+                for regularizer in model.regularizers:
+                    total_loss = regularizer(total_loss)
             else:
-                replicas_to_aggregate = FLAGS.replicas_to_aggregate
+                total_loss = recon_loss
 
-            opt = tf.train.SyncReplicasOptimizer(
-                opt,
-                replicas_to_aggregate=replicas_to_aggregate,
-                total_num_replicas=num_workers,
-                replica_id=FLAGS.task_index,
-                name="toon_sync_replicas")
+            # set up TF optimizer
+            opt = tf.train.AdamOptimizer(FLAGS.learning_rate)
 
-        train_step = opt.minimize(total_loss, global_step=global_step)
+            if FLAGS.sync_replicas:
+                if FLAGS.replicas_to_aggregate is None:
+                    replicas_to_aggregate = num_workers
+                else:
+                    replicas_to_aggregate = FLAGS.replicas_to_aggregate
 
-        if FLAGS.sync_replicas and is_chief:
-            # Initial token and chief queue runners required by the sync_replicas mode
-            chief_queue_runner = opt.get_chief_queue_runner()
-            init_tokens_op = opt.get_init_tokens_op()
+                opt = tf.train.SyncReplicasOptimizer(
+                    opt,
+                    replicas_to_aggregate=replicas_to_aggregate,
+                    total_num_replicas=num_workers,
+                    replica_id=FLAGS.task_index,
+                    name="toon_sync_replicas")
 
-        init_op = tf.initialize_all_variables()
-        train_dir = tempfile.mkdtemp()
-        sv = tf.train.Supervisor(
-            is_chief=is_chief,
-            logdir=train_dir,
-            init_op=init_op,
-            recovery_wait_secs=1,
-            global_step=global_step)
+            train_step = opt.minimize(total_loss, global_step=global_step)
 
-        sess_config = tf.ConfigProto(
-            allow_soft_placement=True,
-            log_device_placement=False,
-            device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
+            if FLAGS.sync_replicas and is_chief:
+                # Initial token and chief queue runners required by the sync_replicas mode
+                chief_queue_runner = opt.get_chief_queue_runner()
+                init_tokens_op = opt.get_init_tokens_op()
+
+            # create a summary for our cost
+            tf.scalar_summary("cost", total_loss)
+
+            summary_op = tf.merge_all_summaries()
+            init_op = tf.initialize_all_variables()
+            train_dir = tempfile.mkdtemp()
+
+        sv = tf.train.Supervisor(is_chief=is_chief,
+                                 logdir=train_dir,
+                                 init_op=init_op,
+                                 recovery_wait_secs=1,
+                                 global_step=global_step)
+
+        sess_config = tf.ConfigProto(allow_soft_placement=True,
+                                     log_device_placement=False,
+                                     device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
 
         # The chief worker (task_index==0) session will prepare the session,
         # while the remaining workers will wait for the preparation to complete.
@@ -183,28 +170,28 @@ def main(_):
         # Perform training
         time_begin = time.time()
         print("Training begins @ %f" % time_begin)
-
-        batch_gen = data.train_batch_generator(batch_size=FLAGS.batch_size)
+        start_time = time_begin
 
         local_step = 0
-        while not sv.should_stop():
+        for epoch in range(training_epochs):
+            print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-            try:
-                (train_data_batch, train_labels_batch) = batch_gen.next()
-            except StopIteration:
-                break
+            for X_train, Y_train in data.generator_train(FLAGS.batch_size):
+                num_data = X_train.shape[0]
+                for start in range(0, num_data, batch_size):
+                    feed_dict = {model.inputs[0]: X_train[start:(start + batch_size)],
+                                 targets: Y_train[start:(start + batch_size)]}
+                    _, step, train_loss = sess.run([train_step, global_step, total_loss],
+                                                   feed_dict=feed_dict)
+                    local_step += 1
 
-            _, step, train_loss = sess.run([train_step, global_step, total_loss],
-                                           feed_dict={model.inputs[0]: train_data_batch,
-                                                      targets: train_labels_batch})
-            local_step += 1
+                gc.collect()
+                elapsed_time = time.time() - start_time
+                start_time = time.time()
+                print("Step: %d," % (local_step + 1),
+                      " Epoch: %2d," % (epoch + 1),
+                      " Cost: %.4f," % train_loss)
 
-            now = time.time()
-            print("%f: Worker %d: training step %d done (global step: %d), train-loss=%f" %
-                  (now, FLAGS.task_index, local_step, step, train_loss))
-
-            if step >= FLAGS.train_steps:
-                break
 
         time_end = time.time()
         print("Training ends @ %f" % time_end)
@@ -216,7 +203,6 @@ def main(_):
         # val_xent = sess.run(cross_entropy, feed_dict=val_feed)
         # print("After %d training step(s), validation cross entropy = %g" %
         #       (FLAGS.train_steps, val_xent))
-
 
         # Ask for all the services to stop.
         sv.stop()

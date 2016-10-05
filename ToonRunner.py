@@ -24,7 +24,7 @@ toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=bat
 # Define objective and solver
 toon_net.compile(optimizer='adam', loss='mae')
 
-# Training
+# Trainingxs
 chunk_count = 0
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e + 1, nb_epoch))
@@ -37,16 +37,15 @@ for e in range(nb_epoch):
         chunk_count += 1
         if chunk_count > max_train_chunks:
             break
+        # Test images
+        decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
+        montage(decoded_imgs[:16, :, :], 'ToonNet-Train-{}'.format(chunk_count))
         del X_train, Y_train, X_test, Y_test
         gc.collect()
 
 
-# Test
 decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
-decoded_imgs = np.clip(decoded_imgs, 0.0, 1.0)
+montage(X_test[:100, :, :], 'ToonNet-X')
+montage(decoded_imgs[:100, :, :], 'ToonNet-Out')
+montage(Y_test[:100, :, :], 'ToonNet-Y')
 
-montage(X_test[:100, :, :], 'ToonResNet-X')
-montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')
-montage(Y_test[:100, :, :], 'ToonResNet-Y')
-
-toon_net.save('ToonNet_imagenet.h5')

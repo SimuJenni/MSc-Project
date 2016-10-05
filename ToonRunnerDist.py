@@ -5,9 +5,7 @@ import keras
 import tensorflow as tf
 
 from ToonNet import ToonNet
-from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
-
 
 # Flags for defining the tf.train.ClusterSpec
 flags = tf.app.flags
@@ -198,9 +196,9 @@ def main(_):
             except StopIteration:
                 break
 
-            train_loss, step = sess.run([train_step, global_step],
-                               feed_dict={model.inputs[0]: train_data_batch,
-                                          targets: train_labels_batch})
+            _, step, train_loss = sess.run([train_step, global_step, total_loss],
+                                           feed_dict={model.inputs[0]: train_data_batch,
+                                                      targets: train_labels_batch})
             local_step += 1
 
             now = time.time()

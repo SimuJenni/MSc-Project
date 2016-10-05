@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from ToonNet import ToonNet
 from datasets.TinyImagenet import TinyImagenet
+from datasets.Imagenet import Imagenet
 
 
 # Flags for defining the tf.train.ClusterSpec
@@ -21,7 +22,7 @@ flags.DEFINE_integer("task_index", None,
 flags.DEFINE_integer("num_gpus", 1,
                      "Total number of gpus for each machine."
                      "If you don't use GPU, please set it to '0'")
-flags.DEFINE_integer("train_steps", 200,
+flags.DEFINE_integer("train_steps", 100000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("batch_size", 25, "Training batch size")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
@@ -45,7 +46,7 @@ FLAGS = tf.app.flags.FLAGS
 
 def main(_):
     # Get the data-set object
-    data = TinyImagenet()
+    data = Imagenet()
 
     # Construct the cluster and start the server
     ps_spec = FLAGS.ps_hosts.split(",")
@@ -110,17 +111,17 @@ def main(_):
         im_height, im_width, im_chan = data.get_dims()
         targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
 
-        # our categorical crossentropy loss
-        xent_loss = tf.reduce_mean(
+        # Reconstruciton loss objective
+        recon_loss = tf.reduce_mean(
             keras.objectives.mean_absolute_error(targets, preds))
 
         # apply regularizers if any
         if model.regularizers:
-            total_loss = xent_loss * 1.  # copy tensor
+            total_loss = recon_loss * 1.  # copy tensor
             for regularizer in model.regularizers:
                 total_loss = regularizer(total_loss)
         else:
-            total_loss = xent_loss
+            total_loss = recon_loss
 
         # set up TF optimizer
         opt = tf.train.AdamOptimizer(FLAGS.learning_rate)
@@ -136,7 +137,7 @@ def main(_):
                 replicas_to_aggregate=replicas_to_aggregate,
                 total_num_replicas=num_workers,
                 replica_id=FLAGS.task_index,
-                name="mnist_sync_replicas")
+                name="toon_sync_replicas")
 
         train_step = opt.minimize(total_loss, global_step=global_step)
 
@@ -197,14 +198,14 @@ def main(_):
             except StopIteration:
                 break
 
-            _, step = sess.run([train_step, global_step],
+            train_loss, step = sess.run([train_step, global_step],
                                feed_dict={model.inputs[0]: train_data_batch,
                                           targets: train_labels_batch})
             local_step += 1
 
             now = time.time()
-            print("%f: Worker %d: training step %d done (global step: %d)" %
-                  (now, FLAGS.task_index, local_step, step))
+            print("%f: Worker %d: training step %d done (global step: %d), train-loss=%f" %
+                  (now, FLAGS.task_index, local_step, step, train_loss))
 
             if step >= FLAGS.train_steps:
                 break
@@ -223,6 +224,7 @@ def main(_):
 
         # Ask for all the services to stop.
         sv.stop()
+        model.save('ToonNet_imagenet.h5')
 
 
 if __name__ == "__main__":

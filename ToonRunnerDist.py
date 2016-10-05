@@ -104,7 +104,7 @@ def main(_):
                 total_loss = recon_loss
 
             # set up TF optimizer
-            opt = tf.train.AdamOptimizer(FLAGS.learning_rate)
+            opt = tf.train.AdamOptimizer(learning_rate)
 
             if FLAGS.sync_replicas:
                 if FLAGS.replicas_to_aggregate is None:

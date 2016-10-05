@@ -17,7 +17,7 @@ flags.DEFINE_integer("task_index", None,
                      "Worker task index, should be >= 0. task_index=0 is "
                      "the master worker task the performs the variable "
                      "initialization ")
-flags.DEFINE_integer("num_gpus", 1,
+flags.DEFINE_integer("num_gpus", 4,
                      "Total number of gpus for each machine."
                      "If you don't use GPU, please set it to '0'")
 flags.DEFINE_integer("train_steps", 100000,
@@ -72,13 +72,11 @@ def main(_):
     is_chief = (FLAGS.task_index == 0)
 
     if FLAGS.num_gpus > 0:
-        # if FLAGS.num_gpus < num_workers:
-        #     raise ValueError("number of gpus is less than number of workers")
-
+        if FLAGS.num_gpus < num_workers:
+            raise ValueError("number of gpus is less than number of workers")
         # Avoid gpu allocation conflict: now allocate task_num -> #gpu
         # for each worker in the corresponding machine
         gpu = (FLAGS.task_index % FLAGS.num_gpus)
-        gpu = 0 # TODO: for testing
         worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, gpu)
     elif FLAGS.num_gpus == 0:
         # Just allocate the CPU to worker server
@@ -198,14 +196,14 @@ def main(_):
             except StopIteration:
                 break
 
-            _, step = sess.run([train_step, global_step],
+            _, step, train_loss = sess.run([train_step, global_step, total_loss],
                                            feed_dict={model.inputs[0]: train_data_batch,
                                                       targets: train_labels_batch})
             local_step += 1
 
             now = time.time()
-            print("%f: Worker %d: training step %d done (global step: %d)" %
-                  (now, FLAGS.task_index, local_step, step))
+            print("%f: Worker %d: training step %d done (global step: %d), train-loss=%f" %
+                  (now, FLAGS.task_index, local_step, step, train_loss))
 
             if step >= FLAGS.train_steps:
                 break

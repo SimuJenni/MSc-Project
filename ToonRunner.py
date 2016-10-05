@@ -5,13 +5,15 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from ToonNet import ToonNet
 from datasets.TinyImagenet import TinyImagenet
+from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 24
+batch_size = 32
 nb_epoch = 1
+max_train_chunks = 100  # Chunks of size ~5000
 
 # Get the data-set object
-data = TinyImagenet()
+data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
@@ -20,7 +22,7 @@ toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=bat
 toon_net.summary()  # For debugging
 
 # Define objective and solver
-toon_net.compile(optimizer='adam', loss='mse')
+toon_net.compile(optimizer='adam', loss='mae')
 
 # Training
 for e in range(nb_epoch):
@@ -41,4 +43,4 @@ montage(X_test[:100, :, :], 'ToonResNet-X')
 montage(decoded_imgs[:100, :, :], 'ToonResNet-Out')
 montage(Y_test[:100, :, :], 'ToonResNet-Y')
 
-toon_net.save('ToonNet_tiny-imagenet.h5')
+toon_net.save('ToonNet_imagenet.h5')

@@ -196,14 +196,14 @@ def main(_):
             except StopIteration:
                 break
 
-            _, step, train_loss = sess.run([train_step, global_step, total_loss],
+            _, step = sess.run([train_step, global_step],
                                            feed_dict={model.inputs[0]: train_data_batch,
                                                       targets: train_labels_batch})
             local_step += 1
 
             now = time.time()
-            print("%f: Worker %d: training step %d done (global step: %d), train-loss=%f" %
-                  (now, FLAGS.task_index, local_step, step, train_loss))
+            print("%f: Worker %d: training step %d done (global step: %d)" %
+                  (now, FLAGS.task_index, local_step, step))
 
             if step >= FLAGS.train_steps:
                 break

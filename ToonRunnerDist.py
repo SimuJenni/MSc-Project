@@ -192,12 +192,6 @@ def main(_):
         training_time = time_end - time_begin
         print("Training elapsed time: %f s" % training_time)
 
-        # # Validation feed
-        # val_feed = {x: mnist.validation.images, y_: mnist.validation.labels}
-        # val_xent = sess.run(cross_entropy, feed_dict=val_feed)
-        # print("After %d training step(s), validation cross entropy = %g" %
-        #       (FLAGS.train_steps, val_xent))
-
         # Ask for all the services to stop.
         sv.stop()
         model.save('ToonNet_imagenet.h5')

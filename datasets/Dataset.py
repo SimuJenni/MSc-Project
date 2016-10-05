@@ -29,9 +29,10 @@ class Dataset:
             cartooned and Ys are original images
         """
         for i in range(0, len(self.train_files)):
-            with h5py.File(self.train_files[i], 'r') as train:
+            with h5py.File(self.train_files[i], 'r', driver='core', backing_store=False) as train:
                 train_X = im2float_array(train['X'][:])
                 train_Y = im2float_array(train['Y'][:])
+                train.close()
             yield (trim2batchsize(train_X, batch_size),
                    trim2batchsize(train_Y, batch_size))
 
@@ -42,9 +43,10 @@ class Dataset:
             cartooned and Ys are original images
         """
         for i in range(0, len(self.val_files_files)):
-            with h5py.File(self.val_files[i], 'r') as val:
+            with h5py.File(self.val_files[i], 'r', driver='core', backing_store=False) as val:
                 test_X = im2float_array(val['X'][:])
                 test_Y = im2float_array(val['Y'][:])
+                val.close()
             yield (trim2batchsize(test_X, batch_size),
                    trim2batchsize(test_Y, batch_size))
 
@@ -54,15 +56,16 @@ class Dataset:
             Yields a tuple (X_train, Y_train, X_test, Y_test) where Xs are
             cartooned and Ys are original images
         """
-
         num_val = len(self.val_files)
         for i in range(0, len(self.train_files)):
-            with h5py.File(self.val_files[i % num_val], 'r') as val:
+            with h5py.File(self.val_files[i % num_val], 'r', driver='core', backing_store=False) as val:
                 test_X = im2float_array(val['X'][:])
                 test_Y = im2float_array(val['Y'][:])
-            with h5py.File(self.train_files[i], 'r') as train:
+                val.close()
+            with h5py.File(self.train_files[i], 'r', driver='core', backing_store=False) as train:
                 train_X = im2float_array(train['X'][:])
                 train_Y = im2float_array(train['Y'][:])
+                train.close()
             yield (trim2batchsize(train_X, batch_size),
                    trim2batchsize(train_Y, batch_size),
                    trim2batchsize(test_X, batch_size),
@@ -72,10 +75,11 @@ class Dataset:
         """
             Returns a representative sample set of the training data.
         """
-        with h5py.File(self.train_files[0], 'r') as train:
+        with h5py.File(self.train_files[0], 'r', driver='core', backing_store=False) as train:
             train_X = im2float_array(train['X'][:])
             sample_size = min(sample_size, train_X.shape[0])
             sample = train_X[:sample_size]
+            train.close()
         return sample
 
     def train_batch_generator(self, batch_size):
@@ -84,6 +88,7 @@ class Dataset:
             gc.collect()
             for start in range(0, num_data, batch_size):
                 yield (X_train[start:(start + batch_size)], Y_train[start:(start + batch_size)])
+
 
 def trim2batchsize(samples, batch_size):
     num_samples = samples.shape[0]

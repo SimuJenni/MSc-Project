@@ -34,10 +34,12 @@ for e in range(nb_epoch):
                                samples_per_epoch=X_train.shape[0],
                                nb_epoch=1,
                                validation_data=(X_test, Y_test))
-        gc.collect()
         chunk_count += 1
         if chunk_count > max_train_chunks:
             break
+        del X_train, Y_train, X_test, Y_test
+        gc.collect()
+
 
 # Test
 decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)

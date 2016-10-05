@@ -57,7 +57,7 @@ def main(_):
     print("job name = %s" % FLAGS.job_name)
     print("task index = %d" % FLAGS.task_index)
     print("workers = %s" % worker_spec)
-    print("num workers = %s" % num_workers)  
+    print("num workers = %s" % num_workers)
     print("num gpus = %s" % FLAGS.num_gpus)
 
     cluster = tf.train.ClusterSpec({
@@ -107,7 +107,8 @@ def main(_):
         preds = model.outputs[0]
 
         # placeholder for training targets
-        targets = tf.placeholder(tf.float32, shape=data.get_dims())
+        im_height, im_width, im_chan = data.get_dims()
+        targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
 
         # our categorical crossentropy loss
         xent_loss = tf.reduce_mean(
@@ -196,7 +197,7 @@ def main(_):
             except StopIteration:
                 break
 
-            _, step = sess.run([opt, global_step],
+            _, step = sess.run([train_step, global_step],
                                feed_dict={model.inputs[0]: train_data_batch,
                                           targets: train_labels_batch})
             local_step += 1

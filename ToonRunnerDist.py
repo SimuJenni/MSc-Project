@@ -22,7 +22,7 @@ flags.DEFINE_integer("num_gpus", 1,
                      "If you don't use GPU, please set it to '0'")
 flags.DEFINE_integer("train_steps", 100000,
                      "Number of (global) training steps to perform")
-flags.DEFINE_integer("batch_size", 25, "Training batch size")
+flags.DEFINE_integer("batch_size", 24, "Training batch size")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
 flags.DEFINE_boolean("sync_replicas", False,
                      "Use the sync_replicas (synchronized replicas) mode, "

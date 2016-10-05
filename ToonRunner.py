@@ -4,7 +4,6 @@ import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
 
 from ToonNet import ToonNet
-from datasets.Imagenet import Imagenet
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
@@ -17,7 +16,7 @@ datagen = ImageDataGenerator()
 
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
-                            num_res_layers=10)
+                                     num_res_layers=10)
 toon_net.summary()  # For debugging
 
 # Define objective and solver

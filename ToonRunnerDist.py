@@ -87,7 +87,7 @@ def main(_):
     # parameter servers (ps). The non-Variable ops will be placed on the workers.
     # The ps use CPU and workers use corresponding GPU
     with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
-                                                  ps_device="/job:ps/task:0/cpu:0",
+                                                  # ps_device="/job:ps/cpu:0",
                                                   cluster=cluster)):
         global_step = tf.Variable(0, name="global_step", trainable=False)
 

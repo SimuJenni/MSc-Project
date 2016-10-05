@@ -81,7 +81,7 @@ def main(_):
 
             # build Keras model
             model, _, decoded = ToonNet(input_shape=data.get_dims(),
-                                        batch_size=FLAGS.batch_size,
+                                        batch_size=batch_size,
                                         out_activation='sigmoid',
                                         num_res_layers=10)
 
@@ -176,7 +176,7 @@ def main(_):
         for epoch in range(training_epochs):
             print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-            for X_train, Y_train in data.generator_train(FLAGS.batch_size):
+            for X_train, Y_train in data.generator_train(batch_size):
                 num_data = X_train.shape[0]
                 for start in range(0, num_data, batch_size):
                     feed_dict = {model.inputs[0]: X_train[start:(start + batch_size)],

@@ -47,15 +47,18 @@ def main(_):
     # Get the data-set object
     data = TinyImagenet()
 
-    print("job name = %s" % FLAGS.job_name)
-    print("task index = %d" % FLAGS.task_index)
-
     # Construct the cluster and start the server
     ps_spec = FLAGS.ps_hosts.split(",")
     worker_spec = FLAGS.worker_hosts.split(",")
 
     # Get the number of workers.
     num_workers = len(worker_spec)
+
+    print("job name = %s" % FLAGS.job_name)
+    print("task index = %d" % FLAGS.task_index)
+    print("workers = %s" % worker_spec)
+    print("num workers = %s" % num_workers)  
+    print("num gpus = %s" % FLAGS.num_gpus)
 
     cluster = tf.train.ClusterSpec({
         "ps": ps_spec,
@@ -97,7 +100,7 @@ def main(_):
         keras.backend.manual_variable_initialization(True)
 
         # Build Keras model
-        model, _, decoded = ToonNet(input_shape=data.get_dims(), batch_size=MINI_BATCH, out_activation='sigmoid',
+        model, _, decoded = ToonNet(input_shape=data.get_dims(), batch_size=FLAGS.batch_size, out_activation='sigmoid',
                                     num_res_layers=10)
 
         # keras model predictions

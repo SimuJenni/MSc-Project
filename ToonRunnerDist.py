@@ -83,16 +83,13 @@ def main(_):
         cpu = 0
         worker_device = "/job:worker/task:%d/cpu:%d" % (FLAGS.task_index, cpu)
 
-    with tf.device("/job:ps/task:0"):
-        global_step = tf.Variable(0, name="global_step")
-
     # The device setter will automatically place Variables ops on separate
     # parameter servers (ps). The non-Variable ops will be placed on the workers.
     # The ps use CPU and workers use corresponding GPU
     with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
-                                                  ps_device="/job:ps/cpu:0",
+                                                  ps_device="/job:ps/task:0/cpu:0",
                                                   cluster=cluster)):
-        #global_step = tf.Variable(0, name="global_step", trainable=False)
+        global_step = tf.Variable(0, name="global_step", trainable=False)
 
         # set Keras learning phase to train
         keras.backend.set_learning_phase(1)

@@ -1,9 +1,11 @@
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge
 from keras.models import Model
+import tensorflow as tf
 
 NUM_CONV_LAYERS = 5
 # F_DIMS = [32, 64, 128, 256, 512]
-F_DIMS = [64, 96, 128, 256, 512]
+# F_DIMS = [64, 96, 128, 256, 512]
+F_DIMS = [48, 80, 128, 208, 336]
 
 
 def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10):
@@ -40,60 +42,72 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10
         (net, encoded): The resulting Keras model (net) and the encoding layer
     """
     # Compute the dimensions of the layers
-    l_dims = compute_layer_dims(input_shape=input_shape)
-    input_im = Input(shape=input_shape)
+    with tf.name_scope('input'):
+        l_dims = compute_layer_dims(input_shape=input_shape)
+        input_im = Input(shape=input_shape)
 
     # Layer 1
-    x = conv_bn_relu(input_im, f_size=4, f_channels=F_DIMS[0], stride=1, border='valid')
-    l1 = Convolution2D(F_DIMS[0], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l1 = BatchNormalization(axis=3)(l1)
+    with tf.name_scope('conv_layer_1'):
+        x = conv_bn_relu(input_im, f_size=4, f_channels=F_DIMS[0], stride=1, border='valid')
+        l1 = Convolution2D(F_DIMS[0], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+        l1 = BatchNormalization(axis=3)(l1)
 
     # Layer 2
-    x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[1], stride=2, border='same')
-    l2 = Convolution2D(F_DIMS[1], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l2 = BatchNormalization(axis=3)(l2)
+    with tf.name_scope('conv_layer_2'):
+        x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[1], stride=2, border='same')
+        l2 = Convolution2D(F_DIMS[1], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+        l2 = BatchNormalization(axis=3)(l2)
 
     # Layer 3
-    x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[2], stride=2, border='valid')
-    l3 = Convolution2D(F_DIMS[2], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l3 = BatchNormalization(axis=3)(l3)
+    with tf.name_scope('conv_layer_3'):
+        x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[2], stride=2, border='valid')
+        l3 = Convolution2D(F_DIMS[2], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+        l3 = BatchNormalization(axis=3)(l3)
 
     # Layer 4
-    x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[3], stride=2, border='valid')
-    l4 = Convolution2D(F_DIMS[3], 1, 1, border_mode='valid', subsample=(1, 1))(x)
-    l4 = BatchNormalization(axis=3)(l4)
+    with tf.name_scope('conv_layer_4'):
+        x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[3], stride=2, border='valid')
+        l4 = Convolution2D(F_DIMS[3], 1, 1, border_mode='valid', subsample=(1, 1))(x)
+        l4 = BatchNormalization(axis=3)(l4)
 
     # Layer 5
-    encoded = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[4], stride=2, border='valid')
+    with tf.name_scope('conv_layer_5'):
+        encoded = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[4], stride=2, border='valid')
 
     # All the res-layers
     for i in range(num_res_layers):
-        encoded = res_layer_bottleneck(encoded, F_DIMS[4], 64)
+        with tf.name_scope('res_layer_{}'.format(i+1)):
+            encoded = res_layer_bottleneck(encoded, F_DIMS[4], 64)
 
     # Layer 6
-    x = upconv_bn(encoded, f_size=3, f_channels=F_DIMS[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
-                  border='valid')
-    x = merge([x, l4], mode='concat')
-    x = Activation('relu')(x)
+    with tf.name_scope('deconv_layer_1'):
+        x = upconv_bn(encoded, f_size=3, f_channels=F_DIMS[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
+                      border='valid')
+        x = merge([x, l4], mode='concat')
+        x = Activation('relu')(x)
 
     # Layer 7
-    x = upconv_bn(x, f_size=3, f_channels=F_DIMS[2], out_dim=l_dims[3], batch_size=batch_size, stride=2, border='valid')
-    x = merge([x, l3], mode='concat')
-    x = Activation('relu')(x)
+    with tf.name_scope('deconv_layer_2'):
+        x = upconv_bn(x, f_size=3, f_channels=F_DIMS[2], out_dim=l_dims[3], batch_size=batch_size, stride=2, border='valid')
+        x = merge([x, l3], mode='concat')
+        x = Activation('relu')(x)
 
     # Layer 8
-    x = upconv_bn(x, f_size=3, f_channels=F_DIMS[1], out_dim=l_dims[2], batch_size=batch_size, stride=2, border='valid')
-    x = merge([x, l2], mode='concat')
-    x = Activation('relu')(x)
+    with tf.name_scope('deconv_layer_3'):
+        x = upconv_bn(x, f_size=3, f_channels=F_DIMS[1], out_dim=l_dims[2], batch_size=batch_size, stride=2, border='valid')
+        x = merge([x, l2], mode='concat')
+        x = Activation('relu')(x)
 
     # Layer 9
-    x = upconv_bn(x, f_size=3, f_channels=F_DIMS[0], out_dim=l_dims[1], batch_size=batch_size, stride=2, border='same')
-    x = merge([x, l1], mode='concat')
-    x = Activation('relu')(x)
+    with tf.name_scope('deconv_layer_4'):
+        x = upconv_bn(x, f_size=3, f_channels=F_DIMS[0], out_dim=l_dims[1], batch_size=batch_size, stride=2, border='same')
+        x = merge([x, l1], mode='concat')
+        x = Activation('relu')(x)
 
     # Layer 10
-    x = upconv_bn(x, f_size=4, f_channels=3, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
-    decoded = Activation(out_activation)(x)
+    with tf.name_scope('deconv_layer_5'):
+        x = upconv_bn(x, f_size=4, f_channels=3, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
+        decoded = Activation(out_activation)(x)
 
     # Create the model
     toon_net = Model(input_im, decoded)

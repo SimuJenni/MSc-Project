@@ -8,9 +8,10 @@ from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 24
+batch_size = 32
 nb_epoch = 1
-max_train_chunks = 100  # Chunks of size ~5000
+max_train_chunks = 1000  # Chunks of size ~5000
+plot_while_train = False
 
 # Get the data-set object
 data = Imagenet()
@@ -18,13 +19,13 @@ datagen = ImageDataGenerator()
 
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
-                                     num_res_layers=10)
-# toon_net.summary()  # For debugging
+                                     num_res_layers=20)
+toon_net.summary()  # For debugging
 
 # Define objective and solver
 toon_net.compile(optimizer='adam', loss='mae')
 
-# Trainingxs
+# Training
 chunk_count = 0
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e + 1, nb_epoch))
@@ -37,9 +38,11 @@ for e in range(nb_epoch):
         chunk_count += 1
         if chunk_count > max_train_chunks:
             break
-        # Test images
-        decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
-        montage(decoded_imgs[:16, :, :], 'ToonNet-Train-{}'.format(chunk_count))
+
+        if plot_while_train:
+            # Test images
+            decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
+            montage(decoded_imgs[:16, :, :], 'ToonNet-Train-{}'.format(chunk_count))
         del X_train, Y_train, X_test, Y_test
         gc.collect()
 

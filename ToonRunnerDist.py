@@ -1,6 +1,6 @@
+import gc
 import tempfile
 import time
-import gc
 
 import keras
 import tensorflow as tf
@@ -151,13 +151,8 @@ def main(_):
             print("Worker %d: Waiting for session to be initialized..." %
                   FLAGS.task_index)
 
-        if FLAGS.existing_servers:
-            server_grpc_url = "grpc://" + worker_spec[FLAGS.task_index]
-            print("Using existing server at: %s" % server_grpc_url)
-            sess = sv.prepare_or_wait_for_session(server_grpc_url, config=sess_config)
-        else:
-            sess = sv.prepare_or_wait_for_session(server.target,
-                                                  config=sess_config)
+        sess = sv.prepare_or_wait_for_session(server.target,
+                                              config=sess_config)
 
         print("Worker %d: Session initialization complete." % FLAGS.task_index)
 
@@ -191,7 +186,6 @@ def main(_):
                 print("Step: %d," % (local_step + 1),
                       " Epoch: %2d," % (epoch + 1),
                       " Cost: %.4f," % train_loss)
-
 
         time_end = time.time()
         print("Training ends @ %f" % time_end)

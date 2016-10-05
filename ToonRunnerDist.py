@@ -72,11 +72,13 @@ def main(_):
     is_chief = (FLAGS.task_index == 0)
 
     if FLAGS.num_gpus > 0:
-        if FLAGS.num_gpus < num_workers:
-            raise ValueError("number of gpus is less than number of workers")
+        # if FLAGS.num_gpus < num_workers:
+        #     raise ValueError("number of gpus is less than number of workers")
+
         # Avoid gpu allocation conflict: now allocate task_num -> #gpu
         # for each worker in the corresponding machine
         gpu = (FLAGS.task_index % FLAGS.num_gpus)
+        gpu = 0 # TODO: for testing
         worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, gpu)
     elif FLAGS.num_gpus == 0:
         # Just allocate the CPU to worker server

@@ -8,7 +8,7 @@ from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 32
+batch_size = 24
 nb_epoch = 1
 max_train_chunks = 100  # Chunks of size ~5000
 
@@ -19,12 +19,13 @@ datagen = ImageDataGenerator()
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
                                      num_res_layers=10)
-toon_net.summary()  # For debugging
+# toon_net.summary()  # For debugging
 
 # Define objective and solver
 toon_net.compile(optimizer='adam', loss='mae')
 
 # Training
+chunk_count = 0
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e + 1, nb_epoch))
     # Generate batches of around 5000 samples
@@ -34,6 +35,9 @@ for e in range(nb_epoch):
                                nb_epoch=1,
                                validation_data=(X_test, Y_test))
         gc.collect()
+        chunk_count += 1
+        if chunk_count > max_train_chunks:
+            break
 
 # Test
 decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)

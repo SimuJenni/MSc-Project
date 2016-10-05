@@ -83,7 +83,7 @@ class Dataset:
             num_data = X_train.shape[0]
             for start in range(0, num_data, batch_size):
                 yield (X_train[start:(start + batch_size)], Y_train[start:(start + batch_size)])
-        gc.collect()
+            gc.collect()
 
 def trim2batchsize(samples, batch_size):
     num_samples = samples.shape[0]

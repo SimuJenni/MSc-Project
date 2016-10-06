@@ -18,9 +18,7 @@ flags.DEFINE_integer("task_index", None,
                      "Worker task index, should be >= 0. task_index=0 is "
                      "the master worker task the performs the variable "
                      "initialization ")
-flags.DEFINE_integer("num_gpus", 2,
-                     "Total number of gpus for each machine."
-                     "If you don't use GPU, please set it to '0'")
+flags.DEFINE_integer('gpu_device_id', -1, 'gpu device id')
 flags.DEFINE_boolean("sync_replicas", True,
                      "Use the sync_replicas (synchronized replicas) mode, "
                      "wherein the parameter updates from workers are aggregated "
@@ -60,12 +58,7 @@ def main(_):
         server.join()
     elif FLAGS.job_name == "worker":
 
-        if FLAGS.num_gpus > 0:
-            gpu = (FLAGS.task_index % FLAGS.num_gpus)
-            worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, gpu)
-        elif FLAGS.num_gpus == 0:
-            cpu = 0
-            worker_device = "/job:worker/task:%d/cpu:%d" % (FLAGS.task_index, cpu)
+        worker_device = "/job:worker/task:%d/gpu:%d" % (FLAGS.task_index, FLAGS.gpu_device_id)
 
         # Between-graph replication
         with tf.device(tf.train.replica_device_setter(worker_device=worker_device,

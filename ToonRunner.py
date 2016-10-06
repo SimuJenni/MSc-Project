@@ -12,9 +12,9 @@ batch_size = 32
 nb_epoch = 5
 nb_epoch_inner = 1
 plot_while_train = False
-#f_dims = [64, 96, 160, 256, 416]
-f_dims = [48, 80, 128, 208, 336]
-num_res_layers = 24
+f_dims = [64, 96, 160, 256, 416]
+#f_dims = [48, 80, 128, 208, 336]
+num_res_layers = 10
 merge_mode = 'sum'
 loss = 'mse'
 
@@ -54,7 +54,7 @@ for e in range(nb_epoch):
         gc.collect()
 
     # Save the model after each epoch
-    toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}/{}.h5'.format(net_name, e, nb_epoch)))
+    toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}-{}.h5'.format(net_name, e, nb_epoch)))
 
 # Save the model
 toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))

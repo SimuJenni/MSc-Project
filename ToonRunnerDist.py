@@ -21,7 +21,7 @@ flags.DEFINE_integer("task_index", None,
 flags.DEFINE_integer("num_gpus", 2,
                      "Total number of gpus for each machine."
                      "If you don't use GPU, please set it to '0'")
-flags.DEFINE_boolean("sync_replicas", False,
+flags.DEFINE_boolean("sync_replicas", True,
                      "Use the sync_replicas (synchronized replicas) mode, "
                      "wherein the parameter updates from workers are aggregated "
                      "before applied to avoid stale gradients")
@@ -91,7 +91,7 @@ def main(_):
 
             # placeholder for training targets
             im_height, im_width, im_chan = data.get_dims()
-            targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
+            targets = tf.placeholder(tf.float32, shape=[batch_size, im_height, im_width, im_chan])
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))

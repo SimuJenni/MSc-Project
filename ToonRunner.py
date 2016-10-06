@@ -41,7 +41,7 @@ for e in range(nb_epoch):
         if chunk_count > max_train_chunks:
             break
 
-        if plot_while_train:
+        if plot_while_train and chunk_count % 10 == 0:
             # Test images
             decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs[:16, :, :], 'Train: {}-{}'.format(net_name, chunk_count))

@@ -111,7 +111,7 @@ def main(_):
                 grads = optimizer.compute_gradients(
                     total_loss,
                     model.trainable_weights,
-                    gate_gradients=tf.Optimizer.GATE_OP,
+                    gate_gradients=tf.train.Optimizer.GATE_OP,
                     aggregation_method=None,
                     colocate_gradients_with_ops=False)
 

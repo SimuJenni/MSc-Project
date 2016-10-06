@@ -12,8 +12,9 @@ batch_size = 32
 nb_epoch = 5
 nb_epoch_inner = 1
 plot_while_train = False
-f_dims = [64, 96, 160, 256, 416]
-num_res_layers = 10
+#f_dims = [64, 96, 160, 256, 416]
+f_dims = [48, 80, 128, 208, 336]
+num_res_layers = 24
 merge_mode = 'sum'
 loss = 'mse'
 
@@ -28,7 +29,7 @@ print(net_name)
 
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
-                                     num_res_layers=num_res_layers, merge_mode=merge_mode)
+                                     num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()  # For debugging
 
 # Define objective and solver

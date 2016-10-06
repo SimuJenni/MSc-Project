@@ -51,26 +51,22 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10
     # Layer 1
     with tf.name_scope('conv_layer_1'):
         x = conv_bn_relu(input_im, f_size=4, f_channels=F_DIMS[0], stride=1, border='valid')
-        l1 = Convolution2D(F_DIMS[0], 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(x)
-        l1 = BatchNormalization(axis=3)(l1)
+        l1 = outter_connections(x, F_DIMS[0])
 
     # Layer 2
     with tf.name_scope('conv_layer_2'):
         x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[1], stride=2, border='same')
-        l2 = Convolution2D(F_DIMS[1], 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(x)
-        l2 = BatchNormalization(axis=3)(l2)
+        l2 = outter_connections(x, F_DIMS[1])
 
     # Layer 3
     with tf.name_scope('conv_layer_3'):
         x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[2], stride=2, border='valid')
-        l3 = Convolution2D(F_DIMS[2], 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(x)
-        l3 = BatchNormalization(axis=3)(l3)
+        l3 = outter_connections(x, F_DIMS[2])
 
     # Layer 4
     with tf.name_scope('conv_layer_4'):
         x = conv_bn_relu(x, f_size=3, f_channels=F_DIMS[3], stride=2, border='valid')
-        l4 = Convolution2D(F_DIMS[3], 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(x)
-        l4 = BatchNormalization(axis=3)(l4)
+        l4 = outter_connections(x, F_DIMS[3])
 
     # Layer 5
     with tf.name_scope('conv_layer_5'):

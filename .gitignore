@@ -93,6 +93,7 @@ ENV/
 *.jpg
 data
 *.png
+*.h5
 
 # Ignore the Tensorboard logs
 logs/

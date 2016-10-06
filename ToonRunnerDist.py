@@ -19,7 +19,7 @@ flags.DEFINE_integer("task_index", None,
                      "the master worker task the performs the variable "
                      "initialization ")
 flags.DEFINE_integer('gpu_device_id', -1, 'gpu device id')
-flags.DEFINE_boolean("sync_replicas", True,
+flags.DEFINE_boolean("sync_replicas", False,
                      "Use the sync_replicas (synchronized replicas) mode, "
                      "wherein the parameter updates from workers are aggregated "
                      "before applied to avoid stale gradients")
@@ -88,14 +88,15 @@ def main(_):
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))
+            total_loss = recon_loss
 
-            # apply regularizers if any
-            if model.regularizers:
-                total_loss = recon_loss * 1.  # copy tensor
-                for regularizer in model.regularizers:
-                    total_loss = regularizer(total_loss)
-            else:
-                total_loss = recon_loss
+            # # apply regularizers if any
+            # if model.regularizers:
+            #     total_loss = recon_loss * 1.  # copy tensor
+            #     for regularizer in model.regularizers:
+            #         total_loss = regularizer(total_loss)
+            # else:
+            #     total_loss = recon_loss
 
             # set up TF optimizer
             opt = tf.train.AdamOptimizer(learning_rate)

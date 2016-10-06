@@ -1,6 +1,7 @@
 import gc
 import tempfile
 import time
+from tensorflow.python.ops import control_flow_ops
 
 import keras
 import tensorflow as tf
@@ -116,7 +117,7 @@ def main(_):
                     colocate_gradients_with_ops=False)
 
             # define train tensor
-            train_tensor = tf.with_dependencies([grads],
+            train_tensor = control_flow_ops.with_dependencies([grads],
                                                 total_loss,
                                                 name='train')
 

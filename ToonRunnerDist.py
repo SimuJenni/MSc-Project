@@ -36,7 +36,7 @@ FLAGS = tf.app.flags.FLAGS
 
 def main(_):
     # config
-    batch_size = 24
+    batch_size = 32
     learning_rate = 0.001
     training_epochs = 1
     logs_path = "/tmp/toon-net/1"
@@ -83,7 +83,8 @@ def main(_):
             model, _, decoded = ToonNet(input_shape=data.get_dims(),
                                         batch_size=batch_size,
                                         out_activation='sigmoid',
-                                        num_res_layers=10)
+                                        num_res_layers=10,
+                                        merge_mode='sum')
 
             # keras model predictions
             preds = model.outputs[0]
@@ -195,7 +196,7 @@ def main(_):
 
         # Ask for all the services to stop.
         sv.stop()
-        model.save('ToonNet_imagenet.h5')
+        model.save('ToonNetDist_imagenet.h5')
 
 
 if __name__ == "__main__":

@@ -45,7 +45,6 @@ def main(_):
     # Construct the cluster
     ps_spec = FLAGS.ps_hosts.split(",")
     worker_spec = FLAGS.worker_hosts.split(",")
-    num_workers = len(worker_spec)
     cluster = tf.train.ClusterSpec({"ps": ps_spec, "worker": worker_spec})
 
     # Not using existing servers. Create an in-process server.
@@ -80,7 +79,7 @@ def main(_):
                                         merge_mode='sum')
 
             # keras model predictions
-            preds = model.outputs[0]
+            preds = model.output
 
             # placeholder for training targets
             im_height, im_width, im_chan = data.get_dims()
@@ -88,113 +87,100 @@ def main(_):
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))
-            total_loss = recon_loss
 
-            # # apply regularizers if any
-            # if model.regularizers:
-            #     total_loss = recon_loss * 1.  # copy tensor
-            #     for regularizer in model.regularizers:
-            #         total_loss = regularizer(total_loss)
-            # else:
-            #     total_loss = recon_loss
+            # apply regularizers if any
+            if model.regularizers:
+                total_loss = recon_loss * 1.  # copy tensor
+                for regularizer in model.regularizers:
+                    total_loss = regularizer(total_loss)
+            else:
+                total_loss = recon_loss
 
             # set up TF optimizer
-            opt = tf.train.AdamOptimizer(learning_rate)
+            optimizer = tf.train.AdamOptimizer(learning_rate)
 
-            if FLAGS.sync_replicas:
-                if FLAGS.replicas_to_aggregate is None:
-                    replicas_to_aggregate = num_workers
-                else:
-                    replicas_to_aggregate = FLAGS.replicas_to_aggregate
+            # Set up model update ops (batch norm ops).
+            # The gradients should only be computed after updating the moving average
+            # of the batch normalization parameters, in order to prevent a data race
+            # between the parameter updates and moving average computations.
+            with tf.control_dependencies(model.updates):
+                barrier = tf.no_op(name='update_barrier')
 
-                opt = tf.train.SyncReplicasOptimizer(
-                    opt,
-                    replicas_to_aggregate=replicas_to_aggregate,
-                    total_num_replicas=num_workers,
-                    replica_id=FLAGS.task_index,
-                    name="toon_sync_replicas")
+            # define gradient updates
+            with tf.control_dependencies([barrier]):
+                grads = optimizer.compute_gradients(
+                    total_loss,
+                    model.trainable_weights,
+                    gate_gradients=tf.Optimizer.GATE_OP,
+                    aggregation_method=None,
+                    colocate_gradients_with_ops=False)
 
-            train_step = opt.minimize(total_loss, global_step=global_step)
-
-            if FLAGS.sync_replicas and is_chief:
-                # Initial token and chief queue runners required by the sync_replicas mode
-                chief_queue_runner = opt.get_chief_queue_runner()
-                init_tokens_op = opt.get_init_tokens_op()
+            # define train tensor
+            train_tensor = tf.with_dependencies([grads],
+                                                total_loss,
+                                                name='train')
 
             # create a summary for our cost
             tf.scalar_summary("cost", total_loss)
 
             summary_op = tf.merge_all_summaries()
             init_op = tf.initialize_all_variables()
-            train_dir = tempfile.mkdtemp()
+            saver = tf.train.Saver()
 
-        sv = tf.train.Supervisor(is_chief=is_chief,
-                                 logdir=train_dir,
-                                 init_op=init_op,
-                                 recovery_wait_secs=1,
-                                 global_step=global_step)
+            sv = tf.train.Supervisor(is_chief=is_chief,
+                                     logdir=logs_path,
+                                     init_op=init_op,
+                                     summary_op=summary_op,
+                                     recovery_wait_secs=1,
+                                     global_step=global_step,
+                                     saver=saver,
+                                     save_model_secs=600)
 
-        sess_config = tf.ConfigProto(allow_soft_placement=True,
-                                     log_device_placement=False,
-                                     device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
+            sess_config = tf.ConfigProto(allow_soft_placement=True,
+                                         log_device_placement=False,
+                                         device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
 
-        # The chief worker (task_index==0) session will prepare the session,
-        # while the remaining workers will wait for the preparation to complete.
-        if is_chief:
-            print("Worker %d: Initializing session..." % FLAGS.task_index)
-        else:
-            print("Worker %d: Waiting for session to be initialized..." %
-                  FLAGS.task_index)
+            sess = sv.prepare_or_wait_for_session(server.target, config=sess_config)
 
-        sess = sv.prepare_or_wait_for_session(server.target,
-                                              config=sess_config)
 
-        print("Worker %d: Session initialization complete." % FLAGS.task_index)
+            # Perform training
+            time_begin = time.time()
+            print("Training begins @ %f" % time_begin)
+            start_time = time_begin
 
-        if FLAGS.sync_replicas and is_chief:
-            # Chief worker will start the chief queue runner and call the init op
-            print("Starting chief queue runner and running init_tokens_op")
-            sv.start_queue_runners(sess, [chief_queue_runner])
-            sess.run(init_tokens_op)
+            local_step = 0
+            for epoch in range(training_epochs):
+                print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-        # Perform training
-        time_begin = time.time()
-        print("Training begins @ %f" % time_begin)
-        start_time = time_begin
+                for X_train, Y_train in data.generator_train(batch_size):
+                    num_data = X_train.shape[0]
 
-        local_step = 0
-        for epoch in range(training_epochs):
-            print("Epoch {} / {}".format(epoch + 1, training_epochs))
+                    for start in range(0, num_data, batch_size):
+                        X_batch = X_train[start:(start + batch_size)]
+                        Y_batch = Y_train[start:(start + batch_size)]
+                        print(X_batch.shape, Y_batch.shape)
+                        feed_dict = {model.inputs[0]: X_batch,
+                                     targets: Y_batch}
+                        _, step, train_loss = sess.run([train_tensor, global_step, total_loss],
+                                                       feed_dict=feed_dict)
+                        local_step += 1
+                    del X_train, Y_train
+                    gc.collect()
+                    elapsed_time = time.time() - start_time
+                    start_time = time.time()
+                    print("Step: %d," % (local_step + 1),
+                          " Epoch: %2d," % (epoch + 1),
+                          " Cost: %.4f," % train_loss,
+                          " Elapsed Time: %d" % elapsed_time)
 
-            for X_train, Y_train in data.generator_train(batch_size):
-                num_data = X_train.shape[0]
+            time_end = time.time()
+            print("Training ends @ %f" % time_end)
+            training_time = time_end - time_begin
+            print("Training elapsed time: %f s" % training_time)
 
-                for start in range(0, num_data, batch_size):
-                    X_batch = X_train[start:(start + batch_size)]
-                    Y_batch = Y_train[start:(start + batch_size)]
-                    print(X_batch.shape, Y_batch.shape)
-                    feed_dict = {model.inputs[0]: X_batch,
-                                 targets: Y_batch}
-                    _, step, train_loss = sess.run([train_step, global_step, total_loss],
-                                                   feed_dict=feed_dict)
-                    local_step += 1
-                del X_train, Y_train
-                gc.collect()
-                elapsed_time = time.time() - start_time
-                start_time = time.time()
-                print("Step: %d," % (local_step + 1),
-                      " Epoch: %2d," % (epoch + 1),
-                      " Cost: %.4f," % train_loss,
-                      " Elapsed Time: %d" % elapsed_time)
-
-        time_end = time.time()
-        print("Training ends @ %f" % time_end)
-        training_time = time_end - time_begin
-        print("Training elapsed time: %f s" % training_time)
-
-        # Ask for all the services to stop.
-        sv.stop()
-        model.save('ToonNetDist_imagenet.h5')
+            # Ask for all the services to stop.
+            sv.stop()
+            model.save('ToonNetDist_imagenet.h5')
 
 
 if __name__ == "__main__":

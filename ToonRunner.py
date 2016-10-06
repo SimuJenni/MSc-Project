@@ -1,30 +1,38 @@
 import gc
+import os
 
 from keras.preprocessing.image import ImageDataGenerator
 
 from ToonNet import ToonNet
-from datasets.Imagenet import Imagenet
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
+from constants import MODEL_DIR, IMG_DIR
 
 batch_size = 32
 nb_epoch = 5
 nb_epoch_inner = 1
-max_train_chunks = 10000  # Chunks of size ~5000
 plot_while_train = False
-net_name = 'ToonNet-Test'
+f_dims = [64, 96, 160, 256, 416]
+num_res_layers = 10
+merge_mode = 'sum'
+loss = 'mse'
 
 # Get the data-set object
 data = TinyImagenet()
 datagen = ImageDataGenerator()
 
+# Name used for saving of model and outputs
+net_name = 'ToonNet-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(f_dims, num_res_layers, merge_mode, loss,
+                                                                       data.name)
+print(net_name)
+
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
-                                     num_res_layers=10, merge_mode='sum')
+                                     num_res_layers=num_res_layers, merge_mode=merge_mode)
 toon_net.summary()  # For debugging
 
 # Define objective and solver
-toon_net.compile(optimizer='adam', loss='mae')
+toon_net.compile(optimizer='adam', loss=loss)
 
 # Training
 chunk_count = 0
@@ -37,19 +45,22 @@ for e in range(nb_epoch):
                                nb_epoch=nb_epoch_inner,
                                validation_data=(X_test, Y_test))
         chunk_count += 1
-        if chunk_count > max_train_chunks:
-            break
-
         if plot_while_train and chunk_count % 10 == 0:
             # Test images
             decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
-            montage(decoded_imgs[:16, :, :], 'Train: {}-{}'.format(net_name, chunk_count))
+            montage(decoded_imgs[:16, :, :], os.path.join(IMG_DIR, 'Train: {}-{}'.format(net_name, chunk_count)))
         del X_train, Y_train, X_test, Y_test
         gc.collect()
 
-# toon_net.save('{}.h5'.format(net_name))
-# # TODO X_test new...
-# decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
-# montage(X_test[:100, :, :], '{}-X'.format(net_name))
-# montage(decoded_imgs[:100, :, :], '{}-Out'.format(net_name))
-# montage(Y_test[:100, :, :], '{}-Y'.format(net_name))
+    # Save the model after each epoch
+    toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}/{}.h5'.format(net_name, e, nb_epoch)))
+
+# Save the model
+toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))
+
+# Generate montage of test-images
+X_test, Y_test = data.generator_test(batch_size=batch_size).next()
+decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
+montage(X_test[:25, :, :], os.path.join(IMG_DIR, '{}-X'.format(net_name)))
+montage(decoded_imgs[:25, :, :], os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
+montage(Y_test[:25, :, :], os.path.join(IMG_DIR, '{}-Y'.format(net_name)))

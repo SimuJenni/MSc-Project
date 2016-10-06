@@ -1,9 +1,12 @@
 import os
 
+NUM_THREADS = 10
+
+# Directories for data, images and models
 DATA_DIR = '/Users/simujenni/MSc-Project/data/'
 #DATA_DIR = '/data/cvg/simon/data/'
-
-NUM_THREADS = 10
+MODEL_DIR = os.path.join(DATA_DIR, 'models/')
+IMG_DIR = os.path.join(DATA_DIR, 'img/')
 
 # Directories for cartooned datasets
 CIFAR10_DATADIR = os.path.join(DATA_DIR, 'cifar-10-cartoon/')

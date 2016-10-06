@@ -26,6 +26,7 @@ class TinyImagenet(Dataset):
         # Paths to data-files with randomized train and test images
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
+        self.name = 'TinyImagenet'
 
     def process_tiny_imagenet(self):
         """

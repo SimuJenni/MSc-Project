@@ -9,7 +9,7 @@ F_DIMS = [64, 96, 160, 256, 416]
 #F_DIMS = [48, 80, 128, 208, 336]
 
 
-def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10, merge_mode='concat'):
+def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10, merge_mode='concat', f_dims=F_DIMS):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 

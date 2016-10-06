@@ -26,6 +26,7 @@ class Imagenet(Dataset):
         # Paths to data-files with randomized train and test images
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
+        self.name = 'Imagenet'
 
     def process_imagenet(self):
         """

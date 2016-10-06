@@ -56,7 +56,6 @@ def main(_):
 
         # Between-graph replication
         with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
-                                                      ps_device="/job:ps/task:0/cpu:0",
                                                       cluster=cluster)):
             # count the number of updates
             global_step = tf.Variable(0, name="global_step", trainable=False)

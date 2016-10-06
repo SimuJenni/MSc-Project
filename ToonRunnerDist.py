@@ -179,13 +179,14 @@ def main(_):
                     _, step, train_loss = sess.run([train_step, global_step, total_loss],
                                                    feed_dict=feed_dict)
                     local_step += 1
-
+                del X_train, Y_train
                 gc.collect()
                 elapsed_time = time.time() - start_time
                 start_time = time.time()
                 print("Step: %d," % (local_step + 1),
                       " Epoch: %2d," % (epoch + 1),
-                      " Cost: %.4f," % train_loss)
+                      " Cost: %.4f," % train_loss,
+                      " Elapsed Time: %d" % elapsed_time)
 
         time_end = time.time()
         print("Training ends @ %f" % time_end)

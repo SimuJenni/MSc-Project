@@ -5,8 +5,8 @@ from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
 # F_DIMS = [64, 96, 128, 256, 512]
-F_DIMS = [64, 96, 160, 256, 416]
-# F_DIMS = [48, 80, 128, 208, 336]
+# F_DIMS = [64, 96, 160, 256, 416]
+F_DIMS = [48, 80, 128, 208, 336]
 
 
 def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10, merge_mode='concat'):
@@ -126,7 +126,8 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
 
 
 def outter_connections(layer_in, f_channels):
-    l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
+    #TODO: first argument back to f_channels
+    l = Convolution2D(8, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = BatchNormalization(axis=3)(l)
     return LeakyReLU(alpha=0.3)(l)
 

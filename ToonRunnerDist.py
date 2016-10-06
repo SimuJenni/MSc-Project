@@ -10,10 +10,6 @@ from datasets.Imagenet import Imagenet
 
 # Flags for defining the tf.train.ClusterSpec
 flags = tf.app.flags
-flags.DEFINE_integer("replicas_to_aggregate", None,
-                     "Number of replicas to aggregate before parameter update"
-                     "is applied (For sync_replicas mode only; default: "
-                     "num_workers)")
 flags.DEFINE_integer("task_index", None,
                      "Worker task index, should be >= 0. task_index=0 is "
                      "the master worker task the performs the variable "
@@ -83,7 +79,7 @@ def main(_):
 
             # placeholder for training targets
             im_height, im_width, im_chan = data.get_dims()
-            targets = tf.placeholder(tf.float32, shape=[None, im_height, im_width, im_chan])
+            targets = tf.placeholder(tf.float32, shape=(None, im_height, im_width, im_chan), name='targets')
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))
@@ -99,25 +95,23 @@ def main(_):
             # set up TF optimizer
             optimizer = tf.train.AdamOptimizer(learning_rate)
 
-            with tf.control_dependencies(model.updates):
-                barrier = tf.no_op(name='update_barrier')
-
-            # define gradient updates
-            with tf.control_dependencies([barrier]):
-                train_step = optimizer.minimize(total_loss, global_step=global_step)
+            train_step = optimizer.minimize(total_loss, global_step=global_step)
 
             # create a summary for our cost
             tf.scalar_summary("cost", total_loss)
 
+            saver = tf.train.Saver()
             summary_op = tf.merge_all_summaries()
             init_op = tf.initialize_all_variables()
 
         sv = tf.train.Supervisor(is_chief=is_chief,
+                                 saver=saver,
                                  summary_op=summary_op,
                                  logdir=logs_path,
                                  init_op=init_op,
                                  recovery_wait_secs=1,
-                                 global_step=global_step)
+                                 global_step=global_step,
+                                 save_model_secs=600)
 
         sess_config = tf.ConfigProto(allow_soft_placement=True,
                                      log_device_placement=False,
@@ -151,7 +145,6 @@ def main(_):
                 for start in range(0, num_data, batch_size):
                     X_batch = X_train[start:(start + batch_size)]
                     Y_batch = Y_train[start:(start + batch_size)]
-                    print(X_batch.shape, Y_batch.shape)
                     feed_dict = {model.inputs[0]: X_batch,
                                  targets: Y_batch}
                     _, step, train_loss = sess.run([train_step, global_step, total_loss],

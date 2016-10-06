@@ -116,7 +116,7 @@ def main(_):
                     colocate_gradients_with_ops=False)
 
             # define train tensor
-            with tf.control_dependencies([grads]):
+            with tf.control_dependencies(grads):
                 train_tensor = tf.identity(total_loss, name='train')
 
             train_step = optimizer.minimize(total_loss, global_step=global_step, grad_loss=train_tensor)

@@ -1,5 +1,4 @@
 import gc
-import tempfile
 import time
 
 import keras
@@ -57,6 +56,7 @@ def main(_):
 
         # Between-graph replication
         with tf.device(tf.train.replica_device_setter(worker_device=worker_device,
+                                                      ps_device="/job:ps/task:0/cpu:0",
                                                       cluster=cluster)):
             # count the number of updates
             global_step = tf.Variable(0, name="global_step", trainable=False)
@@ -104,69 +104,70 @@ def main(_):
             summary_op = tf.merge_all_summaries()
             init_op = tf.initialize_all_variables()
 
-        sv = tf.train.Supervisor(is_chief=is_chief,
-                                 saver=saver,
-                                 summary_op=summary_op,
-                                 logdir=logs_path,
-                                 init_op=init_op,
-                                 recovery_wait_secs=1,
-                                 global_step=global_step,
-                                 save_model_secs=600)
+            sv = tf.train.Supervisor(is_chief=is_chief,
+                                     saver=saver,
+                                     summary_op=summary_op,
+                                     logdir=logs_path,
+                                     init_op=init_op,
+                                     recovery_wait_secs=1,
+                                     global_step=global_step,
+                                     save_model_secs=600)
 
-        sess_config = tf.ConfigProto(allow_soft_placement=True,
-                                     log_device_placement=False,
-                                     device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
+            sess_config = tf.ConfigProto(allow_soft_placement=True,
+                                         log_device_placement=False,
+                                         device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
 
-        # The chief worker (task_index==0) session will prepare the session,
-        # while the remaining workers will wait for the preparation to complete.
-        if is_chief:
-            print("Worker %d: Initializing session..." % FLAGS.task_index)
-        else:
-            print("Worker %d: Waiting for session to be initialized..." %
-                  FLAGS.task_index)
+            # The chief worker (task_index==0) session will prepare the session,
+            # while the remaining workers will wait for the preparation to complete.
+            if is_chief:
+                print("Worker %d: Initializing session..." % FLAGS.task_index)
+            else:
+                print("Worker %d: Waiting for session to be initialized..." %
+                      FLAGS.task_index)
 
-        sess = sv.prepare_or_wait_for_session(server.target,
-                                              config=sess_config)
+            sess = sv.prepare_or_wait_for_session(server.target,
+                                                  config=sess_config)
 
-        print("Worker %d: Session initialization complete." % FLAGS.task_index)
+            print("Worker %d: Session initialization complete." % FLAGS.task_index)
 
-        # Perform training
-        time_begin = time.time()
-        print("Training begins @ %f" % time_begin)
-        start_time = time_begin
+            # Perform training
+            time_begin = time.time()
+            print("Training begins @ %f" % time_begin)
+            start_time = time_begin
 
-        local_step = 0
-        for epoch in range(training_epochs):
-            print("Epoch {} / {}".format(epoch + 1, training_epochs))
+            local_step = 0
+            for epoch in range(training_epochs):
+                print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-            for X_train, Y_train in data.generator_train(batch_size):
-                num_data = X_train.shape[0]
+                for X_train, Y_train in data.generator_train(batch_size):
+                    num_data = X_train.shape[0]
 
-                for start in range(0, num_data, batch_size):
-                    X_batch = X_train[start:(start + batch_size)]
-                    Y_batch = Y_train[start:(start + batch_size)]
-                    feed_dict = {model.inputs[0]: X_batch,
-                                 targets: Y_batch}
-                    _, step, train_loss = sess.run([train_step, global_step, total_loss],
-                                                   feed_dict=feed_dict)
-                    local_step += 1
-                del X_train, Y_train
-                gc.collect()
-                elapsed_time = time.time() - start_time
-                start_time = time.time()
-                print("Step: %d," % (local_step + 1),
-                      " Epoch: %2d," % (epoch + 1),
-                      " Cost: %.4f," % train_loss,
-                      " Elapsed Time: %d" % elapsed_time)
+                    for start in range(0, num_data, batch_size):
+                        X_batch = X_train[start:(start + batch_size)]
+                        Y_batch = Y_train[start:(start + batch_size)]
+                        feed_dict = {model.inputs[0]: X_batch,
+                                     targets: Y_batch}
+                        _, step, train_loss = sess.run([train_step, global_step, total_loss],
+                                                       feed_dict=feed_dict)
+                        local_step += 1
+                    del X_train, Y_train
+                    gc.collect()
+                    elapsed_time = time.time() - start_time
+                    start_time = time.time()
+                    print("Global-Step: %d," % (step),
+                          " Local-Step: %d" % (local_step),
+                          " Epoch: %2d," % (epoch + 1),
+                          " Cost: %.4f," % train_loss,
+                          " Elapsed Time: %d" % elapsed_time)
 
-        time_end = time.time()
-        print("Training ends @ %f" % time_end)
-        training_time = time_end - time_begin
-        print("Training elapsed time: %f s" % training_time)
+            time_end = time.time()
+            print("Training ends @ %f" % time_end)
+            training_time = time_end - time_begin
+            print("Training elapsed time: %f s" % training_time)
 
-        # Ask for all the services to stop.
-        sv.stop()
-        model.save('ToonNetDist_imagenet.h5')
+            # Ask for all the services to stop.
+            sv.stop()
+            model.save('ToonNetDist_imagenet.h5')
 
 
 if __name__ == "__main__":

@@ -99,27 +99,12 @@ def main(_):
             # set up TF optimizer
             optimizer = tf.train.AdamOptimizer(learning_rate)
 
-            # Set up model update ops (batch norm ops).
-            # The gradients should only be computed after updating the moving average
-            # of the batch normalization parameters, in order to prevent a data race
-            # between the parameter updates and moving average computations.
             with tf.control_dependencies(model.updates):
                 barrier = tf.no_op(name='update_barrier')
 
             # define gradient updates
             with tf.control_dependencies([barrier]):
-                grads = optimizer.compute_gradients(
-                    total_loss,
-                    model.trainable_weights,
-                    gate_gradients=optimizer.GATE_OP,
-                    aggregation_method=None,
-                    colocate_gradients_with_ops=False)
-
-            # define train tensor
-            with tf.control_dependencies(grads):
-                train_tensor = tf.identity(total_loss, name='train')
-
-            train_step = optimizer.minimize(total_loss, global_step=global_step, grad_loss=train_tensor)
+                train_step = optimizer.minimize(total_loss, global_step=global_step)
 
             # create a summary for our cost
             tf.scalar_summary("cost", total_loss)

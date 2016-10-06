@@ -41,7 +41,7 @@ class Dataset:
             Yields a tuple (X_test, Y_test) where Xs are
             cartooned and Ys are original images
         """
-        for i in range(0, len(self.val_files_files)):
+        for i in range(0, len(self.val_files)):
             with h5py.File(self.val_files[i], 'r') as val:
                 test_X = im2float_array(val['X'][:])
                 test_Y = im2float_array(val['Y'][:])

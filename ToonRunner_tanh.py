@@ -10,9 +10,9 @@ from constants import MODEL_DIR, IMG_DIR
 import numpy as np
 
 batch_size = 32
-nb_epoch = 5
+nb_epoch = 20
 nb_epoch_inner = 1
-plot_while_train = False
+plot_while_train = True
 #f_dims = [64, 96, 160, 256, 416]
 f_dims = [48, 80, 128, 208, 336]
 num_res_layers = 24

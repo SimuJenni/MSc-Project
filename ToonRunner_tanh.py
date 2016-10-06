@@ -56,7 +56,7 @@ for e in range(nb_epoch):
         gc.collect()
 
     # Save the model after each epoch
-    toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}/{}.h5'.format(net_name, e, nb_epoch)))
+    toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}-{}.h5'.format(net_name, e, nb_epoch)))
 
 # Save the model
 toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))

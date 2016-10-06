@@ -167,9 +167,13 @@ def main(_):
 
             for X_train, Y_train in data.generator_train(batch_size):
                 num_data = X_train.shape[0]
+
                 for start in range(0, num_data, batch_size):
-                    feed_dict = {model.inputs[0]: X_train[start:(start + batch_size)],
-                                 targets: Y_train[start:(start + batch_size)]}
+                    X_batch = X_train[start:(start + batch_size)]
+                    Y_batch = Y_train[start:(start + batch_size)]
+                    print(X_batch.shape, Y_batch.shape)
+                    feed_dict = {model.inputs[0]: X_batch,
+                                 targets: Y_batch}
                     _, step, train_loss = sess.run([train_step, global_step, total_loss],
                                                    feed_dict=feed_dict)
                     local_step += 1

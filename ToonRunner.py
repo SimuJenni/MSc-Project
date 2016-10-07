@@ -3,7 +3,7 @@ import os
 
 from keras.preprocessing.image import ImageDataGenerator
 
-from ToonNet import ToonNet, ToonNetNoOutter
+from ToonNet import ToonNet, ToonNetNoOutter, ToonNetMore
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 from constants import MODEL_DIR, IMG_DIR
@@ -14,7 +14,7 @@ nb_epoch_inner = 1
 plot_while_train = False
 f_dims = [64, 96, 160, 256, 416]
 #f_dims = [48, 80, 128, 208, 336]
-num_res_layers = 10
+num_res_layers = 8
 merge_mode = 'sum'
 loss = 'mse'
 
@@ -25,7 +25,9 @@ datagen = ImageDataGenerator()
 # Load the net
 # toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
 #                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
-toon_net, encoder, decoder = ToonNetNoOutter(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
+# toon_net, encoder, decoder = ToonNetNoOutter(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
+#                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+toon_net, encoder, decoder = ToonNetMore(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 
 # Name used for saving of model and outputs

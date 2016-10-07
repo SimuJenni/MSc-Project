@@ -101,7 +101,7 @@ class Dataset:
         if self.resize:
             X_res = np.zeros((num_im,)+self.resize)
             for i in range(num_im):
-                X_res[i,:,:] = imresize(X[i,:,:], self.resize)
+                X_res[i,:,:] = im2float(imresize(X[i,:,:], self.resize))
         else:
             X_res = im2float(X)
         # Rescale values from [0,1] to [-1,1]

@@ -3,7 +3,7 @@ import os
 
 from keras.preprocessing.image import ImageDataGenerator
 
-from ToonNet import ToonNet, ToonNetNoOutter, ToonNetMore
+from ToonNet import ToonNet, ToonNetNoOutter, ToonNetMore, ToonNetEvenMore
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 from constants import MODEL_DIR, IMG_DIR
@@ -27,7 +27,7 @@ datagen = ImageDataGenerator()
 #                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 # toon_net, encoder, decoder = ToonNetNoOutter(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
 #                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
-toon_net, encoder, decoder = ToonNetMore(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
+toon_net, encoder, decoder = ToonNetEvenMore(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 
 # Name used for saving of model and outputs

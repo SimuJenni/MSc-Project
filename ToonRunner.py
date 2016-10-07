@@ -1,4 +1,5 @@
 import os
+import gc
 
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam

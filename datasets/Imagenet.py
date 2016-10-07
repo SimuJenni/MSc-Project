@@ -27,8 +27,8 @@ class Imagenet(Dataset):
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
         self.name = 'Imagenet'
-        self.num_train = len(self.train_files)
-        self.num_val = len(self.val_files)
+        self.num_train = 1200000
+        self.num_val = 50000
 
     def process_imagenet(self):
         """

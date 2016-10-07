@@ -10,7 +10,7 @@ from utils import montage
 
 batch_size = 32
 nb_epoch = 5
-samples_per_epoch = 200000
+samples_per_epoch = 500000
 plot_while_train = True
 f_dims = [64, 96, 160, 256, 416, 512]
 num_res_layers = 8
@@ -37,10 +37,10 @@ toon_net.compile(optimizer=opt, loss=loss)
 
 # Training
 toon_net.fit_generator(data.train_batch_generator(batch_size=batch_size),
-                       samples_per_epoch=data.num_train,
+                       samples_per_epoch=samples_per_epoch,
                        nb_epoch=nb_epoch,
                        validation_data=data.test_batch_generator(batch_size=batch_size),
-                       nb_val_samples=20000,
+                       nb_val_samples=50000,
                        callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
                                   TensorBoard(log_dir=LOG_DIR)])
 

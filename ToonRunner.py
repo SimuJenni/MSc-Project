@@ -3,6 +3,7 @@ import os
 from ToonNet import ToonNetDeep
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
+from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 32
@@ -36,7 +37,8 @@ toon_net.compile(optimizer='adam', loss=loss)
 toon_net.fit_generator(data.train_batch_generator(batch_size=batch_size),
                        samples_per_epoch=data.num_train,
                        nb_epoch=nb_epoch,
-                       validation_data=data.test_batch_generator(batch_size=batch_size))
+                       validation_data=data.test_batch_generator(batch_size=batch_size),
+                       nb_val_samples=data.num_val)
 
 # Save the model
 toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))

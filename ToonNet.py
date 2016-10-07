@@ -125,7 +125,7 @@ def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layer
 
     # Create the model
     toon_net = Model(input_im, decoded)
-    toon_net.name = 'ToonNetMore'
+    toon_net.name = 'ToonNetDeep'
 
     return toon_net, encoded, decoded
 
@@ -236,7 +236,7 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10
 
     # Create the model
     toon_net = Model(input_im, decoded)
-    toon_net.name = 'ToonNetMore'
+    toon_net.name = 'ToonNet'
 
     return toon_net, encoded, decoded
 

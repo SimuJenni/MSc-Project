@@ -80,5 +80,6 @@ def montage(images, saveto='montage.png'):
     plt.imsave(arr=m, fname=saveto)
     return m
 
-def im2float_array(imgs):
+
+def im2float(imgs):
     return imgs.astype('float32') / 255.

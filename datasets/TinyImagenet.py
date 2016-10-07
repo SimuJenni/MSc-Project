@@ -15,7 +15,8 @@ IM_WIDTH = 64
 
 class TinyImagenet(Dataset):
 
-    def __init__(self):
+    def __init__(self, resize=None):
+        self.resize = resize
         self.src_data_dir = TINYIMAGENET_SRC_DIR
         self.data_dir = TINYIMAGENET_DATADIR
         self.dims = (IM_HEIGHT, IM_HEIGHT, 3)
@@ -27,6 +28,7 @@ class TinyImagenet(Dataset):
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
         self.name = 'TinyImagenet'
+        self.num_train = 100000
 
     def process_tiny_imagenet(self):
         """

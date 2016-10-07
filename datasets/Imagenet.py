@@ -12,10 +12,10 @@ NUM_SHARDS_VAL = 10
 IM_HEIGHT = 256
 IM_WIDTH = 256
 
-
 class Imagenet(Dataset):
 
-    def __init__(self):
+    def __init__(self, resize=None):
+        self.resize = resize
         self.src_data_dir = IMAGENET_SRC_DIR
         self.data_dir = IMAGENET_DATADIR
         self.dims = (IM_HEIGHT, IM_HEIGHT, 3)
@@ -27,6 +27,7 @@ class Imagenet(Dataset):
         self.val_files = glob.glob('%s/%s*' % (self.data_dir, 'validation'))
         self.train_files = glob.glob('%s/%s*' % (self.data_dir, 'train'))
         self.name = 'Imagenet'
+        self.num_train = 1200000
 
     def process_imagenet(self):
         """

@@ -9,7 +9,7 @@ from utils import montage
 from constants import MODEL_DIR, IMG_DIR
 
 batch_size = 32
-nb_epoch = 20
+nb_epoch = 200
 nb_epoch_inner = 1
 plot_while_train = False
 f_dims = [64, 96, 160, 256, 416]
@@ -37,22 +37,18 @@ toon_net.compile(optimizer='adam', loss=loss)
 
 # Training
 chunk_count = 0
+X_train, Y_train, X_test, Y_test = data.generator(batch_size).next()
 for e in range(nb_epoch):
     print("Epoch {} / {}".format(e + 1, nb_epoch))
-    # Generate batches of around 5000 samples
-    X_train, Y_train, X_test, Y_test = data.generator(batch_size).next()
-    for i in range(nb_epoch):
-        toon_net.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
-                               samples_per_epoch=X_train.shape[0],
-                               nb_epoch=nb_epoch_inner,
-                               validation_data=(X_test, Y_test))
-        chunk_count += 1
-        if plot_while_train and chunk_count % 10 == 0:
-            # Test images
-            decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
-            montage(decoded_imgs[:16, :, :], os.path.join(IMG_DIR, 'Train: {}-{}'.format(net_name, chunk_count)))
-        del X_train, Y_train, X_test, Y_test
-        gc.collect()
+    toon_net.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
+                           samples_per_epoch=X_train.shape[0],
+                           nb_epoch=nb_epoch_inner,
+                           validation_data=(X_test, Y_test))
+    chunk_count += 1
+    if plot_while_train and chunk_count % 10 == 0:
+        # Test images
+        decoded_imgs = toon_net.predict(X_test[:batch_size], batch_size=batch_size)
+        montage(decoded_imgs[:16, :, :], os.path.join(IMG_DIR, 'Train: {}-{}'.format(net_name, chunk_count)))
 
     # Save the model after each epoch
     toon_net.save(os.path.join(MODEL_DIR, '{}-Epoch:{}-{}.h5'.format(net_name, e, nb_epoch)))

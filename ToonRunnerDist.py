@@ -4,6 +4,7 @@ import time
 import keras
 import tensorflow as tf
 from keras import backend as K
+from constants import LOG_DIR
 
 from ToonNet import ToonNet
 from datasets.Imagenet import Imagenet
@@ -31,12 +32,12 @@ FLAGS = tf.app.flags.FLAGS
 def main(_):
     # config
     batch_size = 32
-    learning_rate = 0.001
+    learning_rate = 0.0002
     training_epochs = 1
-    logs_path = "/tmp/ToonNet/"
+    logs_path = LOG_DIR
 
     # Get the data-set object
-    data = Imagenet()
+    data = Imagenet((128, 128, 3))
 
     # Construct the cluster
     ps_spec = FLAGS.ps_hosts.split(",")

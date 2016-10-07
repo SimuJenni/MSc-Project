@@ -3,7 +3,7 @@ import os
 
 from keras.preprocessing.image import ImageDataGenerator
 
-from ToonNet import ToonNet
+from ToonNet import ToonNet, ToonNetNoOutter
 from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 from constants import MODEL_DIR, IMG_DIR
@@ -22,14 +22,17 @@ loss = 'mse'
 data = TinyImagenet()
 datagen = ImageDataGenerator()
 
+# Load the net
+# toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
+#                                      num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+toon_net, encoder, decoder = ToonNetNoOutter(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
+                                     num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+
 # Name used for saving of model and outputs
-net_name = 'ToonNet-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(f_dims, num_res_layers, merge_mode, loss,
+net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(toon_net.name, f_dims, num_res_layers, merge_mode, loss,
                                                                        data.name)
 print(net_name)
 
-# Load the net
-toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='sigmoid',
-                                     num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()  # For debugging
 
 # Define objective and solver

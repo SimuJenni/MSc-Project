@@ -7,6 +7,7 @@ NUM_THREADS = 10
 DATA_DIR = '/data/cvg/simon/data/'
 MODEL_DIR = os.path.join(DATA_DIR, 'models/')
 IMG_DIR = os.path.join(DATA_DIR, 'img/')
+LOG_DIR = os.path.join(DATA_DIR, 'logs/')
 
 # Directories for cartooned datasets
 CIFAR10_DATADIR = os.path.join(DATA_DIR, 'cifar-10-cartoon/')

@@ -98,14 +98,14 @@ class Dataset:
 
     def preprocess(self, X):
         num_im = X.shape[0]
-        X = im2float(X)
         if self.resize:
             X_res = np.zeros((num_im,)+self.resize)
             for i in range(num_im):
                 X_res[i,:,:] = imresize(X[i,:,:], self.resize)
-            return X_res
         else:
-            return X
+            X_res = im2float(X)
+        # Rescale values from [0,1] to [-1,1]
+        return (X_res-0.5)*2
 
 
 def trim2batchsize(samples, batch_size):

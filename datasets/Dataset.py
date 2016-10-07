@@ -81,18 +81,26 @@ class Dataset:
         return sample
 
     def train_batch_generator(self, batch_size):
-        for X_train, Y_train in self.generator_train(batch_size):
+        for i in range(0, len(self.train_files)):
+            with h5py.File(self.train_files[i], 'r') as train:
+                X_train = train['X'][:]
+                Y_train = train['Y'][:]
             num_data = X_train.shape[0]
             for start in range(0, num_data, batch_size):
-                yield (X_train[start:(start + batch_size)], Y_train[start:(start + batch_size)])
+                yield (self.preprocess(X_train[start:(start + batch_size)]),
+                       self.preprocess(Y_train[start:(start + batch_size)]))
             del X_train, Y_train
             gc.collect()
 
     def test_batch_generator(self, batch_size):
-        for X_test, Y_test in self.generator_test(batch_size):
+        for i in range(0, len(self.val_files)):
+            with h5py.File(self.val_files[i], 'r') as val:
+                X_test = val['X'][:]
+                Y_test = val['Y'][:]
             num_data = X_test.shape[0]
             for start in range(0, num_data, batch_size):
-                yield (X_test[start:(start + batch_size)], Y_test[start:(start + batch_size)])
+                yield (self.preprocess(X_test[start:(start + batch_size)]),
+                       self.preprocess(Y_test[start:(start + batch_size)]))
             del X_test, Y_test
             gc.collect()
 

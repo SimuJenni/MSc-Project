@@ -3,6 +3,7 @@ import time
 
 import keras
 import tensorflow as tf
+from keras import backend as K
 
 from ToonNet import ToonNet
 from datasets.Imagenet import Imagenet
@@ -60,11 +61,8 @@ def main(_):
             # count the number of updates
             global_step = tf.Variable(0, name="global_step", trainable=False)
 
-            # set Keras learning phase to train
-            keras.backend.set_learning_phase(1)
-
             # do not initialize variables on the fly
-            keras.backend.manual_variable_initialization(True)
+            K.manual_variable_initialization(True)
 
             # build Keras model
             model, _, decoded = ToonNet(input_shape=data.get_dims(),
@@ -116,18 +114,9 @@ def main(_):
                                          log_device_placement=False,
                                          device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
 
-            # The chief worker (task_index==0) session will prepare the session,
-            # while the remaining workers will wait for the preparation to complete.
-            if is_chief:
-                print("Worker %d: Initializing session..." % FLAGS.task_index)
-            else:
-                print("Worker %d: Waiting for session to be initialized..." %
-                      FLAGS.task_index)
-
             sess = sv.prepare_or_wait_for_session(server.target,
                                                   config=sess_config)
-
-            print("Worker %d: Session initialization complete." % FLAGS.task_index)
+            K.set_session(sess)
 
             # Perform training
             time_begin = time.time()
@@ -145,7 +134,8 @@ def main(_):
                         X_batch = X_train[start:(start + batch_size)]
                         Y_batch = Y_train[start:(start + batch_size)]
                         feed_dict = {model.inputs[0]: X_batch,
-                                     targets: Y_batch}
+                                     targets: Y_batch,
+                                     K.learning_phase(): 1}
                         _, step, train_loss = sess.run([train_step, global_step, total_loss],
                                                        feed_dict=feed_dict)
                         local_step += 1

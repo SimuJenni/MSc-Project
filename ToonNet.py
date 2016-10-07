@@ -7,7 +7,7 @@ NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 160, 256, 416, 512]
 
 
-def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10, merge_mode='concat', f_dims=F_DIMS):
+def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layers=8, merge_mode='sum', f_dims=F_DIMS):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -130,7 +130,7 @@ def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layer
     return toon_net, encoded, decoded
 
 
-def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=10, merge_mode='concat', f_dims=F_DIMS):
+def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=16, merge_mode='sum', f_dims=F_DIMS):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 

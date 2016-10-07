@@ -38,24 +38,6 @@ toon_net.compile(optimizer=opt, loss=loss)
 X_test, Y_test = data.generator_test(batch_size=batch_size).next()
 
 # Training
-toon_net.fit_generator(data.train_batch_generator(batch_size=batch_size),
-                       samples_per_epoch=samples_per_epoch,
-                       nb_epoch=nb_epoch,
-                       validation_data=data.test_batch_generator(batch_size=batch_size),
-                       nb_val_samples=30000,
-                       nb_worker=4,
-                       callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
-                                  TensorBoard(log_dir=LOG_DIR)])
-
-# Generate montage of test-images
-decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
-montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
-montage(X_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
-montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
-
-"""
-
-# Training
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     num_samples = 0
@@ -80,6 +62,24 @@ for epoch in range(nb_epoch):
     decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
     montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
 
+montage(X_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
+montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
+
+"""
+
+# Training
+toon_net.fit_generator(data.train_batch_generator(batch_size=batch_size),
+                       samples_per_epoch=samples_per_epoch,
+                       nb_epoch=nb_epoch,
+                       validation_data=data.test_batch_generator(batch_size=batch_size),
+                       nb_val_samples=30000,
+                       nb_worker=4,
+                       callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
+                                  TensorBoard(log_dir=LOG_DIR)])
+
+# Generate montage of test-images
+decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
+montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
 montage(X_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
 montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
 

@@ -1,5 +1,6 @@
 import os
 import gc
+from DataGenerator import ImageDataGenerator
 
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
@@ -37,7 +38,8 @@ print('Training network: {}'.format(net_name))
 opt = Adam(lr=0.0002, beta_1=0.5)
 toon_net.compile(optimizer=opt, loss=loss)
 
-X_test, Y_test = data.generator_test(batch_size=batch_size).next()
+
+"""
 
 # Training
 for epoch in range(nb_epoch):
@@ -69,20 +71,23 @@ montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_n
 
 """
 
+datagen = ImageDataGenerator()
+
 # Training
-toon_net.fit_generator(data.train_batch_generator(batch_size=batch_size),
+toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, train_im_size[:2], batch_size=batch_size),
                        samples_per_epoch=samples_per_epoch,
                        nb_epoch=nb_epoch,
-                       validation_data=data.test_batch_generator(batch_size=batch_size),
+                       validation_data=datagen.flow_from_directory(data.val_dir, data.get_dims()[:2], batch_size=batch_size),
                        nb_val_samples=30000,
                        nb_worker=4,
                        callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
                                   TensorBoard(log_dir=LOG_DIR)])
 
-# Generate montage of test-images
+# Generate montage of sample-images
+sample_size = 49
+X_test, Y_test = data.get_sample_dir(sample_size)
 decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
-montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
-montage(X_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
-montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
+montage(decoded_imgs[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
+montage(X_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
+montage(Y_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
 
-"""

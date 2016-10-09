@@ -25,7 +25,7 @@ class Dataset:
         """
         return self.dims
 
-    def generator_train(self, batch_size):
+    def generator_train_h5(self, batch_size):
         """
             A generator that loads training data for training.
             Yields a tuple (X_train, Y_train) where Xs are
@@ -38,7 +38,7 @@ class Dataset:
             yield (trim2batchsize(train_X, batch_size),
                    trim2batchsize(train_Y, batch_size))
 
-    def generator_test(self, batch_size):
+    def generator_test_h5(self, batch_size):
         """
             A generator that loads validation data.
             Yields a tuple (X_test, Y_test) where Xs are
@@ -51,7 +51,7 @@ class Dataset:
             yield (trim2batchsize(test_X, batch_size),
                    trim2batchsize(test_Y, batch_size))
 
-    def generator(self, batch_size):
+    def generator_h5(self, batch_size):
         """
             A generator that loads training and validation data for training.
             Yields a tuple (X_train, Y_train, X_test, Y_test) where Xs are
@@ -70,7 +70,7 @@ class Dataset:
                    trim2batchsize(test_X, batch_size),
                    trim2batchsize(test_Y, batch_size))
 
-    def get_sample(self, sample_size):
+    def get_sample_h5(self, sample_size):
         """
             Returns a representative sample set of the training data.
         """
@@ -80,36 +80,28 @@ class Dataset:
             sample = train_X[:sample_size]
         return sample
 
-    def train_batch_generator(self, batch_size):
-        for i in range(0, len(self.train_files)):
-            with h5py.File(self.train_files[i], 'r') as train:
-                X_train = train['X'][:]
-                Y_train = train['Y'][:]
-            num_data = X_train.shape[0]
-            for start in range(0, num_data, batch_size):
-                yield (self.preprocess(X_train[start:(start + batch_size)]),
-                       self.preprocess(Y_train[start:(start + batch_size)]))
-            del X_train, Y_train
-            gc.collect()
-
-    def test_batch_generator(self, batch_size):
-        for i in range(0, len(self.val_files)):
-            with h5py.File(self.val_files[i], 'r') as val:
-                X_test = val['X'][:]
-                Y_test = val['Y'][:]
-            num_data = X_test.shape[0]
-            for start in range(0, num_data, batch_size):
-                yield (self.preprocess(X_test[start:(start + batch_size)]),
-                       self.preprocess(Y_test[start:(start + batch_size)]))
-            del X_test, Y_test
-            gc.collect()
+    def get_sample_dir(self, sample_size):
+        """
+            Returns a sample set of the training data of given size.
+        """
+        from PIL import Image
+        if self.resize:
+            sample = np.zeros([sample_size, self.resize])
+        else:
+            sample = np.zeros([sample_size, self.dims])
+        for i in range(sample_size):
+            img = Image.open(self.train_files[i])
+            if self.resize:
+                img = imresize(img, self.resize)
+            sample[i, :, :] = im2float(img)
+        return sample
 
     def preprocess(self, X):
         num_im = X.shape[0]
         if self.resize:
             X_res = np.zeros((num_im,)+self.resize)
             for i in range(num_im):
-                X_res[i,:,:] = im2float(imresize(X[i,:,:], self.resize))
+                X_res[i, :, :] = im2float(imresize(X[i, :, :], self.resize))
         else:
             X_res = im2float(X)
         # Rescale values from [0,1] to [-1,1]

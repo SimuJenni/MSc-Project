@@ -128,7 +128,7 @@ def main(_):
             for epoch in range(training_epochs):
                 print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-                for X_train, Y_train in data.generator_train(batch_size):
+                for X_train, Y_train in data.generator_train_h5(batch_size):
                     num_data = X_train.shape[0]
 
                     for start in range(0, num_data, batch_size):

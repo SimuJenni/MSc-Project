@@ -7,8 +7,8 @@ from constants import IMAGENET_DATADIR, IMAGENET_SRC_DIR
 from utils import montage
 
 # For imagenet data preparation (12.000.000 train, 50.000 val)
-IM_HEIGHT = 196
-IM_WIDTH = 196
+IM_HEIGHT = 192
+IM_WIDTH = 192
 
 class Imagenet(Dataset):
 

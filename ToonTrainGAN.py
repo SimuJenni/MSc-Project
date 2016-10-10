@@ -13,7 +13,6 @@ batch_size = 32
 chunk_size = 100*batch_size
 nb_epoch = 2
 samples_per_epoch = 500000
-l_rate = 0.001
 
 # Get the data-set object
 data = Imagenet()

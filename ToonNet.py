@@ -119,8 +119,8 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
 
 
 def ToonDiscriminator(input_shape):
-    x = Input(shape=input_shape)
-    x = Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
+    in_im = Input(shape=input_shape)
+    x = Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(in_im)
     x = BatchNormalization(axis=3)(x)
     x = lrelu(x)
     x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
@@ -138,7 +138,8 @@ def ToonDiscriminator(input_shape):
     x = Flatten()(x)
     x = Dense(1024)(x)
     x = lrelu(x)
-    return Dense(1, activation='sigmoid')(x)
+    res = Dense(1, activation='sigmoid')(x)
+    return Model(in_im, res)
 
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):

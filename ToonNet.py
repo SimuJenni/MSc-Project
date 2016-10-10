@@ -81,42 +81,42 @@ def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layer
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             encoded = res_layer_bottleneck(encoded, f_dims[5], 64)
     encoded = merge([encoded, l6], mode=merge_mode)
-    encoded = Activation('relu')(encoded)
+    encoded = lrelu('relu')(encoded)
 
     # Up-Layer 1
     with tf.name_scope('conv_layer_6'):
         x = upconv_bn(encoded, f_size=3, f_channels=f_dims[4], out_dim=l_dims[5], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l5], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Up-Layer 2
     with tf.name_scope('deconv_layer_1'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l4], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Up-Layer 3
     with tf.name_scope('deconv_layer_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l3], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Up-Layer 4
     with tf.name_scope('deconv_layer_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l2], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Up-Layer 5
     with tf.name_scope('deconv_layer_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
                       border='same')
         x = merge([x, l1], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Up-Layer 6
     with tf.name_scope('deconv_layer_5'):
@@ -199,35 +199,35 @@ def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=16
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             encoded = res_layer_bottleneck(encoded, f_dims[4], 64)
     encoded = merge([encoded, l5], mode=merge_mode)
-    encoded = Activation('relu')(encoded)
+    encoded = lrelu(encoded)
 
     # Layer 6
     with tf.name_scope('deconv_layer_1'):
         x = upconv_bn(encoded, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l4], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Layer 7
     with tf.name_scope('deconv_layer_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l3], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Layer 8
     with tf.name_scope('deconv_layer_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l2], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Layer 9
     with tf.name_scope('deconv_layer_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
                       border='same')
         x = merge([x, l1], mode=merge_mode)
-        x = Activation('relu')(x)
+        x = lrelu(x)
 
     # Layer 10
     with tf.name_scope('deconv_layer_5'):
@@ -247,13 +247,13 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = BatchNormalization(axis=3)(x)
-    return Activation('relu')(x)
+    return lrelu(x)
 
 
 def outter_connections(layer_in, f_channels):
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = BatchNormalization(axis=3)(l)
-    return LeakyReLU(alpha=0.3)(l)
+    return lrelu(l)
 
 
 def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border='valid'):
@@ -274,7 +274,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim):
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     x = BatchNormalization(axis=3)(x)
     x = merge([x, in_layer], mode='sum')
-    x = Activation('relu')(x)
+    x = lrelu(x)
     return x
 
 
@@ -289,6 +289,10 @@ def compute_layer_dims(input_shape, num_conv=NUM_CONV_LAYERS):
         layer_dims[i] = dim
 
     return layer_dims
+
+
+def lrelu(x, alpha=0.18):
+    return LeakyReLU(alpha=alpha)(x)
 
 
 if __name__ == '__main__':

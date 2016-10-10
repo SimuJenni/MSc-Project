@@ -1,6 +1,6 @@
 import os
 
-NUM_THREADS = 10
+NUM_THREADS = 16
 
 # Directories for data, images and models
 DATA_DIR = '/Users/simujenni/MSc-Project/data/'

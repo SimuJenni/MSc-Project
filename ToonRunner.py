@@ -19,13 +19,12 @@ f_dims = [64, 96, 160, 256, 512]
 num_res_layers = 8
 merge_mode = 'sum'
 loss = 'mae'
-train_im_size = (192, 192, 3)
 
 # Get the data-set object
-data = TinyImagenet(train_im_size)
+data = Imagenet()
 
 # Load the net
-toon_net, encoder, decoder = ToonNet(input_shape=train_im_size, batch_size=batch_size, out_activation='tanh',
+toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='tanh',
                                          num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 
 # Name used for saving of model and outputs
@@ -74,10 +73,10 @@ montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_n
 datagen = ImageDataGenerator()
 
 # Training
-toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, train_im_size[:2], batch_size=batch_size),
+toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
                        samples_per_epoch=samples_per_epoch,
                        nb_epoch=nb_epoch,
-                       validation_data=datagen.flow_from_directory(data.val_dir, data.get_dims()[:2], batch_size=batch_size),
+                       validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
                        nb_val_samples=30000,
                        nb_worker=4,
                        callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),

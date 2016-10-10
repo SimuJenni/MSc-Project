@@ -26,18 +26,16 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 with tf.device('/cpu:0'):
-    x = tf.placeholder(tf.float32, shape=(None,)+data.dims)
     # Load the net
     model, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
                                       num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
-
 # replica 0
 with tf.device('/gpu:0'):
-    output_0 = model(x)  # all ops in the replica will live on GPU:0
+    output_0 = model.output  # all ops in the replica will live on GPU:0
 
 # replica 1
 with tf.device('/gpu:1'):
-    output_1 = model(x)  # all ops in the replica will live on GPU:1
+    output_1 = model.output  # all ops in the replica will live on GPU:1
 
 # merge outputs on CPU
 with tf.device('/cpu:0'):
@@ -74,7 +72,7 @@ with tf.Session(config=config) as sess:
     for epoch in range(nb_epoch):
         print("Epoch {} / {}".format(epoch + 1, nb_epoch))
         for X_batch, Y_batch in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-            feed_dict = {x: X_batch,
+            feed_dict = {model.input: X_batch,
                          y: Y_batch,
                          K.learning_phase(): 1}
             _, train_loss = sess.run([train_step, total_loss],

@@ -227,7 +227,7 @@ class ImageDataGenerator(object):
             save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format)
 
     def flow_from_directory(self, directory,
-                            target_size=(256, 256), color_mode='rgb',
+                            target_size=(192, 192), color_mode='rgb',
                             batch_size=32, shuffle=True, seed=None,
                             save_to_dir=None, save_prefix='', save_format='jpeg'):
         return DirectoryIterator(

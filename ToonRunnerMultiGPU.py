@@ -53,7 +53,6 @@ with tf.device('/cpu:0'):
     config = tf.ConfigProto(allow_soft_placement=True)
     with tf.Session(config=config) as sess:
         K.set_session(sess)
-        init_op = tf.initialize_all_variables()
 
         y = tf.placeholder(tf.float32, shape=(None,)+data.dims, name='y')
 
@@ -71,6 +70,9 @@ with tf.device('/cpu:0'):
         # set up TF optimizer
         optimizer = tf.train.AdamOptimizer(0.0005)
         train_step = optimizer.minimize(total_loss)
+
+        # Init all
+        init_op = tf.initialize_all_variables()
         sess.run(init_op)
 
         step = 0

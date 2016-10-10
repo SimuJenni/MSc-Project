@@ -81,7 +81,7 @@ def ToonNetDeep(input_shape, batch_size, out_activation='sigmoid', num_res_layer
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             encoded = res_layer_bottleneck(encoded, f_dims[5], 64)
     encoded = merge([encoded, l6], mode=merge_mode)
-    encoded = lrelu('relu')(encoded)
+    encoded = lrelu(encoded)
 
     # Up-Layer 1
     with tf.name_scope('conv_layer_6'):

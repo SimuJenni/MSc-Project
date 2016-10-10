@@ -7,7 +7,7 @@ NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 160, 256, 512]
 
 
-def ToonNet(input_shape, batch_size, out_activation='tanh', num_res_layers=16, merge_mode='sum', f_dims=F_DIMS):
+def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=16, merge_mode='sum', f_dims=F_DIMS):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -115,7 +115,7 @@ def ToonNet(input_shape, batch_size, out_activation='tanh', num_res_layers=16, m
     toon_net = Model(input_im, decoded)
     toon_net.name = 'ToonNet'
 
-    return toon_net, encoded, decoded
+    return toon_net
 
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
@@ -175,4 +175,4 @@ def lrelu(x, alpha=0.18):
 if __name__ == '__main__':
     in_dims = (256, 256, 3)
     print(compute_layer_dims(in_dims))
-    net = ToonNet(in_dims, 250)
+    net = ToonAE(in_dims, 250)

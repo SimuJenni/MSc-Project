@@ -7,7 +7,7 @@ import tensorflow as tf
 from keras import backend as K
 from constants import LOG_DIR
 
-from ToonNet import ToonNet
+from ToonNet import ToonAE
 from datasets.Imagenet import Imagenet
 from DataGenerator import ImageDataGenerator
 
@@ -70,11 +70,11 @@ def main(_):
             K.manual_variable_initialization(True)
 
             # build Keras model
-            model, _, decoded = ToonNet(input_shape=data.dims,
-                                        batch_size=batch_size,
-                                        out_activation='sigmoid',
-                                        num_res_layers=10,
-                                        merge_mode='sum')
+            model, _, decoded = ToonAE(input_shape=data.dims,
+                                       batch_size=batch_size,
+                                       out_activation='sigmoid',
+                                       num_res_layers=10,
+                                       merge_mode='sum')
 
             # keras model predictions
             preds = model.output

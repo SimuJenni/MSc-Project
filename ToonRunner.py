@@ -7,7 +7,6 @@ from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.Imagenet import Imagenet
-from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 32
@@ -24,8 +23,8 @@ data = Imagenet()
 datagen = ImageDataGenerator(horizontal_flip=True)
 
 # Load the net
-toon_net, encoder, decoder = ToonAE(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
-                                    num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+toon_net = ToonAE(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
+                  num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()
 
 # Name used for saving of model and outputs
@@ -39,13 +38,13 @@ toon_net.compile(optimizer=opt, loss=loss)
 
 # Training
 history = toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
-                       samples_per_epoch=samples_per_epoch,
-                       nb_epoch=nb_epoch,
-                       validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
-                       nb_val_samples=32000,
-                       nb_worker=4,
-                       callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
-                                  TensorBoard(log_dir=LOG_DIR, histogram_freq=1)])
+                                 samples_per_epoch=samples_per_epoch,
+                                 nb_epoch=nb_epoch,
+                                 validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
+                                 nb_val_samples=32000,
+                                 nb_worker=4,
+                                 callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
+                                            TensorBoard(log_dir=LOG_DIR, histogram_freq=1)])
 
 # Generate montage of sample-images
 sample_size = 64

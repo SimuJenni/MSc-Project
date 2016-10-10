@@ -246,13 +246,13 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    x = BatchNormalization(axis=3)(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
     return lrelu(x)
 
 
 def outter_connections(layer_in, f_channels):
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
-    l = BatchNormalization(axis=3)(l)
+    l = BatchNormalization(axis=3, mode=2)(l)
     return lrelu(l)
 
 
@@ -262,7 +262,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
                         border_mode=border,
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def res_layer_bottleneck(in_layer, out_dim, bn_dim):
@@ -272,7 +272,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim):
     x = conv_bn_relu(x, f_size=3, f_channels=bn_dim, stride=1, border='same')
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
     x = merge([x, in_layer], mode='sum')
     x = lrelu(x)
     return x

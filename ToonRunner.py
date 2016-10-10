@@ -36,7 +36,7 @@ net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(toon_net.name,
 print('Training network: {}'.format(net_name))
 
 # Define objective and solver
-opt = Adam(lr=0.0005, beta_1=0.75)
+opt = Adam(lr=0.0005)
 toon_net.compile(optimizer=opt, loss=loss)
 
 

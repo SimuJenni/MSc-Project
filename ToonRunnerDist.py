@@ -46,6 +46,7 @@ def main(_):
     ps_spec = FLAGS.ps_hosts.split(",")
     worker_spec = FLAGS.worker_hosts.split(",")
     cluster = tf.train.ClusterSpec({"ps": ps_spec, "worker": worker_spec})
+    num_replicas_to_aggregate = len(worker_spec)
 
     # Not using existing servers. Create an in-process server.
     server = tf.train.Server(
@@ -95,6 +96,14 @@ def main(_):
             # set up TF optimizer
             optimizer = tf.train.AdamOptimizer(learning_rate)
 
+            # Create synchronous replica optimizer.
+            optimizer = tf.train.SyncReplicasOptimizer(
+                optimizer,
+                replicas_to_aggregate=num_replicas_to_aggregate,
+                replica_id=FLAGS.task_id,
+                total_num_replicas=num_replicas_to_aggregate)
+
+            # Batchnorm updates
             with tf.control_dependencies(model.updates):
                 total_loss = tf.identity(total_loss)
 

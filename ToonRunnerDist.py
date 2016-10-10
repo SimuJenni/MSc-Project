@@ -100,7 +100,7 @@ def main(_):
             optimizer = tf.train.SyncReplicasOptimizer(
                 optimizer,
                 replicas_to_aggregate=num_replicas_to_aggregate,
-                replica_id=FLAGS.task_id,
+                replica_id=FLAGS.task_index,
                 total_num_replicas=num_replicas_to_aggregate)
 
             # Batchnorm updates

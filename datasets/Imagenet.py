@@ -23,8 +23,8 @@ class Imagenet(Dataset):
             os.mkdir(self.data_dir)
             self.process_imagenet()
         # Paths to data-files with randomized train and test images
-        self.val_files = glob.glob('%s/%s*' % (self.val_dir, 'val'))
-        self.train_files = glob.glob('%s/%s*' % (self.train_dir, 'train'))
+        self.val_files = glob.glob('%s/X/%s*' % (self.val_dir, 'val'))
+        self.train_files = glob.glob('%s/X/%s*' % (self.train_dir, 'train'))
         self.name = 'Imagenet'
         self.num_train = 1200000
         self.num_val = 50000

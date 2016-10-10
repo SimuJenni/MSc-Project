@@ -1,34 +1,33 @@
 import os
-import gc
-from DataGenerator import ImageDataGenerator
 
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
-from ToonNet import ToonNet, ToonNetDeep
+from DataGenerator import ImageDataGenerator
+from ToonNet import ToonNet
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
-from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
 nb_epoch = 10
-samples_per_epoch = 2000
+samples_per_epoch = 1000
 plot_while_train = True
-f_dims = [64, 96, 160, 256, 512]
-num_res_layers = 8
-merge_mode = 'sum'
+f_dims = [64, 96, 160, 256, 416]
+num_res_layers = 16
+merge_mode = 'mul'
 loss = 'mae'
 
 # Get the data-set object
 data = Imagenet()
-datagen = ImageDataGenerator()
+datagen = ImageDataGenerator(rotation_range=5,
+                             width_shift_range=0.1,
+                             height_shift_range=0.1,
+                             horizontal_flip=True)
 
 # Load the net
-# toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
-#                                          num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
-toon_net, encoder, decoder = ToonNetDeep(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
-                                         num_res_layers=4, merge_mode=merge_mode)
+toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
+                                         num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()
 
 # Name used for saving of model and outputs
@@ -38,9 +37,8 @@ net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(toon_net.name,
 print('Training network: {}'.format(net_name))
 
 # Define objective and solver
-opt = Adam(lr=0.0005)
+opt = Adam(lr=0.0005, beta_1=0.75)
 toon_net.compile(optimizer=opt, loss=loss)
-
 
 # Training
 toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
@@ -60,8 +58,8 @@ montage(decoded_imgs[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-
 montage(X_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
 montage(Y_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
 
-"""
 
+"""
 # Training
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -89,5 +87,4 @@ for epoch in range(nb_epoch):
 
 montage(X_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
 montage(Y_test[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
-
 """

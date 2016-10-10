@@ -19,12 +19,6 @@ class Dataset:
         self.train_files = []
         self.resize = resize
 
-    def get_dims(self):
-        """
-            Returns the dimensions of the images as 3D array (height, width, channel)
-        """
-        return self.dims
-
     def generator_train_h5(self, batch_size):
         """
             A generator that loads training data for training.

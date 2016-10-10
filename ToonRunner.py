@@ -24,7 +24,7 @@ loss = 'mae'
 data = Imagenet()
 
 # Load the net
-toon_net, encoder, decoder = ToonNet(input_shape=data.get_dims(), batch_size=batch_size, out_activation='tanh',
+toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
                                          num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()
 

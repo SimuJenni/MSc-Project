@@ -1,5 +1,6 @@
-import gc
+from __future__ import print_function
 import time
+import sys
 
 import keras
 import tensorflow as tf
@@ -94,7 +95,21 @@ def main(_):
             # set up TF optimizer
             optimizer = tf.train.AdamOptimizer(learning_rate)
 
-            train_step = optimizer.minimize(total_loss, global_step=global_step)
+            with tf.control_dependencies(model.updates):
+                total_loss = tf.identity(total_loss)
+
+            # Compute gradients with respect to the loss.
+            grads = optimizer.compute_gradients(total_loss)
+
+            # Add histograms for gradients.
+            for grad, var in grads:
+                if grad is not None:
+                    tf.histogram_summary(var.op.name + '/gradients', grad)
+
+            apply_gradients_op = optimizer.apply_gradients(grads, global_step=global_step)
+
+            with tf.control_dependencies([apply_gradients_op]):
+                train_op = tf.identity(total_loss, name='train_op')
 
             # create a summary for our cost
             tf.scalar_summary("cost", total_loss)
@@ -133,7 +148,7 @@ def main(_):
                     feed_dict = {model.inputs[0]: X_batch,
                                  targets: Y_batch,
                                  K.learning_phase(): 1}
-                    _, step, train_loss = sess.run([train_step, global_step, total_loss],
+                    _, step, train_loss = sess.run([train_op, global_step, total_loss],
                                                    feed_dict=feed_dict)
                     local_step += 1
                     elapsed_time = time.time() - start_time
@@ -143,6 +158,7 @@ def main(_):
                           " Epoch: %2d," % (epoch + 1),
                           " Cost: %.4f," % train_loss,
                           " Elapsed Time: %d" % elapsed_time)
+                    sys.stdout.flush()
 
             time_end = time.time()
             print("Training ends @ %f" % time_end)

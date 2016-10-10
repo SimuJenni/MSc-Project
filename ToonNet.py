@@ -1,6 +1,6 @@
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
@@ -119,27 +119,27 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
 
 
 def ToonDiscriminator(input_shape):
-    in_im = Input(shape=input_shape)
-    x = Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(in_im)
-    x = BatchNormalization(axis=3)(x)
-    x = lrelu(x)
-    x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
-    x = lrelu(x)
-    x = Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
-    x = lrelu(x)
-    x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
-    x = lrelu(x)
-    x = Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
-    x = lrelu(x)
-    x = Flatten()(x)
-    x = Dense(1024)(x)
-    x = lrelu(x)
-    res = Dense(1, activation='sigmoid')(x)
-    return Model(in_im, res)
+    model = Sequential()
+    model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+    model.add(BatchNormalization(axis=3))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+    model.add(BatchNormalization(axis=3))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+    model.add(BatchNormalization(axis=3))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+    model.add(BatchNormalization(axis=3))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+    model.add(BatchNormalization(axis=3))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Flatten())
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(1, activation='sigmoid'))
+    return model
 
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):

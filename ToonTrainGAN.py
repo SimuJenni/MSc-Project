@@ -2,6 +2,7 @@ import os
 import numpy as np
 
 from keras.models import Model
+from keras.layers import Input
 
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator
@@ -28,7 +29,10 @@ toonDisc = ToonDiscriminator(input_shape=data.dims)
 toonDisc.compile(optimizer='adam', loss='binary_crossentropy')
 
 # Stick them together
-toonGAN = Model(toonAE, toonDisc)
+im_input = Input(shape=data.dims)
+im_recon = toonAE(im_input)
+im_class = toonDisc(im_recon)
+toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer='adam', loss='binary_crossentropy')
 
 # Training

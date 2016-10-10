@@ -13,7 +13,7 @@ from utils import montage
 
 batch_size = 32
 nb_epoch = 10
-samples_per_epoch = 20000
+samples_per_epoch = 2000
 plot_while_train = True
 f_dims = [64, 96, 160, 256, 512]
 num_res_layers = 8

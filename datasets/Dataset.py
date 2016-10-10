@@ -80,9 +80,9 @@ class Dataset:
         """
         from PIL import Image
         if self.resize:
-            sample = np.zeros([sample_size, self.resize])
+            sample = np.zeros((sample_size, ) + self.resize)
         else:
-            sample = np.zeros([sample_size, self.dims])
+            sample = np.zeros((sample_size, ) + self.dims)
         for i in range(sample_size):
             img = Image.open(self.train_files[i])
             if self.resize:

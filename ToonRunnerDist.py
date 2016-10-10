@@ -8,6 +8,7 @@ from constants import LOG_DIR
 
 from ToonNet import ToonNet
 from datasets.Imagenet import Imagenet
+from DataGenerator import ImageDataGenerator
 
 # Flags for defining the tf.train.ClusterSpec
 flags = tf.app.flags
@@ -32,12 +33,13 @@ FLAGS = tf.app.flags.FLAGS
 def main(_):
     # config
     batch_size = 32
-    learning_rate = 0.0002
+    learning_rate = 0.0005
     training_epochs = 1
     logs_path = LOG_DIR
 
     # Get the data-set object
-    data = Imagenet((128, 128, 3))
+    data = Imagenet()
+    datagen = ImageDataGenerator()
 
     # Construct the cluster
     ps_spec = FLAGS.ps_hosts.split(",")
@@ -66,7 +68,7 @@ def main(_):
             K.manual_variable_initialization(True)
 
             # build Keras model
-            model, _, decoded = ToonNet(input_shape=data.get_dims(),
+            model, _, decoded = ToonNet(input_shape=data.dims,
                                         batch_size=batch_size,
                                         out_activation='sigmoid',
                                         num_res_layers=10,
@@ -76,8 +78,7 @@ def main(_):
             preds = model.output
 
             # placeholder for training targets
-            im_height, im_width, im_chan = data.get_dims()
-            targets = tf.placeholder(tf.float32, shape=(None, im_height, im_width, im_chan), name='targets')
+            targets = tf.placeholder(tf.float32, shape=(None, ) + data.dims, name='targets')
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))
@@ -128,24 +129,17 @@ def main(_):
             for epoch in range(training_epochs):
                 print("Epoch {} / {}".format(epoch + 1, training_epochs))
 
-                for X_train, Y_train in data.generator_train_h5(batch_size):
-                    num_data = X_train.shape[0]
-
-                    for start in range(0, num_data, batch_size):
-                        X_batch = X_train[start:(start + batch_size)]
-                        Y_batch = Y_train[start:(start + batch_size)]
-                        feed_dict = {model.inputs[0]: X_batch,
-                                     targets: Y_batch,
-                                     K.learning_phase(): 1}
-                        _, step, train_loss = sess.run([train_step, global_step, total_loss],
-                                                       feed_dict=feed_dict)
-                        local_step += 1
-                    del X_train, Y_train, X_batch, Y_batch
-                    gc.collect()
+                for X_batch, Y_batch in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
+                    feed_dict = {model.inputs[0]: X_batch,
+                                 targets: Y_batch,
+                                 K.learning_phase(): 1}
+                    _, step, train_loss = sess.run([train_step, global_step, total_loss],
+                                                   feed_dict=feed_dict)
+                    local_step += 1
                     elapsed_time = time.time() - start_time
                     start_time = time.time()
-                    print("Global-Step: %d," % (step),
-                          " Local-Step: %d" % (local_step),
+                    print("Global-Step: %d," % step,
+                          " Local-Step: %d" % local_step,
                           " Epoch: %2d," % (epoch + 1),
                           " Cost: %.4f," % train_loss,
                           " Elapsed Time: %d" % elapsed_time)

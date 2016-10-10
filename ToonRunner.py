@@ -22,6 +22,7 @@ loss = 'mae'
 
 # Get the data-set object
 data = Imagenet()
+datagen = ImageDataGenerator()
 
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
@@ -38,7 +39,6 @@ print('Training network: {}'.format(net_name))
 opt = Adam(lr=0.0005, beta_1=0.75)
 toon_net.compile(optimizer=opt, loss=loss)
 
-datagen = ImageDataGenerator()
 
 # Training
 toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),

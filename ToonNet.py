@@ -117,6 +117,7 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=16, me
 
     return toon_net
 
+def ToonDiscriminator()
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
     x = Convolution2D(f_channels, f_size, f_size,

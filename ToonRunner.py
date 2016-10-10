@@ -46,6 +46,9 @@ history = toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, bat
                                  callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
                                             TensorBoard(log_dir=LOG_DIR, histogram_freq=1)])
 
+# Save the model
+toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))
+
 # Generate montage of sample-images
 sample_size = 64
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=sample_size).next()

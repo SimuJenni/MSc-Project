@@ -5,7 +5,7 @@ from DataGenerator import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
-from ToonNet import ToonNet
+from ToonNet import ToonNet, ToonNetDeep
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.TinyImagenet import TinyImagenet
 from datasets.Imagenet import Imagenet
@@ -25,8 +25,10 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
-                                         num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+# toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
+#                                          num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+toon_net, encoder, decoder = ToonNetDeep(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
+                                         num_res_layers=4, merge_mode=merge_mode)
 toon_net.summary()
 
 # Name used for saving of model and outputs

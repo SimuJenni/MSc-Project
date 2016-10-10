@@ -30,7 +30,6 @@ with tf.device('/cpu:0'):
     # Load the net
     model, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
                                       num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
-    model.summary()
 
 # replica 0
 with tf.device('/gpu:0'):
@@ -75,7 +74,7 @@ with tf.Session(config=config) as sess:
     for epoch in range(nb_epoch):
         print("Epoch {} / {}".format(epoch + 1, nb_epoch))
         for X_batch, Y_batch in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-            feed_dict = {model.inputs[0]: X_batch,
+            feed_dict = {x: X_batch,
                          y: Y_batch,
                          K.learning_phase(): 1}
             _, train_loss = sess.run([train_step, total_loss],

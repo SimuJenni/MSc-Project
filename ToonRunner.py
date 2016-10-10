@@ -7,11 +7,12 @@ from DataGenerator import ImageDataGenerator
 from ToonNet import ToonNet
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.Imagenet import Imagenet
+from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 32
-nb_epoch = 500
-samples_per_epoch = 320
+nb_epoch = 10
+samples_per_epoch = 3200
 plot_while_train = True
 f_dims = [64, 96, 160, 256, 512]
 num_res_layers = 8
@@ -21,9 +22,9 @@ l_rate = 0.001
 
 # Get the data-set object
 data = Imagenet()
-datagen = ImageDataGenerator(rotation_range=5,
-                             width_shift_range=0.1,
-                             height_shift_range=0.1,
+datagen = ImageDataGenerator(rotation_range=2,
+                             width_shift_range=0.02,
+                             height_shift_range=0.02,
                              horizontal_flip=True)
 
 # Load the net
@@ -41,7 +42,7 @@ opt = Adam(lr=l_rate)
 toon_net.compile(optimizer=opt, loss=loss)
 
 # Training
-toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size, save_to_dir='test'),
+toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
                        samples_per_epoch=samples_per_epoch,
                        nb_epoch=nb_epoch,
                        validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),

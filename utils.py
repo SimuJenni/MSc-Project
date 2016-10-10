@@ -82,4 +82,4 @@ def montage(images, saveto='montage.png'):
 
 
 def im2float(imgs):
-    return imgs.astype('float32') / 255.
+    return np.asarray(imgs, dtype='float32') / 255.

@@ -13,9 +13,9 @@ batch_size = 32
 nb_epoch = 10
 samples_per_epoch = 1000
 plot_while_train = True
-f_dims = [64, 96, 160, 256, 416]
-num_res_layers = 16
-merge_mode = 'mul'
+f_dims = [64, 96, 160, 256, 512]
+num_res_layers = 8
+merge_mode = 'sum'
 loss = 'mae'
 
 # Get the data-set object
@@ -27,7 +27,7 @@ datagen = ImageDataGenerator(rotation_range=5,
 
 # Load the net
 toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
-                                         num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+                                     num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 toon_net.summary()
 
 # Name used for saving of model and outputs
@@ -57,7 +57,6 @@ decoded_imgs = toon_net.predict(X_test, batch_size=batch_size)
 montage(decoded_imgs[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out'.format(net_name)))
 montage(X_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X'.format(net_name)))
 montage(Y_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y'.format(net_name)))
-
 
 """
 # Training

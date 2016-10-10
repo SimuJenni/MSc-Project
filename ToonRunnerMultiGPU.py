@@ -29,6 +29,8 @@ with tf.device('/cpu:0'):
     # Load the net
     model, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_size, out_activation='tanh',
                                       num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
+    init_op = tf.initialize_all_variables()
+
 # replica 0
 with tf.device('/gpu:0'):
     output_0 = model.output  # all ops in the replica will live on GPU:0
@@ -67,6 +69,7 @@ with tf.Session(config=config) as sess:
     # set up TF optimizer
     optimizer = tf.train.AdamOptimizer(0.0005)
     train_step = optimizer.minimize(total_loss)
+    sess.run(init_op)
 
     step = 0
     for epoch in range(nb_epoch):

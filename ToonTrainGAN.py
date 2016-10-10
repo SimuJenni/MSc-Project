@@ -37,7 +37,7 @@ opt = Adam(lr=l_rate)
 toon_net.compile(optimizer=opt, loss=loss)
 
 # Training
-history = toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
+toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
                                  samples_per_epoch=samples_per_epoch,
                                  nb_epoch=nb_epoch,
                                  validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
@@ -47,7 +47,7 @@ history = toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, bat
                                             TensorBoard(log_dir=LOG_DIR, histogram_freq=1)])
 
 # Save the model
-toon_net.save(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))
+toon_net.save_weights(os.path.join(MODEL_DIR, '{}.h5'.format(net_name)))
 
 # Generate montage of sample-images
 sample_size = 64

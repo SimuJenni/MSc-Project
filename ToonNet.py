@@ -113,7 +113,7 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
 
     # Create the model
     toon_net = Model(input_im, decoded)
-    toon_net.name = 'ToonNet'
+    toon_net.name = 'ToonAE'
 
     return toon_net
 
@@ -140,6 +140,7 @@ def ToonDiscriminator(input_shape):
     x = lrelu(x)
     return Dense(1, activation='sigmoid')(x)
 
+
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
     x = Convolution2D(f_channels, f_size, f_size,
                       border_mode=border,
@@ -147,7 +148,6 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
                       init='he_normal')(layer_in)
     x = BatchNormalization(axis=3)(x)
     return Activation('relu')(x)
-
 
 
 def outter_connections(layer_in, f_channels):
@@ -174,8 +174,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim):
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     x = BatchNormalization(axis=3)(x)
     x = merge([x, in_layer], mode='sum')
-    x = lrelu(x)
-    return x
+    return Activation('relu')(x)
 
 
 def compute_layer_dims(input_shape, num_conv=NUM_CONV_LAYERS):

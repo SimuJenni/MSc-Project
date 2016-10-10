@@ -127,21 +127,19 @@ def main(_):
             summary_op = tf.merge_all_summaries()
             init_op = tf.initialize_all_variables()
 
-            sv = tf.train.Supervisor(is_chief=is_chief,
-                                     saver=saver,
-                                     summary_op=summary_op,
-                                     logdir=logs_path,
-                                     init_op=init_op,
-                                     recovery_wait_secs=1,
-                                     global_step=global_step,
-                                     save_model_secs=600)
+        sv = tf.train.Supervisor(is_chief=is_chief,
+                                 saver=saver,
+                                 summary_op=summary_op,
+                                 logdir=logs_path,
+                                 init_op=init_op,
+                                 global_step=global_step,
+                                 save_model_secs=600)
 
-            sess_config = tf.ConfigProto(allow_soft_placement=True,
-                                         log_device_placement=False,
-                                         device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
+        sess_config = tf.ConfigProto(allow_soft_placement=True,
+                                     log_device_placement=False,
+                                     device_filters=["/job:ps", "/job:worker/task:%d" % FLAGS.task_index])
 
-            sess = sv.prepare_or_wait_for_session(server.target,
-                                                  config=sess_config)
+        with sv.prepare_or_wait_for_session(server.target, config=sess_config) as sess:
             K.set_session(sess)
 
             # Perform training

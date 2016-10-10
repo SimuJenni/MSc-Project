@@ -33,11 +33,11 @@ with tf.device('/cpu:0'):
                                       num_res_layers=num_res_layers, merge_mode=merge_mode, f_dims=f_dims)
 
 # replica 0
-with tf.device('/gpu:0'):
+with tf.device('/gpu:1'):
     output_0 = model.output  # all ops in the replica will live on GPU:0
 
 # replica 1
-with tf.device('/gpu:1'):
+with tf.device('/gpu:2'):
     output_1 = model.output  # all ops in the replica will live on GPU:1
 
 # merge outputs on CPU

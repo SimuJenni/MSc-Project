@@ -10,10 +10,7 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 import tensorflow as tf
-sess = tf.Session()
-
 from keras import backend as K
-K.set_session(sess)
 
 batch_size = 32
 nb_epoch = 10
@@ -53,36 +50,40 @@ net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(model.name, f_
                                                                   data.name)
 print('Training network: {}'.format(net_name))
 
-y = tf.placeholder(tf.float32, shape=(None,)+data.dims, name='y')
+config = tf.ConfigProto(allow_soft_placement=True)
+with tf.Session(config=config) as sess:
+    K.set_session(sess)
 
-# reconstruction loss objective
-recon_loss = tf.reduce_mean(MAE(y, preds))
+    y = tf.placeholder(tf.float32, shape=(None,)+data.dims, name='y')
 
-# apply regularizers if any
-if model.regularizers:
-    total_loss = recon_loss * 1.  # copy tensor
-    for regularizer in model.regularizers:
-        total_loss = regularizer(total_loss)
-else:
-    total_loss = recon_loss
+    # reconstruction loss objective
+    recon_loss = tf.reduce_mean(MAE(y, preds))
 
-# set up TF optimizer
-optimizer = tf.train.AdamOptimizer(0.0005)
-train_step = optimizer.minimize(total_loss)
+    # apply regularizers if any
+    if model.regularizers:
+        total_loss = recon_loss * 1.  # copy tensor
+        for regularizer in model.regularizers:
+            total_loss = regularizer(total_loss)
+    else:
+        total_loss = recon_loss
 
-step = 0
-for epoch in range(nb_epoch):
-    print("Epoch {} / {}".format(epoch + 1, nb_epoch))
-    for X_batch, Y_batch in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-        feed_dict = {model.inputs[0]: X_batch,
-                     y: Y_batch,
-                     K.learning_phase(): 1}
-        _, train_loss = sess.run([train_step, total_loss],
-                                       feed_dict=feed_dict)
-        step += 1
-    print("Step: %d," % step,
-          " Epoch: %2d," % (epoch + 1),
-          " Cost: %.4f," % train_loss)
+    # set up TF optimizer
+    optimizer = tf.train.AdamOptimizer(0.0005)
+    train_step = optimizer.minimize(total_loss)
+
+    step = 0
+    for epoch in range(nb_epoch):
+        print("Epoch {} / {}".format(epoch + 1, nb_epoch))
+        for X_batch, Y_batch in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
+            feed_dict = {model.inputs[0]: X_batch,
+                         y: Y_batch,
+                         K.learning_phase(): 1}
+            _, train_loss = sess.run([train_step, total_loss],
+                                           feed_dict=feed_dict)
+            step += 1
+        print("Step: %d," % step,
+              " Epoch: %2d," % (epoch + 1),
+              " Cost: %.4f," % train_loss)
 
 
 # Generate montage of sample-images

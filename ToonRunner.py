@@ -10,13 +10,14 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
-nb_epoch = 10
-samples_per_epoch = 1000
+nb_epoch = 500
+samples_per_epoch = 320
 plot_while_train = True
 f_dims = [64, 96, 160, 256, 512]
 num_res_layers = 8
 merge_mode = 'sum'
 loss = 'mae'
+l_rate = 0.001
 
 # Get the data-set object
 data = Imagenet()
@@ -31,17 +32,16 @@ toon_net, encoder, decoder = ToonNet(input_shape=data.dims, batch_size=batch_siz
 toon_net.summary()
 
 # Name used for saving of model and outputs
-net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}'.format(toon_net.name, f_dims, num_res_layers, merge_mode,
-                                                                  loss,
-                                                                  data.name)
+net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}-LRate:{}'.format(toon_net.name, f_dims, num_res_layers,
+                                                                           merge_mode, loss, data.name, l_rate)
 print('Training network: {}'.format(net_name))
 
 # Define objective and solver
-opt = Adam(lr=0.0005, beta_1=0.75)
+opt = Adam(lr=l_rate)
 toon_net.compile(optimizer=opt, loss=loss)
 
 # Training
-toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
+toon_net.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size, save_to_dir='test'),
                        samples_per_epoch=samples_per_epoch,
                        nb_epoch=nb_epoch,
                        validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),

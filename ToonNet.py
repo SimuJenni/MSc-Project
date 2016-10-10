@@ -4,10 +4,10 @@ from keras.models import Model
 from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 96, 160, 256, 416, 512]
+F_DIMS = [64, 96, 160, 256, 512]
 
 
-def ToonNet(input_shape, batch_size, out_activation='sigmoid', num_res_layers=16, merge_mode='sum', f_dims=F_DIMS):
+def ToonNet(input_shape, batch_size, out_activation='tanh', num_res_layers=16, merge_mode='sum', f_dims=F_DIMS):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 

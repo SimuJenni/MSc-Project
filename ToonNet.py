@@ -43,71 +43,71 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
     """
     # Compute the dimensions of the layers
     with tf.name_scope('input'):
-        l_dims = compute_layer_dims(input_shape=input_shape)
+        l_dims = compute_layer_shapes(input_shape=input_shape)
         input_im = Input(shape=input_shape)
 
     # Layer 1
-    with tf.name_scope('conv_layer_1'):
+    with tf.name_scope('conv_1'):
         x = conv_bn_relu(input_im, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
         l1 = outter_connections(x, f_dims[0])
 
     # Layer 2
-    with tf.name_scope('conv_layer_2'):
+    with tf.name_scope('conv_2'):
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
         l2 = outter_connections(x, f_dims[1])
 
     # Layer 3
-    with tf.name_scope('conv_layer_3'):
+    with tf.name_scope('conv_3'):
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
         l3 = outter_connections(x, f_dims[2])
 
     # Layer 4
-    with tf.name_scope('conv_layer_4'):
+    with tf.name_scope('conv_4'):
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
         l4 = outter_connections(x, f_dims[3])
 
     # Layer 5
-    with tf.name_scope('conv_layer_5'):
-        encoded = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
-        l5 = outter_connections(encoded, f_dims[4])
+    with tf.name_scope('conv_5'):
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        l5 = outter_connections(x, f_dims[4])
 
     # All the res-layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            encoded = res_layer_bottleneck(encoded, f_dims[4], 64)
-    encoded = merge([encoded, l5], mode=merge_mode)
-    encoded = Activation('relu')(encoded)
+            x = res_layer_bottleneck(x, f_dims[4], 64)
+    x = merge([x, l5], mode=merge_mode)
+    encoded = Activation('relu')(x)
 
     # Layer 6
-    with tf.name_scope('deconv_layer_1'):
+    with tf.name_scope('deconv_1'):
         x = upconv_bn(encoded, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l4], mode=merge_mode)
         x = Activation('relu')(x)
 
     # Layer 7
-    with tf.name_scope('deconv_layer_2'):
+    with tf.name_scope('deconv_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l3], mode=merge_mode)
         x = lrelu(x)
 
     # Layer 8
-    with tf.name_scope('deconv_layer_3'):
+    with tf.name_scope('deconv_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l2], mode=merge_mode)
         x = Activation('relu')(x)
 
     # Layer 9
-    with tf.name_scope('deconv_layer_4'):
+    with tf.name_scope('deconv_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
                       border='same')
         x = merge([x, l1], mode=merge_mode)
         x = Activation('relu')(x)
 
     # Layer 10
-    with tf.name_scope('deconv_layer_5'):
+    with tf.name_scope('deconv_5'):
         x = upconv_bn(x, f_size=4, f_channels=3, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
         decoded = Activation(out_activation)(x)
 
@@ -119,6 +119,25 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
 
 
 def ToonDiscriminator(input_shape):
+    """Builds ConvNet used as discrimator between real-images and de-tooned images.
+    The network has the follow architecture:
+
+    Layer           Filters     Stride
+
+    L1: Conv-layer  3x3x32      2                  =================================
+    L2: Conv-layer  3x3x64      2                      =========================
+    L3: Conv-layer  3x3x128     2                          =================
+    L4: Conv-layer  3x3x256     2                              =========
+    L5: Conv-layer  3x3x512     2                                 ===
+    L6: Dense-Layer 1024                                          |X|
+    L7: Dense-Layer 1                                             |X|
+
+    Args:
+        input_shape: Shape of the input (height, width, channels)
+
+    Returns:
+        The resulting Keras models
+    """
     model = Sequential()
     model.name = 'ToonDisc'
 
@@ -158,6 +177,18 @@ def ToonDiscriminator(input_shape):
 
 
 def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
+    """Wrapper for first few down-convolution layers including batchnorm and Relu
+
+    Args:
+        layer_in: Input to this layer
+        f_size: Size of convolution filters
+        f_channels: Number of channels of the output
+        stride: Used stride (typically =2)
+        border: 'valid' or 'same'
+
+    Returns:
+        Result of convolution followed by batchnorm and Relu
+    """
     x = Convolution2D(f_channels, f_size, f_size,
                       border_mode=border,
                       subsample=(stride, stride),
@@ -167,12 +198,35 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
 
 
 def outter_connections(layer_in, f_channels):
+    """Wrapper for 1x1 convolutions used on the outer layers.
+
+    Args:
+        layer_in: Input to this layer
+        f_channels: Number of channels for the output (usually the same as input)
+
+    Returns:
+        Result of convolution followed by batchnorm and leakyRelu
+    """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = BatchNormalization(axis=3, mode=2)(l)
     return lrelu(l)
 
 
 def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border='valid'):
+    """Wrapper for upconvolution layer including batchnormalization.
+
+    Args:
+        layer_in: Input to this layers
+        f_size: Size of the filers
+        f_channels: Number of output channels
+        out_dim: Dimension/shape of the output
+        batch_size:
+        stride: Used stride for the convolution
+        border: 'valid' or 'same'
+
+    Returns:
+        Result of upconvolution and batchnormalization
+    """
     x = Deconvolution2D(f_channels, f_size, f_size,
                         output_shape=(batch_size, out_dim, out_dim, f_channels),
                         border_mode=border,
@@ -182,6 +236,16 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
 
 
 def res_layer_bottleneck(in_layer, out_dim, bn_dim):
+    """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
+
+    Args:
+        in_layer: Input to residual-layer
+        out_dim: Dimension (number of channels) of the output (should be the same as input)
+        bn_dim: Dimension of the bottlenecked convolutions
+
+    Returns:
+        Output of same dimensionality as input
+    """
     # 1x1 Bottleneck
     x = conv_bn_relu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same')
     # 3x3 conv
@@ -193,7 +257,16 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim):
     return Activation('relu')(x)
 
 
-def compute_layer_dims(input_shape, num_conv=NUM_CONV_LAYERS):
+def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):
+    """Helper function computing the shapes of the output layers resulting from strided convolutions.
+
+    Args:
+        input_shape: Shape of the input (expecting square input images)
+        num_conv: Number of strided convolution layers (not counting res-layers)
+
+    Returns:
+        List of resulting layer-dimensions
+    """
     layer_dims = [None] * (num_conv + 1)
     dim = input_shape[0]
 
@@ -211,5 +284,5 @@ def lrelu(x, alpha=0.2):
 
 if __name__ == '__main__':
     in_dims = (256, 256, 3)
-    print(compute_layer_dims(in_dims))
+    print(compute_layer_shapes(in_dims))
     net = ToonAE(in_dims, 250)

@@ -10,7 +10,7 @@ from datasets.Imagenet import Imagenet
 
 batch_size = 32
 nb_epoch = 1
-chunk_size = 300*batch_size
+chunk_size = 200*batch_size
 l_rate = 0.001
 
 # Get the data-set object
@@ -38,6 +38,7 @@ for epoch in range(nb_epoch):
         # Construct data for discriminator training
         X_disc = np.concatenate((Y_train, X_train))
         y = [1] * len(Y_train) + [0] * len(X_train)
+        del X_train, Y_train
 
         # Train discriminator
         toonDisc.fit(X_disc, y, batch_size=batch_size, nb_epoch=1)

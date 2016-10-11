@@ -9,7 +9,7 @@ from ToonNet import ToonDiscriminator
 from constants import MODEL_DIR
 from datasets.Imagenet import Imagenet
 
-batch_size = 64
+batch_size = 32
 nb_epoch = 1
 chunk_size = 200*batch_size
 l_rate = 0.0002

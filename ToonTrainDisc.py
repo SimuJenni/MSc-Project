@@ -9,10 +9,10 @@ from ToonNet import ToonDiscriminator
 from constants import MODEL_DIR
 from datasets.Imagenet import Imagenet
 
-batch_size = 32
+batch_size = 64
 nb_epoch = 1
 chunk_size = 200*batch_size
-l_rate = 0.001
+l_rate = 0.0002
 
 # Get the data-set object
 data = Imagenet()
@@ -27,7 +27,7 @@ net_name = '{}-Data:{}-LRate:{}'.format(toonDisc.name, data.name, l_rate)
 print('Training network: {}'.format(net_name))
 
 # Define objective and solver
-opt = Adam(lr=l_rate)
+opt = Adam(lr=l_rate, beta_1=0.5)
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Training

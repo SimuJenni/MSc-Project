@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import gc
 
 from keras.optimizers import Adam
 
@@ -38,7 +39,6 @@ for epoch in range(nb_epoch):
         # Construct data for discriminator training
         X_disc = np.concatenate((Y_train, X_train))
         y = [1] * len(Y_train) + [0] * len(X_train)
-        del X_train, Y_train
 
         # Train discriminator
         toonDisc.fit(X_disc, y, batch_size=batch_size, nb_epoch=1)
@@ -47,6 +47,9 @@ for epoch in range(nb_epoch):
         chunk += 1
         if not chunk % 20:
             toonDisc.save_weights(os.path.join(MODEL_DIR, '{}-Epoch:{}-Chunk:{}.hdf5'.format(net_name, epoch, chunk)))
+
+        del X_train, Y_train, X_disc
+        gc.collect()
 
 # Save the model
 toonDisc.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

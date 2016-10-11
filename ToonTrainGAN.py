@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import gc
 
 from keras.models import Model
 from keras.layers import Input
@@ -61,6 +62,9 @@ for epoch in range(nb_epoch):
             toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:49], batch_size=batch_size)
             montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}'.format(epoch, chunk)))
+
+        del X_train, Y_train, X_disc
+        gc.collect()
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))

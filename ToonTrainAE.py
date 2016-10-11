@@ -10,13 +10,13 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
-nb_epoch = 2
-samples_per_epoch = 500000
+nb_epoch = 1
+samples_per_epoch = 1000000
 f_dims = [64, 96, 160, 256, 512]
 num_res_layers = 8
 merge_mode = 'sum'
 loss = 'mae'
-l_rate = 0.001
+l_rate = 0.0002
 
 # Get the data-set object
 data = Imagenet()
@@ -33,7 +33,7 @@ net_name = '{}-f_dims:{}-NRes:{}-Merge:{}-Loss:{}-Data:{}-LRate:{}'.format(toonA
 print('Training network: {}'.format(net_name))
 
 # Define objective and solver
-opt = Adam(lr=l_rate)
+opt = Adam(lr=l_rate, beta_1=0.5)
 toonAE.compile(optimizer=opt, loss=loss)
 
 # Training

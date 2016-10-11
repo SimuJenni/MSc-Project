@@ -112,32 +112,51 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
         decoded = Activation(out_activation)(x)
 
     # Create the model
-    toon_net = Model(input_im, decoded)
-    toon_net.name = 'ToonAE'
+    model = Model(input_im, decoded)
+    model.name = 'ToonAE'
 
-    return toon_net
+    return model
 
 
 def ToonDiscriminator(input_shape):
     model = Sequential()
+    model.name = 'ToonDisc'
+
+    # Conv-Layer 1
     model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+
+    # Conv-Layer 2
+    model.add(Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+
+    # Conv-Layer 3
+    model.add(Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+
+    # Conv-Layer 4
+    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
+
+    # Conv-Layer 5
+    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
+
+    # Fully connected layer 1
     model.add(Flatten())
+    model.add(Dense(1024))
+    model.add(LeakyReLU(alpha=0.2))
+
+    # Fully connected layer 2
     model.add(Dense(512))
     model.add(LeakyReLU(alpha=0.2))
+
+    # Fully connected layer 3
     model.add(Dense(1, activation='sigmoid'))
     return model
 

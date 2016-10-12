@@ -30,7 +30,8 @@ toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size)
 toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
-toonDisc = ToonDiscriminator(input_shape=data.dims)
+disc_in_dim = (data.dims(0), data.dims(1), 6)
+toonDisc = ToonDiscriminator(input_shape=disc_in_dim)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
@@ -40,8 +41,9 @@ Y_input = Input(shape=data.dims)
 order_input = Input(shape=(1,))
 im_recon = toonAE(X_input)
 disc_in = Lambda(lambda x: tf.cond(order_input == 0,
-                                   merge([x, Y_input], mode='concat'),
-                                   merge([Y_input, x], mode='concat')))(im_recon)
+                                   tf.concat(0, [x, Y_input]),
+                                   tf.concat(0, [Y_input, x])),
+                 output_shape=disc_in_dim)(im_recon)
 im_class = toonDisc(disc_in)
 toonGAN = Model([X_input, Y_input, order_input], im_class)
 toonGAN.compile(optimizer=opt, loss='binary_crossentropy')

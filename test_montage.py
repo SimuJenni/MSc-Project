@@ -11,7 +11,8 @@ datagen = ImageDataGenerator(horizontal_flip=True)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size)
-toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAEGAN.hdf5')
+#toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAEGAN.hdf5')
+toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer='adam', loss='mae')
 
 # Generate montage of sample-images

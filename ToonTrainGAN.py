@@ -61,7 +61,7 @@ for epoch in range(nb_epoch):
 
         # Generate montage of test-images
         chunk += 1
-        if not chunk % 20:
+        if not chunk % 10:
             toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:49], batch_size=batch_size)

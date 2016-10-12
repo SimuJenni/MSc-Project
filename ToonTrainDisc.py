@@ -48,7 +48,7 @@ for epoch in range(nb_epoch):
         if not chunk % 20:
             toonDisc.save_weights(os.path.join(MODEL_DIR, '{}-Epoch:{}-Chunk:{}.hdf5'.format(net_name, epoch, chunk)))
 
-        del X_train, Y_train, X_disc
+        del X_train, Y_train, X_disc, y
         gc.collect()
 
 # Save the model

@@ -12,6 +12,7 @@ from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
+from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 batch_size = 32
@@ -62,7 +63,7 @@ for epoch in range(nb_epoch):
         # Construct data for training
         y_disc = [1] * len(X_train) + [0] * len(Y_train)
         y_gen = [0] * len(X_train) + [1] * len(Y_train)
-        train_input = [np.repeat(X_train, 2, axis=0), np.repeat(Y_train, 2, axis=0), y_disc]
+        train_input = [np.concat(X_train, X_train), np.concat(Y_train, Y_train), y_disc]
 
         # Train discriminator
         toonDisc.trainable = True

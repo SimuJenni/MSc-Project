@@ -1,10 +1,10 @@
-import os
-import numpy as np
 import gc
+import os
 
-from keras.optimizers import Adam
-from keras.models import Model
+import numpy as np
 from keras.layers import Input
+from keras.models import Model
+from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator
@@ -13,8 +13,9 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
-chunk_size = 200*batch_size
+chunk_size = 200 * batch_size
 nb_epoch = 2
+num_res_layers = 16
 
 # Get the data-set object
 data = Imagenet()
@@ -24,7 +25,7 @@ datagen = ImageDataGenerator()
 opt = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
-toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size)
+toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
@@ -60,13 +61,14 @@ for epoch in range(nb_epoch):
         toonGAN.fit(X_train, [1] * len(X_train), batch_size=batch_size, nb_epoch=1)
 
         # Generate montage of test-images
-        chunk += 1
-        if not chunk % 1:
-            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
-            toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
-            decoded_imgs = toonAE.predict(X_train[:(2*batch_size)], batch_size=batch_size)
-            montage(decoded_imgs[:(2*batch_size), :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+        if not chunk % 5:
+            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
+            toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
+            decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
+            montage(decoded_imgs[:(2 * batch_size), :, :] * 0.5 + 0.5,
+                    os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
 
+        chunk += 1
         del X_train, Y_train, X_disc, Y_pred, y
         gc.collect()
 

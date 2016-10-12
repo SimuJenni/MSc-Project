@@ -18,7 +18,7 @@ nb_epoch = 2
 
 # Get the data-set object
 data = Imagenet()
-datagen = ImageDataGenerator(horizontal_flip=True)
+datagen = ImageDataGenerator()
 
 # Define optimizer
 opt = Adam(lr=0.0002, beta_1=0.5)

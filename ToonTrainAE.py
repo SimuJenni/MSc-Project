@@ -11,16 +11,16 @@ from utils import montage
 
 batch_size = 32
 nb_epoch = 1
-samples_per_epoch = 1000000
+samples_per_epoch = 1200000
 f_dims = [64, 96, 160, 256, 512]
-num_res_layers = 8
+num_res_layers = 16
 merge_mode = 'sum'
 loss = 'mae'
 l_rate = 0.0002
 
 # Get the data-set object
 data = Imagenet()
-datagen = ImageDataGenerator(horizontal_flip=True)
+datagen = ImageDataGenerator()
 
 # Load the net
 toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,

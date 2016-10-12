@@ -13,9 +13,8 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
-chunk_size = 300*batch_size
+chunk_size = 200*batch_size
 nb_epoch = 2
-samples_per_epoch = 500000
 
 # Get the data-set object
 data = Imagenet()
@@ -68,7 +67,7 @@ for epoch in range(nb_epoch):
             decoded_imgs = toonAE.predict(X_train[:49], batch_size=batch_size)
             montage(decoded_imgs[:49, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}'.format(epoch, chunk)))
 
-        del X_train, Y_train, X_disc, Y_pred
+        del X_train, Y_train, X_disc, Y_pred, y
         gc.collect()
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))

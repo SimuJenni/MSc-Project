@@ -15,7 +15,7 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
-chunk_size = 2 * batch_size
+chunk_size = 150 * batch_size
 nb_epoch = 2
 
 # Get the data-set object

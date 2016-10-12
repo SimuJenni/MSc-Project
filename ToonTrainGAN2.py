@@ -38,9 +38,9 @@ toonDisc = ToonDiscriminator(input_shape=disc_in_dim)
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Stick them together
-X_input = Input(shape=data.dims)
-Y_input = Input(shape=data.dims)
-order_input = Input(batch_shape=(1,), dtype='int32')
+X_input = Input(shape=data.dims, name='X_train')
+Y_input = Input(shape=data.dims, name='Y_train')
+order_input = Input(batch_shape=(1,), dtype='int32', name='Order_Label')
 im_recon = toonAE(X_input)
 
 
@@ -63,17 +63,22 @@ for epoch in range(nb_epoch):
         # Construct data for training
         y_disc = [1] * len(X_train) + [0] * len(Y_train)
         y_gen = [0] * len(X_train) + [1] * len(Y_train)
-        train_input = np.array([np.concatenate((X_train, X_train)), np.concatenate((Y_train, Y_train)), y_disc])
 
         # Train discriminator
         toonDisc.trainable = True
         toonAE.trainable = False
-        toonGAN.fit(train_input, y_disc, batch_size=batch_size, nb_epoch=1)
+        toonGAN.fit({'X_train': np.concatenate((X_train, X_train)),
+                     'Y_train': np.concatenate((Y_train, Y_train)),
+                     'Order_Label': y_disc},
+                    y_disc, batch_size=batch_size, nb_epoch=1)
 
         # Train generator
         toonDisc.trainable = False
         toonAE.trainable = True
-        toonGAN.fit(train_input, y_gen, batch_size=batch_size, nb_epoch=1)
+        toonGAN.fit({'X_train': np.concatenate((X_train, X_train)),
+                     'Y_train': np.concatenate((Y_train, Y_train)),
+                     'Order_Label': y_disc},
+                    y_gen, batch_size=batch_size, nb_epoch=1)
 
         # Generate montage of test-images
         chunk += 1
@@ -84,7 +89,7 @@ for epoch in range(nb_epoch):
             montage(decoded_imgs[:(2 * batch_size), :, :] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
 
-        del X_train, Y_train, train_input, y_gen, y_disc
+        del X_train, Y_train, y_gen, y_disc
         gc.collect()
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))

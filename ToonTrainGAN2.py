@@ -63,7 +63,7 @@ for epoch in range(nb_epoch):
         # Construct data for training
         y_disc = [1] * len(X_train) + [0] * len(Y_train)
         y_gen = [0] * len(X_train) + [1] * len(Y_train)
-        train_input = [np.concat(X_train, X_train), np.concat(Y_train, Y_train), y_disc]
+        train_input = [np.concatenate((X_train, X_train)), np.concatenate((Y_train, Y_train)), y_disc]
 
         # Train discriminator
         toonDisc.trainable = True

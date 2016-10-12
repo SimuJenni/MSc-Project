@@ -11,7 +11,7 @@ from keras.optimizers import Adam
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator
 from constants import MODEL_DIR, IMG_DIR
-from datasets.TinyImagenet import TinyImagenet
+from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 32
@@ -19,7 +19,7 @@ chunk_size = 200 * batch_size
 nb_epoch = 2
 
 # Get the data-set object
-data = TinyImagenet()
+data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
@@ -77,8 +77,8 @@ for epoch in range(nb_epoch):
         # Generate montage of test-images
         chunk += 1
         if not chunk % 1:
-            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
-            toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
+            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonGANDisc-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
+            toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonGANAE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(decoded_imgs[:(2 * batch_size), :, :] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))

@@ -168,11 +168,11 @@ def ToonDiscriminator(input_shape):
 
     # Fully connected layer 1
     model.add(Flatten())
-    model.add(Dense(1024))
+    model.add(Dense(2048))
     model.add(LeakyReLU(alpha=0.2))
 
     # Fully connected layer 2
-    model.add(Dense(2048))
+    model.add(Dense(1024))
     model.add(LeakyReLU(alpha=0.2))
 
     # Fully connected layer 3

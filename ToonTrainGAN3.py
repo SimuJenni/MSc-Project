@@ -2,7 +2,7 @@ import gc
 import os
 
 import numpy as np
-from keras.layers import Input
+from keras.layers import Input, merge
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -46,7 +46,8 @@ toonDisc.summary()
 make_trainable(toonDisc, False)
 im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
-im_class = toonDisc(im_recon)
+disc_in = merge([im_recon, im_input], mode='concat')
+im_class = toonDisc(disc_in)
 toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 

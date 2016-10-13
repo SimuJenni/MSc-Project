@@ -28,7 +28,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002)
+opt_g = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -49,7 +49,7 @@ toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=20*batch_size):
+for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
     y = np.zeros([len(X), 2])
@@ -61,6 +61,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=2
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X)
+    print(y_hat)
     y_hat_idx = np.argmax(y_hat, axis=1)
     y_idx = np.argmax(y, axis=1)
     diff = y_idx - y_hat_idx

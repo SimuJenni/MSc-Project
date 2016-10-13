@@ -69,7 +69,7 @@ else:
     total_loss = loss
 
 # set up TF optimizer
-optimizer = tf.train.AdamOptimizer(0.0002, beta1=0.5)
+optimizer = tf.train.AdamOptimizer(0.001)
 
 # Batchnorm updates
 with tf.control_dependencies(toonGAN.updates):

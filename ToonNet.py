@@ -108,7 +108,11 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
 
     # Layer 10
     with tf.name_scope('deconv_5'):
-        x = upconv_bn(x, f_size=4, f_channels=3, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
+        x = Deconvolution2D(3, 4, 4,
+                            output_shape=(batch_size, l_dims[0], l_dims[0], 3),
+                            border_mode='valid',
+                            subsample=(1, 1),
+                            init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
     # Create the model
@@ -143,7 +147,6 @@ def ToonDiscriminator(input_shape):
 
     # Conv-Layer 1
     model.add(Convolution2D(32, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', input_shape=input_shape))
-    model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU(alpha=0.2))
 
     # Conv-Layer 2

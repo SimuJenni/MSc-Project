@@ -16,6 +16,7 @@ from utils import montage
 def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
+        #TODO check if works with res layers too
         l.trainable = val
 
 
@@ -39,6 +40,7 @@ toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 toonDisc = ToonDiscriminator2(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+toonDisc.summary()
 
 # Stick them together
 make_trainable(toonDisc, False)
@@ -61,6 +63,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=5
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X)
+    # TODO: check outputs
     y_hat_idx = np.argmax(y_hat, axis=1)
     y_idx = np.argmax(y, axis=1)
     diff = y_idx - y_hat_idx

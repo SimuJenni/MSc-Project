@@ -1,5 +1,5 @@
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense
+from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense, Dropout
 from keras.models import Model, Sequential
 from keras.layers.advanced_activations import LeakyReLU
 
@@ -170,10 +170,12 @@ def ToonDiscriminator(input_shape):
     model.add(Flatten())
     model.add(Dense(2048))
     model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.3))
 
     # Fully connected layer 2
     model.add(Dense(1024))
     model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.3))
 
     # Fully connected layer 3
     model.add(Dense(2, activation='softmax'))

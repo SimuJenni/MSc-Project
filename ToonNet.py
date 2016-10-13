@@ -229,14 +229,13 @@ def ToonDiscriminator2(input_shape, num_res_layers=8):
 
     # All the res-layers
     for i in range(num_res_layers):
-        with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, 1024, 64, LeakyReLU(alpha=0.2))
+        x = res_layer_bottleneck(x, 1024, 64, LeakyReLU(alpha=0.2))
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dense(2048, init='he_normal')(x)
-    x = LeakyReLU(alpha=0.2)(x)
-    x = Dropout(0.25)(x)
+    # x = Dense(2048, init='he_normal')(x)
+    # x = LeakyReLU(alpha=0.2)(x)
+    # x = Dropout(0.25)(x)
     pred = Dense(2, activation='softmax')(x)
 
     model = Model(input_im, pred)
@@ -244,7 +243,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8):
     return model
 
 
-def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
+def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activation=Activation('relu')):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -262,7 +261,7 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid'):
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = BatchNormalization(axis=3, mode=2)(x)
-    return Activation('relu')(x)
+    return activation(x)
 
 
 def outter_connections(layer_in, f_channels):
@@ -315,9 +314,9 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu'
         Output of same dimensionality as input
     """
     # 1x1 Bottleneck
-    x = conv_bn_relu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same')
+    x = conv_bn_relu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 3x3 conv
-    x = conv_bn_relu(x, f_size=3, f_channels=bn_dim, stride=1, border='same')
+    x = conv_bn_relu(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)

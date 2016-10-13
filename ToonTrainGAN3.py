@@ -28,7 +28,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0005)
+opt = Adam(lr=0.0002)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -37,7 +37,7 @@ toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
-# toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
+toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Stick them together

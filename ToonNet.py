@@ -180,7 +180,7 @@ def ToonDiscriminator(input_shape):
     return model
 
 
-def ToonDiscriminator2(input_shape):
+def ToonDiscriminator2(input_shape, num_res_layers=16):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -222,10 +222,15 @@ def ToonDiscriminator2(input_shape):
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
 
-    # Conv-Layer 4
+    # Conv-Layer 5
     x = Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
+
+    # All the res-layers
+    for i in range(num_res_layers):
+        with tf.name_scope('res_layer_{}'.format(i + 1)):
+            x = res_layer_bottleneck(x, 1024, 64)
 
     # Fully connected layer
     x = Flatten()(x)

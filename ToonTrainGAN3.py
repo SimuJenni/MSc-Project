@@ -49,7 +49,7 @@ toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=10*batch_size):
+for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=20*batch_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
     y = np.zeros([len(X), 2])
@@ -68,6 +68,8 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=1
     n_rig = (diff == 0).sum()
     acc = n_rig * 100.0 / n_tot
     print("Accuracy: %0.02f pct (%d of %d) right" % (acc, n_rig, n_tot))
+
+toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
 # Store losses
 losses = {"d": [], "g": []}

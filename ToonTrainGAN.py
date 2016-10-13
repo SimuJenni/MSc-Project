@@ -31,7 +31,7 @@ toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
-toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
+#toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Stick them together
@@ -54,7 +54,7 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         toonDisc.trainable = True
-        toonDisc.fit(X_disc, y, batch_size=batch_size, nb_epoch=2)
+        toonDisc.fit(X_disc, y, batch_size=batch_size, nb_epoch=1)
 
         # Train generator
         toonDisc.trainable = False

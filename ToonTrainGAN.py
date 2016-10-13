@@ -32,7 +32,7 @@ toonAE.compile(optimizer=opt, loss='mae')
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
-#toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
+toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Stick them together
 im_input = Input(shape=data.dims)

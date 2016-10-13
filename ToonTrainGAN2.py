@@ -34,7 +34,7 @@ toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size, num_res_layers=16)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 
 # Load the discriminator
-disc_in_dim = (data.dims[0], data.dims[1], 6)
+disc_in_dim = (data.dims[0], data.dims[1], 9)
 toonDisc = ToonDiscriminator(input_shape=disc_in_dim)
 
 # Stick them together
@@ -50,6 +50,7 @@ def concat_order(x):
 
 
 disc_in = Lambda(concat_order)(im_recon)
+disc_in = merge([disc_in, X_input], mode='concat')
 pred = toonDisc(disc_in)
 toonGAN = Model(X_input, pred)
 
@@ -68,7 +69,7 @@ else:
     total_loss = loss
 
 # set up TF optimizer
-optimizer = tf.train.AdamOptimizer(0.001)
+optimizer = tf.train.AdamOptimizer(0.0005)
 
 # Batchnorm updates
 with tf.control_dependencies(toonGAN.updates):

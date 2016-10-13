@@ -12,6 +12,13 @@ from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
 
+
+def make_trainable(net, val):
+    net.trainable = val
+    for l in net.layers:
+        l.trainable = val
+
+
 batch_size = 64
 chunk_size = 10 * batch_size
 nb_epoch = 2
@@ -27,19 +34,25 @@ opt = Adam(lr=0.0005)
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
-toonAE.compile(optimizer=opt, loss='mae')
+toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
 toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
-toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
+toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Stick them together
+make_trainable(toonDisc, False)
 im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
 im_class = toonDisc(im_recon)
 toonGAN = Model(im_input, im_class)
-toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
+toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
+
+# Pre-train discriminator
+X_train, Y_train = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
+
+
 
 # Training
 for epoch in range(nb_epoch):

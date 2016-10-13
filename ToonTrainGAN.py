@@ -13,7 +13,7 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 64
-chunk_size = 10 * batch_size
+chunk_size = 100 * batch_size
 nb_epoch = 2
 num_res_layers = 16
 
@@ -22,7 +22,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.001)
+opt = Adam(lr=0.0005)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -32,7 +32,7 @@ toonAE.compile(optimizer=opt, loss='mae')
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
-toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
+#toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Stick them together
 im_input = Input(shape=data.dims)

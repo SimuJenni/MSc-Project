@@ -19,7 +19,7 @@ from utils import montage
 sess = tf.Session()
 K.set_session(sess)
 
-batch_size = 32
+batch_size = 128
 nb_epoch = 2
 
 # Get the data-set object
@@ -36,7 +36,6 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 # Load the discriminator
 disc_in_dim = (data.dims[0], data.dims[1], 6)
 toonDisc = ToonDiscriminator(input_shape=disc_in_dim)
-# toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 
 # Stick them together
 X_input = Input(shape=data.dims, name='X_train')

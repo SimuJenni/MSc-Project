@@ -20,7 +20,7 @@ def make_trainable(net, val):
 
 
 batch_size = 64
-chunk_size = 10 * batch_size
+chunk_size = 100 * batch_size
 nb_epoch = 2
 num_res_layers = 16
 
@@ -51,27 +51,51 @@ toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
 X_train, Y_train = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
+Y_pred = toonAE.predict(X_train, batch_size=batch_size)
+X = np.concatenate((Y_train, generated_images))
+y = np.zeros([len(X),2])
+y[:len(Y_train),1] = 1
+y[len(Y_train):,0] = 1
 
+make_trainable(toonDisc,True)
+toonDisc.fit(X,y, nb_epoch=1, batch_size=batch_size)
 
+# Compute Accuracy
+y_hat = toonDisc.predict(X)
+y_hat_idx = np.argmax(y_hat,axis=1)
+y_idx = np.argmax(y,axis=1)
+diff = y_idx-y_hat_idx
+n_tot = y.shape[0]
+n_rig = (diff==0).sum()
+acc = n_rig*100.0/n_tot
+print "Accuracy: %0.02f pct (%d of %d) right"%(acc, n_rig, n_tot)
+
+# Store losses
+losses = {"d":[], "g":[]}
 
 # Training
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
-        Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-
-        # Train generator
-        toonDisc.trainable = False
-        toonGAN.fit(X_train, [1] * len(X_train), batch_size=batch_size, nb_epoch=1)
+    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
+        Y_pred = toonAE.predict(X_train)
 
         # Construct data for discriminator training
-        X_disc = np.concatenate((Y_train, Y_pred))
-        y = [1] * len(Y_train) + [0] * len(Y_pred)
+        X = np.concatenate((Y_train, Y_pred))
+        y = np.zeros([2*batch_size,2])
+        y[0:batch_size, 1] = 1
+        y[batch_size:, 0] = 1
 
         # Train discriminator
-        toonDisc.trainable = True
-        toonDisc.fit(X_disc, y, batch_size=batch_size, nb_epoch=1)
+        make_trainable(toonDisc, True)
+        d_loss = toonDisc.train_on_batch(X, y)
+        losses["d"].append(d_loss)
+
+        # Train generator
+        y = np.zeros([batch_size, 2])
+        y[:, 1] = 1
+        make_trainable(toonDisc, False)
+        g_loss = toonGAN.train_on_batch(X_train, y)
 
         # Generate montage of test-images
         if not chunk % 5:
@@ -82,7 +106,12 @@ for epoch in range(nb_epoch):
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
 
         chunk += 1
-        del X_train, Y_train, X_disc, Y_pred, y
+
+        print('Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
+                                                                                        d_loss,
+                                                                                        g_loss))
+
+        del X_train, Y_train, X, Y_pred, y
         gc.collect()
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))

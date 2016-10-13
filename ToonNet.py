@@ -172,7 +172,7 @@ def ToonDiscriminator(input_shape):
     model.add(LeakyReLU(alpha=0.2))
 
     # Fully connected layer 3
-    model.add(Dense(2, activation='sigmoid'))
+    model.add(Dense(2, activation='softmax'))
     return model
 
 

@@ -97,18 +97,19 @@ with sess.as_default():
             toonDisc.trainable = True
             toonAE.trainable = False
 
-            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 1, targets: np.ones([batch_size, 1])}
-            _, l_disc1 = sess.run([train_op, total_loss], feed_dict=feed_dict)
-            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 0, targets: np.zeros([batch_size, 1])}
+            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 0, targets: np.zeros([batch_size, 1]), K.learning_phase(): 0}
             _, l_disc2 = sess.run([train_op, total_loss], feed_dict=feed_dict)
+            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 1, targets: np.ones([batch_size, 1]), K.learning_phase(): 0}
+            _, l_disc1 = sess.run([train_op, total_loss], feed_dict=feed_dict)
+
 
             # Train generator
             toonDisc.trainable = False
             toonAE.trainable = True
 
-            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 1, targets: np.zeros([batch_size, 1])}
+            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 1, targets: np.zeros([batch_size, 1]), K.learning_phase(): 1}
             _, l_gen1 = sess.run([train_op, total_loss], feed_dict=feed_dict)
-            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 0, targets: np.ones([batch_size, 1])}
+            feed_dict = {X_input: X_train, Y_input: Y_train, order_label: 0, targets: np.ones([batch_size, 1]), K.learning_phase(): 1}
             _, l_gen2 = sess.run([train_op, total_loss], feed_dict=feed_dict)
 
             # Generate montage of test-images

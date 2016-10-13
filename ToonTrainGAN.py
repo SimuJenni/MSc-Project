@@ -13,7 +13,7 @@ from datasets.Imagenet import Imagenet
 from utils import montage
 
 batch_size = 64
-chunk_size = 100 * batch_size
+chunk_size = 50 * batch_size
 nb_epoch = 2
 num_res_layers = 16
 

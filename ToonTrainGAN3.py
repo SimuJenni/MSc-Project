@@ -49,8 +49,8 @@ toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-    Y_pred = toonAE.predict(X_train)
+for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=10*batch_size):
+    Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
     y = np.zeros([len(X), 2])
     y[:len(Y_train), 1] = 1

@@ -64,6 +64,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=5
     # Compute Accuracy
     y_hat = toonDisc.predict(X)
     # TODO: check outputs
+    print(y_hat)
     y_hat_idx = np.argmax(y_hat, axis=1)
     y_idx = np.argmax(y, axis=1)
     diff = y_idx - y_hat_idx

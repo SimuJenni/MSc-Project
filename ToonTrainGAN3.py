@@ -7,7 +7,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonDiscriminator
+from ToonNet import ToonAE, ToonDiscriminator, ToonDiscriminator2
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -36,7 +36,7 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
-toonDisc = ToonDiscriminator(input_shape=data.dims)
+toonDisc = ToonDiscriminator2(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 

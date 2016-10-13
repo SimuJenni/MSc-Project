@@ -168,17 +168,79 @@ def ToonDiscriminator(input_shape):
 
     # Fully connected layer 1
     model.add(Flatten())
-    model.add(Dense(2048))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.25))
-
-    # Fully connected layer 2
     model.add(Dense(1024))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.25))
+
+    # Fully connected layer 2
+    model.add(Dense(2048))
+    model.add(LeakyReLU(alpha=0.2))
 
     # Fully connected layer 3
     model.add(Dense(2, activation='softmax'))
+    return model
+
+
+def ToonDiscriminator2(input_shape):
+    """Builds ConvNet used as discrimator between real-images and de-tooned images.
+    The network has the follow architecture:
+
+    Layer           Filters     Stride
+
+    L1: Conv-layer  3x3x32      2                  =================================
+    L2: Conv-layer  3x3x64      2                      =========================
+    L3: Conv-layer  3x3x128     2                          =================
+    L4: Conv-layer  3x3x256     2                              =========
+    L5: Conv-layer  3x3x512     2                                 ===
+    L6: Dense-Layer 1024                                          |X|
+    L7: Dense-Layer 1                                             |X|
+
+    Args:
+        input_shape: Shape of the input (height, width, channels)
+
+    Returns:
+        The resulting Keras models
+    """
+    input_im = Input(shape=input_shape)
+
+    # Conv-Layer 1
+    x = Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(input_im)
+    x = BatchNormalization(axis=3, mode=2)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = res_layer_bottleneck(x, 64, 8)
+
+    # Conv-Layer 2
+    x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = res_layer_bottleneck(x, 128, 16)
+
+    # Conv-Layer 3
+    x = Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = res_layer_bottleneck(x, 256, 32)
+
+    # Conv-Layer 4
+    x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = res_layer_bottleneck(x, 512, 64)
+
+    # Conv-Layer 4
+    x = Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = res_layer_bottleneck(x, 1024, 128)
+
+    # Fully connected layer
+    x = Flatten()(x)
+    x = Dense(4048)(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = Dropout(0.5)(x)
+    pred = Dense(2, activation='softmax')(x)
+
+    model = Model(input_im, pred)
+    model.name = 'ToonDist2'
     return model
 
 

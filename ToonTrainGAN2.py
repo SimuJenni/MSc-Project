@@ -19,7 +19,7 @@ from utils import montage
 sess = tf.Session()
 K.set_session(sess)
 
-batch_size = 128
+batch_size = 64
 nb_epoch = 2
 
 # Get the data-set object

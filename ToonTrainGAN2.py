@@ -1,5 +1,6 @@
 import gc
 import os
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -29,7 +30,7 @@ datagen = ImageDataGenerator()
 K.manual_variable_initialization(True)
 
 # Load the auto-encoder
-toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size)
+toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size, num_res_layers=16)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 
 # Load the discriminator
@@ -111,8 +112,7 @@ with sess.as_default():
             _, l_gen2 = sess.run([train_op, total_loss], feed_dict=feed_dict)
 
             # Generate montage of test-images
-            chunk += 1
-            if not chunk % 1000:
+            if not chunk % 50:
                 toonDisc.save_weights(
                     os.path.join(MODEL_DIR, 'ToonGAN2Disc-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
                 toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonGAN2AE-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
@@ -120,9 +120,11 @@ with sess.as_default():
                 montage(decoded_imgs[:(2 * batch_size), :, :] * 0.5 + 0.5,
                         os.path.join(IMG_DIR, 'GAN2-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
 
+            chunk += 1
             print('Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
                                                                                             l_disc1 + l_disc2,
                                                                                             l_gen1 + l_gen2))
+            sys.stdout.flush()
 
             del X_train, Y_train
             gc.collect()

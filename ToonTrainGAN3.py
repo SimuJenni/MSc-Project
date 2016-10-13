@@ -54,14 +54,16 @@ toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 make_trainable(toonDisc, True)
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((Y_test-X_test, Y_pred-X_test))
+X_test = np.concatenate((np.concatenate((Y_test, X_test), axis=3),
+                              np.concatenate((Y_pred, X_test), axis=3)))
 y_test = np.zeros([len(X_test), 2])
 y_test[:len(Y_test), 1] = 1
 y_test[len(Y_test):, 0] = 1
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X_train = np.concatenate((Y_train-X_train, Y_pred-X_train))
+    X_train = np.concatenate((np.concatenate((Y_train, X_train), axis=3),
+                              np.concatenate((Y_pred, X_train), axis=3)))
     y = np.zeros([len(X_train), 2])
     y[:len(Y_train), 1] = 1
     y[len(Y_train):, 0] = 1
@@ -70,7 +72,6 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=5
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)
-    # TODO: check outputs
     y_hat_idx = np.argmax(y_hat, axis=1)
     y_idx = np.argmax(y_test, axis=1)
     diff = y_idx - y_hat_idx

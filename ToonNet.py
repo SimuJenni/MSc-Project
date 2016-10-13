@@ -180,7 +180,7 @@ def ToonDiscriminator(input_shape):
     return model
 
 
-def ToonDiscriminator2(input_shape, num_res_layers=8):
+def ToonDiscriminator2(input_shape, num_res_layers=16):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 

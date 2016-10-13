@@ -206,35 +206,30 @@ def ToonDiscriminator2(input_shape):
     x = Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(input_im)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = res_layer_bottleneck(x, 64, 8)
 
     # Conv-Layer 2
     x = Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = res_layer_bottleneck(x, 128, 16)
 
     # Conv-Layer 3
     x = Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = res_layer_bottleneck(x, 256, 32)
 
     # Conv-Layer 4
     x = Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = res_layer_bottleneck(x, 512, 64)
 
     # Conv-Layer 4
     x = Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = res_layer_bottleneck(x, 1024, 128)
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dense(4048, init='he_normal')(x)
+    x = Dense(2048, init='he_normal')(x)
     x = LeakyReLU(alpha=0.2)(x)
     x = Dropout(0.5)(x)
     pred = Dense(2, activation='softmax', init='he_normal')(x)

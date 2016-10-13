@@ -51,24 +51,31 @@ toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
+make_trainable(toonDisc, True)
+X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size).next()
+Y_pred = toonAE.predict(X_test, batch_size=batch_size)
+X_test = np.concatenate((Y_test, Y_pred))
+y_test = np.zeros([len(X_test), 2])
+y_test[:len(Y_test), 1] = 1
+y_test[len(Y_test):, 0] = 1
+
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X = np.concatenate((Y_train, Y_pred))
-    y = np.zeros([len(X), 2])
+    X_train = np.concatenate((Y_train, Y_pred))
+    y = np.zeros([len(X_train), 2])
     y[:len(Y_train), 1] = 1
     y[len(Y_train):, 0] = 1
 
-    make_trainable(toonDisc, True)
-    toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size)
+    toonDisc.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
 
     # Compute Accuracy
-    y_hat = toonDisc.predict(X)
+    y_hat = toonDisc.predict(X_test)
     # TODO: check outputs
     print(y_hat)
     y_hat_idx = np.argmax(y_hat, axis=1)
-    y_idx = np.argmax(y, axis=1)
+    y_idx = np.argmax(y_test, axis=1)
     diff = y_idx - y_hat_idx
-    n_tot = y.shape[0]
+    n_tot = y_test.shape[0]
     n_rig = (diff == 0).sum()
     acc = n_rig * 100.0 / n_tot
     print("Accuracy: %0.02f pct (%d of %d) right" % (acc, n_rig, n_tot))

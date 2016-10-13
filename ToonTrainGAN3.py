@@ -28,7 +28,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002, beta_1=0.5)
+opt = Adam(lr=0.0002)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)

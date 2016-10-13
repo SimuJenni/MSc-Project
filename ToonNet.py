@@ -180,7 +180,7 @@ def ToonDiscriminator(input_shape):
     return model
 
 
-def ToonDiscriminator2(input_shape, num_res_layers=16):
+def ToonDiscriminator2(input_shape, num_res_layers=8):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -230,14 +230,14 @@ def ToonDiscriminator2(input_shape, num_res_layers=16):
     # All the res-layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, 1024, 64)
+            x = res_layer_bottleneck(x, 1024, 64, LeakyReLU(alpha=0.2))
 
     # Fully connected layer
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = LeakyReLU(alpha=0.2)(x)
-    x = Dropout(0.5)(x)
-    pred = Dense(2, activation='softmax', init='he_normal')(x)
+    x = Dropout(0.25)(x)
+    pred = Dense(2, activation='softmax')(x)
 
     model = Model(input_im, pred)
     model.name = 'ToonDist2'
@@ -303,7 +303,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
     return BatchNormalization(axis=3, mode=2)(x)
 
 
-def res_layer_bottleneck(in_layer, out_dim, bn_dim):
+def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu')):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -322,7 +322,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim):
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     x = BatchNormalization(axis=3, mode=2)(x)
     x = merge([x, in_layer], mode='sum')
-    return Activation('relu')(x)
+    return activation(x)
 
 
 def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):

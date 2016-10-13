@@ -38,7 +38,7 @@ toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
 toonDisc = ToonDiscriminator(input_shape=data.dims)
-toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
+# toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Stick them together
@@ -52,26 +52,26 @@ toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 # Pre-train discriminator
 X_train, Y_train = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
 Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-X = np.concatenate((Y_train, generated_images))
-y = np.zeros([len(X),2])
-y[:len(Y_train),1] = 1
-y[len(Y_train):,0] = 1
+X = np.concatenate((Y_train, Y_pred))
+y = np.zeros([len(X), 2])
+y[:len(Y_train), 1] = 1
+y[len(Y_train):, 0] = 1
 
-make_trainable(toonDisc,True)
-toonDisc.fit(X,y, nb_epoch=1, batch_size=batch_size)
+make_trainable(toonDisc, True)
+toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size)
 
 # Compute Accuracy
 y_hat = toonDisc.predict(X)
-y_hat_idx = np.argmax(y_hat,axis=1)
-y_idx = np.argmax(y,axis=1)
-diff = y_idx-y_hat_idx
+y_hat_idx = np.argmax(y_hat, axis=1)
+y_idx = np.argmax(y, axis=1)
+diff = y_idx - y_hat_idx
 n_tot = y.shape[0]
-n_rig = (diff==0).sum()
-acc = n_rig*100.0/n_tot
-print "Accuracy: %0.02f pct (%d of %d) right"%(acc, n_rig, n_tot)
+n_rig = (diff == 0).sum()
+acc = n_rig * 100.0 / n_tot
+print("Accuracy: %0.02f pct (%d of %d) right" % (acc, n_rig, n_tot))
 
 # Store losses
-losses = {"d":[], "g":[]}
+losses = {"d": [], "g": []}
 
 # Training
 for epoch in range(nb_epoch):
@@ -82,7 +82,7 @@ for epoch in range(nb_epoch):
 
         # Construct data for discriminator training
         X = np.concatenate((Y_train, Y_pred))
-        y = np.zeros([2*batch_size,2])
+        y = np.zeros([2 * batch_size, 2])
         y[0:batch_size, 1] = 1
         y[batch_size:, 0] = 1
 

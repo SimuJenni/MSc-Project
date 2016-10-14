@@ -20,15 +20,19 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    y_hat = np.round(y_hat)
-    acc = 1.0-np.mean(np.abs(y_hat-y))
+    y_hat_idx = np.argmax(y_hat, axis=1)
+    y_idx = np.argmax(y, axis=1)
+    diff = y_idx - y_hat_idx
+    n_tot = y.shape[0]
+    n_rig = (diff == 0).sum()
+    acc = n_rig * 100.0 / n_tot
     return acc
 
 
 batch_size = 32
 chunk_size = 50*batch_size
 nb_epoch = 2
-samples_per_epoch = 200000
+samples_per_epoch = 50000
 num_res_layers = 16
 
 # Get the data-set object
@@ -41,11 +45,13 @@ opt = Adam(lr=0.0002, beta_1=0.5)
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
-toonAE.compile(optimizer=opt, loss='binary_crossentropy')
+toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
-toonDisc = ToonDiscriminator3(input_shape=data.dims)
-toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
+disc_in_dim = data.dims
+disc_in_dim[2] *= 2
+toonDisc = ToonDiscriminator3(input_shape=disc_in_dim)
+toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 toonDisc.summary()
 
 # Stick them together
@@ -54,21 +60,27 @@ im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
 im_class = toonDisc(im_recon)
 toonGAN = Model(im_input, im_class)
-toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
+toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
 # Pre-train discriminator
 make_trainable(toonDisc, True)
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
 X_test = np.concatenate((Y_test, Y_pred))
-y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
+y_test = np.zeros((batch_size*2, 2))
+y_test[:batch_size, 0] = 1
+y_test[batch_size:, 1] = 1
+
+
 count = 0
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
     # Prepare training data
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
-    y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
+    y = np.zeros((batch_size * 2, 2))
+    y[:batch_size, 0] = 1
+    y[batch_size:, 1] = 1
 
     # Train discriminator
     toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)

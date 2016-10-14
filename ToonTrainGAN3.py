@@ -21,12 +21,8 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    y_hat_idx = np.argmax(y_hat, axis=1)
-    y_idx = np.argmax(y, axis=1)
-    diff = y_idx - y_hat_idx
-    n_tot = y.shape[0]
-    n_rig = (diff == 0).sum()
-    acc = n_rig * 100.0 / n_tot
+    y_hat = y_hat > 0.5
+    acc = np.mean(y_hat == y)
     return acc
 
 

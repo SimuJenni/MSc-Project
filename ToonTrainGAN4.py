@@ -118,13 +118,12 @@ loss_target_ratio = 0.25
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    g_loss_avg = 10
-    d_loss_avg = 10
+    g_loss_avg = 3
+    d_loss_avg = 3
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-        while d_loss_avg > loss_target_ratio * g_loss_avg:
-            Y_pred = toonAE.predict(X_train)
-
+        if d_loss_avg > loss_target_ratio * g_loss_avg:
             # Construct data for discriminator training
+            Y_pred = toonAE.predict(X_train)
             X = np.concatenate((Y_train, Y_pred))
             y = np.zeros((len(X), 2))
             y[:len(Y_train), 0] = 1
@@ -135,14 +134,14 @@ for epoch in range(nb_epoch):
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred, y
-
-        # Train generator
-        y = np.zeros((batch_size, 2))
-        y[:, 0] = 1
-        make_trainable(toonDisc, False)
-        g_loss = toonGAN.train_on_batch(X_train, y)
-        losses["g"].append(g_loss)
-        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
+        else:
+            # Train generator
+            y = np.zeros((batch_size, 2))
+            y[:, 0] = 1
+            make_trainable(toonDisc, False)
+            g_loss = toonGAN.train_on_batch(X_train, y)
+            losses["g"].append(g_loss)
+            g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
         # Generate montage of test-images
         if not chunk % 100:

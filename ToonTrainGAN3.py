@@ -20,14 +20,15 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    y_hat = y_hat > 0.5
-    acc = np.mean(y_hat == y)
+    y_hat = np.round(y_hat)
+    acc = 1.0-np.mean(np.abs(y_hat-y))
     return acc
 
 
 batch_size = 32
 chunk_size = 50*batch_size
 nb_epoch = 2
+samples_per_epoch = 200000
 num_res_layers = 16
 
 # Get the data-set object
@@ -61,13 +62,16 @@ X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_si
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
 X_test = np.concatenate((Y_test, Y_pred))
 y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
+count = 0
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
+    # Prepare training data
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
     y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
-    toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size)
+    # Train discriminator
+    toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)
@@ -75,6 +79,11 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
     y_hat = toonDisc.predict(X_train)
     acc_train = compute_accuracy(y_hat, y)
     print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+
+    # Check if stop
+    count += chunk_size
+    if count > samples_per_epoch:
+        break
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 

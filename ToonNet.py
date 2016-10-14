@@ -248,7 +248,7 @@ def ToonDiscriminator3(input_shape):
     model.add(Dropout(0.5))
 
     # Fully connected layer 3
-    model.add(Dense(2, activation='sigmoid'))
+    model.add(Dense(1, activation='sigmoid'))
     return model
 
 

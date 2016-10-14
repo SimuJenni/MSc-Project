@@ -233,10 +233,10 @@ def ToonDiscriminator2(input_shape, num_res_layers=16):
 
     # Fully connected layer
     x = Flatten()(x)
-    # x = Dense(2048, init='he_normal')(x)
-    # x = LeakyReLU(alpha=0.2)(x)
-    # x = Dropout(0.25)(x)
-    pred = Dense(1, activation='sigmoid')(x)
+    x = Dense(2048, init='he_normal')(x)
+    x = LeakyReLU(alpha=0.2)(x)
+    x = Dropout(0.25)(x)
+    pred = Dense(1, activation='sigmoid', init='he_normal')(x)
 
     model = Model(input_im, pred)
     model.name = 'ToonDist2'

@@ -44,7 +44,7 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
-toonDisc = ToonDiscriminator2(input_shape=(data.dims[0], data.dims[1], 6))
+toonDisc = ToonDiscriminator2(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 toonDisc.summary()
@@ -62,14 +62,12 @@ toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 make_trainable(toonDisc, True)
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((np.concatenate((Y_test, X_test), axis=3),
-                              np.concatenate((Y_pred, X_test), axis=3)))
+X_test = np.concatenate((Y_test, Y_pred))
 y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X_train = np.concatenate((np.concatenate((Y_train, X_train), axis=3),
-                              np.concatenate((Y_pred, X_train), axis=3)))
+    X_train = np.concatenate((Y_train, Y_pred))
     y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
     toonDisc.fit(X_train, y, nb_epoch=2, batch_size=batch_size)

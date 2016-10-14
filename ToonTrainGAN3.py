@@ -48,8 +48,7 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
-disc_in_dim = data.dims
-disc_in_dim[2] *= 2
+disc_in_dim = data.dims[:2] + (6,)
 toonDisc = ToonDiscriminator3(input_shape=disc_in_dim)
 toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
 toonDisc.summary()

@@ -133,7 +133,7 @@ for epoch in range(nb_epoch):
             d_loss = toonDisc.train_on_batch(X, y)
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
-            del X, Y_pred, y
+            del X, Y_pred
         else:
             # Train generator
             y = np.zeros((batch_size, 2))

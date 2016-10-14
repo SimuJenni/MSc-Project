@@ -113,8 +113,8 @@ losses = {"d": [], "g": []}
 
 # Training
 print('Adversarial training...')
-loss_avg_rate = 0.9
-loss_target_ratio = 0.25
+loss_avg_rate = 0.5
+loss_target_ratio = 0.5
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0

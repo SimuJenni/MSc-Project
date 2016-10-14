@@ -7,7 +7,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonDiscriminator, ToonDiscriminator2
+from ToonNet import ToonAE, ToonDiscriminator, ToonDiscriminator2, ToonDiscriminator3
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -16,8 +16,6 @@ from utils import montage
 def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
-        print(l)
-        #TODO check if works with res layers too
         l.trainable = val
 
 
@@ -45,7 +43,7 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
-toonDisc = ToonDiscriminator2(input_shape=data.dims)
+toonDisc = ToonDiscriminator3(input_shape=data.dims)
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 toonDisc.summary()
@@ -70,7 +68,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
     X = np.concatenate((Y_train, Y_pred))
     y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
-    toonDisc.fit(X, y, nb_epoch=2, batch_size=batch_size)
+    toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size)
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)

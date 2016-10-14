@@ -11,7 +11,7 @@ from datasets.Imagenet import Imagenet
 
 batch_size = 32
 nb_epoch = 2
-chunk_size = 200*batch_size
+chunk_size = 50*batch_size
 l_rate = 0.0002
 
 # Get the data-set object

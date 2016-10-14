@@ -132,6 +132,7 @@ for epoch in range(nb_epoch):
             make_trainable(toonDisc, True)
             d_loss = toonDisc.train_on_batch(X, y)
             losses["d"].append(d_loss)
+            del X, Y_pred, y
 
         # Train generator
         y = np.zeros((batch_size, 2))
@@ -146,14 +147,13 @@ for epoch in range(nb_epoch):
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(decoded_imgs[:36, :, :] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
-
         chunk += 1
 
         print('GAN4 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
                                                                                              d_loss,
                                                                                              g_loss))
         sys.stdout.flush()
-        del X_train, Y_train, X, Y_pred, y
+        del X_train, Y_train, y
         gc.collect()
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))

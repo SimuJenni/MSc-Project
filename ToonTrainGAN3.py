@@ -16,6 +16,7 @@ from utils import montage
 def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
+        print(l)
         #TODO check if works with res layers too
         l.trainable = val
 
@@ -59,17 +60,17 @@ toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Pre-train discriminator
 make_trainable(toonDisc, True)
-X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size).next()
+X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((Y_test, X_test))
+X_test = np.concatenate((Y_test, Y_pred))
 y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X_train = np.concatenate((Y_train, X_train))
+    X = np.concatenate((Y_train, Y_pred))
     y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
-    toonDisc.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
+    toonDisc.fit(X, y, nb_epoch=2, batch_size=batch_size)
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)

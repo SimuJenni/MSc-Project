@@ -179,6 +179,78 @@ def ToonDiscriminator(input_shape):
     model.add(Dense(2, activation='softmax'))
     return model
 
+def ToonDiscriminator3(input_shape):
+    """Builds ConvNet used as discrimator between real-images and de-tooned images.
+    The network has the follow architecture:
+
+    Layer           Filters     Stride
+
+    L1: Conv-layer  3x3x32      2                  =================================
+    L2: Conv-layer  3x3x64      2                      =========================
+    L3: Conv-layer  3x3x128     2                          =================
+    L4: Conv-layer  3x3x256     2                              =========
+    L5: Conv-layer  3x3x512     2                                 ===
+    L6: Dense-Layer 1024                                          |X|
+    L7: Dense-Layer 1                                             |X|
+
+    Args:
+        input_shape: Shape of the input (height, width, channels)
+
+    Returns:
+        The resulting Keras models
+    """
+    model = Sequential()
+    model.name = 'ToonDisc'
+
+    # Conv-Layer 1
+    model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(1, 1), input_shape=input_shape))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+    model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+
+    # Conv-Layer 2
+    model.add(Convolution2D(128, 3, 3, border_mode='valid', subsample=(1, 1)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+    model.add(Convolution2D(128, 3, 3, border_mode='valid', subsample=(2, 2)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+
+    # Conv-Layer 3
+    model.add(Convolution2D(256, 3, 3, border_mode='valid', subsample=(1, 1)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+    model.add(Convolution2D(256, 3, 3, border_mode='valid', subsample=(2, 2)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+
+    # Conv-Layer 4
+    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+
+    # Conv-Layer 5
+    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+
+    # Fully connected layer 1
+    model.add(Flatten())
+    model.add(Dense(4096))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.5))
+
+    # Fully connected layer 2
+    model.add(Dense(4096))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.5))
+
+    # Fully connected layer 3
+    model.add(Dense(2, activation='sigmoid'))
+    return model
+
 
 def ToonDiscriminator2(input_shape, num_res_layers=16):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.

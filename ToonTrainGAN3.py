@@ -66,9 +66,9 @@ make_trainable(toonDisc, True)
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
 X_test = np.concatenate((Y_test, Y_pred))
-y_test = np.zeros((batch_size*2, 2))
-y_test[:batch_size, 0] = 1
-y_test[batch_size:, 1] = 1
+y_test = np.zeros((len(X_test), 2))
+y_test[:len(Y_test), 0] = 1
+y_test[len(Y_test):, 1] = 1
 
 
 count = 0
@@ -95,6 +95,8 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
     count += chunk_size
     if count > samples_per_epoch:
         break
+    if not count % 20:
+        toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Chunk_{}.hdf5'.format(count)))
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
@@ -110,7 +112,9 @@ for epoch in range(nb_epoch):
 
         # Construct data for discriminator training
         X = np.concatenate((Y_train, Y_pred))
-        y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
+        y = np.zeros((len(X), 2))
+        y[:len(Y_train), 0] = 1
+        y[len(Y_train):, 1] = 1
 
         # Train discriminator
         make_trainable(toonDisc, True)
@@ -123,7 +127,7 @@ for epoch in range(nb_epoch):
         g_loss = toonGAN.train_on_batch(X_train, y)
 
         # Generate montage of test-images
-        if not chunk % 5:
+        if not chunk % 20:
             toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)

@@ -36,7 +36,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002)
+opt = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -61,15 +61,15 @@ toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 make_trainable(toonDisc, True)
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size).next()
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((Y_test, Y_pred))
+X_test = np.concatenate((Y_test, X_test))
 y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X_train = np.concatenate((Y_train, Y_pred))
+    X_train = np.concatenate((Y_train, X_train))
     y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
-    toonDisc.fit(X_train, y, nb_epoch=2, batch_size=batch_size)
+    toonDisc.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)

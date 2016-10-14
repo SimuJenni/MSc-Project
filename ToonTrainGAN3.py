@@ -20,7 +20,18 @@ def make_trainable(net, val):
         l.trainable = val
 
 
+def compute_accuracy(y_hat, y):
+    y_hat_idx = np.argmax(y_hat, axis=1)
+    y_idx = np.argmax(y, axis=1)
+    diff = y_idx - y_hat_idx
+    n_tot = y.shape[0]
+    n_rig = (diff == 0).sum()
+    acc = n_rig * 100.0 / n_tot
+    return acc
+
+
 batch_size = 32
+chunk_size = 50*batch_size
 nb_epoch = 2
 num_res_layers = 16
 
@@ -39,7 +50,7 @@ toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 # Load the discriminator
 toonDisc = ToonDiscriminator2(input_shape=(data.dims[0], data.dims[1], 6))
 #toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
-toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 toonDisc.summary()
 
 # Stick them together
@@ -49,7 +60,7 @@ im_recon = toonAE(im_input)
 disc_in = merge([im_recon, im_input], mode='concat')
 im_class = toonDisc(disc_in)
 toonGAN = Model(im_input, im_class)
-toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
+toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Pre-train discriminator
 make_trainable(toonDisc, True)
@@ -57,29 +68,22 @@ X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=50*batch
 Y_pred = toonAE.predict(X_test, batch_size=batch_size)
 X_test = np.concatenate((np.concatenate((Y_test, X_test), axis=3),
                               np.concatenate((Y_pred, X_test), axis=3)))
-y_test = np.zeros([len(X_test), 2])
-y_test[:len(Y_test), 1] = 1
-y_test[len(Y_test):, 0] = 1
+y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
 
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=50*batch_size):
+for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X_train = np.concatenate((np.concatenate((Y_train, X_train), axis=3),
                               np.concatenate((Y_pred, X_train), axis=3)))
-    y = np.zeros([len(X_train), 2])
-    y[:len(Y_train), 1] = 1
-    y[len(Y_train):, 0] = 1
+    y = np.array([1]*len(Y_train) + [0]*len(Y_pred))
 
-    toonDisc.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
+    toonDisc.fit(X_train, y, nb_epoch=2, batch_size=batch_size)
 
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)
-    y_hat_idx = np.argmax(y_hat, axis=1)
-    y_idx = np.argmax(y_test, axis=1)
-    diff = y_idx - y_hat_idx
-    n_tot = y_test.shape[0]
-    n_rig = (diff == 0).sum()
-    acc = n_rig * 100.0 / n_tot
-    print("Accuracy: %0.02f pct (%d of %d) right" % (acc, n_rig, n_tot))
+    acc_test = compute_accuracy(y_hat, y_test)
+    y_hat = toonDisc.predict(X_train)
+    acc_train = compute_accuracy(y_hat, y)
+    print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
 
 toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 

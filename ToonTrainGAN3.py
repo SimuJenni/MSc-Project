@@ -1,5 +1,6 @@
 import gc
 import os
+import sys
 
 import numpy as np
 from keras.layers import Input, merge
@@ -40,7 +41,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002, beta_1=0.5)
+opt = Adam(lr=0.0001, beta_1=0.5)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -50,8 +51,54 @@ toonAE.compile(optimizer=opt, loss='mae')
 # Load the discriminator
 disc_in_dim = data.dims
 toonDisc = ToonDiscriminator3(input_shape=disc_in_dim)
-toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
-toonDisc.summary()
+
+try:
+    toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
+    toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+    toonDisc.summary()
+
+except Exception:
+    # Pre-train discriminator
+    print('Training discriminator...')
+    toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+    make_trainable(toonDisc, True)
+    toonDisc.summary()
+
+    # Create test data
+    X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
+    Y_pred = toonAE.predict(X_test, batch_size=batch_size)
+    X_test = np.concatenate((Y_test, Y_pred))
+    y_test = np.zeros((len(X_test), 2))
+    y_test[:len(Y_test), 0] = 1
+    y_test[len(Y_test):, 1] = 1
+
+    count = 0
+    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
+        # Prepare training data
+        Y_pred = toonAE.predict(X_train, batch_size=batch_size)
+        X = np.concatenate((Y_train, Y_pred))
+        y = np.zeros((len(X), 2))
+        y[:len(Y_train), 0] = 1
+        y[len(Y_train):, 1] = 1
+
+        # Train discriminator
+        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)
+
+        # Compute Accuracy
+        y_hat = toonDisc.predict(X_test)
+        acc_test = compute_accuracy(y_hat, y_test)
+        y_hat = toonDisc.predict(X)
+        acc_train = compute_accuracy(y_hat, y)
+        print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+
+        # Check if stop
+        count += chunk_size
+        if count > samples_per_epoch:
+            break
+        if not count % 20:
+            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Chunk_{}.hdf5'.format(count)))
+
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)
@@ -61,49 +108,11 @@ im_class = toonDisc(im_recon)
 toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
 
-# Pre-train discriminator
-make_trainable(toonDisc, True)
-X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
-Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((Y_test, Y_pred))
-y_test = np.zeros((len(X_test), 2))
-y_test[:len(Y_test), 0] = 1
-y_test[len(Y_test):, 1] = 1
-
-
-count = 0
-
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
-    # Prepare training data
-    Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-    X = np.concatenate((Y_train, Y_pred))
-    y = np.zeros((len(X), 2))
-    y[:len(Y_train), 0] = 1
-    y[len(Y_train):, 1] = 1
-
-    # Train discriminator
-    toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)
-
-    # Compute Accuracy
-    y_hat = toonDisc.predict(X_test)
-    acc_test = compute_accuracy(y_hat, y_test)
-    y_hat = toonDisc.predict(X)
-    acc_train = compute_accuracy(y_hat, y)
-    print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
-
-    # Check if stop
-    count += chunk_size
-    if count > samples_per_epoch:
-        break
-    if not count % 20:
-        toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Chunk_{}.hdf5'.format(count)))
-
-toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
-
 # Store losses
 losses = {"d": [], "g": []}
 
 # Training
+print('Adversarial training...')
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
@@ -122,7 +131,8 @@ for epoch in range(nb_epoch):
         losses["d"].append(d_loss)
 
         # Train generator
-        y = np.array([1] * batch_size)
+        y = np.zeros((batch_size, 2))
+        y[:, 0] = 1
         make_trainable(toonDisc, False)
         g_loss = toonGAN.train_on_batch(X_train, y)
 
@@ -139,7 +149,7 @@ for epoch in range(nb_epoch):
         print('Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
                                                                                         d_loss,
                                                                                         g_loss))
-
+        sys.stdout.flush()
         del X_train, Y_train, X, Y_pred, y
         gc.collect()
 

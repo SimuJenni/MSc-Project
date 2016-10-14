@@ -116,7 +116,8 @@ print('Adversarial training...')
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    g_loss = 0.0
+    g_loss = 100
+    d_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
         while d_loss > 0.5 * g_loss:
             Y_pred = toonAE.predict(X_train)

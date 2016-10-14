@@ -77,9 +77,9 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
     # Prepare training data
     Y_pred = toonAE.predict(X_train, batch_size=batch_size)
     X = np.concatenate((Y_train, Y_pred))
-    y = np.zeros((batch_size * 2, 2))
-    y[:batch_size, 0] = 1
-    y[batch_size:, 1] = 1
+    y = np.zeros((len(X), 2))
+    y[:len(Y_train), 0] = 1
+    y[len(Y_train):, 1] = 1
 
     # Train discriminator
     toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)

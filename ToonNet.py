@@ -200,7 +200,7 @@ def ToonDiscriminator3(input_shape):
         The resulting Keras models
     """
     model = Sequential()
-    model.name = 'ToonDisc'
+    model.name = 'ToonDisc3'
 
     # Conv-Layer 1
     model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(1, 1), input_shape=input_shape))
@@ -227,25 +227,26 @@ def ToonDiscriminator3(input_shape):
     model.add(LeakyReLU())
 
     # Conv-Layer 4
-    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(1, 1)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+    model.add(Convolution2D(512, 3, 3, border_mode='valid', subsample=(2, 2)))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU())
 
     # Conv-Layer 5
-    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(1, 1)))
+    model.add(BatchNormalization(axis=3, mode=2))
+    model.add(LeakyReLU())
+    model.add(Convolution2D(1024, 3, 3, border_mode='valid', subsample=(2, 2)))
     model.add(BatchNormalization(axis=3, mode=2))
     model.add(LeakyReLU())
 
     # Fully connected layer 1
     model.add(Flatten())
     model.add(Dense(4096))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.5))
-
-    # Fully connected layer 2
-    model.add(Dense(4096))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.5))
+    model.add(LeakyReLU())
+    model.add(Dropout(0.25))
 
     # Fully connected layer 3
     model.add(Dense(1, activation='sigmoid'))

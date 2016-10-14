@@ -44,7 +44,6 @@ toonAE.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Load the discriminator
 toonDisc = ToonDiscriminator3(input_shape=data.dims)
-#toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
 toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 toonDisc.summary()
 
@@ -91,9 +90,7 @@ for epoch in range(nb_epoch):
 
         # Construct data for discriminator training
         X = np.concatenate((Y_train, Y_pred))
-        y = np.zeros([2 * batch_size, 2])
-        y[0:batch_size, 1] = 1
-        y[batch_size:, 0] = 1
+        y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
 
         # Train discriminator
         make_trainable(toonDisc, True)
@@ -101,8 +98,7 @@ for epoch in range(nb_epoch):
         losses["d"].append(d_loss)
 
         # Train generator
-        y = np.zeros([batch_size, 2])
-        y[:, 1] = 1
+        y = np.array([1] * batch_size)
         make_trainable(toonDisc, False)
         g_loss = toonGAN.train_on_batch(X_train, y)
 

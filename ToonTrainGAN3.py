@@ -87,7 +87,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
     # Compute Accuracy
     y_hat = toonDisc.predict(X_test)
     acc_test = compute_accuracy(y_hat, y_test)
-    y_hat = toonDisc.predict(X_train)
+    y_hat = toonDisc.predict(X)
     acc_train = compute_accuracy(y_hat, y)
     print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
 

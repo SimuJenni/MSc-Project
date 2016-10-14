@@ -113,13 +113,15 @@ losses = {"d": [], "g": []}
 
 # Training
 print('Adversarial training...')
+loss_avg_rate = 0.9
+loss_target_ratio = 0.25
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    g_loss = 100
-    d_loss = 100
+    g_loss_avg = 10
+    d_loss_avg = 10
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
-        while d_loss > 0.5 * g_loss:
+        while d_loss_avg > loss_target_ratio * g_loss_avg:
             Y_pred = toonAE.predict(X_train)
 
             # Construct data for discriminator training
@@ -127,11 +129,11 @@ for epoch in range(nb_epoch):
             y = np.zeros((len(X), 2))
             y[:len(Y_train), 0] = 1
             y[len(Y_train):, 1] = 1
-
             # Train discriminator
             make_trainable(toonDisc, True)
             d_loss = toonDisc.train_on_batch(X, y)
             losses["d"].append(d_loss)
+            d_loss_avg = loss_avg_rate*d_loss_avg + (1-loss_avg_rate)*d_loss
             del X, Y_pred, y
 
         # Train generator
@@ -139,19 +141,22 @@ for epoch in range(nb_epoch):
         y[:, 0] = 1
         make_trainable(toonDisc, False)
         g_loss = toonGAN.train_on_batch(X_train, y)
+        losses["g"].append(g_loss)
+        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
         # Generate montage of test-images
         if not chunk % 50:
             toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
-            montage(decoded_imgs[:36, :, :] * 0.5 + 0.5,
+
+            montage(np.concatenate((decoded_imgs[:18, :, :] * 0.5 + 0.5, X_train[:18])) ,
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         print('GAN4 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
-                                                                                             d_loss,
-                                                                                             g_loss))
+                                                                                             d_loss_avg,
+                                                                                             g_loss_avg))
         sys.stdout.flush()
         del X_train, Y_train, y
         gc.collect()

@@ -133,7 +133,7 @@ for epoch in range(nb_epoch):
             make_trainable(toonDisc, True)
             d_loss = toonDisc.train_on_batch(X, y)
             losses["d"].append(d_loss)
-            d_loss_avg = loss_avg_rate*d_loss_avg + (1-loss_avg_rate)*d_loss
+            d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred, y
 
         # Train generator
@@ -145,12 +145,12 @@ for epoch in range(nb_epoch):
         g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
         # Generate montage of test-images
-        if not chunk % 50:
+        if not chunk % 100:
             toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
-
-            montage(np.concatenate((decoded_imgs[:18, :, :] * 0.5 + 0.5, X_train[:18])) ,
+            montage(np.concatenate(
+                (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
                     os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 

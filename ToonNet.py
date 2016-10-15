@@ -258,22 +258,22 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='valid')
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
 
     # Res-layers
@@ -283,11 +283,10 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dropout(0.25)(x)
-    x = Dense(2048)(x)
+    x = Dense(2048, init='he_normal')(x)
     x = Activation('relu')(x)
-    x = Dropout(0.25)(x)
-    x = Dense(1)(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Dense(1, init='he_normal')(x)
     x = Activation('sigmoid')(x)
 
     model = Model(input_im, x)

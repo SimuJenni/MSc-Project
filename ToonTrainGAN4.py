@@ -46,7 +46,7 @@ opt = Adam(lr=0.0002, beta_1=0.5)
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
 toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
-toonAE.compile(optimizer=opt, loss='categorical_crossentropy')
+toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
 disc_in_dim = data.dims
@@ -54,13 +54,13 @@ toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
     toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
-    toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+    toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
 except Exception:
     # Pre-train discriminator
     print('Training discriminator...')
-    toonDisc.compile(optimizer=opt, loss='categorical_crossentropy')
+    toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     make_trainable(toonDisc, True)
     toonDisc.summary()
 
@@ -68,18 +68,14 @@ except Exception:
     X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
     Y_pred = toonAE.predict(X_test, batch_size=batch_size)
     X_test = np.concatenate((Y_test, Y_pred))
-    y_test = np.zeros((len(X_test), 2))
-    y_test[:len(Y_test), 0] = 1
-    y_test[len(Y_test):, 1] = 1
+    y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
 
     count = 0
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
         # Prepare training data
         Y_pred = toonAE.predict(X_train, batch_size=batch_size)
         X = np.concatenate((Y_train, Y_pred))
-        y = np.zeros((len(X), 2))
-        y[:len(Y_train), 0] = 1
-        y[len(Y_train):, 1] = 1
+        y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
 
         # Train discriminator
         toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)
@@ -92,11 +88,12 @@ except Exception:
         print(y_hat)
         print(y_test)
         print(np.abs(np.round(y_hat)-y_test))
+        print(np.mean(np.abs(np.round(y_hat)-y_test)))
 
-        acc_test = compute_accuracy(y_hat, y_test)
-        y_hat = toonDisc.predict(X)
-        acc_train = compute_accuracy(y_hat, y)
-        print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+        # acc_test = compute_accuracy(y_hat, y_test)
+        # y_hat = toonDisc.predict(X)
+        # acc_train = compute_accuracy(y_hat, y)
+        # print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
 
         # Check if stop
         count += chunk_size

@@ -75,7 +75,7 @@ except Exception:
         # Prepare training data
         Y_pred = toonAE.predict(X_train, batch_size=batch_size)
         X = np.concatenate((Y_train, Y_pred))
-        y_test = np.array([1] * len(Y_train) + [0] * len(Y_pred))
+        y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
 
         # Train discriminator
         toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)

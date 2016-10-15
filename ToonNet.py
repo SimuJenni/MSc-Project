@@ -185,41 +185,40 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=4, me
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[4], 256)
-    encoded = Activation('relu')(x)
 
     # Layer 6
     with tf.name_scope('deconv_1'):
-        x = upconv_bn(encoded, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
+        x = upconv_bn(x, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
                       border='valid')
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         x = Activation('relu')(x)
+        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
 
     # Layer 7
     with tf.name_scope('deconv_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
+        x = Activation('relu')(x)
         x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
-        x = lrelu(x)
 
     # Layer 8
     with tf.name_scope('deconv_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
                       border='valid')
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
         x = Activation('relu')(x)
+        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
 
     # Layer 9
     with tf.name_scope('deconv_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
                       border='same')
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
         x = Activation('relu')(x)
+        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
 
     # Layer 10
     with tf.name_scope('deconv_5'):
         x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
-        x = conv_relu(x, f_size=3, f_channels=3, stride=1, border='same')
-        decoded = Activation(out_activation)(x)
+        x = Activation(out_activation)(x)
+        decoded = conv_relu(x, f_size=3, f_channels=3, stride=1, border='same')
 
     # Create the model
     model = Model(input_im, decoded)
@@ -426,7 +425,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=16):
     return model
 
 
-def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activation=Activation('relu')):
+def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -444,10 +443,10 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activatio
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = BatchNormalization(axis=3)(x)
-    return activation(x)
+    return Activation(activation)(x)
 
 
-def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation=Activation('relu')):
+def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -464,7 +463,7 @@ def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation=A
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    return activation(x)
+    return Activation(activation)(x)
 
 
 def outter_connections(layer_in, f_channels):
@@ -505,7 +504,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
     return BatchNormalization(axis=3)(x)
 
 
-def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu')):
+def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu'):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -524,7 +523,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu'
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     x = BatchNormalization(axis=3)(x)
     x = merge([x, in_layer], mode='sum')
-    return activation(x)
+    return Activation(activation)(x)
 
 
 def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):

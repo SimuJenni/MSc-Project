@@ -9,7 +9,7 @@ from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 64
+batch_size = 32
 nb_epoch = 1
 samples_per_epoch = 1200000
 f_dims = [64, 128, 256, 512, 1024]

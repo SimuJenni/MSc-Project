@@ -118,6 +118,127 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
     return model
 
 
+def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=F_DIMS):
+    """Constructs a fully convolutional residual auto-encoder network.
+    The network has the follow architecture:
+
+    Layer           Filters     Stride  Connected
+
+    L1: Conv-layer  4x4x64      1       L25            =================================||
+    L2: Conv-layer  3x3x96      2       L24                =========================||  ||
+    L3: Conv-layer  3x3x128     2       L23                    =================||  ||  ||
+    L4: Conv-layer  3x3x256     2       L22                        =========||  ||  ||  ||
+    L5: Conv-layer  3x3x512     2                                     ===   ||  ||  ||  ||
+                                                                      |_|   ||  ||  ||  ||
+    L6:                                                               |_|   ||  ||  ||  ||
+    .               1x1x64      1                                     |_|   ||  ||  ||  ||
+    .   Res-Layers  3x3x64      1                                     |_|   O4  O3  O2  O1
+    .               3x3x512     1                                     |_|   ||  ||  ||  ||
+    L20:                                                              |_|   ||  ||  ||  ||
+                                                                      |_|   ||  ||  ||  ||
+    L21: UpConv     3x3x256     2                                     ===   ||  ||  ||  ||
+    L22: UpConv     3x3x128     2       L4                         =========||  ||  ||  ||
+    L23: UpConv     3x3x96      2       L3                     =================||  ||  ||
+    L24: UpConv     3x3x64      2       L2                 =========================||  ||
+    L25: UpConv     4x4x64      1       L1             =================================||
+
+    Args:
+        merge_mode: Mode for merging the outer connections
+        input_shape: Shape of the input images (height, width, channels)
+        batch_size: Number of images per batch
+        out_activation: Type of activation for last layer ('relu', 'sigmoid', 'tanh', ...)
+        num_res_layers: Number of residual layers in the middle
+
+    Returns:
+        (net, encoded): The resulting Keras model (net) and the encoding layer
+    """
+    # Compute the dimensions of the layers
+    with tf.name_scope('input'):
+        l_dims = compute_layer_shapes(input_shape=input_shape)
+        input_im = Input(shape=input_shape)
+
+    # Layer 1
+    with tf.name_scope('conv_1'):
+        x = conv_relu(input_im, f_size=3, f_channels=32, stride=1, border='same')
+        x = conv_bn_relu(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
+        l1 = outter_connections(x, f_dims[0])
+
+    # Layer 2
+    with tf.name_scope('conv_2'):
+        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
+        l2 = outter_connections(x, f_dims[1])
+
+    # Layer 3
+    with tf.name_scope('conv_3'):
+        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
+        l3 = outter_connections(x, f_dims[2])
+
+    # Layer 4
+    with tf.name_scope('conv_4'):
+        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
+        l4 = outter_connections(x, f_dims[3])
+
+    # Layer 5
+    with tf.name_scope('conv_5'):
+        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        l5 = outter_connections(x, f_dims[4])
+
+    # All the res-layers
+    for i in range(num_res_layers):
+        with tf.name_scope('res_layer_{}'.format(i + 1)):
+            x = res_layer_bottleneck(x, f_dims[4], 128)
+    x = merge([x, l5], mode=merge_mode)
+    encoded = Activation('relu')(x)
+
+    # Layer 6
+    with tf.name_scope('deconv_1'):
+        x = upconv_bn(encoded, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
+                      border='valid')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = merge([x, l4], mode=merge_mode)
+        x = Activation('relu')(x)
+
+    # Layer 7
+    with tf.name_scope('deconv_2'):
+        x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
+                      border='valid')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = merge([x, l3], mode=merge_mode)
+        x = lrelu(x)
+
+    # Layer 8
+    with tf.name_scope('deconv_3'):
+        x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
+                      border='valid')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = merge([x, l2], mode=merge_mode)
+        x = Activation('relu')(x)
+
+    # Layer 9
+    with tf.name_scope('deconv_4'):
+        x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
+                      border='same')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = merge([x, l1], mode=merge_mode)
+        x = Activation('relu')(x)
+
+    # Layer 10
+    with tf.name_scope('deconv_5'):
+        x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
+        x = conv_relu(x, f_size=3, f_channels=3, stride=1, border='same')
+        decoded = Activation(out_activation)(x)
+
+    # Create the model
+    model = Model(input_im, decoded)
+    model.name = 'ToonAE'
+
+    return model
+
+
 def ToonDiscriminator(input_shape):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
@@ -333,7 +454,28 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activatio
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    x = BatchNormalization(axis=3, mode=2)(x)
+    x = BatchNormalization(axis=3)(x)
+    return activation(x)
+
+
+def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation=Activation('relu')):
+    """Wrapper for first few down-convolution layers including batchnorm and Relu
+
+    Args:
+        layer_in: Input to this layer
+        f_size: Size of convolution filters
+        f_channels: Number of channels of the output
+        stride: Used stride (typically =2)
+        border: 'valid' or 'same'
+
+    Returns:
+        Result of convolution followed by batchnorm and Relu
+    """
+    x = Convolution2D(f_channels, f_size, f_size,
+                      border_mode=border,
+                      subsample=(stride, stride),
+                      init='he_normal')(layer_in)
+    x = BatchNormalization(axis=3)(x)
     return activation(x)
 
 
@@ -348,8 +490,8 @@ def outter_connections(layer_in, f_channels):
         Result of convolution followed by batchnorm and leakyRelu
     """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
-    l = BatchNormalization(axis=3, mode=2)(l)
-    return lrelu(l)
+    l = BatchNormalization(axis=3)(l)
+    return Activation('relu')(l)
 
 
 def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border='valid'):
@@ -372,7 +514,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
                         border_mode=border,
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu')):
@@ -392,7 +534,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation=Activation('relu'
     x = conv_bn_relu(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3, mode=2)(x)
+    x = BatchNormalization(axis=3)(x)
     x = merge([x, in_layer], mode='sum')
     return activation(x)
 

@@ -4,18 +4,18 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE
+from ToonNet import ToonAE, ToonAE2
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
 
-batch_size = 32
+batch_size = 64
 nb_epoch = 1
 samples_per_epoch = 1200000
-f_dims = [64, 96, 160, 256, 512]
+f_dims = [64, 128, 256, 512, 1024]
 num_res_layers = 16
 merge_mode = 'sum'
-loss = 'mae'
+loss = 'mse'
 l_rate = 0.0002
 
 # Get the data-set object
@@ -23,7 +23,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,
+toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,
                 merge_mode=merge_mode, f_dims=f_dims)
 toonAE.summary()
 

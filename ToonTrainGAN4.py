@@ -53,7 +53,7 @@ disc_in_dim = data.dims
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -99,8 +99,6 @@ except Exception:
         count += chunk_size
         if count > samples_per_epoch:
             break
-        if not count % 20:
-            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc-Chunk_{}.hdf5'.format(count)))
 
     toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
@@ -110,7 +108,7 @@ im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
 im_class = toonDisc(im_recon)
 toonGAN = Model(im_input, im_class)
-toonGAN.compile(optimizer=opt, loss='categorical_crossentropy')
+toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -129,9 +127,8 @@ for epoch in range(nb_epoch):
             # Construct data for discriminator training
             Y_pred = toonAE.predict(X_train)
             X = np.concatenate((Y_train, Y_pred))
-            y = np.zeros((len(X), 2))
-            y[:len(Y_train), 0] = 1
-            y[len(Y_train):, 1] = 1
+            y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
+
             # Train discriminator
             make_trainable(toonDisc, True)
             d_loss = toonDisc.train_on_batch(X, y)
@@ -140,8 +137,7 @@ for epoch in range(nb_epoch):
             del X, Y_pred
         else:
             # Train generator
-            y = np.zeros((batch_size, 2))
-            y[:, 0] = 1
+            y = np.array([1] * len(Y_train))
             make_trainable(toonDisc, False)
             g_loss = toonGAN.train_on_batch(X_train, y)
             losses["g"].append(g_loss)

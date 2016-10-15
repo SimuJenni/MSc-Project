@@ -286,7 +286,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = Activation('relu')(x)
-    x = BatchNormalization(axis=1)(x)
+    x = BatchNormalization(axis=1, mode=2)(x)
     x = Dense(1, init='he_normal')(x)
     x = Activation('sigmoid')(x)
 
@@ -385,7 +385,7 @@ def conv_bn_relu(layer_in, f_size, f_channels, stride, border='valid', activatio
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    x = BatchNormalization(axis=3)(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
     return Activation(activation)(x)
 
 
@@ -420,7 +420,7 @@ def outter_connections(layer_in, f_channels):
         Result of convolution followed by batchnorm and leakyRelu
     """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
-    l = BatchNormalization(axis=3)(l)
+    l = BatchNormalization(axis=3, mode=2)(l)
     return Activation('relu')(l)
 
 
@@ -444,7 +444,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
                         border_mode=border,
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu'):
@@ -464,7 +464,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu'):
     x = conv_bn_relu(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3)(x)
+    x = BatchNormalization(axis=3, mode=2)(x)
     x = merge([x, in_layer], mode='sum')
     return Activation(activation)(x)
 

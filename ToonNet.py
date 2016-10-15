@@ -222,7 +222,7 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=4, me
 
     # Create the model
     model = Model(input_im, decoded)
-    model.name = 'ToonAE'
+    model.name = 'ToonAE2'
 
     return model
 

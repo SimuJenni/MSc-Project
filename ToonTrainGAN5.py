@@ -34,7 +34,8 @@ batch_size = 32
 chunk_size = 50 * batch_size
 nb_epoch = 2
 samples_per_epoch = 50000
-num_res_layers = 16
+f_dims = [64, 128, 256, 512, 1024]
+num_res_layers = 4
 
 # Get the data-set object
 data = Imagenet()
@@ -44,9 +45,9 @@ datagen = ImageDataGenerator()
 opt = Adam(lr=0.0001, beta_1=0.5)
 
 # Load the auto-encoder
-toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
-toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
-toonAE.compile(optimizer=opt, loss='mae')
+toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size, f_dims=f_dims)
+toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE2.hdf5')
+toonAE.compile(optimizer=opt, loss='mse')
 
 # Load the discriminator
 disc_in_dim = data.dims

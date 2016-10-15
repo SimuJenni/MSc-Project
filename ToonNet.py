@@ -159,27 +159,27 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_relu(input_im, f_size=3, f_channels=32, stride=1, border='same')
+        x = conv_bn_relu(input_im, f_size=3, f_channels=32, stride=1, border='same')
         x = conv_bn_relu(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
 
     for i in range(num_res_layers):
@@ -191,34 +191,35 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
         x = upconv_bn(x, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
                       border='valid')
         x = Activation('relu')(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
 
     # Layer 7
     with tf.name_scope('deconv_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
         x = Activation('relu')(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
 
     # Layer 8
     with tf.name_scope('deconv_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
                       border='valid')
         x = Activation('relu')(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
 
     # Layer 9
     with tf.name_scope('deconv_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
                       border='same')
         x = Activation('relu')(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
 
     # Layer 10
     with tf.name_scope('deconv_5'):
         x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
-        x = Activation(out_activation)(x)
-        decoded = conv_relu(x, f_size=3, f_channels=3, stride=1, border='same')
+        x = Activation('relu')(x)
+        x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+        decoded = Activation(out_activation)(x)
 
     # Create the model
     model = Model(input_im, decoded)

@@ -283,10 +283,15 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=F_DIMS):
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dense(2)(x)
-    x = Activation('softmax')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096)(x)
+    x = Activation('relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(1)(x)
+    x = Activation('sigmoid')(x)
 
     model = Model(input_im, x)
+    model.name = 'ToonDisc2'
     return model
 
 def ToonDiscriminator3(input_shape):

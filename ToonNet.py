@@ -287,8 +287,8 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     x = Dense(2048, init='he_normal')(x)
     x = Activation('relu')(x)
     x = BatchNormalization(axis=1)(x)
-    x = Dense(1, init='he_normal')(x)
-    x = Activation('sigmoid')(x)
+    x = Dense(2, init='he_normal')(x)
+    x = Activation('softmax')(x)
 
     model = Model(input_im, x)
     model.name = 'ToonDisc2'

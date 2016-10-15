@@ -285,7 +285,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = Activation('relu')(x)
-    x = BatchNormalization(axis=3)(x)
+    x = BatchNormalization(axis=1)(x)
     x = Dense(1, init='he_normal')(x)
     x = Activation('sigmoid')(x)
 

@@ -8,7 +8,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonDiscriminator3
+from ToonNet import ToonAE, ToonDiscriminator2
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -50,7 +50,7 @@ toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
 disc_in_dim = data.dims
-toonDisc = ToonDiscriminator3(input_shape=disc_in_dim)
+toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
     toonDisc.load_weights('/home/sj09l405/MSc-Project/ToonDisc.hdf5')
@@ -150,7 +150,7 @@ for epoch in range(nb_epoch):
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
-                    os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                    os.path.join(IMG_DIR, 'GAN4-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         print('GAN4 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
@@ -160,5 +160,8 @@ for epoch in range(nb_epoch):
         del X_train, Y_train, y
         gc.collect()
 
-toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))
-toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN4-Epoch:{}.hdf5'.format(epoch)))
+    toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN4-Epoch:{}.hdf5'.format(epoch)))
+
+toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN4.hdf5'))
+toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN4.hdf5'))

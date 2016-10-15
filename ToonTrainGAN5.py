@@ -147,21 +147,22 @@ for epoch in range(nb_epoch):
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
         # Generate montage of test-images
-        if not chunk % 100:
-            toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
-            toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
+        if not chunk % 200:
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
-                    os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                    os.path.join(IMG_DIR, 'GAN5-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
-        print('GAN4 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
+        print('GAN5 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
                                                                                              d_loss_avg,
                                                                                              g_loss_avg))
         sys.stdout.flush()
         del X_train, Y_train, y
         gc.collect()
 
-toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN.hdf5'))
-toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN5-Epoch:{}.hdf5'.format(epoch)))
+    toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN5-Epoch:{}.hdf5'.format(epoch)))
+
+toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN5.hdf5'))
+toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN5.hdf5'))

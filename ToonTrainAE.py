@@ -24,7 +24,7 @@ datagen = ImageDataGenerator()
 
 # Load the net
 toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,
-                merge_mode=merge_mode, f_dims=f_dims)
+                f_dims=f_dims)
 toonAE.summary()
 
 # Name used for saving of model and outputs

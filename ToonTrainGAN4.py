@@ -41,7 +41,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.00005)
+opt = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -86,6 +86,9 @@ except Exception:
 
         # Compute Accuracy
         y_hat = toonDisc.predict(X_test)
+        print(y_hat)
+        print(y_test)
+        print(np.round(y_hat)-y_test)
         acc_test = compute_accuracy(y_hat, y_test)
         y_hat = toonDisc.predict(X)
         acc_train = compute_accuracy(y_hat, y)

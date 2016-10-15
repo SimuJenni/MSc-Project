@@ -187,10 +187,7 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, me
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
         l5 = outter_connections(x, f_dims[4])
 
-    # All the res-layers
-    for i in range(num_res_layers):
-        with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 128)
+    x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=1, border='same')
     x = merge([x, l5], mode=merge_mode)
     encoded = Activation('relu')(x)
 

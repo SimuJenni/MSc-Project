@@ -4,7 +4,7 @@ from keras.models import Model, Sequential
 from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 96, 160, 256, 512]
+F_DIMS = [64, 128, 256, 512, 1024]
 
 
 def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=F_DIMS):
@@ -253,27 +253,27 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=F_DIMS):
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_relu(input_im, f_size=3, f_channels=32, stride=1, border='same')
-        x = conv_bn_relu(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
+        x = conv_relu(input_im, f_size=3, f_channels=32, stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
-        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
+        x = conv_bn_relu(x, f_size=3, f_channels=f_dims[1], stride=2, border='valid')
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
         x = conv_bn_relu(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
 
     # Res-layers
@@ -283,10 +283,10 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=F_DIMS):
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dropout(0.5)(x)
-    x = Dense(4096)(x)
+    x = Dropout(0.25)(x)
+    x = Dense(2048)(x)
     x = Activation('relu')(x)
-    x = Dropout(0.5)(x)
+    x = Dropout(0.25)(x)
     x = Dense(1)(x)
     x = Activation('sigmoid')(x)
 

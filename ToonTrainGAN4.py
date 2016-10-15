@@ -83,12 +83,15 @@ except Exception:
 
         # Train discriminator
         toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size)
+        train_loss = toonDisc.evaluate(X, y, batch_size=batch_size)
+        test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size)
+        print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))
 
         # Compute Accuracy
         y_hat = toonDisc.predict(X_test)
         print(y_hat)
         print(y_test)
-        print(np.round(y_hat)-y_test)
+        print(np.abs(np.round(y_hat)-y_test))
         acc_test = compute_accuracy(y_hat, y_test)
         y_hat = toonDisc.predict(X)
         acc_train = compute_accuracy(y_hat, y)

@@ -4,10 +4,10 @@ from keras.models import Model, Sequential
 from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 128, 256, 512, 1024]
+F_DIMS = [64, 96, 160, 256, 512]
 
 
-def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=F_DIMS):
+def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=[64, 96, 160, 256, 512]):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -227,7 +227,7 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
     return model
 
 
-def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=F_DIMS):
+def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512, 1024]):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 

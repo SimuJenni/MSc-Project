@@ -284,8 +284,9 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
             x = res_layer_bottleneck(x, f_dims[4], 256)
 
     # Fully connected layer
+    x = conv_lrelu_bn(x, f_size=1, f_channels=f_dims[3], stride=1, border='valid')
     x = Flatten()(x)
-    x = Dense(4096, init='he_normal')(x)
+    x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)
     x = BatchNormalization(axis=1, mode=BN_MODE)(x)
     x = Dense(1, init='he_normal')(x)

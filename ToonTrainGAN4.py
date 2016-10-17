@@ -21,13 +21,14 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    y_hat_idx = np.argmax(y_hat, axis=1)
-    y_idx = np.argmax(y, axis=1)
-    diff = y_idx - y_hat_idx
-    n_tot = y.shape[0]
-    n_rig = (diff == 0).sum()
-    acc = n_rig * 100.0 / n_tot
-    return acc
+    return np.mean(np.abs(np.round(y_hat) - y))
+    # y_hat_idx = np.argmax(y_hat, axis=1)
+    # y_idx = np.argmax(y, axis=1)
+    # diff = y_idx - y_hat_idx
+    # n_tot = y.shape[0]
+    # n_rig = (diff == 0).sum()
+    # acc = n_rig * 100.0 / n_tot
+    # return acc
 
 
 batch_size = 32
@@ -53,7 +54,7 @@ disc_in_dim = data.dims
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -88,19 +89,18 @@ except Exception:
         print(y_hat)
         print(y_test)
         print(np.abs(np.round(y_hat)-y_test))
-        print(np.mean(np.abs(np.round(y_hat)-y_test)))
 
-        # acc_test = compute_accuracy(y_hat, y_test)
-        # y_hat = toonDisc.predict(X)
-        # acc_train = compute_accuracy(y_hat, y)
-        # print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+        acc_test = compute_accuracy(y_hat, y_test)
+        y_hat = toonDisc.predict(X)
+        acc_train = compute_accuracy(y_hat, y)
+        print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
 
         # Check if stop
         count += chunk_size
         if count > samples_per_epoch:
             break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)

@@ -5,7 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 
 NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 160, 256, 512]
-BN_MODE = 2
+BN_MODE = 0
 
 
 def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=[64, 96, 160, 256, 512]):

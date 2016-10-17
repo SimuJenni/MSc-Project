@@ -21,8 +21,6 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    print(y_hat)
-    print(np.abs(np.round(y_hat)-y))
     return np.mean(np.abs(np.round(y_hat)-y))
 
 
@@ -45,11 +43,12 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
+#TODO: Consider again adding the input to the discriminator
 disc_in_dim = data.dims
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_new2.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode0.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -76,7 +75,7 @@ except Exception:
         y[:len(Y_train)] = 1
 
         # Train discriminator
-        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=1)
+        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
         train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
         test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
         print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))
@@ -94,7 +93,7 @@ except Exception:
         if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
             break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_new2.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode0.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)

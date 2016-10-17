@@ -1,11 +1,11 @@
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense, Dropout
 from keras.models import Model, Sequential
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers.advanced_activations import LeakyReLU, PReLU
 
 NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 160, 256, 512]
-BN_MODE = 0
+BN_MODE = 2
 
 
 def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=[64, 96, 160, 256, 512]):
@@ -314,7 +314,7 @@ def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activatio
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = Activation(activation)(x)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3, mode=BN_MODE)(x)
 
 
 def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
@@ -335,7 +335,7 @@ def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = lrelu(x)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3, mode=BN_MODE)(x)
 
 
 def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -462,7 +462,7 @@ def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):
 
 
 def lrelu(x, alpha=0.2):
-    return LeakyReLU(alpha=alpha)(x)
+    return PReLU()(x)
 
 
 if __name__ == '__main__':

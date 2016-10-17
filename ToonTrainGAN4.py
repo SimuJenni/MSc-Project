@@ -64,17 +64,19 @@ except Exception:
     X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
     Y_pred = toonAE.predict(X_test, batch_size=batch_size)
     X_test = np.concatenate((Y_test, Y_pred))
-    y_test = np.array([1]*len(Y_test) + [0]*len(Y_pred))
+    y_test = np.zeros((len(Y_test)+len(Y_pred), 1))
+    y_test[:len(Y_test)] = 1
 
     count = 0
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
         # Prepare training data
         Y_pred = toonAE.predict(X_train, batch_size=batch_size)
         X = np.concatenate((Y_train, Y_pred))
-        y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
+        y = np.zeros((len(Y_train) + len(Y_pred), 1))
+        y[:len(Y_train)] = 1
 
         # Train discriminator
-        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
+        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=1)
         train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
         test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
         print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))
@@ -121,7 +123,8 @@ for epoch in range(nb_epoch):
             # Construct data for discriminator training
             Y_pred = toonAE.predict(X_train)
             X = np.concatenate((Y_train, Y_pred))
-            y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
+            y = np.zeros((len(Y_train) + len(Y_pred), 1))
+            y[:len(Y_train)] = 1
 
             # Train discriminator
             make_trainable(toonDisc, True)

@@ -314,7 +314,7 @@ def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activatio
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = Activation(activation)(x)
-    return BatchNormalization(axis=3, mode=BN_MODE)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
@@ -335,7 +335,7 @@ def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = lrelu(x)
-    return BatchNormalization(axis=3, mode=BN_MODE)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):

@@ -86,13 +86,13 @@ except Exception:
 
         # Compute Accuracy
         y_hat = toonDisc.predict(X_test)
-        print(y_hat)
+        print(y_hat[0])
         print(y_test)
-        print(np.abs(np.round(y_hat)-y_test))
+        print(np.abs(np.round(y_hat[0])-y_test))
 
-        acc_test = compute_accuracy(y_hat, y_test)
+        acc_test = compute_accuracy(y_hat[0], y_test)
         y_hat = toonDisc.predict(X)
-        acc_train = compute_accuracy(y_hat, y)
+        acc_train = compute_accuracy(y_hat[0], y)
         print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
 
         # Check if stop

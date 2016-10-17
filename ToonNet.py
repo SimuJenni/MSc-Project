@@ -91,7 +91,7 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
                       border='valid')
         x = merge([x, l3], mode=merge_mode)
-        x = lrelu(x)
+        x = Activation('relu')(x)
 
     # Layer 8
     with tf.name_scope('deconv_3'):

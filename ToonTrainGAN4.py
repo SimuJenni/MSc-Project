@@ -21,6 +21,8 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
+    print(y_hat)
+    print(np.abs(np.round(y_hat)-y))
     return np.mean(np.abs(np.round(y_hat)-y))
 
 
@@ -35,7 +37,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002, beta_1=0.5)
+opt = Adam(lr=0.0001)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -47,7 +49,7 @@ disc_in_dim = data.dims
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_new.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_new2.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -90,7 +92,7 @@ except Exception:
         if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
             break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_new.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_new2.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)
@@ -99,6 +101,8 @@ im_recon = toonAE(im_input)
 im_class = toonDisc(im_recon)
 toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
+
+#TODO: Add in some loss measuring color-stats or something
 
 # Store losses
 losses = {"d": [], "g": []}

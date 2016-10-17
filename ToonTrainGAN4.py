@@ -62,7 +62,8 @@ except Exception:
     # Create test data
     X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
     Y_pred = toonAE.predict(X_test, batch_size=batch_size)
-    X_test = np.concatenate((Y_test, Y_pred))
+    X_test = np.concatenate((np.concatenate((X_test, Y_test), axis=3),
+                            (np.concatenate((X_test, Y_pred), axis=3))))
     y_test = np.zeros((len(Y_test)+len(Y_pred), 1))
     y_test[:len(Y_test)] = 1
 

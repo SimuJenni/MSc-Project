@@ -255,7 +255,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_lrelu_bn(input_im, f_size=3, f_channels=32, stride=1, border='valid')
+        x = conv_lrelu(input_im, f_size=3, f_channels=32, stride=1, border='valid')
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
 
     # Layer 2
@@ -356,6 +356,26 @@ def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     return Activation(activation)(x)
+
+
+def conv_lrelu(layer_in, f_size, f_channels, stride, border='valid'):
+    """Wrapper for first few down-convolution layers including batchnorm and Relu
+
+    Args:
+        layer_in: Input to this layer
+        f_size: Size of convolution filters
+        f_channels: Number of channels of the output
+        stride: Used stride (typically =2)
+        border: 'valid' or 'same'
+
+    Returns:
+        Result of convolution followed by batchnorm and Relu
+    """
+    x = Convolution2D(f_channels, f_size, f_size,
+                      border_mode=border,
+                      subsample=(stride, stride),
+                      init='he_normal')(layer_in)
+    return lrelu(x)
 
 
 def outter_connections(layer_in, f_channels):

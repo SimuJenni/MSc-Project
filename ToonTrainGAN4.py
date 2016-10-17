@@ -87,6 +87,7 @@ except Exception:
         y_hat = toonDisc.predict(X)
         acc_train = compute_accuracy(y_hat, y)
         print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+        sys.stdout.flush()
 
         # Check if stop
         count += chunk_size

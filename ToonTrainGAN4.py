@@ -21,7 +21,7 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    return np.mean(np.round(y_hat) == y)
+    return np.mean(np.abs(np.round(y_hat)-y))
 
 
 batch_size = 32
@@ -72,16 +72,13 @@ except Exception:
         y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
 
         # Train discriminator
-        toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
         train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
         test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
         print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))
 
         # Compute Accuracy
         y_hat = toonDisc.predict(X_test)
-        print(y_hat)
-        print(y_test)
-        print(np.mean(np.round(y_hat)==y_test))
 
         acc_test = compute_accuracy(y_hat, y_test)
         y_hat = toonDisc.predict(X)
@@ -139,8 +136,6 @@ for epoch in range(nb_epoch):
 
         # Generate montage of test-images
         if not chunk % 200:
-            # toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
-            # toonAE.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN-Epoch:{}-Chunk:{}.hdf5'.format(epoch, chunk)))
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),

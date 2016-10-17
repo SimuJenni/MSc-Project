@@ -47,7 +47,7 @@ disc_in_dim = data.dims
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_new.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -79,7 +79,6 @@ except Exception:
 
         # Compute Accuracy
         y_hat = toonDisc.predict(X_test)
-
         acc_test = compute_accuracy(y_hat, y_test)
         y_hat = toonDisc.predict(X)
         acc_train = compute_accuracy(y_hat, y)
@@ -91,7 +90,7 @@ except Exception:
         if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
             break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_new.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)

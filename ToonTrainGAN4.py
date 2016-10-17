@@ -21,7 +21,7 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    return 1.0 - np.mean(np.abs(np.round(y_hat)-y))
+    return 1.0 - np.mean(np.abs(np.round(y_hat) - y))
 
 
 batch_size = 32
@@ -61,8 +61,8 @@ except Exception:
     X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
     Y_pred = toonAE.predict(X_test, batch_size=batch_size)
     X_test = np.concatenate((np.concatenate((X_test, Y_test), axis=3),
-                            (np.concatenate((X_test, Y_pred), axis=3))))
-    y_test = np.zeros((len(Y_test)+len(Y_pred), 1))
+                             (np.concatenate((X_test, Y_pred), axis=3))))
+    y_test = np.zeros((len(Y_test) + len(Y_pred), 1))
     y_test[:len(Y_test)] = 1
 
     training_done = False
@@ -102,10 +102,9 @@ im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
 disc_in = merge([im_input, im_recon], mode='concat')
 im_class = toonDisc(disc_in)
-toonGAN = Model(im_input, im_class)
-toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
-
-#TODO: Add in some loss measuring color-stats or something
+toonGAN = Model(im_input, output=[im_class, im_recon])
+theta = 0.1
+toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -119,6 +118,7 @@ for epoch in range(nb_epoch):
     chunk = 0
     g_loss_avg = 3
     d_loss_avg = 3
+    r_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
             # Construct data for discriminator training
@@ -138,7 +138,7 @@ for epoch in range(nb_epoch):
             # Train generator
             y = np.array([1] * len(Y_train))
             make_trainable(toonDisc, False)
-            g_loss = toonGAN.train_on_batch(X_train, y)
+            g_loss, r_loss = toonGAN.train_on_batch(X_train, y)
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
@@ -147,12 +147,15 @@ for epoch in range(nb_epoch):
             decoded_imgs = toonAE.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
-                    os.path.join(IMG_DIR, 'GAN4-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GAN4-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
-        print('GAN4 Epoch: {}/{} Batch: {} Discriminator-Loss: {} Generator-Loss: {}'.format(epoch, nb_epoch, chunk,
+        print('GAN4 Epoch: {}/{} Batch: {} Disc-Loss: {} Gen-Loss: {} Recon-Loss: {}'.format(epoch,
+                                                                                             nb_epoch,
+                                                                                             chunk,
                                                                                              d_loss_avg,
-                                                                                             g_loss_avg))
+                                                                                             g_loss_avg,
+                                                                                             r_loss))
         sys.stdout.flush()
         del X_train, Y_train, y
         gc.collect()

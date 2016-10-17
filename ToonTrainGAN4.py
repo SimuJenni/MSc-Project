@@ -21,7 +21,7 @@ def make_trainable(net, val):
 
 
 def compute_accuracy(y_hat, y):
-    return np.mean(np.abs(np.round(y_hat)-y))
+    return 1.0 - np.mean(np.abs(np.round(y_hat)-y))
 
 
 batch_size = 32
@@ -34,7 +34,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0005)
+opt = Adam(lr=0.0002)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -42,7 +42,6 @@ toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
 toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
-#TODO: Consider again adding the input to the discriminator
 disc_in_dim = data.dims[:2] + (6,)
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 

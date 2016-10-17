@@ -27,7 +27,6 @@ def compute_accuracy(y_hat, y):
 batch_size = 32
 chunk_size = 50 * batch_size
 nb_epoch = 2
-samples_per_epoch = 50000
 num_res_layers = 16
 
 # Get the data-set object
@@ -35,7 +34,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Define optimizer
-opt = Adam(lr=0.0002)
+opt = Adam(lr=0.0005)
 
 # Load the auto-encoder
 toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
@@ -48,7 +47,7 @@ disc_in_dim = data.dims[:2] + (6,)
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2merge.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m2_converge.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -67,35 +66,36 @@ except Exception:
     y_test = np.zeros((len(Y_test)+len(Y_pred), 1))
     y_test[:len(Y_test)] = 1
 
-    count = 0
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
-        # Prepare training data
-        Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-        X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
-                            (np.concatenate((X_train, Y_pred), axis=3))))
-        y = np.zeros((len(Y_train) + len(Y_pred), 1))
-        y[:len(Y_train)] = 1
+    training_done = False
+    while not training_done:
+        for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
+            # Prepare training data
+            Y_pred = toonAE.predict(X_train, batch_size=batch_size)
+            X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
+                                (np.concatenate((X_train, Y_pred), axis=3))))
+            y = np.zeros((len(Y_train) + len(Y_pred), 1))
+            y[:len(Y_train)] = 1
 
-        # Train discriminator
-        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
-        train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
-        test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
-        print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))
+            # Train discriminator
+            toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+            train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
+            test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
+            print('Test-Loss: %0.02f Train-Loss: %0.02f' % (test_loss, train_loss))
 
-        # Compute Accuracy
-        y_hat = toonDisc.predict(X_test)
-        acc_test = compute_accuracy(y_hat, y_test)
-        y_hat = toonDisc.predict(X)
-        acc_train = compute_accuracy(y_hat, y)
-        print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
-        sys.stdout.flush()
+            # Compute Accuracy
+            y_hat = toonDisc.predict(X_test)
+            acc_test = compute_accuracy(y_hat, y_test)
+            y_hat = toonDisc.predict(X)
+            acc_train = compute_accuracy(y_hat, y)
+            print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+            sys.stdout.flush()
 
-        # Check if stop
-        count += chunk_size
-        if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
-            break
+            # Check if training can be stopped
+            if test_loss == 0.0 or acc_test == 1.0:
+                training_done = True
+                break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2merge.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_m2_converge.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)

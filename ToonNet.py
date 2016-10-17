@@ -285,7 +285,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
 
     # Fully connected layer
     x = Flatten()(x)
-    x = Dense(2048, init='he_normal')(x)
+    x = Dense(4096, init='he_normal')(x)
     x = lrelu(x)
     x = BatchNormalization(axis=1, mode=BN_MODE)(x)
     x = Dense(1, init='he_normal')(x)
@@ -481,7 +481,7 @@ def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):
     return layer_dims
 
 
-def lrelu(x, alpha=0.3):
+def lrelu(x, alpha=0.2):
     return LeakyReLU(alpha=alpha)(x)
 
 

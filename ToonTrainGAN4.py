@@ -72,7 +72,7 @@ except Exception:
         y = np.array([1] * len(Y_train) + [0] * len(Y_pred))
 
         # Train discriminator
-        toonDisc.fit(X, y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
+        toonDisc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
         train_loss = toonDisc.evaluate(X, y, batch_size=batch_size, verbose=0)
         test_loss = toonDisc.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
         print('Test-Loss: %0.02f Train-Loss: %0.02f' %(test_loss, train_loss))

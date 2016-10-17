@@ -97,7 +97,7 @@ except Exception:
 
         # Check if stop
         count += chunk_size
-        if count > samples_per_epoch:
+        if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
             break
 
     toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2.hdf5'))

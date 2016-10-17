@@ -461,8 +461,8 @@ def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):
     return layer_dims
 
 
-def lrelu(x, alpha=0.2):
-    return PReLU()(x)
+def lrelu(x, alpha=0.3):
+    return LeakyReLU(alpha=alpha)(x)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import os
 import sys
 
 import numpy as np
-from keras.layers import Input
+from keras.layers import Input, merge
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -44,11 +44,11 @@ toonAE.compile(optimizer=opt, loss='mae')
 
 # Load the discriminator
 #TODO: Consider again adding the input to the discriminator
-disc_in_dim = data.dims
+disc_in_dim = data.dims[:2] + (6,)
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2prelu.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2merge.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -70,7 +70,8 @@ except Exception:
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
         # Prepare training data
         Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-        X = np.concatenate((Y_train, Y_pred))
+        X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
+                            (np.concatenate((X_train, Y_pred), axis=3))))
         y = np.zeros((len(Y_train) + len(Y_pred), 1))
         y[:len(Y_train)] = 1
 
@@ -93,13 +94,14 @@ except Exception:
         if train_loss == 0.0 and test_loss == 0.0 or count > samples_per_epoch:
             break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2prelu.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_mode2merge.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)
 im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
-im_class = toonDisc(im_recon)
+disc_in = merge([im_input, im_recon], mode='concat')
+im_class = toonDisc(disc_in)
 toonGAN = Model(im_input, im_class)
 toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
 
@@ -121,7 +123,8 @@ for epoch in range(nb_epoch):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
             # Construct data for discriminator training
             Y_pred = toonAE.predict(X_train)
-            X = np.concatenate((Y_train, Y_pred))
+            X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
+                                (np.concatenate((X_train, Y_pred), axis=3))))
             y = np.zeros((len(Y_train) + len(Y_pred), 1))
             y[:len(Y_train)] = 1
 

@@ -125,7 +125,7 @@ def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8,
     return model
 
 
-def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
+def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 0):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 

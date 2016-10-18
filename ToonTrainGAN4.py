@@ -69,8 +69,7 @@ toonAE.compile(optimizer=opt, loss='mse')
 #         for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
 #             # Prepare training data
 #             Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-#             X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
-#                                 (np.concatenate((X_train, Y_pred), axis=3))))
+#             X = np.concatenate((Y_train, Y_pred))
 #             y = np.zeros((len(Y_train) + len(Y_pred), 1))
 #             y[:len(Y_train)] = 1
 #
@@ -128,8 +127,7 @@ for epoch in range(nb_epoch):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
             # Construct data for discriminator training
             Y_pred = toonAE.predict(X_train)
-            X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
-                                (np.concatenate((X_train, Y_pred), axis=3))))
+            X = np.concatenate((Y_train, Y_pred))
             y = np.zeros((len(Y_train) + len(Y_pred), 1))
             y[:len(Y_train)] = 1
 

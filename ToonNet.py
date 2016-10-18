@@ -125,7 +125,7 @@ def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8,
     return model
 
 
-def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
+def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -160,13 +160,11 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_d
         (net, encoded): The resulting Keras model (net) and the encoding layer
     """
     # Compute the dimensions of the layers
-    with tf.name_scope('input'):
-        l_dims = compute_layer_shapes(input_shape=input_shape)
-        input_im = Input(shape=input_shape)
+    l_dims = compute_layer_shapes(input_shape=input_shape)
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_relu_bn(input_im, f_size=3, f_channels=32, stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(in_layer, f_size=3, f_channels=32, stride=1, border='same', bn_mode=bn_mode)
         x = conv_relu_bn(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid', bn_mode=bn_mode)
 
     # Layer 2
@@ -228,14 +226,10 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_d
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
-    # Create the model
-    model = Model(input_im, decoded)
-    model.name = 'ToonAE2'
-
-    return model
+    return decoded
 
 
-def ToonDiscriminator(input_shape, num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode=0):
+def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode=0):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -255,13 +249,10 @@ def ToonDiscriminator(input_shape, num_res_layers=8, f_dims=(64, 128, 256, 512, 
     Returns:
         The resulting Keras models
     """
-    # Compute the dimensions of the layers
-    with tf.name_scope('input'):
-        input_im = Input(shape=input_shape)
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_lrelu(input_im, f_size=3, f_channels=32, stride=1, border='valid')
+        x = conv_lrelu(in_layer, f_size=3, f_channels=32, stride=1, border='valid')
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
 
     # Layer 2
@@ -298,9 +289,7 @@ def ToonDiscriminator(input_shape, num_res_layers=8, f_dims=(64, 128, 256, 512, 
     x = Dense(1, init='he_normal')(x)
     x = Activation('sigmoid')(x)
 
-    model = Model(input_im, x)
-    model.name = 'ToonDisc2'
-    return model
+    return x
 
 
 def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', bn_mode=0):
@@ -500,25 +489,44 @@ def ToonGAN(discriminator, generator, input_shape):
     return Model(input=im_input, output=[im_class, im_recon])
 
 
-def Models(input_shape, batch_size):
-    generator = ToonAE(input_shape, batch_size=batch_size)
-    # generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
+def GenAndDisc(input_shape, batch_size, load_weights=False):
+    input_im = Input(shape=input_shape)
+    gen_out = ToonAE(input_im, input_shape, batch_size=batch_size)
+    generator = Model(input_im, gen_out)
+    generator.trainable = False
 
-    discriminator = ToonDiscriminator(input_shape)
-    # discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc2.hdf5'))
+    dis_out = ToonDiscriminator(input_im)
+    discriminator = Model(input_im, dis_out)
+
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
+        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    generator.compile(loss='mse', optimizer=optimizer)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+
+    return generator, discriminator
+
+
+def Gan(input_shape, batch_size, load_weights=False):
+    input_im = Input(shape=input_shape)
+    gen_out = ToonAE(input_im, input_shape, batch_size=batch_size)
+    generator = Model(input_im, gen_out)
+
+    dis_out = ToonDiscriminator(input_im)
+    discriminator = Model(input_im, dis_out)
+    discriminator.trainable = False
+
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
+        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
     gan = ToonGAN(discriminator, generator, input_shape)
-    return generator, discriminator, gan
 
-
-def CompiledModels(input_shape, batch_size):
-    generator,  discriminator, gan = Models(input_shape, batch_size)
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    generator.compile(loss='binary_crossentropy', optimizer=optimizer)
     reg = 0.1
     gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
-    discriminator.trainable = True
-    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     return gan, generator, discriminator
 
 

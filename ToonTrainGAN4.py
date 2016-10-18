@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import CompiledModels
+from ToonNet import GenAndDisc, Gan
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from datasets.TinyImagenet import TinyImagenet
@@ -26,9 +26,6 @@ nb_epoch = 2
 data = TinyImagenet()
 datagen = ImageDataGenerator()
 
-# Load the models
-gan, generator, discriminator = CompiledModels(input_shape=data.dims, batch_size=batch_size)
-
 # Store losses
 losses = {"d": [], "g": []}
 
@@ -44,6 +41,8 @@ for epoch in range(nb_epoch):
     r_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=(64, 64)):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
+            generator, discriminator = GenAndDisc(data.dims, batch_size)
+
             # Construct data for discriminator training
             Y_pred = generator.predict(X_train)
             X = np.concatenate((Y_train, Y_pred))
@@ -57,9 +56,9 @@ for epoch in range(nb_epoch):
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred
         else:
+            gan, generator, discriminator = Gan(data.dims, batch_size)
             # Train generator
             y = np.array([1] * len(Y_train))
-            make_trainable(discriminator, False)
             g_loss, r_loss = gan.train_on_batch(X_train, y)
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss

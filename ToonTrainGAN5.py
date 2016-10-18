@@ -49,15 +49,13 @@ im_input = Input(shape=data.dims)
 gt_input = Input(shape=data.dims)
 order_input = Input(shape=(1,))
 
-im_recon = toonAE(im_input)
-
-d_in1 = switch(reshape(order_input, []), im_recon, gt_input)
-d_in2 = switch(reshape(order_input, []), gt_input, im_recon)
+d_in1 = switch(reshape(order_input, []), toonAE.output, gt_input)
+d_in2 = switch(reshape(order_input, []), gt_input, toonAE.output)
 
 disc_in = merge([d_in1, d_in2], mode='concat')
 im_class = toonDisc(disc_in)
 
-toonGAN = Model(input=[im_input, gt_input, order_input], output=[im_class, im_recon])
+toonGAN = Model(input=[im_input, gt_input, order_input], output=[im_class, toonAE.output])
 theta = 0.1
 toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
 

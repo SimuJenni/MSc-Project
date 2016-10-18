@@ -36,7 +36,7 @@ datagen = ImageDataGenerator()
 opt = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
-toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size, bn_mode=2)
+toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size)
 toonAE.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
 
 # Load the discriminator

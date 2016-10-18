@@ -100,9 +100,10 @@ im_input = Input(shape=data.dims)
 im_recon = toonAE(im_input)
 disc_in = merge([im_input, im_recon], mode='concat')
 im_class = toonDisc(disc_in)
-toonGAN = Model(im_input, output=[im_class, im_recon])
+toonGAN = Model(input=im_input, output=[im_class, im_recon])
 theta = 0.1
 toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
+toonGAN.summary()
 
 # Store losses
 losses = {"d": [], "g": []}

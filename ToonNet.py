@@ -5,7 +5,7 @@ from keras.models import Model
 
 NUM_CONV_LAYERS = 5
 F_DIMS = [64, 128, 256, 512, 1024]
-BN_MODE = 0
+BN_MODE = 2
 
 
 def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',

@@ -268,12 +268,12 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=(64, 128, 256, 512, 102
     # Layer 4
     with tf.name_scope('conv_4'):
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
-        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid') #TODO stride2
+        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
 
     # Layer 5
     with tf.name_scope('conv_5'):
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
-        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=1, border='valid') #TODO stride2
+        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
 
     # Res-layers
     for i in range(num_res_layers):

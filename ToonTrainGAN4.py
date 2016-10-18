@@ -8,7 +8,6 @@ from DataGenerator import ImageDataGenerator
 from ToonNet import GenAndDisc, Gan
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
-from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 
@@ -19,12 +18,20 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 50 * batch_size
+chunk_size = 1000 * batch_size
 nb_epoch = 2
 
 # Get the data-set object
-data = TinyImagenet()
+data = Imagenet()
 datagen = ImageDataGenerator()
+
+# Load the models
+generator, discriminator = GenAndDisc(data.dims, batch_size, load_weights=True)
+gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True)
+
+# Paths for storing the weights
+gen_weights = os.path.join(MODEL_DIR, 'gen.hdf5')
+disc_weights = os.path.join(MODEL_DIR, 'disc.hdf5')
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -41,7 +48,9 @@ for epoch in range(nb_epoch):
     r_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=(64, 64)):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
-            generator, discriminator = GenAndDisc(data.dims, batch_size)
+            # Reload the weights
+            generator.load_weights(gen_weights)
+            discriminator.load_weights(disc_weights)
 
             # Construct data for discriminator training
             Y_pred = generator.predict(X_train)
@@ -55,16 +64,28 @@ for epoch in range(nb_epoch):
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred
+
+            # Save the weights
+            generator.save_weights(gen_weights)
+            discriminator.save_weights(disc_weights)
         else:
-            gan, generator, discriminator = Gan(data.dims, batch_size)
+            # Reload the weights
+            gen_gan.load_weights(gen_weights)
+            disc_gan.load_weights(disc_weights)
+
             # Train generator
             y = np.array([1] * len(Y_train))
             g_loss, r_loss = gan.train_on_batch(X_train, y)
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 
+            # Save the weights
+            gen_gan.save_weights(gen_weights)
+            disc_gan.save_weights(disc_weights)
+
         # Generate montage of test-images
-        if not chunk % 200:
+        if not chunk % 50:
+            generator.load_weights(gen_weights)
             decoded_imgs = generator.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
@@ -81,8 +102,6 @@ for epoch in range(nb_epoch):
         del X_train, Y_train, y
         gc.collect()
 
-    discriminator.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_GAN4-Epoch:{}.hdf5'.format(epoch)))
-    generator.save_weights(os.path.join(MODEL_DIR, 'ToonAE_GAN4-Epoch:{}.hdf5'.format(epoch)))
 
 discriminator.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN4.hdf5'))
 generator.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN4.hdf5'))

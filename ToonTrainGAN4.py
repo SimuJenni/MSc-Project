@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 1000 * batch_size
+chunk_size = 500 * batch_size
 nb_epoch = 2
 
 # Get the data-set object
@@ -53,14 +53,14 @@ for epoch in range(nb_epoch):
             discriminator.load_weights(disc_weights)
 
             # Construct data for discriminator training
-            Y_pred = generator.predict(X_train)
+            Y_pred = generator.predict(X_train, batch_size=batch_size)
             X = np.concatenate((Y_train, Y_pred))
             y = np.zeros((len(Y_train) + len(Y_pred), 1))
             y[:len(Y_train)] = 1
 
             # Train discriminator
             make_trainable(discriminator, True)
-            d_loss = discriminator.train_on_batch(X, y)
+            d_loss = discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred
@@ -75,7 +75,7 @@ for epoch in range(nb_epoch):
 
             # Train generator
             y = np.array([1] * len(Y_train))
-            g_loss, r_loss = gan.train_on_batch(X_train, y)
+            g_loss, r_loss = gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size, verbose=0)
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
 

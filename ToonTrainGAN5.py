@@ -6,7 +6,7 @@ import numpy as np
 from keras.layers import Input, merge
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.backend import switch
+from keras.backend import switch, reshape
 
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator2
@@ -51,8 +51,8 @@ order_input = Input(shape=(1,))
 
 im_recon = toonAE(im_input)
 
-d_in1 = switch(order_input, im_recon, gt_input)
-d_in2 = switch(order_input, gt_input, im_recon)
+d_in1 = switch(reshape(order_input, []), im_recon, gt_input)
+d_in2 = switch(reshape(order_input, []), gt_input, im_recon)
 
 disc_in = merge([d_in1, d_in2], mode='concat')
 im_class = toonDisc(disc_in)

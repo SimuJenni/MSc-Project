@@ -1,14 +1,15 @@
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense, Dropout
-from keras.models import Model, Sequential
-from keras.layers.advanced_activations import LeakyReLU, PReLU
+from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense
+from keras.layers.advanced_activations import LeakyReLU
+from keras.models import Model
 
 NUM_CONV_LAYERS = 5
 F_DIMS = [64, 96, 160, 256, 512]
-BN_MODE = 0
+BN_MODE = 3
 
 
-def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum', f_dims=[64, 96, 160, 256, 512]):
+def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
+           f_dims=[64, 96, 160, 256, 512]):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 

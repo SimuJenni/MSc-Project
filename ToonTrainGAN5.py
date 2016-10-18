@@ -10,9 +10,10 @@ from keras.backend import switch, reshape
 from keras.utils.visualize_util import plot
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonDiscriminator2
+from ToonNet import ToonAE2, ToonDiscriminator2
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
+from datasets.TinyImagenet import TinyImagenet
 from utils import montage
 
 
@@ -32,17 +33,19 @@ nb_epoch = 2
 num_res_layers = 8
 
 # Get the data-set object
-data = Imagenet()
+data = TinyImagenet()
+data.dims = (192, 192, 3)
 datagen = ImageDataGenerator()
 
 # Define optimizer
 opt = Adam(lr=0.0002)
 
 # Load the auto-encoder
-toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
+toonAE = ToonAE2(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
 
 # Load the discriminator
 disc_in_dim = data.dims[:2] + (6,)
+
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 # Stick them together
@@ -51,15 +54,17 @@ gt_input = Input(shape=data.dims)
 order_input = Input(shape=(1,))
 
 im_recon = toonAE(im_input)
+plot(toonAE, to_file='toonAE.png', show_shapes=True)
 
-d_in1 = switch(reshape(order_input, []), toonAE.output, gt_input)
-d_in2 = switch(reshape(order_input, []), gt_input, toonAE.output)
+
+d_in1 = switch(reshape(order_input, []), im_recon, gt_input)
+d_in2 = switch(reshape(order_input, []), gt_input, im_recon)
 
 disc_in = merge([d_in1, d_in2], mode='concat')
 im_class = toonDisc(disc_in)
 
-toonGAN = Model(input=[im_input, gt_input, order_input], output=[toonDisc.output, toonAE.output])
-plot(toonGAN, to_file='model.png', show_shapes=True)
+toonGAN = Model(input=[im_input, gt_input, order_input], output=[im_class, im_recon])
+plot(toonGAN, to_file='toonGAN.png', show_shapes=True)
 
 theta = 0.1
 toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])

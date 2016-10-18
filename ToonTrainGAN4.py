@@ -8,7 +8,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonDiscriminator2
+from ToonNet import ToonAE2, ToonDiscriminator2
 from constants import MODEL_DIR, IMG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -27,7 +27,6 @@ def compute_accuracy(y_hat, y):
 batch_size = 32
 chunk_size = 50 * batch_size
 nb_epoch = 2
-num_res_layers = 16
 
 # Get the data-set object
 data = Imagenet()
@@ -37,16 +36,15 @@ datagen = ImageDataGenerator()
 opt = Adam(lr=0.0002, beta_1=0.5)
 
 # Load the auto-encoder
-toonAE = ToonAE(input_shape=data.dims, num_res_layers=num_res_layers, batch_size=batch_size)
-toonAE.load_weights('/home/sj09l405/MSc-Project/ToonAE.hdf5')
-toonAE.compile(optimizer=opt, loss='mae')
+toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size)
+toonAE.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
 
 # Load the discriminator
 disc_in_dim = data.dims[:2] + (6,)
 toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
-    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m0_converge.hdf5'))
+    toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
     toonDisc.summary()
 
@@ -94,7 +92,7 @@ except Exception:
                 training_done = True
                 break
 
-    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_m0_converge.hdf5'))
+    toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
 
 # Stick them together
 make_trainable(toonDisc, False)

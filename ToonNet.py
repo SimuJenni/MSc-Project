@@ -525,7 +525,7 @@ def Gan(input_shape, batch_size, load_weights=False):
     gan = ToonGAN(discriminator, generator, input_shape)
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    reg = 0.1
+    reg = 0.2
     gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
     return gan, generator, discriminator
 

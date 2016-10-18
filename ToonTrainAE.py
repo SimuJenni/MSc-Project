@@ -4,7 +4,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import ToonAE, ToonAE2
+from ToonNet import ToonAE
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets.Imagenet import Imagenet
 from utils import montage
@@ -23,7 +23,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,
+toonAE = ToonAE(input_shape=data.dims, batch_size=batch_size, out_activation='tanh', num_res_layers=num_res_layers,
                 f_dims=f_dims)
 toonAE.summary()
 

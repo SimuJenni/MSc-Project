@@ -4,7 +4,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 96, 160, 256, 512]
+F_DIMS = [64, 128, 256, 512, 1024]
 BN_MODE = 3
 
 

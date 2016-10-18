@@ -26,8 +26,8 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator, discriminator = GenAndDisc(data.dims, batch_size, load_weights=False)
-gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=False)
+generator, discriminator = GenAndDisc(data.dims, batch_size, load_weights=True)
+gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen.hdf5')

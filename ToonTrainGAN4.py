@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 from keras.layers import Input, merge
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
 from DataGenerator import ImageDataGenerator
@@ -38,16 +38,15 @@ opt = Adam(lr=0.0002, beta_1=0.5)
 # Load the auto-encoder
 toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size)
 #toonAE.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
-toonAE.compile(optimizer=opt, loss='mse')
 
-# # Load the discriminator
-# disc_in_dim = data.dims[:2] + (6,)
-#
-# toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
-#
+# Load the discriminator
+disc_in_dim = data.dims[:2] + (6,)
+toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
+
 # try:
 #     toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
 #     toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
+#     toonDisc.summary()
 #
 # except Exception:
 #     # Pre-train discriminator
@@ -69,7 +68,8 @@ toonAE.compile(optimizer=opt, loss='mse')
 #         for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
 #             # Prepare training data
 #             Y_pred = toonAE.predict(X_train, batch_size=batch_size)
-#             X = np.concatenate((Y_train, Y_pred))
+#             X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
+#                                 (np.concatenate((X_train, Y_pred), axis=3))))
 #             y = np.zeros((len(Y_train) + len(Y_pred), 1))
 #             y[:len(Y_train)] = 1
 #
@@ -94,21 +94,25 @@ toonAE.compile(optimizer=opt, loss='mse')
 #
 #     toonDisc.save_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
 
-# Stick them together
-toonDisc = ToonDiscriminator2(input_shape=data.dims)
-toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
-
-make_trainable(toonDisc, False)
-im_input = Input(shape=data.dims)
-im_recon = toonAE(im_input)
+# # Stick them together
+# make_trainable(toonDisc, False)
+# im_input = Input(shape=data.dims)
+# im_recon = toonAE(im_input)
 # disc_in = merge([im_input, im_recon], mode='concat')
 # im_class = toonDisc(disc_in)
-im_class = toonDisc(im_recon)
+# toonGAN = Model(input=im_input, output=[im_class, im_recon])
+# theta = 0.1
+# toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
+# toonGAN.summary()
 
-toonGAN = Model(input=im_input, output=[im_class, im_recon])
-theta = 0.1
-toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
-toonGAN.summary()
+toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size)
+toonDisc = ToonDiscriminator2(input_shape=data.dims)
+
+toonGAN = Sequential()
+toonGAN.add(toonAE)
+toonGAN.add(toonDisc)
+toonGAN.compile(optimizer=opt, loss='binary_crossentropy')
+
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -127,7 +131,8 @@ for epoch in range(nb_epoch):
         if d_loss_avg > loss_target_ratio * g_loss_avg:
             # Construct data for discriminator training
             Y_pred = toonAE.predict(X_train)
-            X = np.concatenate((Y_train, Y_pred))
+            X = np.concatenate((np.concatenate((X_train, Y_train), axis=3),
+                                (np.concatenate((X_train, Y_pred), axis=3))))
             y = np.zeros((len(Y_train) + len(Y_pred), 1))
             y[:len(Y_train)] = 1
 

@@ -7,6 +7,7 @@ from keras.layers import Input, merge
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.backend import switch, reshape
+from keras.utils.visualize_util import plot
 
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE, ToonDiscriminator2
@@ -58,6 +59,8 @@ disc_in = merge([d_in1, d_in2], mode='concat')
 im_class = toonDisc(disc_in)
 
 toonGAN = Model(input=[im_input, gt_input, order_input], output=[toonDisc.output, toonAE.output])
+plot(toonGAN, to_file='model.png', show_shapes=True)
+
 theta = 0.1
 toonGAN.compile(optimizer=opt, loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, theta])
 

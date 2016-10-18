@@ -48,7 +48,7 @@ for epoch in range(nb_epoch):
     g_loss_avg = 1
     d_loss_avg = 1
     r_loss = 100
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=(64, 64)):
+    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         generator.load_weights(gen_weights)

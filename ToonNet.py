@@ -1,14 +1,19 @@
+import os
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
+from keras.optimizers import Adam
+
+from constants import MODEL_DIR
 
 NUM_CONV_LAYERS = 5
 F_DIMS = [64, 128, 256, 512, 1024]
 BN_MODE = 0
 
 
-def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
+
+def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
            f_dims=[64, 96, 160, 256, 512], bn_mode = 2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
@@ -120,7 +125,7 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
     return model
 
 
-def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
+def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -230,7 +235,7 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
     return model
 
 
-def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512, 1024]):
+def ToonDiscriminator(input_shape, num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode=0):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -272,12 +277,12 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     # Layer 4
     with tf.name_scope('conv_4'):
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
-        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
+        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid') #TODO stride2
 
     # Layer 5
     with tf.name_scope('conv_5'):
         x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
-        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        x = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=1, border='valid') #TODO stride2
 
     # Res-layers
     for i in range(num_res_layers):
@@ -289,7 +294,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)
-    x = BatchNormalization(axis=1, mode=BN_MODE)(x)
+    x = BatchNormalization(axis=1, mode=bn_mode)(x)
     x = Dense(1, init='he_normal')(x)
     x = Activation('sigmoid')(x)
 
@@ -485,6 +490,36 @@ def compute_layer_shapes(input_shape, num_conv=NUM_CONV_LAYERS):
 
 def lrelu(x, alpha=0.2):
     return LeakyReLU(alpha=alpha)(x)
+
+
+def ToonGAN(discriminator, generator, input_shape):
+    im_input = Input(shape=input_shape)
+    im_recon = generator(im_input)
+    discriminator.trainable = False
+    im_class = discriminator(im_recon)
+    return Model(input=im_input, output=[im_class, im_recon])
+
+
+def Models(input_shape, batch_size):
+    generator = ToonAE(input_shape, batch_size=batch_size)
+    # generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
+
+    discriminator = ToonDiscriminator(input_shape)
+    # discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc2.hdf5'))
+
+    gan = ToonGAN(discriminator, generator, input_shape)
+    return generator, discriminator, gan
+
+
+def CompiledModels(input_shape, batch_size):
+    generator,  discriminator, gan = Models(input_shape, batch_size)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    generator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    reg = 0.1
+    gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
+    discriminator.trainable = True
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return gan, generator, discriminator
 
 
 if __name__ == '__main__':

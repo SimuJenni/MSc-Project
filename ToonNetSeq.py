@@ -49,28 +49,34 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        model = conv_relu_bn(model, f_size=3, f_channels=32, stride=1, border='same', bn_mode=bn_mode)
-        model = conv_relu_bn(model, f_size=4, f_channels=f_dims[0], stride=1, border='valid', bn_mode=bn_mode)
-
+        model.add(Convolution2D(32, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[0], 4, 4, border_mode='valid', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 2
     with tf.name_scope('conv_2'):
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[1], stride=2, border='same', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[0], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[1], 3, 3, border_mode='same', subsample=(2, 2), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 3
     with tf.name_scope('conv_3'):
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[2], stride=2, border='valid', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[1], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[2], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 4
     with tf.name_scope('conv_4'):
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[3], stride=2, border='valid', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[2], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[3], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 5
     with tf.name_scope('conv_5'):
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[4], stride=2, border='valid', bn_mode=bn_mode)
+        model.add(Convolution2D(f_dims[3], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[4], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
 
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
@@ -78,38 +84,53 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
 
     # Layer 6
     with tf.name_scope('deconv_1'):
-        model = upconv_bn(model, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
-                      border='valid', bn_mode=bn_mode)
+        model.add(Deconvolution2D(f_dims[3], 3, 3, output_shape=(batch_size, l_dims[4], l_dims[4], f_dims[3]),
+                                  border_mode='valid',
+                                  subsample=(2, 2),
+                                  init='he_normal'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
         model.add(Activation('relu'))
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[3], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 7
     with tf.name_scope('deconv_2'):
-        model = upconv_bn(model, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
-                      border='valid', bn_mode=bn_mode)
+        model.add(Deconvolution2D(f_dims[2], 3, 3, output_shape=(batch_size, l_dims[3], l_dims[3], f_dims[2]),
+                                  border_mode='valid',
+                                  subsample=(2, 2),
+                                  init='he_normal'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
         model.add(Activation('relu'))
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[2], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 8
     with tf.name_scope('deconv_3'):
-        model = upconv_bn(model, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
-                      border='valid', bn_mode=bn_mode)
+        model.add(Deconvolution2D(f_dims[1], 3, 3, output_shape=(batch_size, l_dims[2], l_dims[2], f_dims[1]),
+                                  border_mode='valid',
+                                  subsample=(2, 2),
+                                  init='he_normal'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
         model.add(Activation('relu'))
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[1], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 9
     with tf.name_scope('deconv_4'):
-        model = upconv_bn(model, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
-                      border='same', bn_mode=bn_mode)
+        model.add(Deconvolution2D(f_dims[0], 3, 3, output_shape=(batch_size, l_dims[1], l_dims[1], f_dims[0]),
+                                  border_mode='same',
+                                  subsample=(2, 2),
+                                  init='he_normal'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
         model.add(Activation('relu'))
-        model = conv_relu_bn(model, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
-
+        model.add(Convolution2D(f_dims[0], 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation='relu'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 10
     with tf.name_scope('deconv_5'):
-        model = upconv_bn(model, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid', bn_mode=bn_mode)
+        model.add(Deconvolution2D(32, 3, 3, output_shape=(batch_size, l_dims[0], l_dims[0], 32),
+                                  border_mode='valid',
+                                  subsample=(1, 1),
+                                  init='he_normal'))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
         model.add(Activation('relu'))
-        model.add(Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal'))
-        model.add(Activation(out_activation))
+        model.add(Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal', activation=out_activation))
 
     # Create the model
     model.name = 'ToonAE2'
@@ -117,7 +138,7 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
     return model
 
 
-def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512, 1024]):
+def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512, 1024], bn_mode=2, alpha=0.2):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -142,40 +163,50 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        model = conv_lrelu(model, f_size=3, f_channels=32, stride=1, border='valid')
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
-
+        model.add(Convolution2D(32, 3, 3, border_mode='valid', subsample=(1, 1), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[0], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 2
     with tf.name_scope('conv_2'):
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[1], stride=2, border='valid')
-
+        model.add(Convolution2D(f_dims[0], 3, 3, border_mode='valid', subsample=(1, 1), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[1], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 3
     with tf.name_scope('conv_3'):
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
-
+        model.add(Convolution2D(f_dims[1], 3, 3, border_mode='valid', subsample=(1, 1), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[2], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 4
     with tf.name_scope('conv_4'):
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
-
+        model.add(Convolution2D(f_dims[2], 3, 3, border_mode='valid', subsample=(1, 1), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[3], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
     # Layer 5
     with tf.name_scope('conv_5'):
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
-        model = conv_lrelu_bn(model, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
-
-    # Res-layers
-    for i in range(num_res_layers):
-        with tf.name_scope('res_layer_{}'.format(i + 1)):
-            model.add(res_layer_bottleneck((8, 8, f_dims[4]), f_dims[4], 256))
+        model.add(Convolution2D(f_dims[3], 3, 3, border_mode='valid', subsample=(1, 1), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
+        model.add(Convolution2D(f_dims[4], 3, 3, border_mode='valid', subsample=(2, 2), init='he_normal'))
+        model.add(LeakyReLU(alpha=alpha))
+        model.add(BatchNormalization(axis=3, mode=bn_mode))
 
     # Fully connected layer
-    model = conv_lrelu_bn(model, f_size=1, f_channels=f_dims[3], stride=1, border='valid')
     model.add(Flatten())
     model.add(Dense(2048, init='he_normal'))
-    model = lrelu(model)
-    model.add(BatchNormalization(axis=1, mode=BN_MODE))
+    model.add(LeakyReLU(alpha=alpha))
+    model.add(BatchNormalization(axis=1, mode=bn_mode))
     model.add(Dense(1, init='he_normal'))
     model.add(Activation('sigmoid'))
 
@@ -196,6 +227,7 @@ def conv_relu_bn(model, f_size, f_channels, stride, border='valid', activation='
     Returns:
         Result of convolution followed by batchnorm and Relu
     """
+    print(model)
     model.add(Convolution2D(f_channels, f_size, f_size,
                       border_mode=border,
                       subsample=(stride, stride),
@@ -315,16 +347,26 @@ def res_layer_bottleneck(input_shape, out_dim, bn_dim, activation='relu', bn_mod
         Output of same dimensionality as input
     """
     l_in = Input(input_shape)
+
     # 1x1 Bottleneck
-    x = conv_relu_bn(l_in, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
-    # 3x3 conv
-    x = conv_relu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
-    # 1x1 to out_dim
-    x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3, mode=bn_mode)(x)
-    x = merge([x, l_in], mode='sum')
+    x = Convolution2D(bn_dim, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(l_in)
     x = Activation(activation)(x)
-    block = Model(input=l_in, output=x)
+    x = BatchNormalization(axis=3, mode=bn_mode)(x)
+
+    # 3x3 conv
+    x = Convolution2D(bn_dim, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    x = Activation(activation)(x)
+    x = BatchNormalization(axis=3, mode=bn_mode)(x)
+
+    # 1x1 to out_dim
+    x = Convolution2D(out_dim, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(x)
+    x = BatchNormalization(axis=3, mode=bn_mode)(x)
+
+    # Merge
+    x = merge([x, l_in], mode='sum')
+    y = Activation(activation)(x)
+
+    block = Model(input=l_in, output=y)
     return block
 
 

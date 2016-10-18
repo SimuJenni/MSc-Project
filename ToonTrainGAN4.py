@@ -38,6 +38,7 @@ opt = Adam(lr=0.0002, beta_1=0.5)
 # Load the auto-encoder
 toonAE = ToonAE2(input_shape=data.dims, batch_size=batch_size)
 #toonAE.load_weights(os.path.join(MODEL_DIR, 'ToonAE2.hdf5'))
+toonAE.compile(optimizer=opt, loss='mse')
 
 # Load the discriminator
 disc_in_dim = data.dims[:2] + (6,)
@@ -45,6 +46,7 @@ toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
     toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
+    toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
 
 except Exception:
     # Pre-train discriminator

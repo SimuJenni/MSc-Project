@@ -9,7 +9,7 @@ BN_MODE = 0
 
 
 def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
-           f_dims=[64, 96, 160, 256, 512]):
+           f_dims=[64, 96, 160, 256, 512], bn_mode = 2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -120,7 +120,7 @@ def ToonAE(input_shape, batch_size, out_activation='tanh', num_res_layers=8, mer
     return model
 
 
-def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS):
+def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=(64, 128, 256, 512, 1024), bn_mode = 2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -161,64 +161,64 @@ def ToonAE2(input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_relu_bn(input_im, f_size=3, f_channels=32, stride=1, border='same')
-        x = conv_relu_bn(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
+        x = conv_relu_bn(input_im, f_size=3, f_channels=32, stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(x, f_size=4, f_channels=f_dims[0], stride=1, border='valid', bn_mode=bn_mode)
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', bn_mode=bn_mode)
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid', bn_mode=bn_mode)
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid', bn_mode=bn_mode)
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid', bn_mode=bn_mode)
 
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 256)
+            x = res_layer_bottleneck(x, f_dims[4], 256, bn_mode=bn_mode)
 
     # Layer 6
     with tf.name_scope('deconv_1'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
-                      border='valid')
+                      border='valid', bn_mode=bn_mode)
         x = Activation('relu')(x)
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 7
     with tf.name_scope('deconv_2'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
-                      border='valid')
+                      border='valid', bn_mode=bn_mode)
         x = Activation('relu')(x)
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 8
     with tf.name_scope('deconv_3'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
-                      border='valid')
+                      border='valid', bn_mode=bn_mode)
         x = Activation('relu')(x)
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 9
     with tf.name_scope('deconv_4'):
         x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
-                      border='same')
+                      border='same', bn_mode=bn_mode)
         x = Activation('relu')(x)
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 10
     with tf.name_scope('deconv_5'):
-        x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
+        x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid', bn_mode=bn_mode)
         x = Activation('relu')(x)
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
@@ -298,7 +298,7 @@ def ToonDiscriminator2(input_shape, num_res_layers=8, f_dims=[64, 128, 256, 512,
     return model
 
 
-def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
+def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', bn_mode=0):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -316,10 +316,10 @@ def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activatio
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = Activation(activation)(x)
-    return BatchNormalization(axis=3, mode=BN_MODE)(x)
+    return BatchNormalization(axis=3, mode=bn_mode)(x)
 
 
-def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
+def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid', bn_mode=0):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -337,7 +337,7 @@ def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid'):
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
     x = lrelu(x)
-    return BatchNormalization(axis=3, mode=BN_MODE)(x)
+    return BatchNormalization(axis=3, mode=bn_mode)(x)
 
 
 def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -380,7 +380,7 @@ def conv_lrelu(layer_in, f_size, f_channels, stride, border='valid'):
     return lrelu(x)
 
 
-def outter_connections(layer_in, f_channels):
+def outter_connections(layer_in, f_channels, bn_mode=0):
     """Wrapper for 1x1 convolutions used on the outer layers.
 
     Args:
@@ -392,10 +392,10 @@ def outter_connections(layer_in, f_channels):
     """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = Activation('relu')(l)
-    return BatchNormalization(axis=3, mode=BN_MODE)(l)
+    return BatchNormalization(axis=3, mode=bn_mode)(l)
 
 
-def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border='valid'):
+def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border='valid', bn_mode=0):
     """Wrapper for upconvolution layer including batchnormalization.
 
     Args:
@@ -415,10 +415,10 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
                         border_mode=border,
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
-    return BatchNormalization(axis=3, mode=BN_MODE)(x)
+    return BatchNormalization(axis=3, mode=bn_mode)(x)
 
 
-def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu'):
+def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -430,17 +430,17 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu'):
         Output of same dimensionality as input
     """
     # 1x1 Bottleneck
-    x = conv_relu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation)
+    x = conv_relu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
     # 3x3 conv
-    x = conv_relu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation)
+    x = conv_relu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3, mode=BN_MODE)(x)
+    x = BatchNormalization(axis=3, mode=bn_mode)(x)
     x = merge([x, in_layer], mode='sum')
     return Activation(activation)(x)
 
 
-def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim):
+def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -452,12 +452,12 @@ def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim):
         Output of same dimensionality as input
     """
     # 1x1 Bottleneck
-    x = conv_lrelu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same')
+    x = conv_lrelu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
     # 3x3 conv
-    x = conv_lrelu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same')
+    x = conv_lrelu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3, mode=BN_MODE)(x)
+    x = BatchNormalization(axis=3, mode=bn_mode)(x)
     x = merge([x, in_layer], mode='sum')
     return lrelu(x)
 

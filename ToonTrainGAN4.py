@@ -45,8 +45,6 @@ toonDisc = ToonDiscriminator2(input_shape=disc_in_dim)
 
 try:
     toonDisc.load_weights(os.path.join(MODEL_DIR, 'ToonDisc_m3_converge.hdf5'))
-    toonDisc.compile(optimizer=opt, loss='binary_crossentropy')
-    toonDisc.summary()
 
 except Exception:
     # Pre-train discriminator

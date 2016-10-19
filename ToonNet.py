@@ -1,4 +1,5 @@
 import os
+
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense
 from keras.layers.advanced_activations import LeakyReLU
@@ -14,9 +15,8 @@ F_DIMS = [64, 96, 160, 256, 512]
 BN_MODE = 0
 
 
-
 def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
-           f_dims=[64, 96, 160, 256, 512], bn_mode = 2):
+               f_dims=[64, 96, 160, 256, 512], bn_mode=2):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -127,7 +127,7 @@ def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8,
     return model
 
 
-def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode = 0):
+def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -223,7 +223,8 @@ def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_lay
 
     # Layer 10
     with tf.name_scope('deconv_5'):
-        x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid', bn_mode=bn_mode)
+        x = upconv_bn(x, f_size=4, f_channels=32, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid',
+                      bn_mode=bn_mode)
         x = Activation('relu')(x)
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
@@ -426,7 +427,8 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0
         Output of same dimensionality as input
     """
     # 1x1 Bottleneck
-    x = conv_relu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
+    x = conv_relu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation,
+                     bn_mode=bn_mode)
     # 3x3 conv
     x = conv_relu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
     # 1x1 to out_dim
@@ -517,7 +519,7 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     input_disc = Input(shape=input_shape)
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
     discriminator = Model(input_disc, dis_out)
-    discriminator.trainable = False
+    make_trainable(discriminator, False)
 
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
@@ -529,9 +531,15 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     gan = Model(input=im_input, output=[im_class, im_recon])
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    reg = 2.0
+    reg = 5.0
     gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
     return gan, generator, discriminator
+
+
+def make_trainable(net, val):
+    net.trainable = val
+    for l in net.layers:
+        l.trainable = val
 
 
 if __name__ == '__main__':

@@ -21,6 +21,7 @@ batch_size = 16
 chunk_size = 100 * batch_size
 nb_epoch = 1
 f_dims = [64, 128, 256, 512, 1024]
+f_dims = [64, 96, 160, 256, 512]
 
 # Get the data-set object
 data = Imagenet()
@@ -51,37 +52,10 @@ for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
     loss_ratio = 2
-    g_loss_avg = 2
-    d_loss_avg = 2
+    g_loss_avg = 6
+    d_loss_avg = 6
     r_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
-        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        # Reload the weights
-        gen_gan.load_weights(gen_weights)
-        disc_gan.load_weights(disc_weights)
-
-        while True:
-            # Train generator
-            y = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=[y, Y_train], nb_epoch=1, batch_size=batch_size)
-
-            # Test generator
-            y = np.ones((len(X_test), 1))
-            res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
-            g_loss = res[1]
-            r_loss = res[2]
-
-            # Record and print loss
-            losses["g"].append(g_loss)
-            g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-            print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
-
-            if g_loss_avg / d_loss_avg < loss_ratio:
-                break
-
-        # Save the weights
-        gen_gan.save_weights(gen_weights)
-        disc_gan.save_weights(disc_weights)
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
@@ -110,7 +84,7 @@ for epoch in range(nb_epoch):
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             del X, Y_pred
-            print('d-Loss: {}'.format(d_loss))
+            print('d-Loss: {} d-Loss-avg: {}'.format(d_loss, d_loss_avg))
 
             if g_loss_avg / d_loss_avg < loss_ratio:
                 break
@@ -118,6 +92,34 @@ for epoch in range(nb_epoch):
         # Save the weights
         generator.save_weights(gen_weights)
         discriminator.save_weights(disc_weights)
+
+        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
+        # Reload the weights
+        gen_gan.load_weights(gen_weights)
+        disc_gan.load_weights(disc_weights)
+
+        while True:
+            # Train generator
+            y = np.ones((len(Y_train), 1))
+            gan.fit(x=X_train, y=[y, Y_train], nb_epoch=1, batch_size=batch_size)
+
+            # Test generator
+            y = np.ones((len(X_test), 1))
+            res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
+            g_loss = res[1]
+            r_loss = res[2]
+
+            # Record and print loss
+            losses["g"].append(g_loss)
+            g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
+            print('g-Loss: {} g-Loss-avg: {} r-Loss: {}'.format(g_loss, g_loss_avg, r_loss))
+
+            if g_loss_avg / d_loss_avg < loss_ratio:
+                break
+
+        # Save the weights
+        gen_gan.save_weights(gen_weights)
+        disc_gan.save_weights(disc_weights)
 
         # Generate montage of test-images
         if not chunk % 2:

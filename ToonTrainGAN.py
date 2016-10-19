@@ -66,7 +66,7 @@ for epoch in range(nb_epoch):
 
         # Test generator
         y = np.ones((len(X_test), 1))
-        g_loss, r_loss = gan.evaluate(X_test, y, batch_size=batch_size, verbose=0)
+        g_loss, r_loss = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
 
         # Record and print loss
         losses["g"].append(g_loss)

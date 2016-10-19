@@ -512,7 +512,7 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
     return discriminator
 
 
-def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, use_gan_obj = False):
+def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     input_gen = Input(shape=input_shape)
     gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
@@ -531,18 +531,11 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, use_gan_obj 
     im_class = discriminator(im_recon)
     gan = Model(input=im_input, output=[im_class, im_recon])
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    reg = 10.0
+    optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    reg = 25.0
 
-    if use_gan_obj:
-        gan.compile(loss=[gan_objective, 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
-    else:
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
+    gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
     return gan, generator, discriminator
-
-
-def gan_objective(y_true, y_pred):
-    return K.mean(K.log(1.0 - y_pred + 0.0001), axis=-1)
 
 
 def make_trainable(net, val):

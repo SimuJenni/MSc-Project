@@ -17,24 +17,24 @@ def make_trainable(net, val):
         l.trainable = val
 
 
-batch_size = 32
+batch_size = 16
 chunk_size = 100 * batch_size
 nb_epoch = 1
 f_dims = [64, 128, 256, 512, 1024]
-f_dims = [64, 96, 160, 256, 512]
+#f_dims = [64, 96, 160, 256, 512]
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=False, f_dims=f_dims)
-discriminator = Discriminator(data.dims, load_weights=False, f_dims=f_dims)
-gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=False, f_dims=f_dims)
+generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
+discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims)
+gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_small.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_small.hdf5')
+gen_weights = os.path.join(MODEL_DIR, 'gen_norm.hdf5')
+disc_weights = os.path.join(MODEL_DIR, 'disc_norm.hdf5')
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -126,12 +126,12 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GANsmall-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GANnorm-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         sys.stdout.flush()
         del X_train, Y_train, y
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANsmall.hdf5'))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANsmall.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANnorm.hdf5'))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANnorm.hdf5'))

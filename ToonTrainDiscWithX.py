@@ -23,7 +23,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = DiscriminatorWithX(data.dims, load_weights=False)
+discriminator = DiscriminatorWithX(data.dims, load_weights=False, f_dims=f_dims)
 
 # Pre-train discriminator
 print('Training discriminator...')

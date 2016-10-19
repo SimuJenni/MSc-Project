@@ -8,8 +8,8 @@ from keras.optimizers import Adam
 from constants import MODEL_DIR
 
 NUM_CONV_LAYERS = 5
-F_DIMS = [64, 128, 256, 512, 1024]
-# F_DIMS = [64, 96, 160, 256, 512]
+# F_DIMS = [64, 128, 256, 512, 1024]
+F_DIMS = [64, 96, 160, 256, 512]
 
 BN_MODE = 0
 
@@ -191,7 +191,7 @@ def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_lay
 
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 256, bn_mode=2)  # TODO: CHANGED BN_MODE
+            x = res_layer_bottleneck(x, f_dims[4], f_dims[2], bn_mode=2)  # TODO: CHANGED BN_MODE
 
     # Layer 6
     with tf.name_scope('deconv_1'):

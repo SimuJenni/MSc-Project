@@ -8,8 +8,8 @@ from keras.optimizers import Adam
 from constants import MODEL_DIR
 
 NUM_CONV_LAYERS = 5
-# F_DIMS = [64, 128, 256, 512, 1024]
-F_DIMS = [64, 96, 160, 256, 512]
+F_DIMS = [64, 128, 256, 512, 1024]
+# F_DIMS = [64, 96, 160, 256, 512]
 
 BN_MODE = 0
 

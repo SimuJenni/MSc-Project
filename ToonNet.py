@@ -551,7 +551,7 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     return gan, generator, discriminator
 
 
-def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
+def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, l2_rate=25.0):
     input_gen = Input(shape=input_shape)
     gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
@@ -572,9 +572,7 @@ def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     gan = Model(input=im_input, output=[im_class, im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    reg = 25.0
-
-    gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
+    gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, l2_rate], optimizer=optimizer)
     return gan, generator, discriminator
 
 

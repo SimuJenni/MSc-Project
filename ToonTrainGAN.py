@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 10 * batch_size
+chunk_size = 100 * batch_size
 nb_epoch = 1
 
 # Get the data-set object
@@ -28,6 +28,7 @@ datagen = ImageDataGenerator()
 # Load the models
 generator, discriminator = GenAndDisc(data.dims, batch_size, load_weights=True)
 gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True)
+gan.summary()
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen.hdf5')
@@ -60,7 +61,7 @@ for epoch in range(nb_epoch):
 
         # Train generator
         y = np.ones((len(Y_train), 1))
-        gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
+        gan.fit(x=X_train, y=[y, Y_train], nb_epoch=1, batch_size=batch_size)
 
         # Test generator
         y = np.ones(len(X_test), 1)

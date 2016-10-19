@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 250 * batch_size
+chunk_size = 300 * batch_size
 nb_epoch = 1
 
 # Get the data-set object

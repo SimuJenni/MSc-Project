@@ -514,8 +514,8 @@ def Gan(input_shape, batch_size, load_weights=False):
     gen_out = ToonAE(input_im, input_shape, batch_size=batch_size)
     generator = Model(input_im, gen_out)
 
-    dis_out = ToonDiscriminator(input_im)
-    discriminator = Model(input_im, dis_out)
+    dis_out = ToonDiscriminator(gen_out)
+    discriminator = Model(gen_out, dis_out)
     discriminator.trainable = False
 
     if load_weights:

@@ -39,7 +39,7 @@ discriminator.save_weights(disc_weights)
 losses = {"d": [], "g": []}
 
 # Create test data
-X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=10000).next()
+X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size).next()
 
 
 # Training

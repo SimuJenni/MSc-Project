@@ -542,7 +542,7 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, use_gan_obj 
 
 
 def gan_objective(y_true, y_pred):
-    return K.mean(K.log(y_true - y_pred), axis=-1)
+    return K.mean(K.log(1.0 - y_pred + 0.0001), axis=-1)
 
 
 def make_trainable(net, val):

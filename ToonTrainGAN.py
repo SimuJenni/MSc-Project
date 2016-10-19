@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 16
-chunk_size = 1 * batch_size
+chunk_size = 100 * batch_size
 nb_epoch = 1
 f_dims = [64, 128, 256, 512, 1024]
 

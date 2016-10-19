@@ -503,23 +503,19 @@ def GenAndDisc(input_shape, batch_size, load_weights=False):
 
 
 def Gan(input_shape, batch_size, load_weights=False):
-    input_gen = Input(shape=input_shape)
-    gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size)
-    generator = Model(input_gen, gen_out)
+    input_im = Input(shape=input_shape)
+    gen_out = ToonAE(input_im, input_shape=input_shape, batch_size=batch_size)
+    generator = Model(input_im, gen_out)
 
-    input_disc = Input(shape=input_shape)
-    dis_out = ToonDiscriminator(input_disc)
-    discriminator = Model(input_disc, dis_out)
+    dis_out = ToonDiscriminator(gen_out)
+    discriminator = Model(gen_out, dis_out)
     discriminator.trainable = False
 
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
         discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
-    im_input = Input(shape=input_shape)
-    im_recon = generator(im_input)
-    im_class = discriminator(im_recon)
-    gan = Model(input=im_input, output=[im_class, im_recon])
+    gan = Model(input=input_im, output=[dis_out, gen_out])
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     reg = 0.2

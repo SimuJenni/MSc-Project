@@ -17,7 +17,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, batch_size=batch_size, load_weights=True)
+generator = Generator(input_shape=data.dims, batch_size=batch_size, load_weights=False)
 generator.summary()
 
 # Name used for saving of model and outputs

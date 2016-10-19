@@ -508,7 +508,20 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
         discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    discriminator.compile(loss='mse', optimizer=optimizer)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return discriminator
+
+
+def DiscriminatorWithX(input_shape, load_weights=False, f_dims=F_DIMS):
+    input_disc = Input(shape=input_shape[:2] + (input_shape[3]*2,))
+    dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
+    discriminator = Model(input_disc, dis_out)
+
+    if load_weights:
+        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     return discriminator
 
 

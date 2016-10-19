@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, Gan
+from ToonNet import Generator, DiscriminatorWithX, GanWithX
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -29,8 +29,8 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims)
-gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True, f_dims=f_dims)
+discriminator = DiscriminatorWithX(data.dims, load_weights=True, f_dims=f_dims)
+gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_norm.hdf5')
@@ -64,7 +64,7 @@ for epoch in range(nb_epoch):
 
         # Construct data for discriminator training
         Yd_train = generator.predict(X_train, batch_size=batch_size)
-        Xd_train = np.concatenate((Y_train, Yd_train))
+        Xd_train = np.concatenate((np.concatenate((X_train, Y_train), axis=3), np.concatenate((X_train, Yd_train), axis=3)))
         yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
         yd_train[:len(Y_train)] = 1
 
@@ -75,7 +75,7 @@ for epoch in range(nb_epoch):
 
             # Test discriminator
             Yd_test = generator.predict(X_test, batch_size=batch_size)
-            Xd_test = np.concatenate((Y_test, Yd_test))
+            Xd_test = np.concatenate((np.concatenate((X_train, Y_test), axis=3), np.concatenate((X_train, Yd_test), axis=3)))
             yd_test = np.zeros((len(Y_test) + len(Yd_test), 1))
             yd_test[:len(Y_test)] = 1
             d_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)

@@ -62,22 +62,22 @@ for epoch in range(nb_epoch):
         discriminator.load_weights(disc_weights)
 
         # Construct data for discriminator training
-        Y_pred = generator.predict(X_train, batch_size=batch_size)
-        X = np.concatenate((Y_train, Y_pred))
-        y = np.zeros((len(Y_train) + len(Y_pred), 1))
-        y[:len(Y_train)] = 1
+        Yd_train = generator.predict(X_train, batch_size=batch_size)
+        Xd_train = np.concatenate((Y_train, Yd_train))
+        yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
+        yd_train[:len(Y_train)] = 1
 
         while True:
             # Train discriminator
             make_trainable(discriminator, True)
-            discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size)
+            discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
 
             # Test discriminator
-            Y_pred = generator.predict(X_test, batch_size=batch_size)
-            X = np.concatenate((Y_test, Y_pred))
-            y = np.zeros((len(Y_test) + len(Y_pred), 1))
-            y[:len(Y_test)] = 1
-            d_loss = discriminator.evaluate(X, y, batch_size=batch_size, verbose=0)
+            Yd_test = generator.predict(X_test, batch_size=batch_size)
+            Xd_test = np.concatenate((Y_test, Yd_test))
+            yd_test = np.zeros((len(Y_test) + len(Yd_test), 1))
+            yd_test[:len(Y_test)] = 1
+            d_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
 
             # Record and print loss
             losses["d"].append(d_loss)
@@ -98,12 +98,12 @@ for epoch in range(nb_epoch):
 
         for i in range(2):
             # Train generator
-            y = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=[y, Y_train], nb_epoch=1, batch_size=batch_size)
+            yg_train = np.ones((len(Y_train), 1))
+            gan.fit(x=X_train, y=[yg_train, Y_train], nb_epoch=1, batch_size=batch_size)
 
             # Test generator
-            y = np.ones((len(X_test), 1))
-            res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
+            yg_test = np.ones((len(X_test), 1))
+            res = gan.evaluate(X_test, [yg_test, Y_test], batch_size=batch_size, verbose=0)
             g_loss = res[1]
             r_loss = res[2]
 

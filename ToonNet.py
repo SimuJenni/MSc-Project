@@ -529,7 +529,7 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     gan = Model(input=im_input, output=[im_class, im_recon])
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    reg = 0.3
+    reg = 2.0
     gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
     return gan, generator, discriminator
 

@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 500 * batch_size
+chunk_size = 250 * batch_size
 nb_epoch = 1
 
 # Get the data-set object
@@ -37,6 +37,10 @@ discriminator.save_weights(disc_weights)
 
 # Store losses
 losses = {"d": [], "g": []}
+
+# Create test data
+X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=10000).next()
+
 
 # Training
 print('Adversarial training...')
@@ -62,7 +66,16 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         make_trainable(discriminator, True)
-        d_loss = discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size)
+        discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size)
+
+        # Test discriminator
+        Y_pred = generator.predict(X_test, batch_size=batch_size)
+        X = np.concatenate((Y_test, Y_pred))
+        y = np.zeros((len(Y_test) + len(Y_pred), 1))
+        y[:len(Y_test)] = 1
+        d_loss = discriminator.evaluate(X, y, batch_size=batch_size, verbose=0)
+
+        # Record and print loss
         losses["d"].append(d_loss)
         d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
         del X, Y_pred
@@ -78,8 +91,14 @@ for epoch in range(nb_epoch):
         disc_gan.load_weights(disc_weights)
 
         # Train generator
-        y = np.array([1] * len(Y_train))
-        g_loss, r_loss = gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        y = np.ones(len(Y_train), 1)
+        gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
+
+        # Test generator
+        y = np.ones(len(X_test), 1)
+        g_loss, r_loss = gan.evaluate(X_test, y, batch_size=batch_size, verbose=0)
+
+        # Record and print loss
         losses["g"].append(g_loss)
         g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
         print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
@@ -94,7 +113,7 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_train[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_train[:12] * 0.5 + 0.5, Y_train[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GAN4-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GAN-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         sys.stdout.flush()
@@ -102,5 +121,5 @@ for epoch in range(nb_epoch):
         gc.collect()
 
 
-discriminator.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN4.hdf5'))
-generator.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN4.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN4.hdf5'))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN4.hdf5'))

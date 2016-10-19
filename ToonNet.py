@@ -481,21 +481,15 @@ def lrelu(x, alpha=0.2):
     return LeakyReLU(alpha=alpha)(x)
 
 
-def ToonGAN(discriminator, generator, input_shape):
-    im_input = Input(shape=input_shape)
-    im_recon = generator(im_input)
-    im_class = discriminator(im_recon)
-    return Model(input=im_input, output=[im_class, im_recon])
-
-
 def GenAndDisc(input_shape, batch_size, load_weights=False):
-    input_im = Input(shape=input_shape)
-    gen_out = ToonAE(input_im, input_shape, batch_size=batch_size)
-    generator = Model(input_im, gen_out)
+    input_gen = Input(shape=input_shape)
+    gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size)
+    generator = Model(input_gen, gen_out)
     generator.trainable = False
 
-    dis_out = ToonDiscriminator(input_im)
-    discriminator = Model(input_im, dis_out)
+    input_disc = Input(shape=input_shape)
+    dis_out = ToonDiscriminator(input_disc)
+    discriminator = Model(input_disc, dis_out)
 
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
@@ -510,7 +504,7 @@ def GenAndDisc(input_shape, batch_size, load_weights=False):
 
 def Gan(input_shape, batch_size, load_weights=False):
     input_gen = Input(shape=input_shape)
-    gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size)
+    gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size)
     generator = Model(input_gen, gen_out)
 
     input_disc = Input(shape=input_shape)

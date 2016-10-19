@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 32
-chunk_size = 300 * batch_size
+chunk_size = 10 * batch_size
 nb_epoch = 1
 
 # Get the data-set object
@@ -41,7 +41,6 @@ losses = {"d": [], "g": []}
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size).next()
 
-
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
@@ -53,28 +52,6 @@ for epoch in range(nb_epoch):
     d_loss_avg = 1
     r_loss = 100
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
-
-        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        # Reload the weights
-        gen_gan.load_weights(gen_weights)
-        disc_gan.load_weights(disc_weights)
-
-        # Train generator
-        y = np.ones((len(Y_train), 1))
-        gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
-
-        # Test generator
-        y = np.ones(len(X_test), 1)
-        g_loss, r_loss = gan.evaluate(X_test, y, batch_size=batch_size, verbose=0)
-
-        # Record and print loss
-        losses["g"].append(g_loss)
-        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-        print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
-
-        # Save the weights
-        gen_gan.save_weights(gen_weights)
-        disc_gan.save_weights(disc_weights)
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
@@ -108,6 +85,28 @@ for epoch in range(nb_epoch):
         generator.save_weights(gen_weights)
         discriminator.save_weights(disc_weights)
 
+        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
+        # Reload the weights
+        gen_gan.load_weights(gen_weights)
+        disc_gan.load_weights(disc_weights)
+
+        # Train generator
+        y = np.ones((len(Y_train), 1))
+        gan.fit(X_train, y, nb_epoch=1, batch_size=batch_size)
+
+        # Test generator
+        y = np.ones(len(X_test), 1)
+        g_loss, r_loss = gan.evaluate(X_test, y, batch_size=batch_size, verbose=0)
+
+        # Record and print loss
+        losses["g"].append(g_loss)
+        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
+        print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
+
+        # Save the weights
+        gen_gan.save_weights(gen_weights)
+        disc_gan.save_weights(disc_weights)
+
         # Generate montage of test-images
         if not chunk % 2:
             generator.load_weights(gen_weights)
@@ -120,7 +119,6 @@ for epoch in range(nb_epoch):
         sys.stdout.flush()
         del X_train, Y_train, y
         gc.collect()
-
 
 disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGAN4.hdf5'))
 gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGAN4.hdf5'))

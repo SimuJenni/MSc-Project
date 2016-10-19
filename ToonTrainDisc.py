@@ -15,13 +15,14 @@ def compute_accuracy(y_hat, y):
 
 batch_size = 32
 chunk_size = 50 * batch_size
+f_dims = [64, 128, 256, 512, 1024]
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True)
+generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 discriminator = Discriminator(data.dims, load_weights=False)
 
 # Pre-train discriminator

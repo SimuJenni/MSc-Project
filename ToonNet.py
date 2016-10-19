@@ -513,7 +513,7 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
 
 
 def DiscriminatorWithX(input_shape, load_weights=False, f_dims=F_DIMS):
-    input_disc = Input(shape=input_shape[:2] + (input_shape[3]*2,))
+    input_disc = Input(shape=input_shape[:2] + (input_shape[2]*2,))
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
     discriminator = Model(input_disc, dis_out)
 
@@ -556,7 +556,7 @@ def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
 
-    input_disc = Input(shape=input_shape[:2] + (input_shape[3]*2,))
+    input_disc = Input(shape=input_shape[:2] + (input_shape[2]*2,))
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
     discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, False)

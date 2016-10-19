@@ -67,12 +67,13 @@ for epoch in range(nb_epoch):
         # Test generator
         y = np.ones((len(X_test), 1))
         res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
-        print(res)
+        g_loss = res[0]
+        r_loss = res[1]
 
-        # # Record and print loss
-        # losses["g"].append(g_loss)
-        # g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-        # print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
+        # Record and print loss
+        losses["g"].append(g_loss)
+        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
+        print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
 
         # Save the weights
         gen_gan.save_weights(gen_weights)

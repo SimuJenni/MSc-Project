@@ -129,7 +129,7 @@ for epoch in range(nb_epoch):
         chunk += 1
 
         sys.stdout.flush()
-        del X_train, Y_train, y
+        del X_train, Y_train, Yd_train, Xd_train, yd_train
         gc.collect()
 
 disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANnoInit.hdf5'))

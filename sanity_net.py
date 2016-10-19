@@ -3,7 +3,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 
-from datasets.TinyImagenet import TinyImagenet
+from datasets import TinyImagenet
 from utils import montage
 
 batch_size = 250

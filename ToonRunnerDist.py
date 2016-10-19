@@ -8,7 +8,7 @@ from keras import backend as K
 from constants import LOG_DIR
 
 from ToonNet import ToonAE
-from datasets.Imagenet import Imagenet
+from datasets import Imagenet
 from DataGenerator import ImageDataGenerator
 
 # Flags for defining the tf.train.ClusterSpec

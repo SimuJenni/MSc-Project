@@ -1,6 +1,6 @@
 from DataGenerator import ImageDataGenerator
 from ToonNet import ToonAE
-from datasets.Imagenet import Imagenet
+from datasets import Imagenet
 from utils import montage
 
 batch_size = 32

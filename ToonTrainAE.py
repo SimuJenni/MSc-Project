@@ -5,7 +5,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from DataGenerator import ImageDataGenerator
 from ToonNet import Generator
 from constants import MODEL_DIR, IMG_DIR, LOG_DIR
-from datasets.Imagenet import Imagenet
+from datasets import Imagenet
 from utils import montage
 
 batch_size = 32

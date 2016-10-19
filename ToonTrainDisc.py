@@ -6,7 +6,7 @@ import numpy as np
 from DataGenerator import ImageDataGenerator
 from ToonNet import Discriminator, Generator
 from constants import MODEL_DIR
-from datasets.Imagenet import Imagenet
+from datasets import Imagenet
 
 
 def compute_accuracy(y_hat, y):

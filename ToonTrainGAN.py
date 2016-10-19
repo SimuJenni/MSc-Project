@@ -7,7 +7,7 @@ import numpy as np
 from DataGenerator import ImageDataGenerator
 from ToonNet import Generator, Discriminator, Gan
 from constants import MODEL_DIR, IMG_DIR
-from datasets.Imagenet import Imagenet
+from datasets import Imagenet
 from utils import montage
 
 
@@ -67,8 +67,8 @@ for epoch in range(nb_epoch):
         # Test generator
         y = np.ones((len(X_test), 1))
         res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
-        g_loss = res[0]
-        r_loss = res[1]
+        g_loss = res[1]
+        r_loss = res[2]
 
         # Record and print loss
         losses["g"].append(g_loss)

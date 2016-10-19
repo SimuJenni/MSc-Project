@@ -85,7 +85,7 @@ for epoch in range(nb_epoch):
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             print('d-Loss: {} d-Loss-avg: {}'.format(d_loss, d_loss_avg))
 
-            if g_loss_avg / d_loss_avg < loss_ratio:
+            if g_loss_avg / d_loss_avg > loss_ratio:
                 break
 
         # Save the weights

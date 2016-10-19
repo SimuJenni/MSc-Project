@@ -280,7 +280,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     # Res-layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 128)
+            x = res_layer_bottleneck(x, f_dims[4], f_dims[2])
 
     # Fully connected layer
     x = conv_lrelu_bn(x, f_size=1, f_channels=f_dims[3], stride=1, border='valid')

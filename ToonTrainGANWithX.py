@@ -32,8 +32,8 @@ discriminator = DiscriminatorWithX(data.dims, load_weights=True, f_dims=f_dims)
 gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=5.0)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_norm.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_norm.hdf5')
+gen_weights = os.path.join(MODEL_DIR, 'gen_wx.hdf5')
+disc_weights = os.path.join(MODEL_DIR, 'disc_wx.hdf5')
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -132,5 +132,5 @@ for epoch in range(nb_epoch):
         del X_train, Y_train, Yd_train, Xd_train, yd_train
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANnorm.hdf5'))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANnorm.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX.hdf5'))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANwX.hdf5'))

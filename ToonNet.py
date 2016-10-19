@@ -191,7 +191,7 @@ def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_lay
 
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 256, bn_mode=bn_mode)
+            x = res_layer_bottleneck(x, f_dims[4], 256, bn_mode=2)  # TODO: CHANGED BN_MODE
 
     # Layer 6
     with tf.name_scope('deconv_1'):

@@ -20,15 +20,16 @@ def make_trainable(net, val):
 batch_size = 16
 chunk_size = 200 * batch_size
 nb_epoch = 1
+f_dims = [64, 128, 256, 512, 1024]
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True)
-discriminator = Discriminator(data.dims, load_weights=True)
-gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True)
+generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
+discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims)
+gan, gen_gan, disc_gan = Gan(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen.hdf5')

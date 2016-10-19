@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 16
-chunk_size = 200 * batch_size
+chunk_size = 1 * batch_size
 nb_epoch = 1
 f_dims = [64, 128, 256, 512, 1024]
 
@@ -66,12 +66,13 @@ for epoch in range(nb_epoch):
 
         # Test generator
         y = np.ones((len(X_test), 1))
-        g_loss, r_loss = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
+        res = gan.evaluate(X_test, [y, Y_test], batch_size=batch_size, verbose=0)
+        print(res)
 
-        # Record and print loss
-        losses["g"].append(g_loss)
-        g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-        print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
+        # # Record and print loss
+        # losses["g"].append(g_loss)
+        # g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
+        # print('g-Loss: {} r-Loss'.format(g_loss, r_loss))
 
         # Save the weights
         gen_gan.save_weights(gen_weights)

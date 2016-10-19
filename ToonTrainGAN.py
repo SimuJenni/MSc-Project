@@ -64,7 +64,7 @@ for epoch in range(nb_epoch):
         gan.fit(x=X_train, y=[y, Y_train], nb_epoch=1, batch_size=batch_size)
 
         # Test generator
-        y = np.ones(len(X_test), 1)
+        y = np.ones((len(X_test), 1))
         g_loss, r_loss = gan.evaluate(X_test, y, batch_size=batch_size, verbose=0)
 
         # Record and print loss

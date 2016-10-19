@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import GenAndDisc
+from ToonNet import Discriminator, Generator
 from constants import MODEL_DIR
 from datasets.Imagenet import Imagenet
 
@@ -21,8 +21,8 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator, discriminator = GenAndDisc(data.dims, batch_size)
-generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
+generator = Generator(data.dims, batch_size, load_weights=True)
+discriminator = Discriminator(data.dims, load_weights=False)
 
 # Pre-train discriminator
 print('Training discriminator...')

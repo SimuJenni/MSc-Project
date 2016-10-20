@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Discriminator, Generator
+from ToonNet import DiscLwise, Generator
 from constants import MODEL_DIR
 from datasets import Imagenet
 
@@ -23,7 +23,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = Discriminator(data.dims, load_weights=False)
+discriminator = DiscLwise(data.dims, load_weights=False, train=True)
 
 # Pre-train discriminator
 print('Training discriminator...')

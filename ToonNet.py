@@ -398,6 +398,74 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     return x
 
 
+def ToonDiscLwise(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
+    """Builds ConvNet used as discrimator between real-images and de-tooned images.
+    The network has the follow architecture:
+
+    Layer           Filters     Stride
+
+    L1: Conv-layer  3x3x32      2                  =================================
+    L2: Conv-layer  3x3x64      2                      =========================
+    L3: Conv-layer  3x3x128     2                          =================
+    L4: Conv-layer  3x3x256     2                              =========
+    L5: Conv-layer  3x3x512     2                                 ===
+    L6: Dense-Layer 1024                                          |X|
+    L7: Dense-Layer 1                                             |X|
+
+    Args:
+        input_shape: Shape of the input (height, width, channels)
+
+    Returns:
+        The resulting Keras models
+    """
+
+    # Layer 1
+    with tf.name_scope('conv_1'):
+        x = conv_lrelu(in_layer, f_size=3, f_channels=32, stride=1, border='valid')
+        l1 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
+
+    # Layer 2
+    with tf.name_scope('conv_2'):
+        x = conv_lrelu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
+        l2 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='valid')
+
+    # Layer 3
+    with tf.name_scope('conv_3'):
+        x = conv_lrelu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
+        l3 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
+
+    # Layer 4
+    with tf.name_scope('conv_4'):
+        x = conv_lrelu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
+        l4 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
+
+    # Layer 5
+    with tf.name_scope('conv_5'):
+        x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
+        l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        x = l5
+
+    layer_activations = [l1, l2, l3, l4, l5]
+
+    # Res-layers
+    for i in range(num_res_layers):
+        with tf.name_scope('res_layer_{}'.format(i + 1)):
+            x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
+            # layer_activations.append(x)   # TODO: Maybe add in again
+
+    # Fully connected layer
+    x = conv_lrelu_bn(x, f_size=1, f_channels=f_dims[3], stride=1, border='valid')
+    x = Flatten()(x)
+    x = Dense(2048, init='he_normal')(x)
+    x = lrelu(x)
+    x = BatchNormalization(axis=1, mode=bn_mode)(x)
+    layer_activations.append(x)
+    x = Dense(1, init='he_normal')(x)
+    x = Activation('sigmoid')(x)
+
+    return x, layer_activations
+
+
 def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', bn_mode=0):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
@@ -545,7 +613,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0
     return Activation(activation)(x)
 
 
-def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0):
+def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0, lightweight = False):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -557,12 +625,16 @@ def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0):
         Output of same dimensionality as input
     """
     # 1x1 Bottleneck
-    x = conv_lrelu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
+    if lightweight:
+        x = conv_lrelu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same')
+    else:
+        x = conv_lrelu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
     # 3x3 conv
     x = conv_lrelu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = BatchNormalization(axis=3, mode=bn_mode)(x)
+    if not lightweight:
+        x = BatchNormalization(axis=3, mode=bn_mode)(x)
     x = merge([x, in_layer], mode='sum')
     return lrelu(x)
 
@@ -624,6 +696,23 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
     return discriminator
 
 
+def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
+    input_disc = Input(shape=input_shape)
+    dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
+    if train:
+        discriminator = Model(input_disc, dis_out)
+    else:
+        discriminator = Model(input_disc, layer_activations.append(dis_out))
+        make_trainable(discriminator, False)
+
+    if load_weights:
+        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDiscLwise.hdf5'))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return discriminator
+
+
 def DiscriminatorWithX(input_shape, load_weights=False, f_dims=F_DIMS):
     input_disc = Input(shape=input_shape[:2] + (input_shape[2]*2,))
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
@@ -660,6 +749,34 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     reg = 25.0
 
     gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, reg], optimizer=optimizer)
+    return gan, generator, discriminator
+
+
+def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
+    input_gen = Input(shape=input_shape)
+    gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
+    generator = Model(input_gen, gen_out)
+
+    input_disc = Input(shape=input_shape)
+    dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
+    layer_activations.append(dis_out)
+    discriminator = Model(input_disc, layer_activations)
+    make_trainable(discriminator, False)
+
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
+        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDiscLwise.hdf5'))
+
+    im_input = Input(shape=input_shape)
+    im_recon = generator(im_input)
+    disc_out = discriminator(im_recon)
+    gan_out = disc_out.append(im_recon)
+    gan = Model(input=im_input, output=gan_out)
+
+    optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    objectives = ['mse' for _ in dis_out].append('binary_crossentropy')
+
+    gan.compile(loss=objectives, optimizer=optimizer)
     return gan, generator, discriminator
 
 

@@ -67,7 +67,7 @@ for epoch in range(nb_epoch):
         yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
         yd_train[:len(Y_train)] = 1
 
-        for i in range(5):
+        for i in range(2):
             # Train discriminator
             make_trainable(discriminator, True)
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)

@@ -29,11 +29,11 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 discriminator = DiscriminatorWithX(data.dims, load_weights=True, f_dims=f_dims)
-gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=50.0)
+gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=10.0)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_wx50.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_wx50.hdf5')
+gen_weights = os.path.join(MODEL_DIR, 'gen_wx10.hdf5')
+disc_weights = os.path.join(MODEL_DIR, 'disc_wx10.hdf5')
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -125,12 +125,12 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GANnormWx50-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GANnormWx10-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         sys.stdout.flush()
-        del X_train, Y_train, Yd_train, Xd_train, yd_train
+        del X_train, Y_train, Yd_train, Xd_train, yd_train, yg_train, yg_test, Xd_test, Yd_test, yd_test
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX50.hdf5'))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANwX50.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX10.hdf5'))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANwX10.hdf5'))

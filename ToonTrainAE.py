@@ -10,7 +10,6 @@ from utils import montage
 
 batch_size = 64
 nb_epoch = 1
-samples_per_epoch = 500000
 
 # Get the data-set object
 data = Imagenet()
@@ -26,7 +25,6 @@ print('Training network: {}'.format(net_name))
 
 # Training
 history = generator.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
-                                  samples_per_epoch=samples_per_epoch,
                                   nb_epoch=nb_epoch,
                                   validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
                                   nb_val_samples=32000,

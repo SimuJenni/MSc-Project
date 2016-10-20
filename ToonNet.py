@@ -701,7 +701,7 @@ def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
     if train:
         discriminator = Model(input_disc, dis_out)
     else:
-        discriminator = Model(input_disc, layer_activations.append(dis_out))
+        discriminator = Model(input_disc, layer_activations + [dis_out])
         make_trainable(discriminator, False)
 
     if load_weights:
@@ -772,13 +772,12 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     im_input = Input(shape=input_shape)
     im_recon = generator(im_input)
     disc_out = discriminator(im_recon)
-    gan_out = disc_out.append(im_recon)
-    gan = Model(input=im_input, output=gan_out)
+    print(disc_out)
+    gan = Model(input=im_input, output=disc_out + [im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    objectives = ['mse' for _ in dis_out].append('binary_crossentropy')
 
-    gan.compile(loss=objectives, optimizer=optimizer)
+    gan.compile(loss=['mse'] * len(disc_out) + ['binary_crossentropy'], optimizer=optimizer)
     return gan, generator, discriminator
 
 

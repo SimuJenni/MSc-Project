@@ -7,7 +7,7 @@ import numpy as np
 from DataGenerator import ImageDataGenerator
 from ToonNet import Generator, DiscLwise, GanLwise
 from constants import MODEL_DIR, IMG_DIR
-from datasets import Imagenet
+from datasets import Imagenet, TinyImagenet
 from utils import montage
 
 
@@ -23,7 +23,8 @@ nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
 
 # Get the data-set object
-data = Imagenet()
+data = TinyImagenet()
+data.dims = (192, 192, 3)
 datagen = ImageDataGenerator()
 
 # Load the models

@@ -17,11 +17,11 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, batch_size=batch_size, load_weights=False)
+generator = Generator(input_shape=data.dims, batch_size=batch_size, load_weights=False, resize_conv=True)
 generator.summary()
 
 # Name used for saving of model and outputs
-net_name = '{}-Data:{}'.format('ToonAE', data.name)
+net_name = '{}-Data:{}'.format(generator.name, data.name)
 print('Training network: {}'.format(net_name))
 
 # Training

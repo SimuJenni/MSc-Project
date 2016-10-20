@@ -692,6 +692,7 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    discriminator.name = 'ToonDisc'
     return discriminator
 
 
@@ -709,6 +710,7 @@ def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    discriminator.name = 'ToonDiscLwise'
     return discriminator
 
 

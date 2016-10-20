@@ -64,4 +64,4 @@ while not training_done:
             training_done = True
             break
 
-discriminator.save_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
+discriminator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))

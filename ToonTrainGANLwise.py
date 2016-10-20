@@ -7,7 +7,7 @@ import numpy as np
 from DataGenerator import ImageDataGenerator
 from ToonNet import Generator, DiscLwise, GanLwise
 from constants import MODEL_DIR, IMG_DIR
-from datasets import Imagenet, TinyImagenet
+from datasets import Imagenet
 from utils import montage
 
 
@@ -23,15 +23,14 @@ nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
 
 # Get the data-set object
-data = TinyImagenet()
-data.dims = (192, 192, 3)
+data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=False, f_dims=f_dims) #TODO: loading weights when ready
-discriminator = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=True)
-disc_gentrain = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=False)
-gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=False, f_dims=f_dims)
+generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
+discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
+disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
+gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_lwise.hdf5')

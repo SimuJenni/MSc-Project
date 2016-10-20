@@ -1,131 +1,17 @@
 import os
 
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense, UpSampling2D
+from keras.layers import Input, Convolution2D, BatchNormalization, Deconvolution2D, Activation, merge, Flatten, Dense, \
+    UpSampling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
-import keras.backend as K
 
 from constants import MODEL_DIR
 
 NUM_CONV_LAYERS = 5
 # F_DIMS = [64, 128, 256, 512, 1024]
 F_DIMS = [64, 96, 160, 256, 512]
-
-BN_MODE = 0
-
-
-def ToonAE_old(input_shape, batch_size, out_activation='tanh', num_res_layers=8, merge_mode='sum',
-               f_dims=[64, 96, 160, 256, 512], bn_mode=2):
-    """Constructs a fully convolutional residual auto-encoder network.
-    The network has the follow architecture:
-
-    Layer           Filters     Stride  Connected
-
-    L1: Conv-layer  4x4x64      1       L25            =================================||
-    L2: Conv-layer  3x3x96      2       L24                =========================||  ||
-    L3: Conv-layer  3x3x128     2       L23                    =================||  ||  ||
-    L4: Conv-layer  3x3x256     2       L22                        =========||  ||  ||  ||
-    L5: Conv-layer  3x3x512     2                                     ===   ||  ||  ||  ||
-                                                                      |_|   ||  ||  ||  ||
-    L6:                                                               |_|   ||  ||  ||  ||
-    .               1x1x64      1                                     |_|   ||  ||  ||  ||
-    .   Res-Layers  3x3x64      1                                     |_|   O4  O3  O2  O1
-    .               3x3x512     1                                     |_|   ||  ||  ||  ||
-    L20:                                                              |_|   ||  ||  ||  ||
-                                                                      |_|   ||  ||  ||  ||
-    L21: UpConv     3x3x256     2                                     ===   ||  ||  ||  ||
-    L22: UpConv     3x3x128     2       L4                         =========||  ||  ||  ||
-    L23: UpConv     3x3x96      2       L3                     =================||  ||  ||
-    L24: UpConv     3x3x64      2       L2                 =========================||  ||
-    L25: UpConv     4x4x64      1       L1             =================================||
-
-    Args:
-        merge_mode: Mode for merging the outer connections
-        input_shape: Shape of the input images (height, width, channels)
-        batch_size: Number of images per batch
-        out_activation: Type of activation for last layer ('relu', 'sigmoid', 'tanh', ...)
-        num_res_layers: Number of residual layers in the middle
-
-    Returns:
-        (net, encoded): The resulting Keras model (net) and the encoding layer
-    """
-    # Compute the dimensions of the layers
-    with tf.name_scope('input'):
-        l_dims = compute_layer_shapes(input_shape=input_shape)
-        input_im = Input(shape=input_shape)
-
-    # Layer 1
-    with tf.name_scope('conv_1'):
-        x = conv_relu_bn(input_im, f_size=4, f_channels=f_dims[0], stride=1, border='valid')
-        l1 = outter_connections(x, f_dims[0])
-
-    # Layer 2
-    with tf.name_scope('conv_2'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
-        l2 = outter_connections(x, f_dims[1])
-
-    # Layer 3
-    with tf.name_scope('conv_3'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
-        l3 = outter_connections(x, f_dims[2])
-
-    # Layer 4
-    with tf.name_scope('conv_4'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
-        l4 = outter_connections(x, f_dims[3])
-
-    # Layer 5
-    with tf.name_scope('conv_5'):
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
-        l5 = outter_connections(x, f_dims[4])
-
-    # All the res-layers
-    for i in range(num_res_layers):
-        with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], 64)
-    x = merge([x, l5], mode=merge_mode)
-    encoded = Activation('relu')(x)
-
-    # Layer 6
-    with tf.name_scope('deconv_1'):
-        x = upconv_bn(encoded, f_size=3, f_channels=f_dims[3], out_dim=l_dims[4], batch_size=batch_size, stride=2,
-                      border='valid')
-        x = merge([x, l4], mode=merge_mode)
-        x = Activation('relu')(x)
-
-    # Layer 7
-    with tf.name_scope('deconv_2'):
-        x = upconv_bn(x, f_size=3, f_channels=f_dims[2], out_dim=l_dims[3], batch_size=batch_size, stride=2,
-                      border='valid')
-        x = merge([x, l3], mode=merge_mode)
-        x = Activation('relu')(x)
-
-    # Layer 8
-    with tf.name_scope('deconv_3'):
-        x = upconv_bn(x, f_size=3, f_channels=f_dims[1], out_dim=l_dims[2], batch_size=batch_size, stride=2,
-                      border='valid')
-        x = merge([x, l2], mode=merge_mode)
-        x = Activation('relu')(x)
-
-    # Layer 9
-    with tf.name_scope('deconv_4'):
-        x = upconv_bn(x, f_size=3, f_channels=f_dims[0], out_dim=l_dims[1], batch_size=batch_size, stride=2,
-                      border='same')
-        x = merge([x, l1], mode=merge_mode)
-        x = Activation('relu')(x)
-
-    # Layer 10
-    with tf.name_scope('deconv_5'):
-        x = upconv_bn(x, f_size=4, f_channels=3, out_dim=l_dims[0], batch_size=batch_size, stride=1, border='valid')
-        decoded = Activation(out_activation)(x)
-
-    # Create the model
-    model = Model(input_im, decoded)
-    model.name = 'ToonAE'
-
-    return model
 
 
 def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
@@ -233,7 +119,7 @@ def ToonAE(in_layer, input_shape, batch_size, out_activation='tanh', num_res_lay
     return decoded
 
 
-def ToonAEresize(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
+def ToonAEresize(in_layer, input_shape, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -334,7 +220,7 @@ def ToonAEresize(in_layer, input_shape, batch_size, out_activation='tanh', num_r
     return decoded
 
 
-def ToonAEresizeWoutter(in_layer, input_shape, batch_size, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
+def ToonAEresizeWoutter(in_layer, input_shape, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -405,7 +291,8 @@ def ToonAEresizeWoutter(in_layer, input_shape, batch_size, out_activation='tanh'
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[4], f_dims[1], bn_mode=bn_mode, lightweight=True)
-        x = merge([x, l5], mode='sum')
+        # x = merge([x, l5], mode='sum')    #ToonAE.o18810
+    x = merge([x, l5], mode='sum')
 
     # Layer 6
     with tf.name_scope('deconv_1'):
@@ -695,7 +582,7 @@ def upconv_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride, border=
     return BatchNormalization(axis=3, mode=bn_mode)(x)
 
 
-def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0, lightweight = False):
+def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0, lightweight=False):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -722,7 +609,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0
     return Activation(activation)(x)
 
 
-def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0, lightweight = False):
+def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0, lightweight=False):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -777,10 +664,10 @@ def Generator(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize
     input_gen = Input(shape=input_shape)
     if resize_conv:
         if w_outter:
-            gen_out = ToonAEresizeWoutter(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
+            gen_out = ToonAEresizeWoutter(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresizeWoutter'
         else:
-            gen_out = ToonAEresize(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
+            gen_out = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresize'
     else:
         gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
@@ -829,7 +716,7 @@ def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
 
 
 def DiscriminatorWithX(input_shape, load_weights=False, f_dims=F_DIMS):
-    input_disc = Input(shape=input_shape[:2] + (input_shape[2]*2,))
+    input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
     discriminator = Model(input_disc, dis_out)
 
@@ -867,10 +754,13 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     return gan, generator, discriminator
 
 
-def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False):
+def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False, w_outter=False):
     input_gen = Input(shape=input_shape)
     if resize_conv:
-        gen_out = ToonAEresize(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
+        if w_outter:
+            gen_out = ToonAEresizeWoutter(input_gen, input_shape, f_dims=f_dims)
+        else:
+            gen_out = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
     else:
         gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
@@ -902,7 +792,7 @@ def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, l2_rate
     gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
 
-    input_disc = Input(shape=input_shape[:2] + (input_shape[2]*2,))
+    input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
     discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, False)

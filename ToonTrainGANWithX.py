@@ -29,11 +29,11 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 discriminator = DiscriminatorWithX(data.dims, load_weights=True, f_dims=f_dims)
-gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=100.0)
+gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=5.0)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_wx100.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_wx100.hdf5')
+gen_weights = os.path.join(MODEL_DIR, 'gen_wx5.hdf5')
+disc_weights = os.path.join(MODEL_DIR, 'disc_wx5.hdf5')
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -50,7 +50,7 @@ loss_target_ratio = 0.5
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    loss_ratio = 2
+    loss_ratio = 10
     g_loss_avg = 6
     d_loss_avg = 6
     r_loss = 100
@@ -67,7 +67,7 @@ for epoch in range(nb_epoch):
         yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
         yd_train[:len(Y_train)] = 1
 
-        while True:
+        for i in range(5):
             # Train discriminator
             make_trainable(discriminator, True)
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
@@ -125,12 +125,12 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GANnorm-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GANnormWx5-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
         chunk += 1
 
         sys.stdout.flush()
         del X_train, Y_train, Yd_train, Xd_train, yd_train
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX100.hdf5'))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANwX100.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX5.hdf5'))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANwX5.hdf5'))

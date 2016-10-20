@@ -421,28 +421,28 @@ def ToonDiscLwise(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_lrelu(in_layer, f_size=3, f_channels=32, stride=1, border='valid')
-        l1 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
+        x = conv_lrelu(in_layer, f_size=3, f_channels=32, stride=1, border='same')
+        l1 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same')
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_lrelu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='valid')
-        l2 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='valid')
+        x = conv_lrelu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        l2 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_lrelu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='valid')
-        l3 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='valid')
+        x = conv_lrelu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        l3 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same')
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_lrelu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='valid')
-        l4 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='valid')
+        x = conv_lrelu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        l4 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same')
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='valid')
-        l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='valid')
+        x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same')
         x = l5
 
     layer_activations = [l1, l2, l3, l4, l5]
@@ -454,7 +454,6 @@ def ToonDiscLwise(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
             # layer_activations.append(x)   # TODO: Maybe add in again
 
     # Fully connected layer
-    x = conv_lrelu_bn(x, f_size=1, f_channels=f_dims[3], stride=1, border='valid')
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)

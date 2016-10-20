@@ -13,8 +13,8 @@ def compute_accuracy(y_hat, y):
     return 1.0 - np.mean(np.abs(np.round(y_hat) - y))
 
 
-batch_size = 32
-chunk_size = 50 * batch_size
+batch_size = 64
+chunk_size = 16 * batch_size
 f_dims = [64, 128, 256, 512, 1024]
 
 # Get the data-set object
@@ -24,6 +24,7 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
 discriminator = DiscLwise(data.dims, load_weights=False, train=True)
+discriminator.summary()
 
 # Pre-train discriminator
 print('Training discriminator...')

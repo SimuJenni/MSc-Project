@@ -751,9 +751,12 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     return gan, generator, discriminator
 
 
-def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
+def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False):
     input_gen = Input(shape=input_shape)
-    gen_out = ToonAE(input_gen, input_shape=input_shape, batch_size=batch_size, f_dims=f_dims)
+    if resize_conv:
+        gen_out = ToonAEresize(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
+    else:
+        gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
 
     input_disc = Input(shape=input_shape)

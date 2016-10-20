@@ -8,7 +8,7 @@ from constants import MODEL_DIR, IMG_DIR, LOG_DIR
 from datasets import Imagenet
 from utils import montage
 
-batch_size = 32
+batch_size = 64
 nb_epoch = 1
 samples_per_epoch = 500000
 

@@ -18,7 +18,7 @@ def make_trainable(net, val):
 
 
 batch_size = 64
-chunk_size = 32 * batch_size
+chunk_size = 50 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
 
@@ -27,10 +27,11 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
-disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
-gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims)
+#TODO: set load_weights True when done testing
+generator = Generator(data.dims, batch_size, load_weights=False, f_dims=f_dims)
+discriminator = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=True)
+disc_gentrain = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=False)
+gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=False, f_dims=f_dims)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_lwise.hdf5')
@@ -47,11 +48,10 @@ X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
-loss_target_ratio = 0.5
+loss_target_ratio = 0.25
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    loss_ratio = 2
     g_loss_avg = 6
     d_loss_avg = 6
     r_loss = 100
@@ -68,7 +68,7 @@ for epoch in range(nb_epoch):
         yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
         yd_train[:len(Y_train)] = 1
 
-        while True:
+        for i in range(2):
             # Train discriminator
             make_trainable(discriminator, True)
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
@@ -85,7 +85,7 @@ for epoch in range(nb_epoch):
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             print('d-Loss: {} d-Loss-avg: {}'.format(d_loss, d_loss_avg))
 
-            if g_loss_avg / d_loss_avg > loss_ratio:
+            if d_loss_avg < g_loss_avg * loss_target_ratio:
                 break
 
         # Save the weights
@@ -116,7 +116,7 @@ for epoch in range(nb_epoch):
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
             print('g-Loss: {} g-Loss-avg: {} r-Loss: {}'.format(g_loss, g_loss_avg, r_loss))
 
-            if g_loss_avg / d_loss_avg < loss_ratio:
+            if g_loss_avg * loss_target_ratio < d_loss_avg:
                 break
 
         # Save the weights

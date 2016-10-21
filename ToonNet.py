@@ -783,7 +783,7 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 
-    gan.compile(loss=['mse'] * len(disc_out) + ['binary_crossentropy'], optimizer=optimizer)
+    gan.compile(loss=['mse'] * (len(disc_out)-1) + ['binary_crossentropy'] + ['mse'], optimizer=optimizer)
     return gan, generator, discriminator
 
 

@@ -11,12 +11,6 @@ from datasets import Imagenet
 from utils import montage
 
 
-def make_trainable(net, val):
-    net.trainable = val
-    for l in net.layers:
-        l.trainable = val
-
-
 batch_size = 16
 chunk_size = 100 * batch_size
 nb_epoch = 1
@@ -60,7 +54,6 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         generator.load_weights(gen_weights)
-        discriminator.load_weights(disc_weights)
 
         # Construct data for discriminator training
         Yd_train = generator.predict(X_train, batch_size=batch_size)
@@ -70,7 +63,6 @@ for epoch in range(nb_epoch):
 
         while True:
             # Train discriminator
-            make_trainable(discriminator, True)
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
 
             # Test discriminator
@@ -89,12 +81,10 @@ for epoch in range(nb_epoch):
                 break
 
         # Save the weights
-        generator.save_weights(gen_weights)
         discriminator.save_weights(disc_weights)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
-        gen_gan.load_weights(gen_weights)
         disc_gan.load_weights(disc_weights)
 
         for i in range(2):
@@ -118,7 +108,6 @@ for epoch in range(nb_epoch):
 
         # Save the weights
         gen_gan.save_weights(gen_weights)
-        disc_gan.save_weights(disc_weights)
 
         # Generate montage of test-images
         if not chunk % 2:

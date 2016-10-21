@@ -14,7 +14,7 @@ def compute_accuracy(y_hat, y):
 
 
 batch_size = 64
-chunk_size = 16 * batch_size
+chunk_size = 50 * batch_size
 
 # Get the data-set object
 data = Imagenet()

@@ -102,12 +102,12 @@ for epoch in range(nb_epoch):
             # Train generator
             Yg_train = disc_gentrain.predict(Y_train)
             # yg_train = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=Yg_train.append(Y_train), nb_epoch=1, batch_size=batch_size)
+            gan.fit(x=X_train, y=Yg_train+[Y_train], nb_epoch=1, batch_size=batch_size)
 
             # Test generator
             yg_test = np.ones((len(X_test), 1))
             Yg_test = disc_gentrain.predict(Y_train)
-            res = gan.evaluate(X_test, Yg_test.append(Y_test), batch_size=batch_size, verbose=0)
+            res = gan.evaluate(X_test, Yg_test+[Y_test], batch_size=batch_size, verbose=0)
             g_loss = res[-2]
             r_loss = res[-1]
 

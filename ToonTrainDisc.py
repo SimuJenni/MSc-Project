@@ -21,7 +21,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True)
+generator = Generator(data.dims, batch_size, load_weights=True, resize_conv=True, w_outter=True)
 discriminator = DiscLwise(data.dims, load_weights=False, train=True)
 discriminator.summary()
 

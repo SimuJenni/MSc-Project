@@ -291,7 +291,6 @@ def ToonAEresizeWoutter(in_layer, input_shape, out_activation='tanh', num_res_la
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[4], f_dims[1], bn_mode=bn_mode, lightweight=True)
-        # x = merge([x, l5], mode='sum')    #ToonAE.o18810
     x = merge([x, l5], mode='sum')
 
     # Layer 6
@@ -767,8 +766,7 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     input_disc = Input(shape=input_shape)
     dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
-    layer_activations.append(dis_out)
-    discriminator = Model(input_disc, layer_activations)
+    discriminator = Model(input_disc, output=[layer_activations, dis_out])
     make_trainable(discriminator, False)
 
     if load_weights:
@@ -777,13 +775,12 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     im_input = Input(shape=input_shape)
     im_recon = generator(im_input)
-    disc_out = discriminator(im_recon)
-    print(disc_out)
-    gan = Model(input=im_input, output=disc_out + [im_recon])
+    layer_activations, disc_out = discriminator(im_recon)
+    gan = Model(input=im_input, output=layer_activations + [disc_out, im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 
-    gan.compile(loss=['mse'] * (len(disc_out)-1) + ['binary_crossentropy'] + ['mse'], optimizer=optimizer)
+    gan.compile(loss=['mse'] * len(layer_activations) + ['binary_crossentropy'] + ['mse'], optimizer=optimizer)
     return gan, generator, discriminator
 
 

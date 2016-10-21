@@ -766,7 +766,7 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     input_disc = Input(shape=input_shape)
     dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
-    discriminator = Model(input_disc, output=[layer_activations, dis_out])
+    discriminator = Model(input_disc, output=layer_activations + [dis_out])
     make_trainable(discriminator, False)
 
     if load_weights:
@@ -775,8 +775,8 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     im_input = Input(shape=input_shape)
     im_recon = generator(im_input)
-    layer_activations, disc_out = discriminator(im_recon)
-    gan = Model(input=im_input, output=layer_activations + [disc_out, im_recon])
+    disc_out = discriminator(im_recon)
+    gan = Model(input=im_input, output=disc_out + [im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 

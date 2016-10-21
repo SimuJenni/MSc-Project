@@ -90,14 +90,14 @@ for epoch in range(nb_epoch):
 
         for i in range(2):
             # Train generator
-            Yg_train, _ = disc_gentrain.predict(Y_train)
-            yg_train = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=Yg_train+[yg_train, Y_train], nb_epoch=1, batch_size=batch_size)
+            Yg_train = disc_gentrain.predict(Y_train)
+            Yg_train[-1] = np.ones((len(Y_train), 1))
+            gan.fit(x=X_train, y=Yg_train+[Y_train], nb_epoch=1, batch_size=batch_size)
 
             # Test generator
             Yg_test, _ = disc_gentrain.predict(Y_train)
-            yg_test = np.ones((len(X_test), 1))
-            res = gan.evaluate(X_test, Yg_test+[yg_test, Y_test], batch_size=batch_size, verbose=0)
+            Yg_test[-1] = np.ones((len(Y_test), 1))
+            res = gan.evaluate(X_test, Yg_test+[Y_test], batch_size=batch_size, verbose=0)
             g_loss = res[-2]
             r_loss = res[-1]
 

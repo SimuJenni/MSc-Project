@@ -23,9 +23,9 @@ datagen = ImageDataGenerator()
 # Load the models
 #TODO: set load_weights True when done testing
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
-discriminator = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=True)
-disc_gentrain = DiscLwise(data.dims, load_weights=False, f_dims=f_dims, train=False)
-gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=False, f_dims=f_dims, resize_conv=True, w_outter=True)
+discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
+disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
+gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_lwise.hdf5')

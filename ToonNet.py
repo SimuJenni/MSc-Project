@@ -447,7 +447,7 @@ def ToonDiscLwise(in_layer, num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
-            # layer_activations.append(x)   # TODO: Maybe add in again
+            # layer_activations.append(x)   # TODO: Maybe remove again
 
     # Fully connected layer
     x = Flatten()(x)
@@ -779,9 +779,12 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     gan = Model(input=im_input, output=disc_out + [im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    recon_weight = 100.0
+    disc_weight = 1.0
+    layer_weights = 0.1
 
     gan.compile(loss=['mse'] * len(layer_activations) + ['binary_crossentropy', 'mse'],
-                loss_weights=[1.0] * len(layer_activations) + [1.0, 10.0],
+                loss_weights=[layer_weights*(i+1) for i in range(len(layer_activations))] + [disc_weight, recon_weight],
                 optimizer=optimizer)
     return gan, generator, discriminator
 

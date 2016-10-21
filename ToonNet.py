@@ -758,8 +758,10 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     if resize_conv:
         if w_outter:
             gen_out = ToonAEresizeWoutter(input_gen, input_shape, f_dims=f_dims)
+            net_name = 'ToonAEresizeWoutter'
         else:
             gen_out = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
+            net_name = 'ToonAEresize'
     else:
         gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
     generator = Model(input_gen, gen_out)
@@ -770,7 +772,7 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     make_trainable(discriminator, False)
 
     if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
         discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDiscLwise.hdf5'))
 
     im_input = Input(shape=input_shape)

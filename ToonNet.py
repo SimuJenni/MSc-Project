@@ -753,7 +753,8 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
     return gan, generator, discriminator
 
 
-def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False, w_outter=False):
+def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False, w_outter=False,
+             recon_weight=100.0):
     input_gen = Input(shape=input_shape)
     if resize_conv:
         if w_outter:
@@ -781,12 +782,12 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     gan = Model(input=im_input, output=disc_out + [im_recon])
 
     optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    recon_weight = 100.0
     disc_weight = 1.0
     layer_weights = 0.1
 
     gan.compile(loss=['mse'] * len(layer_activations) + ['binary_crossentropy', 'mse'],
-                loss_weights=[layer_weights*(i+1) for i in range(len(layer_activations))] + [disc_weight, recon_weight],
+                loss_weights=[layer_weights * (i + 1) for i in range(len(layer_activations))] + [disc_weight,
+                                                                                                 recon_weight],
                 optimizer=optimizer)
     return gan, generator, discriminator
 

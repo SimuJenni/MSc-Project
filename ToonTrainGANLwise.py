@@ -10,26 +10,27 @@ from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
 
-
 batch_size = 32
 chunk_size = 64 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
+r_weight = 50.0
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-#TODO: set load_weights True when done testing
+# TODO: set load_weights True when done testing
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
 discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
 disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
-gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
+gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True,
+                                  w_outter=True, recon_weight=r_weight)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_lwise.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_lwise.hdf5')
+gen_weights = os.path.join(MODEL_DIR, 'gen_lwise_rw{}.hdf5'.format(r_weight))
+disc_weights = os.path.join(MODEL_DIR, 'disc_lwise_rw{}.hdf5'.format(r_weight))
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -92,12 +93,12 @@ for epoch in range(nb_epoch):
             # Train generator
             Yg_train = disc_gentrain.predict(Y_train)
             Yg_train[-1] = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=Yg_train+[Y_train], nb_epoch=1, batch_size=batch_size)
+            gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size)
 
             # Test generator
             Yg_test = disc_gentrain.predict(Y_train)
             Yg_test[-1] = np.ones((len(Y_test), 1))
-            res = gan.evaluate(X_test, Yg_test+[Y_test], batch_size=batch_size, verbose=0)
+            res = gan.evaluate(X_test, Yg_test + [Y_test], batch_size=batch_size, verbose=0)
             g_loss = res[-2]
             r_loss = res[-1]
 
@@ -118,12 +119,12 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GANlwise-Epoch:{}-Chunk:{}.jpeg'.format(epoch, chunk)))
+                os.path.join(IMG_DIR, 'GANlwise-Epoch:{}-Chunk:{}-RW:{}.jpeg'.format(epoch, chunk, r_weight)))
         chunk += 1
 
         sys.stdout.flush()
         del X_train, Y_train, Yd_train, Xd_train, yd_train
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANlwise.hdf5'))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANlwise.hdf5'))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANlwise_rw{}.hdf5'.format(r_weight)))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANlwise_rw{}.hdf5'.format(r_weight)))

@@ -15,6 +15,7 @@ chunk_size = 64 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
 r_weight = 10.0
+layer = 4
 
 # Get the data-set object
 data = Imagenet()
@@ -24,13 +25,14 @@ datagen = ImageDataGenerator()
 # TODO: set load_weights True when done testing
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
 discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
-disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
+disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False, layer=layer)
 gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True,
-                                  w_outter=True, recon_weight=r_weight, layer=4)
+                                  w_outter=True, recon_weight=r_weight, layer=layer)
+net_specs = 'rw{}l{}'.format(r_weight, layer)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_lwise_rw{}.hdf5'.format(r_weight))
-disc_weights = os.path.join(MODEL_DIR, 'disc_lwise_rw{}.hdf5'.format(r_weight))
+gen_weights = os.path.join(MODEL_DIR, 'gen_lwise_{}.hdf5'.format(net_specs))
+disc_weights = os.path.join(MODEL_DIR, 'disc_lwise_{}.hdf5'.format(net_specs))
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -119,12 +121,12 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
                 (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, 'GANlwise-Epoch:{}-Chunk:{}-RW:{}.jpeg'.format(epoch, chunk, r_weight)))
+                os.path.join(IMG_DIR, 'GANlwise-Epoch:{}-Chunk:{}-Spec:{}.jpeg'.format(epoch, chunk, net_specs)))
         chunk += 1
 
         sys.stdout.flush()
         del X_train, Y_train, Yd_train, Xd_train, yd_train
         gc.collect()
 
-disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANlwise_rw{}.hdf5'.format(r_weight)))
-gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANlwise_rw{}.hdf5'.format(r_weight)))
+disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANlwise_{}.hdf5'.format(net_specs)))
+gen_gan.save_weights(os.path.join(MODEL_DIR, 'ToonAEGANlwise_{}.hdf5'.format(net_specs)))

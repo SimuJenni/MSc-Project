@@ -696,13 +696,16 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
     return discriminator
 
 
-def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
+def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True, layer=None):
     input_disc = Input(shape=input_shape)
     dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
     if train:
         discriminator = Model(input_disc, dis_out)
     else:
-        discriminator = Model(input_disc, layer_activations + [dis_out])
+        if layer:
+            discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
+        else:
+            discriminator = Model(input_disc, output=layer_activations + [dis_out])
         make_trainable(discriminator, False)
 
     if load_weights:

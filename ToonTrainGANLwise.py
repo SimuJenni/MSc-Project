@@ -14,7 +14,7 @@ batch_size = 32
 chunk_size = 64 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
-r_weight = 1.0
+r_weight = 10.0
 
 # Get the data-set object
 data = Imagenet()
@@ -26,7 +26,7 @@ generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, r
 discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
 disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False)
 gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True,
-                                  w_outter=True, recon_weight=r_weight)
+                                  w_outter=True, recon_weight=r_weight, layer=4)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_lwise_rw{}.hdf5'.format(r_weight))

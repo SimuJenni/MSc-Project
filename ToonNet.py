@@ -676,7 +676,7 @@ def Generator(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     generator.compile(loss='mse', optimizer=optimizer)
     generator.name = net_name
     return generator
@@ -690,7 +690,7 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
     if load_weights:
         discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDisc.hdf5'))
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     discriminator.name = 'ToonDisc'
     return discriminator
@@ -708,7 +708,7 @@ def DiscLwise(input_shape, load_weights=False, f_dims=F_DIMS, train=True):
     if load_weights:
         discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDiscLwise.hdf5'))
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     discriminator.name = 'ToonDiscLwise'
     return discriminator
@@ -754,7 +754,7 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
 
 
 def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False, w_outter=False,
-             recon_weight=100.0):
+             recon_weight=100.0, layer=None):
     input_gen = Input(shape=input_shape)
     if resize_conv:
         if w_outter:
@@ -769,7 +769,10 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
 
     input_disc = Input(shape=input_shape)
     dis_out, layer_activations = ToonDiscLwise(input_disc, f_dims=f_dims)
-    discriminator = Model(input_disc, output=layer_activations + [dis_out])
+    if layer:
+        discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
+    else:
+        discriminator = Model(input_disc, output=layer_activations + [dis_out])
     make_trainable(discriminator, False)
 
     if load_weights:
@@ -781,14 +784,19 @@ def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_
     disc_out = discriminator(im_recon)
     gan = Model(input=im_input, output=disc_out + [im_recon])
 
-    optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
-    layer_weights = 0.1
 
-    gan.compile(loss=['mse'] * len(layer_activations) + ['binary_crossentropy', 'mse'],
-                loss_weights=[layer_weights * (i + 1) for i in range(len(layer_activations))] + [disc_weight,
-                                                                                                 recon_weight],
-                optimizer=optimizer)
+    if layer:
+        gan.compile(loss=['mse', 'binary_crossentropy', 'mse'],
+                    loss_weights=[1.0, disc_weight, recon_weight],
+                    optimizer=optimizer)
+    else:
+        layer_weights = 0.1
+        gan.compile(loss=['mse'] * len(layer_activations) + ['binary_crossentropy', 'mse'],
+                    loss_weights=[layer_weights * (i + 1) for i in range(len(layer_activations))] + [disc_weight,
+                                                                                                     recon_weight],
+                    optimizer=optimizer)
     return gan, generator, discriminator
 
 

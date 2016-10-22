@@ -11,18 +11,17 @@ from datasets import Imagenet
 from utils import montage
 
 batch_size = 32
-chunk_size = 64 * batch_size
+chunk_size = 128 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
-r_weight = 50.0
-layer = 5
+r_weight = 100.0
+layer = 4
 
 # Get the data-set object
 data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-# TODO: set load_weights True when done testing
 generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
 discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
 disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False, layer=layer)
@@ -45,7 +44,7 @@ X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
-loss_target_ratio = 0.25
+loss_target_ratio = 0.20
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
@@ -66,7 +65,7 @@ for epoch in range(nb_epoch):
 
         for i in range(2):
             # Train discriminator
-            discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
+            discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
 
             # Test discriminator
             Yd_test = generator.predict(X_test, batch_size=batch_size)
@@ -91,11 +90,11 @@ for epoch in range(nb_epoch):
         disc_gan.load_weights(disc_weights)
         disc_gentrain.load_weights(disc_weights)
 
-        for i in range(2):
+        for i in range(4):
             # Train generator
             Yg_train = disc_gentrain.predict(Y_train)
             Yg_train[-1] = np.ones((len(Y_train), 1))
-            gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size)
+            gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
 
             # Test generator
             Yg_test = disc_gentrain.predict(Y_train)

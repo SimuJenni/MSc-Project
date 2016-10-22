@@ -44,7 +44,7 @@ X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
-loss_target_ratio = 0.20
+loss_target_ratio = 0.10
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0

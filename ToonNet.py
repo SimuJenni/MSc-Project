@@ -180,6 +180,7 @@ def ToonAEresize(in_layer, input_shape, out_activation='tanh', num_res_layers=8,
     with tf.name_scope('conv_5'):
         x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same', bn_mode=bn_mode)
+    encoded = x
 
     # Residual layers
     for i in range(num_res_layers):
@@ -217,7 +218,7 @@ def ToonAEresize(in_layer, input_shape, out_activation='tanh', num_res_layers=8,
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
-    return decoded
+    return decoded, encoded
 
 
 def ToonAEresizeWoutter(in_layer, input_shape, out_activation='tanh', num_res_layers=8, f_dims=F_DIMS, bn_mode=0):
@@ -666,7 +667,7 @@ def Generator(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize
             gen_out = ToonAEresizeWoutter(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresizeWoutter'
         else:
-            gen_out = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
+            gen_out, _ = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresize'
     else:
         gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)
@@ -680,6 +681,27 @@ def Generator(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize
     generator.compile(loss='mse', optimizer=optimizer)
     generator.name = net_name
     return generator
+
+
+def Encoder(input_shape, load_weights=False, f_dims=F_DIMS, train=False):
+    input_gen = Input(shape=input_shape)
+    decoded, encoded = ToonAEresize(input_gen, input_shape, f_dims=f_dims, num_res_layers=0)
+    net_name = 'ToonEncoder'
+
+    encoder = Model(input_gen, encoded)
+    generator = Model(input_gen, decoded)
+
+    if load_weights:
+        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    if train:
+        generator.compile(loss='mse', optimizer=optimizer)
+    else:
+        encoder.compile(loss='mse', optimizer=optimizer)
+    encoder.name = net_name
+    generator.name = 'EncGenTrain'
+    return encoder, generator
 
 
 def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS):
@@ -757,14 +779,14 @@ def Gan(input_shape, batch_size, load_weights=False, f_dims=F_DIMS):
 
 
 def GanLwise(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, resize_conv=False, w_outter=False,
-             recon_weight=100.0, layer=None):
+             recon_weight=5.0, layer=None):
     input_gen = Input(shape=input_shape)
     if resize_conv:
         if w_outter:
             gen_out = ToonAEresizeWoutter(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresizeWoutter'
         else:
-            gen_out = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
+            gen_out, _ = ToonAEresize(input_gen, input_shape, f_dims=f_dims)
             net_name = 'ToonAEresize'
     else:
         gen_out = ToonAE(input_gen, input_shape, batch_size=batch_size, f_dims=f_dims)

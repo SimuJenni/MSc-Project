@@ -14,7 +14,7 @@ batch_size = 32
 chunk_size = 128 * batch_size
 nb_epoch = 1
 f_dims = [64, 96, 160, 256, 512]
-r_weight = 100.0
+r_weight = 1.0
 layer = 4
 
 # Get the data-set object

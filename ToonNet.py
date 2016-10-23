@@ -368,7 +368,7 @@ def Generator(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False):
 
 def Encoder(input_shape, load_weights=False, f_dims=F_DIMS, train=False):
     input_gen = Input(shape=input_shape)
-    decoded, encoded = ToonGenerator(input_gen, num_res_layers=0, f_dims=f_dims, outter=False)
+    decoded, encoded = ToonGenerator(input_gen, num_res_layers=8, f_dims=f_dims, outter=False)
     net_name = 'ToonEncoder'
 
     encoder = Model(input_gen, encoded)
@@ -409,12 +409,16 @@ def Discriminator(input_shape, load_weights=False, f_dims=F_DIMS, train=True, la
     return discriminator
 
 
-def GAN(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, recon_weight=5.0, layer=None):
+def GAN(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, recon_weight=5.0, layer=None, withx=False):
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, f_dims=f_dims, outter=w_outter)
     generator = Model(input_gen, gen_out)
 
-    input_disc = Input(shape=input_shape)
+    if withx:
+        input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
+    else:
+        input_disc = Input(shape=input_shape)
+
     dis_out, layer_activations = ToonDiscriminator(input_disc, f_dims=f_dims)
     if layer:
         discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
@@ -428,7 +432,12 @@ def GAN(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, recon_we
 
     im_input = Input(shape=input_shape)
     im_recon = generator(im_input)
-    disc_out = discriminator(im_recon)
+    if withx:
+        disc_in = merge([im_input, im_recon], mode='concat')
+    else:
+        disc_in = im_recon
+
+    disc_out = discriminator(disc_in)
     gan = Model(input=im_input, output=disc_out + [im_recon])
 
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
@@ -442,31 +451,6 @@ def GAN(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, recon_we
         gan.compile(loss=['binary_crossentropy', 'mse'],
                     loss_weights=[disc_weight, recon_weight],
                     optimizer=optimizer)
-    return gan, generator, discriminator
-
-
-def GanWithX(input_shape, load_weights=False, f_dims=F_DIMS, l2_rate=25.0):
-    input_gen = Input(shape=input_shape)
-    gen_out = ToonGenerator(input_gen, f_dims=f_dims)
-    generator = Model(input_gen, gen_out)
-
-    input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
-    dis_out = ToonDiscriminator(input_disc, f_dims=f_dims)
-    discriminator = Model(input_disc, dis_out)
-    make_trainable(discriminator, False)
-
-    if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, 'ToonAE.hdf5'))
-        discriminator.load_weights(os.path.join(MODEL_DIR, 'ToonDiscWithX.hdf5'))
-
-    im_input = Input(shape=input_shape)
-    im_recon = generator(im_input)
-    disc_in = merge([im_input, im_recon], mode='concat')
-    im_class = discriminator(disc_in)
-    gan = Model(input=im_input, output=[im_class, im_recon])
-
-    optimizer = Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, l2_rate], optimizer=optimizer)
     return gan, generator, discriminator
 
 

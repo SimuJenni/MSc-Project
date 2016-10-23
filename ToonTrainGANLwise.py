@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, DiscLwise, GanLwise
+from ToonNet import Generator, Discriminator, GAN
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -22,11 +22,11 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True, w_outter=True)
-discriminator = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=True)
-disc_gentrain = DiscLwise(data.dims, load_weights=True, f_dims=f_dims, train=False, layer=layer)
-gan, gen_gan, disc_gan = GanLwise(data.dims, batch_size, load_weights=True, f_dims=f_dims, resize_conv=True,
-                                  w_outter=True, recon_weight=r_weight, layer=layer)
+generator = Generator(data.dims, load_weights=True, f_dims=f_dims, w_outter=True)
+discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims, train=True)
+disc_gentrain = Discriminator(data.dims, load_weights=True, f_dims=f_dims, train=False, layer=layer)
+gan, gen_gan, disc_gan = GAN(data.dims, load_weights=True, f_dims=f_dims, w_outter=True, recon_weight=r_weight,
+                             layer=layer)
 net_specs = 'rw{}l{}'.format(r_weight, layer)
 
 # Paths for storing the weights

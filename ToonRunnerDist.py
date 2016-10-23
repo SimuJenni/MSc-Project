@@ -1,15 +1,16 @@
 from __future__ import print_function
-import time
+
 import sys
+import time
 
 import keras
 import tensorflow as tf
 from keras import backend as K
-from constants import LOG_DIR
 
-from ToonNet import ToonAE
-from datasets import Imagenet
 from DataGenerator import ImageDataGenerator
+from ToonNet import Generator
+from constants import LOG_DIR
+from datasets import Imagenet
 
 # Flags for defining the tf.train.ClusterSpec
 flags = tf.app.flags
@@ -70,17 +71,13 @@ def main(_):
             K.manual_variable_initialization(True)
 
             # build Keras model
-            model, _, decoded = ToonAE(input_shape=data.dims,
-                                       batch_size=batch_size,
-                                       out_activation='sigmoid',
-                                       num_res_layers=10,
-                                       merge_mode='sum')
+            model, _, decoded = Generator(data.dims)
 
             # keras model predictions
             preds = model.output
 
             # placeholder for training targets
-            targets = tf.placeholder(tf.float32, shape=(None, ) + data.dims, name='targets')
+            targets = tf.placeholder(tf.float32, shape=(None,) + data.dims, name='targets')
 
             # reconstruction loss objective
             recon_loss = tf.reduce_mean(keras.objectives.mean_absolute_error(targets, preds))

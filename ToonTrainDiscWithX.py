@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import DiscriminatorWithX, Generator
+from ToonNet import Discriminator, Generator
 from constants import MODEL_DIR
 from datasets import Imagenet
 
@@ -22,8 +22,8 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = DiscriminatorWithX(data.dims, load_weights=False, f_dims=f_dims)
+generator = Generator(data.dims, load_weights=True, f_dims=f_dims)
+discriminator = Discriminator(data.dims, load_weights=False, f_dims=f_dims, withx=True)
 
 # Pre-train discriminator
 print('Training discriminator...')

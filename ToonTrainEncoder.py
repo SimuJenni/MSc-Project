@@ -19,7 +19,7 @@ encoder, generator = Encoder(data.dims, load_weights=False, train=True)
 print('Training encoder...')
 
 # Get test data
-X_test, _ = datagen.flow_from_directory(data.train_dir, batch_size=5*chunk_size).next()
+X_test, _ = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size).next()
 
 training_done = False
 for ep in range(num_epochs):

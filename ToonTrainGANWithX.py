@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, DiscriminatorWithX, GanWithX
+from ToonNet import Generator, Discriminator, GanWithX
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -27,8 +27,8 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, batch_size, load_weights=True, f_dims=f_dims)
-discriminator = DiscriminatorWithX(data.dims, load_weights=True, f_dims=f_dims)
+generator = Generator(data.dims, load_weights=True, f_dims=f_dims)
+discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims, withx=True)
 gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=10.0)
 
 # Paths for storing the weights

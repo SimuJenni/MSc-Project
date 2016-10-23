@@ -10,7 +10,7 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the auto-encoder
-generator = Generator(data.dims, batch_size, load_weights=True, resize_conv=True, w_outter=True)
+generator = Generator(data.dims, load_weights=True, w_outter=True)
 
 # Generate montage of sample-images
 sample_size = 64

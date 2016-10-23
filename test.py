@@ -1,4 +1,3 @@
-from keras.models import Model
 from keras.utils.visualize_util import plot
 from ToonNet import Generator
 

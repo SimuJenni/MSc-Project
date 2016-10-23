@@ -80,6 +80,8 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, f_dims=F_DI
         if outter:
             l5 = outter_connection(x, f_dims[4])
 
+    encoded = x
+
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
@@ -126,7 +128,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, f_dims=F_DI
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
-    return decoded
+    return decoded, encoded
 
 
 def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS):
@@ -443,7 +445,7 @@ def GAN(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, recon_we
     return gan, generator, discriminator
 
 
-def GanWithX(input_shape, batch_size, load_weights=False, f_dims=F_DIMS, l2_rate=25.0):
+def GanWithX(input_shape, load_weights=False, f_dims=F_DIMS, l2_rate=25.0):
     input_gen = Input(shape=input_shape)
     gen_out = ToonGenerator(input_gen, f_dims=f_dims)
     generator = Model(input_gen, gen_out)

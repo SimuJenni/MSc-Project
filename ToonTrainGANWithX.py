@@ -29,7 +29,7 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, f_dims=f_dims)
 discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims, withx=True)
-gan, gen_gan, disc_gan = GanWithX(data.dims, batch_size, load_weights=True, f_dims=f_dims, l2_rate=10.0)
+gan, gen_gan, disc_gan = GanWithX(data.dims, load_weights=True, f_dims=f_dims, l2_rate=10.0)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, 'gen_wx10.hdf5')

@@ -355,8 +355,8 @@ def Generator(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False):
 
     # Build the model
     input_gen = Input(shape=input_shape)
-    gen_out = ToonGenerator(input_gen, f_dims=f_dims, outter=w_outter)
-    generator = Model(input_gen, gen_out)
+    decoded, _ = ToonGenerator(input_gen, f_dims=f_dims, outter=w_outter)
+    generator = Model(input_gen, decoded)
     net_name = make_name('ToonGenerator', w_outter=w_outter)
 
     # Load weights

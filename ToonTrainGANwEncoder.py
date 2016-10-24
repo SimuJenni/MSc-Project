@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, GAN
+from ToonNet import Generator, Discriminator, GANwEncoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -32,9 +32,8 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)
-disc_gentrain = Discriminator(data.dims, load_weights=True, train=False, layer=layer)
-gan, gen_gan, disc_gan = GAN(data.dims, load_weights=True, recon_weight=r_weight,
-                             layer=layer)
+gan, gen_gan, disc_gan, encoder = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
+
 net_specs = 'rw{}_l{}'.format(r_weight, layer)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
@@ -82,7 +81,7 @@ for epoch in range(nb_epoch):
             # Record and print loss
             losses["d"].append(d_loss)
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
-            print('d-Loss: {} d-Loss-avg: {}'.format(d_loss, d_loss_avg))
+            print('d-Loss-avg: {} d-Loss: {}'.format(d_loss_avg, d_loss))
 
             if d_loss_avg < g_loss_avg * loss_target_ratio:
                 break
@@ -93,25 +92,25 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         disc_gan.load_weights(disc_weights)
-        disc_gentrain.load_weights(disc_weights)
 
         for i in range(3):
             # Train generator
-            Yg_train = disc_gentrain.predict(Y_train)
-            Yg_train[-1] = np.ones((len(Y_train), 1))
-            h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+            Yg_train = encoder.predict(Y_train)
+            yg_train = np.ones((len(Y_train), 1))
+            h = gan.fit(x=X_train, y=[yg_train, Yg_train, Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
 
             # Test generator
-            Yg_test = disc_gentrain.predict(Yg_test)
-            Yg_test[-1] = np.ones((len(Y_test), 1))
-            res = gan.evaluate(X_test, Yg_test + [Y_test], batch_size=batch_size, verbose=0)
-            g_loss = res[-2]
-            r_loss = res[-1]
+            Yg_test = encoder.predict(Y_test)
+            yg_test = np.ones((len(Y_test), 1))
+            res = gan.evaluate(X_test, [yg_train, Yg_test, Y_test], batch_size=batch_size, verbose=0)
+            g_loss = res[0]
+            e_loss = res[1]
+            r_loss = res[2]
 
             # Record and print loss
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-            print('g-Loss: {} g-Loss-avg: {} r-Loss: {}'.format(g_loss, g_loss_avg, r_loss))
+            print('g-Loss-avg: {} g-Loss: {} r-Loss: {} e-Loss{}'.format(g_loss_avg, g_loss, r_loss, e_loss))
 
             if g_loss_avg * loss_target_ratio < d_loss_avg:
                 break
@@ -124,12 +123,12 @@ for epoch in range(nb_epoch):
             generator.load_weights(gen_weights)
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
-                (decoded_imgs[:12, :, :] * 0.5 + 0.5, X_test[:12] * 0.5 + 0.5, Y_test[:12] * 0.5 + 0.5)),
+                (decoded_imgs[:18, :, :] * 0.5 + 0.5, X_test[:18] * 0.5 + 0.5)),
                 os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
         chunk += 1
 
         sys.stdout.flush()
-        del X_train, Y_train, Xd_train, yd_train
+        del X_train, Y_train, Xd_train, yd_train, Yd
         gc.collect()
 
 disc_gan.save_weights(disc_weights)

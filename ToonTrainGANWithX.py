@@ -17,23 +17,37 @@ def make_trainable(net, val):
         l.trainable = val
 
 
-batch_size = 16
-chunk_size = 100 * batch_size
+def disc_data(X, Y, Yd):
+    Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
+    yd = np.zeros((len(Y) + len(Yd), 1))
+    yd[:len(Y)] = 1
+    return Xd, yd
+
+
+batch_size = 32
+chunk_size = 128 * batch_size
 nb_epoch = 1
-f_dims = [64, 128, 256, 512, 1024]
+r_weight = 5.0
+layer = 4
+num_train = 200000
 
 # Get the data-set object
-data = Imagenet()
+data = Imagenet(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, load_weights=True, f_dims=f_dims)
-discriminator = Discriminator(data.dims, load_weights=True, f_dims=f_dims, withx=True)
-gan, gen_gan, disc_gan = GAN(data.dims, load_weights=True, f_dims=f_dims, withx=True)
+generator = Generator(data.dims, load_weights=True)
+discriminator = Discriminator(data.dims, load_weights=True, train=True, withx=True)
+disc_gentrain = Discriminator(data.dims, load_weights=True, train=False, layer=layer, withx=True)
+gan, gen_gan, disc_gan = GAN(data.dims, load_weights=True, recon_weight=r_weight, layer=layer, withx=True)
+
+net_specs = 'rw{}_l{}'.format(r_weight, layer)
+gen_name = '{}_{}'.format(gen_gan.name, net_specs)
+disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, 'gen_wx10.hdf5')
-disc_weights = os.path.join(MODEL_DIR, 'disc_wx10.hdf5')
+gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
+disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
 
@@ -41,30 +55,26 @@ discriminator.save_weights(disc_weights)
 losses = {"d": [], "g": []}
 
 # Create test data
-X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size).next()
+X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
 
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
-loss_target_ratio = 0.5
+loss_target_ratio = 0.1
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    loss_ratio = 2
     g_loss_avg = 6
     d_loss_avg = 6
-    r_loss = 100
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size):
+    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size):
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         generator.load_weights(gen_weights)
 
         # Construct data for discriminator training
-        Yd_train = generator.predict(X_train, batch_size=batch_size)
-        Xd_train = np.concatenate((np.concatenate((X_train, Y_train), axis=3), np.concatenate((X_train, Yd_train), axis=3)))
-        yd_train = np.zeros((len(Y_train) + len(Yd_train), 1))
-        yd_train[:len(Y_train)] = 1
+        Yd = generator.predict(X_train, batch_size=batch_size)
+        Xd_train, yd_train = disc_data(X_train, Y_train, Yd)
 
         for i in range(2):
             # Train discriminator
@@ -72,10 +82,8 @@ for epoch in range(nb_epoch):
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size)
 
             # Test discriminator
-            Yd_test = generator.predict(X_test, batch_size=batch_size)
-            Xd_test = np.concatenate((np.concatenate((X_train, Y_test), axis=3), np.concatenate((X_train, Yd_test), axis=3)))
-            yd_test = np.zeros((len(Y_test) + len(Yd_test), 1))
-            yd_test[:len(Y_test)] = 1
+            Yd = generator.predict(X_test, batch_size=batch_size)
+            Xd_test, yd_test = disc_data(X_test, Y_test, Yd)
             d_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
 
             # Record and print loss
@@ -83,7 +91,7 @@ for epoch in range(nb_epoch):
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             print('d-Loss: {} d-Loss-avg: {}'.format(d_loss, d_loss_avg))
 
-            if g_loss_avg / d_loss_avg > loss_ratio:
+            if d_loss_avg < g_loss_avg * loss_target_ratio:
                 break
 
         # Save the weights
@@ -109,7 +117,7 @@ for epoch in range(nb_epoch):
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
             print('g-Loss: {} g-Loss-avg: {} r-Loss: {}'.format(g_loss, g_loss_avg, r_loss))
 
-            if g_loss_avg / d_loss_avg < loss_ratio:
+            if g_loss_avg * loss_target_ratio < d_loss_avg:
                 break
 
         # Save the weights
@@ -125,7 +133,7 @@ for epoch in range(nb_epoch):
         chunk += 1
 
         sys.stdout.flush()
-        del X_train, Y_train, Yd_train, Xd_train, yd_train, yg_train, yg_test, Xd_test, Yd_test, yd_test
+        del X_train, Y_train, Xd_train, yd_train, yg_train, yg_test, Xd_test, yd_test
         gc.collect()
 
 disc_gan.save_weights(os.path.join(MODEL_DIR, 'ToonDiscGANwX10.hdf5'))

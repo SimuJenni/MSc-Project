@@ -1,10 +1,8 @@
 import os
 
-from keras.callbacks import ModelCheckpoint, TensorBoard
-
-from DataGenerator import ImageDataGenerator
+from DataGenerator import ImageDataGenerator, X2X_Y2Y
 from ToonNet import Generator
-from constants import MODEL_DIR, IMG_DIR, LOG_DIR
+from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
 
@@ -25,10 +23,10 @@ net_name = '{}-Data:{}'.format(generator.name, data.name)
 print('Training network: {}'.format(net_name))
 
 # Training
-history = generator.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
+history = generator.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size, xy_fun=X2X_Y2Y),
                                   samples_per_epoch=samples_per_epoch,
                                   nb_epoch=nb_epoch,
-                                  validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
+                                  validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, xy_fun=X2X_Y2Y),
                                   nb_val_samples=32000,
                                   nb_worker=4)
 

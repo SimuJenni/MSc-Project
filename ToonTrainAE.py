@@ -30,9 +30,7 @@ history = generator.fit_generator(datagen.flow_from_directory(data.train_dir, ba
                                   nb_epoch=nb_epoch,
                                   validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
                                   nb_val_samples=32000,
-                                  nb_worker=4,
-                                  callbacks=[ModelCheckpoint(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name))),
-                                             TensorBoard(log_dir=LOG_DIR, histogram_freq=1)])
+                                  nb_worker=4)
 
 # Save the model
 generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

@@ -17,6 +17,10 @@ def X2X_X2Y(x, y):
     return x, x
 
 
+def Y2X_Y2Y(x, y):
+    return y, y
+
+
 def flip_axis(x, axis):
     x = np.asarray(x).swapaxes(axis, 0)
     x = x[::-1, ...]

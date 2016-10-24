@@ -136,7 +136,7 @@ class ImageDataGenerator(object):
         if self.horizontal_flip:
             if np.random.random() < 0.5:
                 x = flip_axis(x, img_col_index)
-                y = flip_axis(x, img_col_index)
+                y = flip_axis(y, img_col_index)
 
         return x, y
 

@@ -6,7 +6,7 @@ from utils import montage
 
 data = TinyImagenet()
 datagen = ImageDataGenerator(horizontal_flip=True)
-test_X, test_Y = datagen.flow_from_directory(data.train_dir, xy_fun=X2X_X2Y, batch_size=64).next()
+test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
 montage(test_X[:, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
 montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
 

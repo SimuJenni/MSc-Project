@@ -351,7 +351,7 @@ def lrelu(x, alpha=0.2):
     return LeakyReLU(alpha=alpha)(x)
 
 
-def Generator(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False):
+def Generator(input_shape, load_weights=False, f_dims=F_DIMS, w_outter=False, num_res=8):
 
     # Build the model
     input_gen = Input(shape=input_shape)

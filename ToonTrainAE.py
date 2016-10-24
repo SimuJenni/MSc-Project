@@ -7,11 +7,11 @@ from datasets import Imagenet
 from utils import montage
 
 batch_size = 64
-nb_epoch = 1
-samples_per_epoch = 1152000
+nb_epoch = 2
+samples_per_epoch = 200000
 
 # Get the data-set object
-data = Imagenet()
+data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the net
@@ -19,16 +19,17 @@ generator = Generator(input_shape=data.dims, load_weights=False)
 generator.summary()
 
 # Name used for saving of model and outputs
-net_name = '{}-Data:{}'.format(generator.name, data.name)
+net_name = '{}-{}'.format(generator.name, data.name)
 print('Training network: {}'.format(net_name))
 
 # Training
-history = generator.fit_generator(datagen.flow_from_directory(data.train_dir, batch_size=batch_size),
-                                  samples_per_epoch=samples_per_epoch,
-                                  nb_epoch=nb_epoch,
-                                  validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size),
-                                  nb_val_samples=32000,
-                                  nb_worker=4)
+history = generator.fit_generator(
+    datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=data.target_size),
+    samples_per_epoch=samples_per_epoch,
+    nb_epoch=nb_epoch,
+    validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
+    nb_val_samples=20000,
+    nb_worker=2)
 
 # Save the model
 generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

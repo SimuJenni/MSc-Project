@@ -8,13 +8,14 @@ import h5py
 
 class Imagenet(Dataset):
 
-    def __init__(self, resize=None):
+    def __init__(self, resize=None, num_train=1200000, target_size=(196, 196)):
         self.resize = resize
         self.src_data_dir = IMAGENET_SRC_DIR
         self.data_dir = IMAGENET_DATADIR
         self.train_dir = os.path.join(IMAGENET_DATADIR, 'Train/')
         self.val_dir = os.path.join(IMAGENET_DATADIR, 'Validation/')
-        self.dims = (192, 192, 3)
+        self.target_size = target_size
+        self.dims = target_size + (3,)
         # Check if dataset has already been preprocessed
         if not os.path.exists(self.data_dir):
             os.mkdir(self.data_dir)
@@ -22,8 +23,10 @@ class Imagenet(Dataset):
         # Paths to data-files with randomized train and test images
         self.val_files = glob.glob('%s/X/%s*' % (self.val_dir, 'val'))
         self.train_files = glob.glob('%s/X/%s*' % (self.train_dir, 'train'))
-        self.name = 'Imagenet'
-        self.num_train = 1200000
+        if num_train:
+            self.train_files = self.train_files[:num_train]
+        self.name = 'Imagenet_numTrain_{}_targetSize_{}'.format(num_train, target_size)
+        self.num_train = num_train
         self.num_val = 50000
 
     def process_imagenet(self):
@@ -41,13 +44,14 @@ class Imagenet(Dataset):
 
 class TinyImagenet(Dataset):
 
-    def __init__(self, resize=None):
+    def __init__(self, resize=None, num_train=100000, target_size=(64, 64)):
         self.resize = resize
         self.src_data_dir = TINYIMAGENET_SRC_DIR
         self.data_dir = TINYIMAGENET_DATADIR
         self.train_dir = os.path.join(TINYIMAGENET_DATADIR, 'Train/')
         self.val_dir = os.path.join(TINYIMAGENET_DATADIR, 'Validation/')
-        self.dims = (64, 64, 3)
+        self.target_size = target_size
+        self.dims = target_size + (3,)
         # Check if dataset has already been preprocessed
         if not os.path.exists(self.data_dir):
             os.mkdir(self.data_dir)
@@ -55,8 +59,8 @@ class TinyImagenet(Dataset):
         # Paths to data-files with randomized train and test images
         self.val_files = glob.glob('%s/%s*' % (self.val_dir, 'val'))
         self.train_files = glob.glob('%s/%s*' % (self.train_dir, 'train'))
-        self.name = 'TinyImagenet'
-        self.num_train = 100000
+        self.name = 'TinyImagenet_numTrain_{}_targetSize_{}'.format(num_train, target_size)
+        self.num_train = num_train
         self.num_val = 50000
 
     def process_tiny_imagenet(self):
@@ -67,9 +71,9 @@ class TinyImagenet(Dataset):
         val_dir = os.path.join(self.src_data_dir, 'val/images/')
         train_dir = os.path.join(self.src_data_dir, 'train/')
         print('Preparing images in: {}'.format(val_dir))
-        process_dataset('val', val_dir, self.val_dir, (IM_HEIGHT, IM_WIDTH))
+        process_dataset('val', val_dir, self.val_dir, (64, 64))
         print('Preparing images in: {}'.format(train_dir))
-        process_dataset('train', train_dir, self.train_dir, (IM_HEIGHT, IM_WIDTH))
+        process_dataset('train', train_dir, self.train_dir, (64, 64))
 
 
 def cifar10_cartoon_data():

@@ -2,8 +2,9 @@ import os
 
 from DataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import Encoder
-from constants import MODEL_DIR
+from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
+from utils import montage
 
 batch_size = 64
 num_epochs = 2
@@ -15,7 +16,9 @@ datagen = ImageDataGenerator()
 
 # Load the models
 encoder, generator = Encoder(data.dims, load_weights=False, train=True)
-print('Training encoder...')
+gen_name = '{}-{}'.format(generator.name, data.name)
+enc_name = '{}-{}'.format(encoder.name, data.name)
+print('Training network: {}'.format(enc_name))
 
 # Training
 history = generator.fit_generator(
@@ -27,5 +30,14 @@ history = generator.fit_generator(
     nb_val_samples=20000,
     nb_worker=2)
 
-encoder.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
-generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+# Save the weights
+encoder.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name)))
+generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name)))
+
+# Generate montage of sample-images
+sample_size = 64
+X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=sample_size, target_size=data.target_size).next()
+decoded_imgs = generator.predict(X_test, batch_size=batch_size)
+montage(decoded_imgs[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Out.jpeg'.format(gen_name)))
+montage(X_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
+montage(Y_test[:sample_size, :, :] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y.jpeg'.format(gen_name)))

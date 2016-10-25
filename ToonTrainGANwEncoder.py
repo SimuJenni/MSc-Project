@@ -21,7 +21,7 @@ def disc_data(X, Y, Yd):
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 5.0
+r_weight = 10.0
 num_train = 200000
 
 # Get the data-set object
@@ -30,7 +30,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True)
-discriminator = Discriminator(data.dims, load_weights=True, train=True)    # TODO: Maybe change to load_wights
+discriminator = Discriminator(data.dims, load_weights=False, train=True)    # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
@@ -61,11 +61,11 @@ for epoch in range(nb_epoch):
     d_loss = None
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size):
 
-        print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-        # Reload the weights
-        generator.load_weights(gen_weights)
-
         if not d_loss or d_loss > g_loss * loss_target_ratio:
+            print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
+            # Reload the weights
+            generator.load_weights(gen_weights)
+
             # Construct data for discriminator training
             Yd = generator.predict(X_train, batch_size=batch_size)
             Xd_train, yd_train = disc_data(X_train, Y_train, Yd)

@@ -177,7 +177,6 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS):
         x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same')
 
-    l5 = GlobalAveragePooling2D()(l5)
     layer_activations = [l1, l2, l3, l4, l5]
     x = l5
 
@@ -187,6 +186,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS):
             x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
 
     # Fully connected layer
+    x = GlobalAveragePooling2D()(x)
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)

@@ -23,5 +23,4 @@ montage(decoded_imgs[:sample_size, :, :] * 0.5 + 0.5, 'Test-Out.jpeg')
 montage(X_test[:sample_size, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
 montage(Y_test[:sample_size, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
 
-print(encoder.layers[1].get_weights())
-print(generator.layers[1].get_weights())
+print(encoder.layers[1].get_weights() - generator.layers[1].get_weights())

@@ -22,7 +22,7 @@ def disc_data(X, Y, Yd):
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 40.0
+r_weight = 10.0
 num_train = 200000
 
 # Get the data-set object

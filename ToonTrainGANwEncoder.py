@@ -1,10 +1,11 @@
 import gc
 import os
 import sys
+import time
 
 import numpy as np
 
-from DataGenerator import ImageDataGenerator
+from DataGenerator import ImageDataGenerator, generator_queue
 from ToonNet import Generator, Discriminator, GANwEncoder, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
@@ -21,7 +22,7 @@ def disc_data(X, Y, Yd):
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 20.0
+r_weight = 40.0
 num_train = 200000
 
 # Get the data-set object
@@ -30,7 +31,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True)
-discriminator = Discriminator(data.dims, load_weights=False, train=True)    # TODO: Maybe change to load_weights
+discriminator = Discriminator(data.dims, load_weights=False, train=True)  # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
@@ -50,6 +51,10 @@ losses = {"d": [], "g": []}
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
 
+# Create queue for training data
+data_gen_queue, _stop = generator_queue(
+    datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
+
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
@@ -59,7 +64,17 @@ for epoch in range(nb_epoch):
     chunk = 0
     g_loss = None
     d_loss = None
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size):
+
+    samples_seen = 0
+    while samples_seen < num_train:
+
+        # Get next chunk of training data from queue
+        while not _stop.is_set():
+            if not data_gen_queue.empty():
+                X_train, Y_train = data_gen_queue.get()
+                break
+            else:
+                time.sleep(0.05)
 
         if not d_loss or d_loss > g_loss * loss_target_ratio:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
@@ -121,7 +136,9 @@ for epoch in range(nb_epoch):
             montage(np.concatenate(
                 (decoded_imgs[:18, :, :] * 0.5 + 0.5, X_test[:18] * 0.5 + 0.5)),
                 os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
+
         chunk += 1
+        samples_seen += chunk_size
 
         sys.stdout.flush()
         del X_train, Y_train

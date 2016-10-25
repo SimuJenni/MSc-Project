@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Flatten, Dense, UpSampling2D
+from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Flatten, Dense, UpSampling2D, GlobalAveragePooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
@@ -177,6 +177,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS):
         x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same')
 
+    l5 = GlobalAveragePooling2D()(l5)
     layer_activations = [l1, l2, l3, l4, l5]
     x = l5
 

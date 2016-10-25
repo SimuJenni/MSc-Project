@@ -504,7 +504,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, encoder_out = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False)
+    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res, outter=False)
     encoder = Model(input_encoder, output=encoder_out)
     make_trainable(encoder, False)
     enc_name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
@@ -532,7 +532,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
                 loss_weights=[disc_weight, 1.0, recon_weight],
                 optimizer=optimizer)
-    return gan, generator, discriminator, encoder
+    return gan, generator, discriminator
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None):

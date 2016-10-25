@@ -2,6 +2,8 @@ from DataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import Encoder
 from datasets import Imagenet
 from utils import montage
+import os
+from constants import MODEL_DIR
 
 batch_size = 32
 
@@ -10,7 +12,8 @@ data = Imagenet()
 datagen = ImageDataGenerator()
 
 # Load the auto-encoder
-encoder, generator = Encoder(data.dims, load_weights=True, w_outter=True)
+encoder, generator = Encoder(data.dims, load_weights=True)
+generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format('EncGenTrain')))
 
 # Generate montage of sample-images
 sample_size = 64

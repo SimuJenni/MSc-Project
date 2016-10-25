@@ -8,7 +8,7 @@ from constants import MODEL_DIR
 batch_size = 32
 
 # Get the data-set object
-data = Imagenet()
+data = Imagenet(target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the auto-encoder

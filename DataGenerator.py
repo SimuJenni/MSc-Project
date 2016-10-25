@@ -1,12 +1,42 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import Queue as queue
 import numpy as np
 import re
 import os
 import threading
+import time
 
 from keras import backend as K
+
+
+def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
+    q = queue.Queue()
+    _stop = threading.Event()
+
+    try:
+        def data_generator_task():
+            while not _stop.is_set():
+                try:
+                    if q.qsize() < max_q_size:
+                        generator_output = next(generator)
+                        q.put(generator_output)
+                    else:
+                        time.sleep(wait_time)
+                except Exception:
+                    _stop.set()
+                    raise
+
+        for i in range(nb_worker):
+            thread = threading.Thread(target=data_generator_task)
+            thread.daemon = True
+            thread.start()
+    except:
+        _stop.set()
+        raise
+
+    return q, _stop
 
 
 def X2X_Y2Y(x, y):

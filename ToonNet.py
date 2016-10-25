@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Flatten, Dense, UpSampling2D, GlobalAveragePooling2D
+from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, UpSampling2D, GlobalAveragePooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam

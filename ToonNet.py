@@ -377,11 +377,13 @@ def Encoder(input_shape, load_weights=False, f_dims=F_DIMS, train=False):
     decoded, encoded = ToonGenerator(input_gen, num_res_layers=8, f_dims=f_dims, outter=False)
     encoder = Model(input_gen, encoded)
     generator = Model(input_gen, decoded)
-    net_name = make_name('ToonEncoder')
+    enc_name = make_name('ToonEncoder')
+    gen_name = make_name('EncGenTrain')
 
     # Load weights
     if load_weights:
-        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
+        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name)))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name)))
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
@@ -389,8 +391,8 @@ def Encoder(input_shape, load_weights=False, f_dims=F_DIMS, train=False):
         generator.compile(loss='mse', optimizer=optimizer)
     else:
         encoder.compile(loss='mse', optimizer=optimizer)
-    encoder.name = net_name
-    generator.name = make_name('EncGenTrain')
+    encoder.name = enc_name
+    generator.name = gen_name
     return encoder, generator
 
 

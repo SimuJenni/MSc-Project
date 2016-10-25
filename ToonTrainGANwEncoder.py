@@ -30,7 +30,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True)
-discriminator = Discriminator(data.dims, load_weights=True, train=True)
+discriminator = Discriminator(data.dims, load_weights=False, train=True)    # TODO: Maybe change to load_wights
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
@@ -80,8 +80,7 @@ for epoch in range(nb_epoch):
 
             # Record and print loss
             losses["d"].append(d_loss)
-            d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
-            print('d-Loss-avg: {} d-Loss: {}'.format(d_loss_avg, d_loss))
+            print('d-Loss: {}'.format(d_loss))
 
             # Save the weights
             discriminator.save_weights(disc_weights)
@@ -106,10 +105,9 @@ for epoch in range(nb_epoch):
 
             # Record and print loss
             losses["g"].append(g_loss)
-            g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-            print('g-Loss-avg: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(g_loss_avg, g_loss, r_loss, e_loss))
+            print('g-Loss: {} r-Loss: {} e-Loss: {}'.format(g_loss, r_loss, e_loss))
 
-            if g_loss_avg * loss_target_ratio < d_loss_avg:
+            if g_loss * loss_target_ratio < d_loss:
                 break
 
         # Save the weights

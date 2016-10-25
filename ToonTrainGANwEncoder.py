@@ -30,7 +30,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True)
-discriminator = Discriminator(data.dims, load_weights=False, train=True)    # TODO: Maybe change to load_wights
+discriminator = Discriminator(data.dims, load_weights=True, train=True)    # TODO: Maybe change to load_wights
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
@@ -84,6 +84,7 @@ for epoch in range(nb_epoch):
 
             # Save the weights
             discriminator.save_weights(disc_weights)
+            del Xd_train, yd_train, Yd
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
@@ -114,7 +115,7 @@ for epoch in range(nb_epoch):
         gen_gan.save_weights(gen_weights)
 
         # Generate montage of test-images
-        if not chunk % 2:
+        if not chunk % 5:
             generator.load_weights(gen_weights)
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(
@@ -123,7 +124,7 @@ for epoch in range(nb_epoch):
         chunk += 1
 
         sys.stdout.flush()
-        del X_train, Y_train, Xd_train, yd_train, Yd
+        del X_train, Y_train
         gc.collect()
 
 disc_gan.save_weights(disc_weights)

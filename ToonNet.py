@@ -526,7 +526,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
-                loss_weights=[disc_weight, 1.0, recon_weight],
+                loss_weights=[disc_weight, 2.0, recon_weight],
                 optimizer=optimizer)
     return gan, generator, discriminator
 

@@ -1,12 +1,12 @@
 from keras.utils.visualize_util import plot
 from ToonNet import Generator
 from datasets import TinyImagenet
-from DataGenerator import ImageDataGenerator, X2X_X2Y
+from DataGenerator import ImageDataGenerator, X2X_X2Y, Y2X_Y2Y
 from utils import montage
 
 data = TinyImagenet()
 datagen = ImageDataGenerator(horizontal_flip=True)
-test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
+test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2], xy_fun=Y2X_Y2Y).next()
 montage(test_X[:, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
 montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
 

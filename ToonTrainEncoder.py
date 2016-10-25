@@ -7,7 +7,7 @@ from datasets import Imagenet
 from utils import montage
 
 batch_size = 64
-num_epochs = 2
+num_epochs = 4
 samples_per_epoch = 200000
 
 # Get the data-set object
@@ -15,7 +15,7 @@ data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-encoder, generator = Encoder(data.dims, load_weights=True, train=True)  #TODO: Remove load_weights later
+encoder, generator = Encoder(data.dims, load_weights=False, train=True, big_f=True)  #TODO: Remove load_weights later
 gen_name = '{}-{}'.format(generator.name, data.name)
 enc_name = '{}-{}'.format(encoder.name, data.name)
 print('Training network: {}'.format(enc_name))

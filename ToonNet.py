@@ -368,16 +368,15 @@ def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_
     input_gen = Input(shape=input_shape)
     decoded, _ = ToonGenerator(input_gen, big_f=big_f, outter=w_outter, num_res_layers=num_res)
     generator = Model(input_gen, decoded)
-    net_name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
+    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     generator.compile(loss='mse', optimizer=optimizer)
-    generator.name = net_name
     return generator
 
 
@@ -388,13 +387,13 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     decoded, encoded = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False)
     encoder = Model(input_gen, encoded)
     generator = Model(input_gen, decoded)
-    enc_name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
-    gen_name = make_name('EncGenTrain', big_f=big_f, num_res=num_res)
+    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
+    generator.name = make_name('EncGenTrain', big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name)))
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name)))
+        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
@@ -402,8 +401,6 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
         generator.compile(loss='mse', optimizer=optimizer)
     else:
         encoder.compile(loss='mse', optimizer=optimizer)
-    encoder.name = enc_name
-    generator.name = gen_name
     return encoder, generator
 
 
@@ -420,16 +417,15 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
     else:
         discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
-    net_name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
-    discriminator.name = net_name
     return discriminator
 
 
@@ -439,7 +435,7 @@ def GAN(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weig
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=w_outter)
     generator = Model(input_gen, gen_out)
-    gen_name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
+    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
 
     # Build Discriminator
     if withx:
@@ -452,12 +448,12 @@ def GAN(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weig
     else:
         discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
-    disc_name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name)))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Build GAN
     im_input = Input(shape=input_shape)
@@ -490,7 +486,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=w_outter)
     generator = Model(input_gen, gen_out)
-    gen_name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
+    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
 
     # Build Discriminator
     if withx:
@@ -500,20 +496,20 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res)
     discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
-    disc_name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
     _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res, outter=False)
     encoder = Model(input_encoder, output=encoder_out)
     make_trainable(encoder, False)
-    enc_name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
+    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name)))
-        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name)))
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
 
     # Build GAN
     im_input = Input(shape=input_shape)

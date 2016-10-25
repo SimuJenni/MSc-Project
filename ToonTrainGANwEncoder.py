@@ -18,11 +18,10 @@ def disc_data(X, Y, Yd):
     return Xd, yd
 
 
-batch_size = 32
-chunk_size = 128 * batch_size
+batch_size = 64
+chunk_size = 32 * batch_size
 nb_epoch = 1
 r_weight = 5.0
-layer = 4
 num_train = 200000
 
 # Get the data-set object
@@ -35,7 +34,7 @@ discriminator = Discriminator(data.dims, load_weights=True, train=True)
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
-net_specs = 'rw{}_l{}'.format(r_weight, layer)
+net_specs = 'rw{}'.format(r_weight)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 
@@ -54,23 +53,23 @@ X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size
 # Training
 print('Adversarial training...')
 loss_avg_rate = 0.5
-loss_target_ratio = 0.10
+loss_target_ratio = 0.1
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     chunk = 0
-    g_loss_avg = 6
-    d_loss_avg = 6
+    g_loss = None
+    d_loss = None
     for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size):
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         generator.load_weights(gen_weights)
 
-        # Construct data for discriminator training
-        Yd = generator.predict(X_train, batch_size=batch_size)
-        Xd_train, yd_train = disc_data(X_train, Y_train, Yd)
+        if not d_loss or d_loss > g_loss * loss_target_ratio:
+            # Construct data for discriminator training
+            Yd = generator.predict(X_train, batch_size=batch_size)
+            Xd_train, yd_train = disc_data(X_train, Y_train, Yd)
 
-        for i in range(2):
             # Train discriminator
             discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
 
@@ -84,17 +83,14 @@ for epoch in range(nb_epoch):
             d_loss_avg = loss_avg_rate * d_loss_avg + (1 - loss_avg_rate) * d_loss
             print('d-Loss-avg: {} d-Loss: {}'.format(d_loss_avg, d_loss))
 
-            if d_loss_avg < g_loss_avg * loss_target_ratio:
-                break
-
-        # Save the weights
-        discriminator.save_weights(disc_weights)
+            # Save the weights
+            discriminator.save_weights(disc_weights)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         disc_gan.load_weights(disc_weights)
 
-        for i in range(3):
+        for i in range(2):
             # Train generator
             Yg_train = encoder.predict(Y_train)
             yg_train = np.ones((len(Y_train), 1))
@@ -111,7 +107,7 @@ for epoch in range(nb_epoch):
             # Record and print loss
             losses["g"].append(g_loss)
             g_loss_avg = loss_avg_rate * g_loss_avg + (1 - loss_avg_rate) * g_loss
-            print('g-Loss-avg: {} g-Loss: {} r-Loss: {} e-Loss{}'.format(g_loss_avg, g_loss, r_loss, e_loss))
+            print('g-Loss-avg: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(g_loss_avg, g_loss, r_loss, e_loss))
 
             if g_loss_avg * loss_target_ratio < d_loss_avg:
                 break

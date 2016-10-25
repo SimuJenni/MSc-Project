@@ -187,7 +187,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, f_dims=F_DIMS):
 
     # Fully connected layer
     x = GlobalAveragePooling2D()(x)
-    x = Flatten()(x)
+    #x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)
     x = BatchNormalization(axis=1)(x)

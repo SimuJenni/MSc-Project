@@ -21,7 +21,7 @@ def disc_data(X, Y, Yd):
     return Xd, yd
 
 
-def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
+def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
     q = queue.Queue()
     _stop = threading.Event()
     threads = []

@@ -53,7 +53,7 @@ def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 10.0
+r_weight = 20.0
 e_weight = r_weight/100
 num_train = 200000
 num_res_g = 16
@@ -110,6 +110,8 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
+        load_disc = False
+
         if not d_loss or d_loss > g_loss * loss_target_ratio:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Reload the weights
@@ -120,12 +122,8 @@ for epoch in range(nb_epoch):
             Xd_train, yd_train = disc_data(X_train, Y_train, Yd)
 
             # Train discriminator
-            discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
-
-            # Test discriminator
-            Yd = generator.predict(X_test, batch_size=batch_size)
-            Xd_test, yd_test = disc_data(X_test, Y_test, Yd)
-            d_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
+            h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+            d_loss = h.history['loss']
 
             # Record and print loss
             losses["d"].append(d_loss)
@@ -133,33 +131,29 @@ for epoch in range(nb_epoch):
 
             # Save the weights
             discriminator.save_weights(disc_weights)
+            load_disc = True
             del Xd_train, yd_train, Yd
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
-        disc_gan.load_weights(disc_weights)
+        if load_disc:
+            disc_gan.load_weights(disc_weights)
 
-        for i in range(2):
-            # Train generator
-            Yg_train = encoder.predict(Y_train)
-            yg_train = np.ones((len(Y_train), 1))
-            h = gan.fit(x=X_train, y=[yg_train, Yg_train, Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        # Train generator
+        Yg_train = encoder.predict(Y_train)
+        yg_train = np.ones((len(Y_train), 1))
+        h = gan.fit(x=X_train, y=[yg_train, Yg_train, Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        t_loss = h.history['loss']
+        g_loss = h.history['{}_loss'.format(gan.output_names[0])]
+        e_loss = h.history['{}_loss'.format(gan.output_names[1])]
+        r_loss = h.history['{}_loss'.format(gan.output_names[2])]
 
-            # Test generator
-            Yg_test = encoder.predict(Y_test)
-            yg_test = np.ones((len(Y_test), 1))
-            res = gan.evaluate(X_test, [yg_test, Yg_test, Y_test], batch_size=batch_size, verbose=0)
-            t_loss = res[0]
-            g_loss = res[-3]
-            e_loss = res[-2]
-            r_loss = res[-1]
+        # Record and print loss
+        losses["g"].append(g_loss)
+        print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
-            # Record and print loss
-            losses["g"].append(g_loss)
-            print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
-
-            if g_loss * loss_target_ratio < d_loss:
-                break
+        if g_loss * loss_target_ratio < d_loss:
+            break
 
         # Save the weights
         gen_gan.save_weights(gen_weights)

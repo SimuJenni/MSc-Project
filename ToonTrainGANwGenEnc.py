@@ -8,7 +8,7 @@ import time
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, GANwEncoder, Encoder
+from ToonNet import Generator, Discriminator, GANwGen, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -66,19 +66,24 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
-gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight,
+gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight,
                                      num_res_g=num_res_g)
-encoder, _ = Encoder(data.dims, load_weights=True, train=False)
+encoder, _ = Encoder(data.dims, load_weights=False, train=False)
 
 net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
+enc_name = '{}_{}'.format(gen_enc.name, net_specs)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
+enc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name))
 generator.save_weights(gen_weights)
 discriminator.save_weights(disc_weights)
+gen_enc.save_weights(enc_name)
+enc_on_gan.load_weights(enc_name)
+encoder.load_weights(enc_name)
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -137,6 +142,8 @@ for epoch in range(nb_epoch):
         # Reload the weights
         if load_disc:
             disc_gan.load_weights(disc_weights)
+        encoder.load_weights(enc_name)
+        enc_on_gan.load_weights(enc_name)
 
         # Train generator
         Yg_train = encoder.predict(Y_train)
@@ -153,6 +160,7 @@ for epoch in range(nb_epoch):
 
         # Save the weights
         gen_gan.save_weights(gen_weights)
+        gen_enc.save_weights(enc_name)
 
         # Generate montage of test-images
         if not chunk % 10:

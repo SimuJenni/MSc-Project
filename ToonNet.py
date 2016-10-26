@@ -429,7 +429,7 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
     return discriminator
 
 
-def GAN(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, layer=None, withx=False, num_res=8):
+def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, layer=None, withx=False, num_res=8):
 
     # Build Generator
     input_gen = Input(shape=input_shape)
@@ -529,6 +529,58 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
                 loss_weights=[disc_weight, enc_weight, recon_weight],
                 optimizer=optimizer)
     return gan, generator, discriminator
+
+
+def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8, enc_weight=1.0):
+
+    # Build Generator
+    input_gen = Input(shape=input_shape)
+    gen_out, gen_enc_out = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    generator = Model(input_gen, gen_out)
+    gen_enc = Model(input_gen, gen_enc_out)
+    gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g)
+    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g)
+
+    # Build Discriminator
+    if withx:
+        input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
+    else:
+        input_disc = Input(shape=input_shape)
+    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d)
+    discriminator = Model(input_disc, output=dis_out)
+    make_trainable(discriminator, False)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d)
+
+    # Build Encoder
+    input_encoder = Input(shape=input_shape)
+    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    enc_on_gan = Model(input_encoder, output=encoder_out)
+    make_trainable(enc_on_gan, False)
+    enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Build GAN
+    im_input = Input(shape=input_shape)
+    im_recon = generator(im_input)
+    if withx:
+        disc_in = merge([im_input, im_recon], mode='concat')
+    else:
+        disc_in = im_recon
+    disc_out = discriminator(disc_in)
+    encoder_out = enc_on_gan(im_recon)
+    gan = Model(input=im_input, output=[disc_out, encoder_out, im_recon])
+
+    # Compile model
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    disc_weight = 1.0
+    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
+                loss_weights=[disc_weight, enc_weight, recon_weight],
+                optimizer=optimizer)
+    return gan, generator, discriminator, gen_enc, enc_on_gan
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None):

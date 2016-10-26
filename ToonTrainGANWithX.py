@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, GAN
+from ToonNet import Generator, Discriminator, GANwDisc
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
@@ -39,7 +39,7 @@ datagen = ImageDataGenerator()
 generator = Generator(data.dims, load_weights=True)
 discriminator = Discriminator(data.dims, load_weights=True, train=True, withx=True)
 disc_gentrain = Discriminator(data.dims, load_weights=True, train=False, layer=layer, withx=True)
-gan, gen_gan, disc_gan = GAN(data.dims, load_weights=True, recon_weight=r_weight, layer=layer, withx=True)
+gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight, layer=layer, withx=True)
 
 net_specs = 'rw{}_l{}'.format(r_weight, layer)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)

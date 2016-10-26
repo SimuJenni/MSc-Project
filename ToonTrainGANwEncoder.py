@@ -54,7 +54,7 @@ batch_size = 64
 chunk_size = 32 * batch_size
 num_chunks = 100
 nb_epoch = 4
-r_weight = 10.0
+r_weight = 20.0
 e_weight = r_weight/100
 num_train = num_chunks*chunk_size
 num_res_g = 16
@@ -168,6 +168,8 @@ for epoch in range(nb_epoch):
         sys.stdout.flush()
         del X_train, Y_train
         gc.collect()
+
+    _stop.set()
 
 disc_gan.save_weights(disc_weights)
 gen_gan.save_weights(gen_weights)

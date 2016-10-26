@@ -53,8 +53,8 @@ def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 5.0
-e_weight = 0.03
+r_weight = 10.0
+e_weight = r_weight/100
 num_train = 200000
 num_res_g = 16
 
@@ -149,13 +149,14 @@ for epoch in range(nb_epoch):
             Yg_test = encoder.predict(Y_test)
             yg_test = np.ones((len(Y_test), 1))
             res = gan.evaluate(X_test, [yg_test, Yg_test, Y_test], batch_size=batch_size, verbose=0)
-            g_loss = res[0]
-            e_loss = res[1]
-            r_loss = res[2]
+            t_loss = res[0]
+            g_loss = res[-3]
+            e_loss = res[-2]
+            r_loss = res[-1]
 
             # Record and print loss
             losses["g"].append(g_loss)
-            print('g-Loss: {} r-Loss: {} e-Loss: {}'.format(g_loss, r_loss, e_loss))
+            print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
             if g_loss * loss_target_ratio < d_loss:
                 break

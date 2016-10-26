@@ -52,10 +52,11 @@ def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
 
 batch_size = 64
 chunk_size = 32 * batch_size
-nb_epoch = 1
-r_weight = 20.0
+num_chunks = 100
+nb_epoch = 4
+r_weight = 10.0
 e_weight = r_weight/100
-num_train = 200000
+num_train = num_chunks*chunk_size
 num_res_g = 16
 
 # Get the data-set object
@@ -85,22 +86,20 @@ losses = {"d": [], "g": []}
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
 
-# Create queue for training data
-data_gen_queue, _stop, threads = generator_queue(
-    datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
-
 # Training
 print('Adversarial training: {}'.format(gen_name))
 
 loss_target_ratio = 0.1
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
-    chunk = 0
     g_loss = None
     d_loss = None
 
-    samples_seen = 0
-    while samples_seen < num_train:
+    # Create queue for training data
+    data_gen_queue, _stop, threads = generator_queue(
+        datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
+
+    for chunk in range(num_chunks):
 
         # Get next chunk of training data from queue
         while not _stop.is_set():
@@ -165,9 +164,6 @@ for epoch in range(nb_epoch):
             montage(np.concatenate(
                 (decoded_imgs[:18, :, :] * 0.5 + 0.5, X_test[:18] * 0.5 + 0.5)),
                 os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
-
-        chunk += 1
-        samples_seen += chunk_size
 
         sys.stdout.flush()
         del X_train, Y_train

@@ -1,6 +1,9 @@
+import Queue as queue
 import gc
 import os
 import sys
+import threading
+import time
 
 import numpy as np
 
@@ -9,9 +12,6 @@ from ToonNet import Generator, Discriminator, GANwEncoder, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
-import Queue as queue
-import threading
-import time
 
 
 def disc_data(X, Y, Yd):
@@ -65,7 +65,8 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=False, train=True)  # TODO: Maybe change to load_weights
-gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight, num_res_g=num_res_g)
+gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight,
+                                     num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
 net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
@@ -163,7 +164,7 @@ for epoch in range(nb_epoch):
         gen_gan.save_weights(gen_weights)
 
         # Generate montage of test-images
-        if not chunk % 5:
+        if not chunk % 10:
             generator.load_weights(gen_weights)
             decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
             montage(np.concatenate(

@@ -55,8 +55,8 @@ chunk_size = 64 * batch_size
 num_chunks = 100
 nb_epoch = 4
 r_weight = 50.0
-e_weight = r_weight/100
-num_train = num_chunks*chunk_size
+e_weight = r_weight / 100
+num_train = num_chunks * chunk_size
 num_res_g = 16
 
 # Get the data-set object
@@ -66,8 +66,9 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
-gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight,
-                                     num_res_g=num_res_g)
+gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
+                                                      enc_weight=e_weight,
+                                                      num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=False, train=False)
 
 # Load encoder weights
@@ -161,7 +162,8 @@ for epoch in range(nb_epoch):
         if not chunk % 10:
             generator.set_weights(gen_gan.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
-            montage(decoded_imgs * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
+            montage(decoded_imgs * 0.5 + 0.5,
+                    os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
 
         sys.stdout.flush()
         del X_train, Y_train

@@ -55,8 +55,8 @@ chunk_size = 64 * batch_size
 num_chunks = 100
 nb_epoch = 4
 r_weight = 50.0
-e_weight = r_weight/100
-num_train = num_chunks*chunk_size
+e_weight = r_weight / 100
+num_train = num_chunks * chunk_size
 num_res_g = 16
 
 # Get the data-set object
@@ -77,14 +77,13 @@ disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
-generator.save_weights(gen_weights)
-discriminator.save_weights(disc_weights)
 
 # Store losses
 losses = {"d": [], "g": []}
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
+montage(X_test * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
 
 # Training
 print('Adversarial training: {}'.format(gen_name))
@@ -114,7 +113,7 @@ for epoch in range(nb_epoch):
         if not d_loss or d_loss > g_loss * loss_target_ratio:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Reload the weights
-            generator.load_weights(gen_weights)
+            generator.set_weights(gen_gan.get_weights())
 
             # Construct data for discriminator training
             Yd = generator.predict(X_train, batch_size=batch_size)
@@ -128,15 +127,13 @@ for epoch in range(nb_epoch):
             losses["d"].append(d_loss)
             print('d-Loss: {}'.format(d_loss))
 
-            # Save the weights
-            discriminator.save_weights(disc_weights)
             load_disc = True
             del Xd_train, yd_train, Yd
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
         # Reload the weights
         if load_disc:
-            disc_gan.load_weights(disc_weights)
+            disc_gan.set_weights(discriminator.get_weights())
 
         # Train generator
         Yg_train = encoder.predict(Y_train)
@@ -151,22 +148,22 @@ for epoch in range(nb_epoch):
         losses["g"].append(g_loss)
         print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
-        # Save the weights
-        gen_gan.save_weights(gen_weights)
-
         # Generate montage of test-images
         if not chunk % 10:
-            generator.load_weights(gen_weights)
-            decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
-            montage(np.concatenate(
-                (decoded_imgs[:18, :, :] * 0.5 + 0.5, X_test[:18] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
+            generator.set_weights(gen_gan.get_weights())
+            decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
+            montage(decoded_imgs * 0.5 + 0.5,
+                    os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
 
         sys.stdout.flush()
         del X_train, Y_train
         gc.collect()
 
     _stop.set()
+
+    # Save the weights
+    gen_gan.save_weights(gen_weights)
+    discriminator.save_weights(disc_weights)
 
 disc_gan.save_weights(disc_weights)
 gen_gan.save_weights(gen_weights)

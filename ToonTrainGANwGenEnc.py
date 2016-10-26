@@ -90,7 +90,7 @@ losses = {"d": [], "g": []}
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
-montage(X_test * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
+montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
 
 # Training
 print('Adversarial training: {}'.format(gen_name))

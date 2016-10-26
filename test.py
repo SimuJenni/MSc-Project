@@ -13,9 +13,9 @@ gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=False)
 h = gan.fit(x=X_test, y=[np.ones((len(Y_test), 1)), np.zeros((2,4,4,512)), Y_test], nb_epoch=1, batch_size=2, verbose=0)
 print(h.history.keys())
 print(h.history)
-print(h.history['ToonGenerator_nr8_loss'])
+print(h.history['ToonGenerator_nr8_loss'][0])
 print(gan.output_names)
-print(h.history['{}_loss'.format(gan.output_names[0])])
+print(h.history['{}_loss'.format(gan.output_names[0])][0])
 
 print(h.history['%s_loss' % gan.output_names[0]])
 

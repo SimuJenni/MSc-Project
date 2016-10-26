@@ -122,7 +122,7 @@ for epoch in range(nb_epoch):
 
             # Train discriminator
             h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
-            d_loss = h.history['loss']
+            d_loss = h.history['loss'][0]
 
             # Record and print loss
             losses["d"].append(d_loss)
@@ -142,10 +142,10 @@ for epoch in range(nb_epoch):
         Yg_train = encoder.predict(Y_train)
         yg_train = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=[yg_train, Yg_train, Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
-        t_loss = h.history['loss']
-        g_loss = h.history['{}_loss'.format(gan.output_names[0])]
-        e_loss = h.history['{}_loss'.format(gan.output_names[1])]
-        r_loss = h.history['{}_loss'.format(gan.output_names[2])]
+        t_loss = h.history['loss'][0]
+        g_loss = h.history['{}_loss'.format(gan.output_names[0])][0]
+        e_loss = h.history['{}_loss'.format(gan.output_names[1])][0]
+        r_loss = h.history['{}_loss'.format(gan.output_names[2])][0]
 
         # Record and print loss
         losses["g"].append(g_loss)

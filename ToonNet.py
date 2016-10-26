@@ -480,30 +480,30 @@ def GAN(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weig
     return gan, generator, discriminator
 
 
-def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False, num_res=8):
+def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8):
 
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=w_outter)
+    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
     generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
+    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res_g)
 
     # Build Discriminator
     if withx:
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res)
+    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d)
     discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d)
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res, outter=False)
+    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
     encoder = Model(input_encoder, output=encoder_out)
     make_trainable(encoder, False)
-    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
+    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res_g)
 
     # Load weights
     if load_weights:

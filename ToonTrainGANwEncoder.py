@@ -25,6 +25,7 @@ def disc_data(X, Y, Yd):
 def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
     q = queue.Queue()
     _stop = threading.Event()
+    threads = []
     try:
         def data_generator_task():
             while not _stop.is_set():
@@ -40,19 +41,20 @@ def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
 
         for i in range(nb_worker):
             thread = threading.Thread(target=data_generator_task)
+            threads.append(thread)
             thread.daemon = True
             thread.start()
     except:
         _stop.set()
         raise
 
-    return q, _stop
+    return q, _stop, threads
 
 
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 40.0
+r_weight = 5.0
 num_train = 200000
 
 # Get the data-set object
@@ -82,7 +84,7 @@ losses = {"d": [], "g": []}
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
 
 # Create queue for training data
-data_gen_queue, _stop = generator_queue(
+data_gen_queue, _stop, threads = generator_queue(
     datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
 
 # Training

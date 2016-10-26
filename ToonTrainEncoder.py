@@ -15,7 +15,7 @@ data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-encoder, generator = Encoder(data.dims, load_weights=False, train=True, num_res=16)
+encoder, generator = Encoder(data.dims, load_weights=True, train=True, num_res=16)  # TODO: Undo reload
 gen_name = '{}-{}'.format(generator.name, data.name)
 enc_name = '{}-{}'.format(encoder.name, data.name)
 print('Training network: {}'.format(enc_name))

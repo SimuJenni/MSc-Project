@@ -51,10 +51,10 @@ def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
 
 
 batch_size = 64
-chunk_size = 32 * batch_size
+chunk_size = 64 * batch_size
 num_chunks = 100
 nb_epoch = 4
-r_weight = 20.0
+r_weight = 50.0
 e_weight = r_weight/100
 num_train = num_chunks*chunk_size
 num_res_g = 16

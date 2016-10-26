@@ -1,7 +1,6 @@
 import gc
 import os
 import sys
-import time
 
 import numpy as np
 
@@ -55,6 +54,7 @@ batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
 r_weight = 5.0
+e_weight = 1.0
 num_train = 200000
 
 # Get the data-set object
@@ -64,10 +64,10 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True)
 discriminator = Discriminator(data.dims, load_weights=False, train=True)  # TODO: Maybe change to load_weights
-gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight)
+gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight, num_res_g=16)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
-net_specs = 'rw{}'.format(r_weight)
+net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 

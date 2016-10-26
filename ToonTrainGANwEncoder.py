@@ -52,9 +52,9 @@ def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
 
 batch_size = 64
 chunk_size = 64 * batch_size
-num_chunks = 100
+num_chunks = 200
 nb_epoch = 4
-r_weight = 50.0
+r_weight = 25.0
 e_weight = r_weight / 100
 num_train = num_chunks * chunk_size
 num_res_g = 16
@@ -70,7 +70,7 @@ gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=
                                      num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
-net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
+net_specs = 'rw{}_ew{}_GANwE'.format(r_weight, e_weight)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 

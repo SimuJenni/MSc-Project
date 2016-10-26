@@ -5,11 +5,14 @@ import time
 
 import numpy as np
 
-from DataGenerator import ImageDataGenerator, generator_queue
+from DataGenerator import ImageDataGenerator
 from ToonNet import Generator, Discriminator, GANwEncoder, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
+import Queue as queue
+import threading
+import time
 
 
 def disc_data(X, Y, Yd):
@@ -19,10 +22,37 @@ def disc_data(X, Y, Yd):
     return Xd, yd
 
 
+def generator_queue(generator, max_q_size=2, wait_time=0.05, nb_worker=1):
+    q = queue.Queue()
+    _stop = threading.Event()
+    try:
+        def data_generator_task():
+            while not _stop.is_set():
+                try:
+                    if q.qsize() < max_q_size:
+                        generator_output = next(generator)
+                        q.put(generator_output)
+                    else:
+                        time.sleep(wait_time)
+                except Exception:
+                    _stop.set()
+                    raise
+
+        for i in range(nb_worker):
+            thread = threading.Thread(target=data_generator_task)
+            thread.daemon = True
+            thread.start()
+    except:
+        _stop.set()
+        raise
+
+    return q, _stop
+
+
 batch_size = 64
 chunk_size = 32 * batch_size
 nb_epoch = 1
-r_weight = 10.0
+r_weight = 40.0
 num_train = 200000
 
 # Get the data-set object

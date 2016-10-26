@@ -56,15 +56,16 @@ nb_epoch = 1
 r_weight = 5.0
 e_weight = 1.0
 num_train = 200000
+num_res_g = 16
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, load_weights=True)
+generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=False, train=True)  # TODO: Maybe change to load_weights
-gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight, num_res_g=16)
+gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight, num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)
 
 net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
@@ -88,8 +89,8 @@ data_gen_queue, _stop, threads = generator_queue(
     datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
 
 # Training
-print('Adversarial training...')
-loss_avg_rate = 0.5
+print('Adversarial training: {}'.format(gen_name))
+
 loss_target_ratio = 0.1
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))

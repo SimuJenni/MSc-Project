@@ -70,6 +70,10 @@ gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=Tr
                                      num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=False, train=False)
 
+# Load encoder weights
+enc_on_gan.set_weights(gen_enc.get_weights())
+encoder.set_weights(gen_enc.get_weights())
+
 net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
@@ -79,17 +83,13 @@ enc_name = '{}_{}'.format(gen_enc.name, net_specs)
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
 enc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name))
-generator.save_weights(gen_weights)
-discriminator.save_weights(disc_weights)
-gen_enc.save_weights(enc_name)
-enc_on_gan.load_weights(enc_name)
-encoder.load_weights(enc_name)
 
 # Store losses
 losses = {"d": [], "g": []}
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
+montage(X_test * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
 
 # Training
 print('Adversarial training: {}'.format(gen_name))
@@ -114,12 +114,12 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        load_disc = False
+        update_disc = False
 
         if not d_loss or d_loss > g_loss * loss_target_ratio:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            # Reload the weights
-            generator.load_weights(gen_weights)
+            # Update the weights
+            generator.set_weights(gen_gan.get_weights())
 
             # Construct data for discriminator training
             Yd = generator.predict(X_train, batch_size=batch_size)
@@ -133,17 +133,16 @@ for epoch in range(nb_epoch):
             losses["d"].append(d_loss)
             print('d-Loss: {}'.format(d_loss))
 
-            # Save the weights
-            discriminator.save_weights(disc_weights)
-            load_disc = True
+            update_disc = True
             del Xd_train, yd_train, Yd
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        # Reload the weights
-        if load_disc:
-            disc_gan.load_weights(disc_weights)
-        encoder.load_weights(enc_name)
-        enc_on_gan.load_weights(enc_name)
+
+        # Update the weights
+        if update_disc:
+            disc_gan.set_weights(discriminator.get_weights())
+        encoder.set_weights(gen_enc.get_weights())
+        enc_on_gan.set_weights(gen_enc.get_weights())
 
         # Train generator
         Yg_train = encoder.predict(Y_train)
@@ -158,17 +157,11 @@ for epoch in range(nb_epoch):
         losses["g"].append(g_loss)
         print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
-        # Save the weights
-        gen_gan.save_weights(gen_weights)
-        gen_enc.save_weights(enc_name)
-
         # Generate montage of test-images
         if not chunk % 10:
-            generator.load_weights(gen_weights)
-            decoded_imgs = generator.predict(X_test[:(2 * batch_size)], batch_size=batch_size)
-            montage(np.concatenate(
-                (decoded_imgs[:18, :, :] * 0.5 + 0.5, X_test[:18] * 0.5 + 0.5)),
-                os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
+            generator.set_weights(gen_gan.get_weights())
+            decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
+            montage(decoded_imgs * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
 
         sys.stdout.flush()
         del X_train, Y_train
@@ -176,5 +169,7 @@ for epoch in range(nb_epoch):
 
     _stop.set()
 
-disc_gan.save_weights(disc_weights)
-gen_gan.save_weights(gen_weights)
+    # Save the weights
+    disc_gan.save_weights(disc_name)
+    gen_gan.save_weights(gen_weights)
+    gen_enc.save_weights(enc_name)

@@ -64,7 +64,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
-discriminator = Discriminator(data.dims, load_weights=False, train=True)  # TODO: Maybe change to load_weights
+discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=True, recon_weight=r_weight, enc_weight=e_weight,
                                      num_res_g=num_res_g)
 encoder, _ = Encoder(data.dims, load_weights=True, train=False)

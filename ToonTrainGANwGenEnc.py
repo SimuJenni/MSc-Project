@@ -52,12 +52,13 @@ def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
 
 batch_size = 64
 chunk_size = 64 * batch_size
-num_chunks = 100
+num_chunks = 298
 nb_epoch = 4
-r_weight = 50.0
-e_weight = r_weight / 100
+r_weight = 20.0
+e_weight = r_weight / 10
 num_train = num_chunks * chunk_size
 num_res_g = 16
+layer = 3
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
@@ -67,15 +68,14 @@ datagen = ImageDataGenerator()
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
-                                                      enc_weight=e_weight,
-                                                      num_res_g=num_res_g)
-encoder, _ = Encoder(data.dims, load_weights=False, train=False)
+                                                      enc_weight=e_weight, num_res_g=num_res_g, layer=layer)
+encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer)
 
 # Load encoder weights
 enc_on_gan.set_weights(gen_enc.get_weights())
 encoder.set_weights(gen_enc.get_weights())
 
-net_specs = 'rw{}_ew{}'.format(r_weight, e_weight)
+net_specs = 'rw{}_ew{}_l{}'.format(r_weight, e_weight, layer)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 enc_name = '{}_{}'.format(gen_enc.name, net_specs)
@@ -95,7 +95,7 @@ montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.forma
 # Training
 print('Adversarial training: {}'.format(gen_name))
 
-loss_target_ratio = 0.1
+loss_target_ratio = 0.01
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     g_loss = None

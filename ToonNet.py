@@ -1,7 +1,8 @@
 import os
 
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, UpSampling2D, GlobalAveragePooling2D
+from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, UpSampling2D, \
+    GlobalAveragePooling2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
@@ -53,53 +54,54 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
     # Layer 1
     with tf.name_scope('conv_1'):
         x = conv_relu(in_layer, f_size=3, f_channels=32, stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', bn_mode=bn_mode)
+        l1 = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', bn_mode=bn_mode)
         if outter:
-            l1 = outter_connection(x, f_dims[0])
+            ol1 = outter_connection(l1, f_dims[0])
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_relu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        l2 = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', bn_mode=bn_mode)
         if outter:
-            l2 = outter_connection(x, f_dims[1])
+            ol2 = outter_connection(l2, f_dims[1])
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_relu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        l3 = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', bn_mode=bn_mode)
         if outter:
-            l3 = outter_connection(x, f_dims[2])
+            ol3 = outter_connection(l3, f_dims[2])
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_relu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        l4 = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', bn_mode=bn_mode)
         if outter:
-            l4 = outter_connection(x, f_dims[3])
+            ol4 = outter_connection(l4, f_dims[3])
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_relu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same', bn_mode=bn_mode)
         if outter:
-            l5 = outter_connection(x, f_dims[4])
+            ol5 = outter_connection(x, f_dims[4])
 
-    encoded = x
+    l5 = x
+    layers = [l1, l2, l3, l4, l5]
 
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[4], f_dims[1], bn_mode=bn_mode, lightweight=True)
     if outter:
-        x = merge([x, l5], mode='sum')
+        x = merge([x, ol5], mode='sum')
 
     # Layer 6
     with tf.name_scope('deconv_1'):
         x = UpSampling2D()(x)
         x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
         if outter:
-            x = merge([x, l4], mode='sum')
+            x = merge([x, ol4], mode='sum')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 7
@@ -107,7 +109,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
         x = UpSampling2D()(x)
         x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
         if outter:
-            x = merge([x, l3], mode='sum')
+            x = merge([x, ol3], mode='sum')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 8
@@ -115,7 +117,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
         x = UpSampling2D()(x)
         x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
         if outter:
-            x = merge([x, l2], mode='sum')
+            x = merge([x, ol2], mode='sum')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 9
@@ -123,7 +125,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
         x = UpSampling2D()(x)
         x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
         if outter:
-            x = merge([x, l1], mode='sum')
+            x = merge([x, ol1], mode='sum')
         x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
 
     # Layer 10
@@ -133,7 +135,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
-    return decoded, encoded
+    return decoded, layers
 
 
 def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False):
@@ -196,8 +198,8 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False):
             x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
 
     # Fully connected layer
-    x = GlobalAveragePooling2D()(x) # Maybe not a good idea?
-    #x = Flatten()(x)
+    x = GlobalAveragePooling2D()(x)  # Maybe not a good idea?
+    # x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = lrelu(x)
     x = BatchNormalization(axis=1)(x)
@@ -363,7 +365,6 @@ def lrelu(x, alpha=0.2):
 
 
 def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8):
-
     # Build the model
     input_gen = Input(shape=input_shape)
     decoded, _ = ToonGenerator(input_gen, big_f=big_f, outter=w_outter, num_res_layers=num_res)
@@ -375,28 +376,26 @@ def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
 
     # Compile
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     generator.compile(loss='mse', optimizer=optimizer)
     return generator
 
 
-def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8):
-
+def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8, layer=5):
     # Build encoder and generator
     input_gen = Input(shape=input_shape)
-    decoded, encoded = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False)
-    encoder = Model(input_gen, encoded)
+    decoded, enc_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False)
+    encoder = Model(input_gen, enc_layers[layer - 1])
     generator = Model(input_gen, decoded)
     encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
     generator.name = make_name('EncGenTrain', big_f=big_f, num_res=num_res)
 
     # Load weights
     if load_weights:
-        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
 
     # Compile
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     if train:
         generator.compile(loss='mse', optimizer=optimizer)
     else:
@@ -405,7 +404,6 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
 
 
 def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8):
-
     # Build the model
     if withx:
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
@@ -424,13 +422,13 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Compile
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     return discriminator
 
 
-def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, layer=None, withx=False, num_res=8):
-
+def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, layer=None, withx=False,
+             num_res=8):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=w_outter)
@@ -466,7 +464,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon
     gan = Model(input=im_input, output=disc_out + [im_recon])
 
     # Compile the model
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     if layer:
         gan.compile(loss=['mse', 'binary_crossentropy', 'mse'],
@@ -480,12 +478,13 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon
     return gan, generator, discriminator
 
 
-def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8, enc_weight=1.0):
-
+def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False,
+                num_res_g=8, num_res_d=8, enc_weight=1.0, layer=5):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
+    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
     generator = Model(input_gen, gen_out)
+    gen_enc = Model(input_gen, gen_layers[layer - 1])
     generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res_g)
 
     # Build Discriminator
@@ -500,8 +499,8 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
-    encoder = Model(input_encoder, output=encoder_out)
+    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    encoder = Model(input_encoder, output=enc_layers[layer - 1])
     make_trainable(encoder, False)
     encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res_g)
 
@@ -509,7 +508,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
-        encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
+        encoder.set_weights(gen_enc.get_weights())
 
     # Build GAN
     im_input = Input(shape=input_shape)
@@ -519,11 +518,11 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     else:
         disc_in = im_recon
     disc_out = discriminator(disc_in)
-    encoder_out = encoder(im_recon)
-    gan = Model(input=im_input, output=[disc_out, encoder_out, im_recon])
+    enc_out = encoder(im_recon)
+    gan = Model(input=im_input, output=[disc_out, enc_out, im_recon])
 
     # Compile model
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
                 loss_weights=[disc_weight, enc_weight, recon_weight],
@@ -531,13 +530,13 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     return gan, generator, discriminator
 
 
-def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8, enc_weight=1.0):
-
+def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
+            enc_weight=1.0, layer=5):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, gen_enc_out = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=False)
     generator = Model(input_gen, gen_out)
-    gen_enc = Model(input_gen, gen_enc_out)
+    gen_enc = Model(input_gen, gen_layers[layer - 1])
     gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g)
     generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g)
 
@@ -553,8 +552,8 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, encoder_out = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
-    enc_on_gan = Model(input_encoder, output=encoder_out)
+    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    enc_on_gan = Model(input_encoder, output=enc_layers[layer - 1])
     make_trainable(enc_on_gan, False)
     enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g)
 
@@ -562,6 +561,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     if load_weights:
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+        enc_on_gan.set_weights(gen_enc.get_weights())
 
     # Build GAN
     im_input = Input(shape=input_shape)
@@ -571,11 +571,11 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     else:
         disc_in = im_recon
     disc_out = discriminator(disc_in)
-    encoder_out = enc_on_gan(im_recon)
-    gan = Model(input=im_input, output=[disc_out, encoder_out, im_recon])
+    encoded = enc_on_gan(im_recon)
+    gan = Model(input=im_input, output=[disc_out, encoded, im_recon])
 
     # Compile model
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
                 loss_weights=[disc_weight, enc_weight, recon_weight],

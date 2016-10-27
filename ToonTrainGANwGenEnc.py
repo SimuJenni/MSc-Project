@@ -120,7 +120,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or d_loss > g_loss * loss_target_ratio or d_loss < dl_thresh:
+        if not d_loss or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())

@@ -54,12 +54,12 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 10.0
+r_weight = 20.0
 e_weight = r_weight / 10
-loss_target_ratio = 0.01
+loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
-layer = 3
+layer = 2
 learning_rate = 0.0001
 
 # Get the data-set object
@@ -172,9 +172,9 @@ for epoch in range(nb_epoch):
         del X_train, Y_train
         gc.collect()
 
-    _stop.set()
-
     # Save the weights
     disc_gan.save_weights(disc_name)
     gen_gan.save_weights(gen_weights)
     gen_enc.save_weights(enc_name)
+
+    _stop.set()

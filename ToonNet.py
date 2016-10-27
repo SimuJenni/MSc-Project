@@ -479,7 +479,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon
 
 
 def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False,
-                num_res_g=8, num_res_d=8, enc_weight=1.0, layer=5):
+                num_res_g=8, num_res_d=8, enc_weight=1.0, layer=5, learning_rate=0.0002):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
@@ -522,7 +522,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
     gan = Model(input=im_input, output=[disc_out, enc_out, im_recon])
 
     # Compile model
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
                 loss_weights=[disc_weight, enc_weight, recon_weight],
@@ -531,7 +531,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
 
 
 def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layer=5):
+            enc_weight=1.0, layer=5, learning_rate=0.0002):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=False)
@@ -575,7 +575,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     gan = Model(input=im_input, output=[disc_out, encoded, im_recon])
 
     # Compile model
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     disc_weight = 1.0
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
                 loss_weights=[disc_weight, enc_weight, recon_weight],

@@ -12,6 +12,7 @@ from ToonNet import Generator, Discriminator, GANwGen, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
+import keras.backend as K
 
 
 def disc_data(X, Y, Yd):
@@ -60,6 +61,7 @@ loss_target_ratio = 0.01
 num_train = num_chunks * chunk_size
 num_res_g = 16
 layer = 3
+learning_rate = 0.0001
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
@@ -69,7 +71,8 @@ datagen = ImageDataGenerator()
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
-                                                      enc_weight=e_weight, num_res_g=num_res_g, layer=layer)
+                                                      enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
+                                                      learning_rate=learning_rate)
 encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer)
 
 # Load encoder weights
@@ -97,6 +100,7 @@ montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.forma
 print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
+dl_thresh = -K.log(0.5)
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -117,7 +121,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or d_loss > g_loss * loss_target_ratio:
+        if not d_loss or d_loss > g_loss * loss_target_ratio or d_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())

@@ -12,7 +12,6 @@ from ToonNet import Generator, Discriminator, GANwGen, Encoder
 from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
-import keras.backend as K
 
 
 def disc_data(X, Y, Yd):
@@ -100,7 +99,7 @@ montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.forma
 print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
-dl_thresh = -K.log(0.5)
+dl_thresh = -np.log(0.5)
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))

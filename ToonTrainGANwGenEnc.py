@@ -54,8 +54,9 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 20.0
+r_weight = 50.0
 e_weight = r_weight / 10
+loss_target_ratio = 0.01
 num_train = num_chunks * chunk_size
 num_res_g = 16
 layer = 3
@@ -75,7 +76,7 @@ encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer)
 enc_on_gan.set_weights(gen_enc.get_weights())
 encoder.set_weights(gen_enc.get_weights())
 
-net_specs = 'rw{}_ew{}_l{}'.format(r_weight, e_weight, layer)
+net_specs = 'rw{}_ew{}_l{}_ltr{}'.format(r_weight, e_weight, layer, loss_target_ratio)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
 disc_name = '{}_{}'.format(disc_gan.name, net_specs)
 enc_name = '{}_{}'.format(gen_enc.name, net_specs)
@@ -94,12 +95,11 @@ montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.forma
 
 # Training
 print('Adversarial training: {}'.format(gen_name))
+g_loss = None
+d_loss = None
 
-loss_target_ratio = 0.01
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
-    g_loss = None
-    d_loss = None
 
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(

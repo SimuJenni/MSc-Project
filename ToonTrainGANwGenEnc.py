@@ -68,7 +68,7 @@ data = Imagenet(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, load_weights=True, num_res=num_res_g)
+generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=True)
 discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
                                                       enc_weight=e_weight, num_res_g=num_res_g, layer=layer,

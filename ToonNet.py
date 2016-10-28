@@ -531,14 +531,14 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
 
 
 def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layer=5, learning_rate=0.0002):
+            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
     generator = Model(input_gen, gen_out)
     gen_enc = Model(input_gen, gen_layers[layer - 1])
-    gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g)
-    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g)
+    gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
+    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
 
     # Build Discriminator
     if withx:
@@ -552,10 +552,10 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
+    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
     enc_on_gan = Model(input_encoder, output=enc_layers[layer - 1])
     make_trainable(enc_on_gan, False)
-    enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g)
+    enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
 
     # Load weights
     if load_weights:

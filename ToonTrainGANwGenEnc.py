@@ -54,12 +54,12 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 20.0
-e_weight = r_weight / 2.0
+r_weight = 50.0
+e_weight = r_weight / 5.0
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
-num_res_g = 16
-layer = 4
+num_res_g = 24
+layer = 5
 learning_rate = 0.0001
 w_outter = True
 
@@ -68,11 +68,11 @@ data = Imagenet(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=True)
-discriminator = Discriminator(data.dims, load_weights=True, train=True)  # TODO: Maybe change to load_weights
+generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter)
+discriminator = Discriminator(data.dims, load_weights=True, train=True)
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
                                                       enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
-                                                      learning_rate=learning_rate)
+                                                      learning_rate=learning_rate, w_outter=w_outter)
 encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer)
 
 # Load encoder weights

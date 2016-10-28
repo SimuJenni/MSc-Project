@@ -54,12 +54,12 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 10.0
+r_weight = 30.0
 e_weight = r_weight / 10
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
-layer = 2
+layer = 5
 learning_rate = 0.0001
 w_outter = True
 

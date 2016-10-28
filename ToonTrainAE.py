@@ -7,7 +7,7 @@ from datasets import Imagenet
 from utils import montage
 
 batch_size = 64
-nb_epoch = 2
+nb_epoch = 4
 samples_per_epoch = 200000
 
 # Get the data-set object
@@ -15,7 +15,7 @@ data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, load_weights=False, num_res=16, w_outter=True) # TODO: Change back again?
+generator = Generator(input_shape=data.dims, load_weights=False, num_res=24, w_outter=False) # TODO: Change back again?
 generator.summary()
 
 # Name used for saving of model and outputs

@@ -73,7 +73,7 @@ discriminator = Discriminator(data.dims, load_weights=True, train=True)
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
                                                       enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
                                                       learning_rate=learning_rate, w_outter=w_outter)
-encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer)
+encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer, num_res=num_res_g)
 
 # Load encoder weights
 enc_on_gan.set_weights(gen_enc.get_weights())

@@ -54,14 +54,14 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 1.0
-e_weight = 1.0
+r_weight = 20.0
+e_weight = 10.0
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
-num_res_g = 24
+num_res_g = 16
 layer = 5
 learning_rate = 0.0001
-w_outter = True
+w_outter = False
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))

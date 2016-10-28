@@ -89,13 +89,6 @@ gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
 enc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name))
 
-# TODO: Remove after debugging
-print(enc_on_gan.get_weights()[0]-encoder.get_weights()[0])
-print(disc_gan.get_weights()[0]-discriminator.get_weights()[0])
-discriminator.save_weights(disc_name)
-gen_gan.save_weights(gen_weights)
-encoder.save_weights(enc_name)
-
 # Store losses
 losses = {"d": [], "g": []}
 
@@ -181,7 +174,7 @@ for epoch in range(nb_epoch):
         gc.collect()
 
     # Save the weights
-    discriminator.save_weights(disc_name)
+    discriminator.save_weights(disc_weights)
     gen_gan.save_weights(gen_weights)
 
     _stop.set()

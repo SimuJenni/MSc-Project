@@ -15,7 +15,7 @@ data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, load_weights=False, num_res=24, w_outter=True) # TODO: Change back again?
+generator = Generator(input_shape=data.dims, load_weights=False, num_res=24, w_outter=False) # TODO: Change back again?
 generator.summary()
 
 # Name used for saving of model and outputs

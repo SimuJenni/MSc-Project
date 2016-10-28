@@ -54,7 +54,7 @@ batch_size = 64
 chunk_size = 64 * batch_size
 num_chunks = 298
 nb_epoch = 4
-r_weight = 50.0
+r_weight = 40.0
 e_weight = 10.0
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
@@ -88,6 +88,13 @@ enc_name = '{}_{}'.format(gen_enc.name, net_specs)
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gen_name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc_name))
 enc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(enc_name))
+
+# TODO: Remove after debugging
+print(enc_on_gan.get_weights()[0]-encoder.get_weights()[0])
+print(disc_gan.get_weights()[0]-discriminator.get_weights()[0])
+discriminator.save_weights(disc_name)
+gen_gan.save_weights(gen_weights)
+encoder.save_weights(enc_name)
 
 # Store losses
 losses = {"d": [], "g": []}
@@ -174,8 +181,7 @@ for epoch in range(nb_epoch):
         gc.collect()
 
     # Save the weights
-    disc_gan.save_weights(disc_name)
+    discriminator.save_weights(disc_name)
     gen_gan.save_weights(gen_weights)
-    gen_enc.save_weights(enc_name)
 
     _stop.set()

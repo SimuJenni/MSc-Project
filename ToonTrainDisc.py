@@ -28,7 +28,7 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
 
 
 batch_size = 64
-chunk_size = 50 * batch_size
+chunk_size = 32 * batch_size
 num_train = 200000
 num_res_g = 16
 disc_with_x = True

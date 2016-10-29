@@ -13,17 +13,34 @@ def compute_accuracy(y_hat, y):
     return 1.0 - np.mean(np.abs(np.round(y_hat) - y))
 
 
+def disc_data(X, Y, Yd, p_wise=False, with_x=False):
+    if with_x:
+        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
+    else:
+        Xd = np.concatenate((Y, Yd))
+
+    if p_wise:
+        yd = np.stack([np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))], axis=0)
+    else:
+        yd = np.zeros((len(Y) + len(Yd), 1))
+        yd[:len(Y)] = 1
+    return Xd, yd
+
+
 batch_size = 64
 chunk_size = 50 * batch_size
 num_train = 200000
+num_res_g = 16
+disc_with_x = True
+p_wise = True
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
-generator = Generator(data.dims, load_weights=True, w_outter=False)
-discriminator = Discriminator(data.dims, load_weights=False, train=True)
+generator = Generator(data.dims, load_weights=True, w_outter=False, num_res=num_res_g)
+discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise)
 discriminator.summary()
 
 # Name used for saving of model and outputs
@@ -33,9 +50,7 @@ print('Training network: {}'.format(net_name))
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size).next()
 Y_pred = generator.predict(X_test, batch_size=batch_size)
-X_test = np.concatenate((Y_test, Y_pred))
-y_test = np.zeros((len(Y_test) + len(Y_pred), 1))
-y_test[:len(Y_test)] = 1
+Xd_test, yd_test = disc_data(X_test, Y_test, Y_pred, p_wise=p_wise, with_x=disc_with_x)
 
 training_done = False
 while not training_done:
@@ -43,21 +58,19 @@ while not training_done:
                                                         target_size=data.target_size):
         # Prepare training data
         Y_pred = generator.predict(X_train, batch_size=batch_size)
-        X = np.concatenate((Y_train, Y_pred))
-        y = np.zeros((len(Y_train) + len(Y_pred), 1))
-        y[:len(Y_train)] = 1
+        Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=p_wise, with_x=disc_with_x)
 
         # Train discriminator
-        discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
-        train_loss = discriminator.evaluate(X, y, batch_size=batch_size, verbose=0)
-        test_loss = discriminator.evaluate(X_test, y_test, batch_size=batch_size, verbose=0)
+        discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+        train_loss = discriminator.evaluate(Xd_train, yd_train, batch_size=batch_size, verbose=0)
+        test_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
         print('Test-Loss: %0.02f Train-Loss: %0.02f' % (test_loss, train_loss))
 
         # Compute Accuracy
-        y_hat = discriminator.predict(X_test)
-        acc_test = compute_accuracy(y_hat, y_test)
-        y_hat = discriminator.predict(X)
-        acc_train = compute_accuracy(y_hat, y)
+        y_hat = discriminator.predict(Xd_test)
+        acc_test = compute_accuracy(y_hat, yd_test)
+        y_hat = discriminator.predict(Xd_train)
+        acc_train = compute_accuracy(y_hat, yd_train)
         print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
         sys.stdout.flush()
 

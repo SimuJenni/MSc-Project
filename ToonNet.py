@@ -138,7 +138,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
     return decoded, layers
 
 
-def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False):
+def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -197,15 +197,17 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
 
-    # Fully connected layer
-    x = GlobalAveragePooling2D()(x)  # Maybe not a good idea?
-    # x = Flatten()(x)
-    x = Dense(2048, init='he_normal')(x)
-    x = lrelu(x)
-    x = BatchNormalization(axis=1)(x)
-    layer_activations.append(x)
-    x = Dense(1, init='he_normal')(x)
-    x = Activation('sigmoid')(x)
+    if p_wise_out:
+        x = Convolution2D(1, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
+    else:
+        # Fully connected layer
+        x = GlobalAveragePooling2D()(x)
+        x = Dense(2048, init='he_normal')(x)
+        x = lrelu(x)
+        x = BatchNormalization(axis=1)(x)
+        layer_activations.append(x)
+        x = Dense(1, init='he_normal')(x)
+        x = Activation('sigmoid')(x)
 
     return x, layer_activations
 
@@ -403,19 +405,19 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     return encoder, generator
 
 
-def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8):
+def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8, p_wise_out=False):
     # Build the model
     if withx:
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res)
+    dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res, p_wise_out=p_wise_out)
     if layer:
         discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
     else:
         discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res, p_wise_out=p_wise_out)
 
     # Load weights
     if load_weights:
@@ -531,7 +533,7 @@ def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, re
 
 
 def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False):
+            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False, p_wise_out=False):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
@@ -545,10 +547,10 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d)
+    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
     discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d, p_wise_out=p_wise_out)
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
@@ -583,7 +585,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     return gan, generator, discriminator, gen_enc, enc_on_gan
 
 
-def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None):
+def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -594,6 +596,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_bigF".format(net_name)
     if num_res:
         net_name = "{}_nr{}".format(net_name, num_res)
+    if p_wise_out:
+        net_name = "{}_pwo".format(net_name)
     return net_name
 
 

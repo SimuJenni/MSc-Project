@@ -14,10 +14,14 @@ from datasets import Imagenet
 from utils import montage
 
 
-def disc_data(X, Y, Yd):
+def disc_data(X, Y, Yd, p_wise=False):
     Xd = np.concatenate((Y, Yd))
-    yd = np.zeros((len(Y) + len(Yd), 1))
-    yd[:len(Y)] = 1
+
+    if p_wise:
+        yd = np.stack([np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))], axis=0)
+    else:
+        yd = np.zeros((len(Y) + len(Yd), 1))
+        yd[:len(Y)] = 1
     return Xd, yd
 
 
@@ -62,6 +66,7 @@ num_res_g = 16
 layer = 5
 learning_rate = 0.0001
 w_outter = False
+p_wise_disc = True
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
@@ -69,7 +74,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter)
-discriminator = Discriminator(data.dims, load_weights=True, train=True)
+discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=True)
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
                                                       enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
                                                       learning_rate=learning_rate, w_outter=w_outter)

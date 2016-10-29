@@ -1,5 +1,6 @@
 import os
 import sys
+import gc
 
 import numpy as np
 
@@ -52,31 +53,32 @@ X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_si
 Y_pred = generator.predict(X_test, batch_size=batch_size)
 Xd_test, yd_test = disc_data(X_test, Y_test, Y_pred, p_wise=p_wise, with_x=disc_with_x)
 
-training_done = False
-while not training_done:
-    for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
-                                                        target_size=data.target_size):
-        # Prepare training data
-        Y_pred = generator.predict(X_train, batch_size=batch_size)
-        Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=p_wise, with_x=disc_with_x)
+for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
+                                                    target_size=data.target_size):
+    # Prepare training data
+    Y_pred = generator.predict(X_train, batch_size=batch_size)
+    Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=p_wise, with_x=disc_with_x)
 
-        # Train discriminator
-        discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
-        train_loss = discriminator.evaluate(Xd_train, yd_train, batch_size=batch_size, verbose=0)
-        test_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
-        print('Test-Loss: %0.02f Train-Loss: %0.02f' % (test_loss, train_loss))
+    # Train discriminator
+    discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+    train_loss = discriminator.evaluate(Xd_train, yd_train, batch_size=batch_size, verbose=0)
+    test_loss = discriminator.evaluate(Xd_test, yd_test, batch_size=batch_size, verbose=0)
+    print('Test-Loss: %0.02f Train-Loss: %0.02f' % (test_loss, train_loss))
 
-        # Compute Accuracy
-        y_hat = discriminator.predict(Xd_test)
-        acc_test = compute_accuracy(y_hat, yd_test)
-        y_hat = discriminator.predict(Xd_train)
-        acc_train = compute_accuracy(y_hat, yd_train)
-        print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
-        sys.stdout.flush()
+    # Compute Accuracy
+    y_hat = discriminator.predict(Xd_test)
+    acc_test = compute_accuracy(y_hat, yd_test)
+    y_hat = discriminator.predict(Xd_train)
+    acc_train = compute_accuracy(y_hat, yd_train)
+    print("Test-Accuracy: %0.02f Train-Accuracy: %0.02f" % (acc_test, acc_train))
+    sys.stdout.flush()
 
-        # Check if training can be stopped
-        if test_loss == 0.0 or acc_test == 1.0:
-            training_done = True
-            break
+    # Check if training can be stopped
+    if test_loss == 0.0 or acc_test == 1.0:
+        training_done = True
+        break
+
+    del Y_pred, X_train, Y_train, Xd_train, yd_train
+    gc.collect()
 
 discriminator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

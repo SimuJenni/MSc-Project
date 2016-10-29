@@ -20,7 +20,7 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
         Xd = np.concatenate((Y, Yd))
 
     if p_wise:
-        yd = np.stack([np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))], axis=0)
+        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
     else:
         yd = np.zeros((len(Y) + len(Yd), 1))
         yd[:len(Y)] = 1

@@ -162,7 +162,10 @@ for epoch in range(nb_epoch):
 
         # Train generator
         Yg_train = encoder.predict(Y_train)
-        yg_train = np.ones((len(Y_train), 1))
+        if p_wise_disc:
+            yg_train = np.ones((len(Y_train), 4, 4, 1))
+        else:
+            yg_train = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=[yg_train, Yg_train, Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         g_loss = h.history['{}_loss'.format(gan.output_names[0])][0]

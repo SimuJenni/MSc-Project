@@ -14,11 +14,14 @@ from datasets import Imagenet
 from utils import montage
 
 
-def disc_data(X, Y, Yd, p_wise=False):
-    Xd = np.concatenate((Y, Yd))
+def disc_data(X, Y, Yd, p_wise=False, with_x=False):
+    if with_x:
+        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
+    else:
+        Xd = np.concatenate((Y, Yd))
 
     if p_wise:
-        yd = np.stack([np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))], axis=0)
+        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
     else:
         yd = np.zeros((len(Y) + len(Yd), 1))
         yd[:len(Y)] = 1
@@ -67,6 +70,8 @@ layer = 5
 learning_rate = 0.0001
 w_outter = False
 p_wise_disc = True
+disc_with_x = True
+
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))
@@ -74,10 +79,11 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter)
-discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=True)
+discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x)
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
                                                       enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
-                                                      learning_rate=learning_rate, w_outter=w_outter)
+                                                      learning_rate=learning_rate, w_outter=w_outter, withx=disc_with_x,
+                                                      p_wise_out=p_wise_disc)
 encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer, num_res=num_res_g)
 
 # Load encoder weights
@@ -133,7 +139,7 @@ for epoch in range(nb_epoch):
 
             # Construct data for discriminator training
             Yd = generator.predict(X_train, batch_size=batch_size)
-            Xd_train, yd_train = disc_data(X_train, Y_train, Yd)
+            Xd_train, yd_train = disc_data(X_train, Y_train, Yd, p_wise=p_wise_disc, with_x=disc_with_x)
 
             # Train discriminator
             h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)

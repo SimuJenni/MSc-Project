@@ -15,7 +15,7 @@ data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, load_weights=False, num_res=8, w_outter=False, big_f=True) # TODO: Change back again?
+generator = Generator(input_shape=data.dims, load_weights=False, num_res=16, w_outter=False, activation='lrelu')
 generator.summary()
 
 # Name used for saving of model and outputs
@@ -29,7 +29,8 @@ history = generator.fit_generator(
     nb_epoch=nb_epoch,
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=20000,
-    nb_worker=2)
+    nb_worker=2,
+    pickle_safe=True)
 
 # Save the model
 generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

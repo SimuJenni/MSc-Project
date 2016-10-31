@@ -13,7 +13,7 @@ F_DIMS = [64, 96, 160, 256, 512]
 BF_DIMS = [64, 128, 256, 512, 1024]
 
 
-def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False, outter=True, bn_mode=0):
+def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False, outter=False, activation='relu'):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -53,36 +53,36 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_relu(in_layer, f_size=3, f_channels=32, stride=1, border='same')
-        l1 = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_act(in_layer, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
+        l1 = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', activation=activation)
         if outter:
             ol1 = outter_connection(l1, f_dims[0])
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_relu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
-        l2 = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_act(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        l2 = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', activation=activation)
         if outter:
             ol2 = outter_connection(l2, f_dims[1])
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_relu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same')
-        l3 = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_act(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
+        l3 = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', activation=activation)
         if outter:
             ol3 = outter_connection(l3, f_dims[2])
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_relu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same')
-        l4 = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_act(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
+        l4 = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', activation=activation)
         if outter:
             ol4 = outter_connection(l4, f_dims[3])
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_relu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same', bn_mode=bn_mode)
+        x = conv_act(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
+        x = conv_act_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same', activation=activation)
         if outter:
             ol5 = outter_connection(x, f_dims[4])
 
@@ -92,53 +92,53 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[4], f_dims[1], bn_mode=bn_mode, lightweight=True)
+            x = res_layer_bottleneck(x, f_dims[4], f_dims[1], activation=activation, lightweight=True)
     if outter:
         x = merge([x, ol5], mode='sum')
 
     # Layer 6
     with tf.name_scope('deconv_1'):
         x = UpSampling2D()(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[3], stride=1, border='same')
+        x = conv_act(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
         if outter:
             x = merge([x, ol4], mode='sum')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
 
     # Layer 7
     with tf.name_scope('deconv_2'):
         x = UpSampling2D()(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[2], stride=1, border='same')
+        x = conv_act(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
         if outter:
             x = merge([x, ol3], mode='sum')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
 
     # Layer 8
     with tf.name_scope('deconv_3'):
         x = UpSampling2D()(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[1], stride=1, border='same')
+        x = conv_act(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
         if outter:
             x = merge([x, ol2], mode='sum')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
 
     # Layer 9
     with tf.name_scope('deconv_4'):
         x = UpSampling2D()(x)
-        x = conv_relu(x, f_size=3, f_channels=f_dims[0], stride=1, border='same')
+        x = conv_act(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
         if outter:
             x = merge([x, ol1], mode='sum')
-        x = conv_relu_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', bn_mode=bn_mode)
+        x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     # Layer 10
     with tf.name_scope('deconv_5'):
         x = UpSampling2D()(x)
-        x = conv_relu(x, f_size=3, f_channels=32, stride=1, border='same')
+        x = conv_act(x, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
     return decoded, layers
 
 
-def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False):
+def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False, activation='lrelu'):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -166,28 +166,28 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False)
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_lrelu(in_layer, f_size=3, f_channels=32, stride=1, border='same')
-        l1 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same')
+        x = conv_act(in_layer, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
+        l1 = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', activation=activation)
 
     # Layer 2
     with tf.name_scope('conv_2'):
-        x = conv_lrelu(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
-        l2 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same')
+        x = conv_act(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+        l2 = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', activation=activation)
 
     # Layer 3
     with tf.name_scope('conv_3'):
-        x = conv_lrelu(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same')
-        l3 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same')
+        x = conv_act(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
+        l3 = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', activation=activation)
 
     # Layer 4
     with tf.name_scope('conv_4'):
-        x = conv_lrelu(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same')
-        l4 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same')
+        x = conv_act(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
+        l4 = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', activation=activation)
 
     # Layer 5
     with tf.name_scope('conv_5'):
-        x = conv_lrelu(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same')
-        l5 = conv_lrelu_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same')
+        x = conv_act(l4, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
+        l5 = conv_act_bn(x, f_size=3, f_channels=f_dims[4], stride=2, border='same', activation=activation)
 
     layer_activations = [l1, l2, l3, l4, l5]
     x = l5
@@ -195,7 +195,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False)
     # Res-layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck_lrelu(x, f_dims[4], f_dims[1], lightweight=True)
+            x = res_layer_bottleneck(x, f_dims[4], f_dims[1], lightweight=True, activation=activation)
 
     if p_wise_out:
         x = Convolution2D(1, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
@@ -203,7 +203,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False)
         # Fully connected layer
         x = GlobalAveragePooling2D()(x)
         x = Dense(2048, init='he_normal')(x)
-        x = lrelu(x)
+        x = my_activation(x, type='lrelu')
         x = BatchNormalization(axis=1)(x)
         layer_activations.append(x)
         x = Dense(1, init='he_normal')(x)
@@ -212,7 +212,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False)
     return x, layer_activations
 
 
-def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', bn_mode=0):
+def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -229,11 +229,11 @@ def conv_relu_bn(layer_in, f_size, f_channels, stride, border='valid', activatio
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    x = Activation(activation)(x)
-    return BatchNormalization(axis=3, mode=bn_mode)(x)
+    x = my_activation(x, type=activation)
+    return BatchNormalization(axis=3)(x)
 
 
-def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid', bn_mode=0):
+def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -250,51 +250,10 @@ def conv_lrelu_bn(layer_in, f_size, f_channels, stride, border='valid', bn_mode=
                       border_mode=border,
                       subsample=(stride, stride),
                       init='he_normal')(layer_in)
-    x = lrelu(x)
-    return BatchNormalization(axis=3, mode=bn_mode)(x)
+    return my_activation(x, type=activation)
 
 
-def conv_relu(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
-    """Wrapper for first few down-convolution layers including batchnorm and Relu
-
-    Args:
-        layer_in: Input to this layer
-        f_size: Size of convolution filters
-        f_channels: Number of channels of the output
-        stride: Used stride (typically =2)
-        border: 'valid' or 'same'
-
-    Returns:
-        Result of convolution followed by batchnorm and Relu
-    """
-    x = Convolution2D(f_channels, f_size, f_size,
-                      border_mode=border,
-                      subsample=(stride, stride),
-                      init='he_normal')(layer_in)
-    return Activation(activation)(x)
-
-
-def conv_lrelu(layer_in, f_size, f_channels, stride, border='valid'):
-    """Wrapper for first few down-convolution layers including batchnorm and Relu
-
-    Args:
-        layer_in: Input to this layer
-        f_size: Size of convolution filters
-        f_channels: Number of channels of the output
-        stride: Used stride (typically =2)
-        border: 'valid' or 'same'
-
-    Returns:
-        Result of convolution followed by batchnorm and Relu
-    """
-    x = Convolution2D(f_channels, f_size, f_size,
-                      border_mode=border,
-                      subsample=(stride, stride),
-                      init='he_normal')(layer_in)
-    return lrelu(x)
-
-
-def outter_connection(layer_in, f_channels, bn_mode=0):
+def outter_connection(layer_in, f_channels):
     """Wrapper for 1x1 convolutions used on the outer layers.
 
     Args:
@@ -306,10 +265,10 @@ def outter_connection(layer_in, f_channels, bn_mode=0):
     """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = Activation('relu')(l)
-    return BatchNormalization(axis=3, mode=bn_mode)(l)
+    return BatchNormalization(axis=3)(l)
 
 
-def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0, lightweight=False):
+def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', lightweight=False):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -322,56 +281,34 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', bn_mode=0
     """
     # 1x1 Bottleneck
     if lightweight:
-        x = conv_relu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation)
+        x = conv_act(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation)
     else:
-        x = conv_relu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation,
-                         bn_mode=bn_mode)
+        x = conv_act_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 3x3 conv
-    x = conv_relu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation, bn_mode=bn_mode)
+    x = conv_act_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', activation=activation)
     # 1x1 to out_dim
     x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     if not lightweight:
-        x = BatchNormalization(axis=3, mode=bn_mode)(x)
+        x = BatchNormalization(axis=3)(x)
     x = merge([x, in_layer], mode='sum')
-    return Activation(activation)(x)
+    return my_activation(x, type=activation)
 
 
-def res_layer_bottleneck_lrelu(in_layer, out_dim, bn_dim, bn_mode=0, lightweight=False):
-    """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
-
-    Args:
-        in_layer: Input to residual-layer
-        out_dim: Dimension (number of channels) of the output (should be the same as input)
-        bn_dim: Dimension of the bottlenecked convolutions
-
-    Returns:
-        Output of same dimensionality as input
-    """
-    # 1x1 Bottleneck
-    if lightweight:
-        x = conv_lrelu(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same')
+def my_activation(x, type='relu', alpha=0.3):
+    if type == 'relu':
+        return Activation(type)(x)
+    elif type == 'lrelu':
+        return LeakyReLU(alpha=alpha)(x)
     else:
-        x = conv_lrelu_bn(in_layer, f_size=1, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
-    # 3x3 conv
-    x = conv_lrelu_bn(x, f_size=3, f_channels=bn_dim, stride=1, border='same', bn_mode=bn_mode)
-    # 1x1 to out_dim
-    x = Convolution2D(out_dim, 1, 1, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    if not lightweight:
-        x = BatchNormalization(axis=3, mode=bn_mode)(x)
-    x = merge([x, in_layer], mode='sum')
-    return lrelu(x)
+        raise ValueError('Activation type {} not supported'.format(type))
 
 
-def lrelu(x, alpha=0.2):
-    return LeakyReLU(alpha=alpha)(x)
-
-
-def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8):
+def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):
     # Build the model
     input_gen = Input(shape=input_shape)
-    decoded, _ = ToonGenerator(input_gen, big_f=big_f, outter=w_outter, num_res_layers=num_res)
+    decoded, _ = ToonGenerator(input_gen, big_f=big_f, outter=w_outter, num_res_layers=num_res, activation=activation)
     generator = Model(input_gen, decoded)
-    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
+    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res, activation=activation)
 
     # Load weights
     if load_weights:
@@ -383,14 +320,15 @@ def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_
     return generator
 
 
-def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8, layer=5):
+def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8, layer=5, activation='relu'):
     # Build encoder and generator
     input_gen = Input(shape=input_shape)
-    decoded, enc_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False)
+    decoded, enc_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False,
+                                        activation=activation)
     encoder = Model(input_gen, enc_layers[layer - 1])
     generator = Model(input_gen, decoded)
-    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res)
-    generator.name = make_name('EncGenTrain', big_f=big_f, num_res=num_res)
+    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res, activation=activation)
+    generator.name = make_name('EncGenTrain', big_f=big_f, num_res=num_res, activation=activation)
 
     # Load weights
     if load_weights:
@@ -405,19 +343,22 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     return encoder, generator
 
 
-def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8, p_wise_out=False):
+def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8,
+                  p_wise_out=False):
     # Build the model
     if withx:
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res, p_wise_out=p_wise_out)
+    dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res,
+                                                   p_wise_out=p_wise_out)
     if layer:
         discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
     else:
         discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res, p_wise_out=p_wise_out)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res,
+                                   p_wise_out=p_wise_out)
 
     # Load weights
     if load_weights:
@@ -429,118 +370,17 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
     return discriminator
 
 
-def GANwDisc(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, layer=None, withx=False,
-             num_res=8):
-    # Build Generator
-    input_gen = Input(shape=input_shape)
-    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=w_outter)
-    generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res)
-
-    # Build Discriminator
-    if withx:
-        input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
-    else:
-        input_disc = Input(shape=input_shape)
-    dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res)
-    if layer:
-        discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
-    else:
-        discriminator = Model(input_disc, output=dis_out)
-    make_trainable(discriminator, False)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res)
-
-    # Load weights
-    if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
-
-    # Build GAN
-    im_input = Input(shape=input_shape)
-    im_recon = generator(im_input)
-    if withx:
-        disc_in = merge([im_input, im_recon], mode='concat')
-    else:
-        disc_in = im_recon
-    disc_out = discriminator(disc_in)
-    gan = Model(input=im_input, output=disc_out + [im_recon])
-
-    # Compile the model
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    disc_weight = 1.0
-    if layer:
-        gan.compile(loss=['mse', 'binary_crossentropy', 'mse'],
-                    loss_weights=[1.0, disc_weight, recon_weight],
-                    optimizer=optimizer)
-    else:
-        gan.compile(loss=['binary_crossentropy', 'mse'],
-                    loss_weights=[disc_weight, recon_weight],
-                    optimizer=optimizer)
-    gan.name = make_name('ToonGAN', w_outter=w_outter, layer=layer, with_x=withx)
-    return gan, generator, discriminator
-
-
-def GANwEncoder(input_shape, load_weights=False, big_f=False, w_outter=False, recon_weight=5.0, withx=False,
-                num_res_g=8, num_res_d=8, enc_weight=1.0, layer=5, learning_rate=0.0002):
-    # Build Generator
-    input_gen = Input(shape=input_shape)
-    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
-    generator = Model(input_gen, gen_out)
-    gen_enc = Model(input_gen, gen_layers[layer - 1])
-    generator.name = make_name('ToonGenerator', w_outter=w_outter, big_f=big_f, num_res=num_res_g)
-
-    # Build Discriminator
-    if withx:
-        input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
-    else:
-        input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d)
-    discriminator = Model(input_disc, output=dis_out)
-    make_trainable(discriminator, False)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d)
-
-    # Build Encoder
-    input_encoder = Input(shape=input_shape)
-    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=False)
-    encoder = Model(input_encoder, output=enc_layers[layer - 1])
-    make_trainable(encoder, False)
-    encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res_g)
-
-    # Load weights
-    if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
-        encoder.set_weights(gen_enc.get_weights())
-
-    # Build GAN
-    im_input = Input(shape=input_shape)
-    im_recon = generator(im_input)
-    if withx:
-        disc_in = merge([im_input, im_recon], mode='concat')
-    else:
-        disc_in = im_recon
-    disc_out = discriminator(disc_in)
-    enc_out = encoder(im_recon)
-    gan = Model(input=im_input, output=[disc_out, enc_out, im_recon])
-
-    # Compile model
-    optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    disc_weight = 1.0
-    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
-                loss_weights=[disc_weight, enc_weight, recon_weight],
-                optimizer=optimizer)
-    return gan, generator, discriminator
-
-
 def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False, p_wise_out=False):
+            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
+    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+                                        activation=activation)
     generator = Model(input_gen, gen_out)
     gen_enc = Model(input_gen, gen_layers[layer - 1])
-    gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
-    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
+    gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g, w_outter=w_outter, activation=activation)
+    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
+                               activation=activation)
 
     # Build Discriminator
     if withx:
@@ -550,14 +390,17 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
     discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
-    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d, p_wise_out=p_wise_out)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d,
+                                   p_wise_out=p_wise_out)
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter)
+    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+                                  activation=activation)
     enc_on_gan = Model(input_encoder, output=enc_layers[layer - 1])
     make_trainable(enc_on_gan, False)
-    enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g, w_outter=w_outter)
+    enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
+                                activation=activation)
 
     # Load weights
     if load_weights:
@@ -585,7 +428,8 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     return gan, generator, discriminator, gen_enc, enc_on_gan
 
 
-def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None):
+def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,
+              activation=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -598,6 +442,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_nr{}".format(net_name, num_res)
     if p_wise_out:
         net_name = "{}_pwo".format(net_name)
+    if activation:
+        net_name = "{}_{}".format(net_name, activation)
     return net_name
 
 

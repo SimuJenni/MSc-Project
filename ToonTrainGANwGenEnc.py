@@ -1,8 +1,7 @@
-import Queue as queue
 import gc
 import os
 import sys
-import threading
+import multiprocessing
 import time
 
 import numpy as np
@@ -28,30 +27,33 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
     return Xd, yd
 
 
-def generator_queue(generator, max_q_size=4, wait_time=0.05, nb_worker=2):
-    q = queue.Queue()
-    _stop = threading.Event()
+def generator_queue(generator, max_q_size=10, nb_worker=2):
+    q = multiprocessing.Queue(maxsize=max_q_size)
+    _stop = multiprocessing.Event()
     threads = []
     try:
         def data_generator_task():
             while not _stop.is_set():
                 try:
-                    if q.qsize() < max_q_size:
-                        generator_output = next(generator)
-                        q.put(generator_output)
-                    else:
-                        time.sleep(wait_time)
+                    generator_output = next(generator)
+                    q.put(generator_output)
                 except Exception:
                     _stop.set()
                     raise
 
         for i in range(nb_worker):
-            thread = threading.Thread(target=data_generator_task)
+            np.random.seed()
+            thread = multiprocessing.Process(target=data_generator_task)
             threads.append(thread)
             thread.daemon = True
             thread.start()
     except:
         _stop.set()
+        # Terminate all daemon processes
+        for p in threads:
+            if p.is_alive():
+                p.terminate()
+        q.close()
         raise
 
     return q, _stop, threads
@@ -177,7 +179,7 @@ for epoch in range(nb_epoch):
         print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
         # Generate montage of test-images
-        if not chunk % 10:
+        if not chunk % 50:
             generator.set_weights(gen_gan.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs * 0.5 + 0.5,

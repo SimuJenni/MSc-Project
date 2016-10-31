@@ -27,7 +27,7 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
     return Xd, yd
 
 
-def generator_queue(generator, max_q_size=10, nb_worker=2):
+def generator_queue(generator, max_q_size=12, nb_worker=4):
     q = multiprocessing.Queue(maxsize=max_q_size)
     _stop = multiprocessing.Event()
     threads = []
@@ -61,11 +61,11 @@ def generator_queue(generator, max_q_size=10, nb_worker=2):
 
 batch_size = 64
 chunk_size = 16 * batch_size
-num_chunks = 298*4
-nb_epoch = 4
+num_chunks = 4096
+nb_epoch = 1
 r_weight = 100.0
 e_weight = 10.0
-loss_target_ratio = 0.1
+loss_target_ratio = 0.05
 num_train = num_chunks * chunk_size
 num_res_g = 16
 layer = 4
@@ -114,6 +114,7 @@ print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
 dl_thresh = -np.log(0.5)
+max_skip_dtrain = 20
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -121,6 +122,7 @@ for epoch in range(nb_epoch):
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
+    skip_dtrain_count = 0
 
     for chunk in range(num_chunks):
 
@@ -134,7 +136,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
+        if not d_loss or skip_dtrain_count>max_skip_dtrain or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())
@@ -153,6 +155,8 @@ for epoch in range(nb_epoch):
 
             update_disc = True
             del Xd_train, yd_train, Yd
+        else:
+            skip_dtrain_count += 1
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
@@ -179,11 +183,14 @@ for epoch in range(nb_epoch):
         print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
 
         # Generate montage of test-images
-        if not chunk % 50:
+        if not chunk % 100:
             generator.set_weights(gen_gan.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
+            # Save the weights
+            discriminator.save_weights(disc_weights)
+            gen_gan.save_weights(gen_weights)
 
         sys.stdout.flush()
         del X_train, Y_train

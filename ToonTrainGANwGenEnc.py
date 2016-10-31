@@ -72,7 +72,7 @@ layer = 4
 learning_rate = 0.0002
 w_outter = False
 p_wise_disc = True
-disc_with_x = False
+disc_with_x = True
 activation = 'lrelu'
 
 

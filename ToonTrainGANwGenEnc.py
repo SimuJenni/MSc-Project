@@ -63,16 +63,16 @@ batch_size = 64
 chunk_size = 16 * batch_size
 num_chunks = 4096
 nb_epoch = 1
-r_weight = 100.0
+r_weight = 50.0
 e_weight = 10.0
 loss_target_ratio = 0.05
 num_train = num_chunks * chunk_size
 num_res_g = 16
-layer = 5
+layer = 4
 learning_rate = 0.0002
 w_outter = False
-p_wise_disc = False
-disc_with_x = True
+p_wise_disc = True
+disc_with_x = False
 activation = 'lrelu'
 
 

@@ -2,7 +2,7 @@ import os
 
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, UpSampling2D, \
-    GlobalAveragePooling2D
+    GlobalAveragePooling2D, Lambda
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
@@ -209,7 +209,17 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
 
 
 def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
-    x = K.resize_images(layer_in, height_factor=2.0, width_factor=2.0, dim_ordering='tf')
+
+    def resize(x):
+        return K.resize_images(x, height_factor=2.0, width_factor=2.0, dim_ordering='tf')
+
+    def resize_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[1] *= 2
+        shape[2] *= 2
+        return tuple(shape)
+
+    x = Lambda(resize, output_shape=resize_output_shape)(layer_in)
     # x = UpSampling2D()(layer_in)
     x = conv_act(x, f_size=f_size, f_channels=f_channels, stride=1, border='same', activation=activation)
     return x

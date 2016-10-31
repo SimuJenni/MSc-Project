@@ -27,7 +27,7 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
     return Xd, yd
 
 
-def generator_queue(generator, max_q_size=12, nb_worker=4):
+def generator_queue(generator, max_q_size=16, nb_worker=4):
     q = multiprocessing.Queue(maxsize=max_q_size)
     _stop = multiprocessing.Event()
     threads = []
@@ -154,6 +154,7 @@ for epoch in range(nb_epoch):
             print('d-Loss: {}'.format(d_loss))
 
             update_disc = True
+            skip_dtrain_count = 0
             del Xd_train, yd_train, Yd
         else:
             skip_dtrain_count += 1

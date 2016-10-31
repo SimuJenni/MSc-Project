@@ -6,6 +6,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Activation, m
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
+import keras.backend as K
 
 from constants import MODEL_DIR
 
@@ -98,40 +99,35 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
 
     # Layer 6
     with tf.name_scope('deconv_1'):
-        x = UpSampling2D()(x)
-        x = conv_act(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
+        x = up_conv_act(x, f_size=3, f_channels=f_dims[3], activation=activation)
         if outter:
             x = merge([x, ol4], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
 
     # Layer 7
     with tf.name_scope('deconv_2'):
-        x = UpSampling2D()(x)
-        x = conv_act(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
+        x = up_conv_act(x, f_size=3, f_channels=f_dims[2], activation=activation)
         if outter:
             x = merge([x, ol3], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
 
     # Layer 8
     with tf.name_scope('deconv_3'):
-        x = UpSampling2D()(x)
-        x = conv_act(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
+        x = up_conv_act(x, f_size=3, f_channels=f_dims[1], activation=activation)
         if outter:
             x = merge([x, ol2], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
 
     # Layer 9
     with tf.name_scope('deconv_4'):
-        x = UpSampling2D()(x)
-        x = conv_act(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+        x = up_conv_act(x, f_size=3, f_channels=f_dims[0], activation=activation)
         if outter:
             x = merge([x, ol1], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     # Layer 10
     with tf.name_scope('deconv_5'):
-        x = UpSampling2D()(x)
-        x = conv_act(x, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
+        x = up_conv_act(x, f_size=3, f_channels=32, activation=activation)
         x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
         decoded = Activation(out_activation)(x)
 
@@ -210,6 +206,13 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
         x = Activation('sigmoid')(x)
 
     return x, layer_activations
+
+
+def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
+    x = K.resize_images(layer_in, height_factor=2.0, width_factor=2.0, dim_ordering='tf')
+    # x = UpSampling2D()(layer_in)
+    x = conv_act(x, f_size=f_size, f_channels=f_channels, stride=1, border='same', activation=activation)
+    return x
 
 
 def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):

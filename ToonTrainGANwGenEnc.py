@@ -27,7 +27,7 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
     return Xd, yd
 
 
-def generator_queue(generator, max_q_size=16, nb_worker=4):
+def generator_queue(generator, max_q_size=8, nb_worker=2):
     q = multiprocessing.Queue(maxsize=max_q_size)
     _stop = multiprocessing.Event()
     threads = []

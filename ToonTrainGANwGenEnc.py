@@ -69,7 +69,7 @@ num_res_g = 16
 layer = 4
 learning_rate = 0.0001
 w_outter = False
-p_wise_disc = True
+p_wise_disc = False
 disc_with_x = True
 
 

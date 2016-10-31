@@ -33,7 +33,7 @@ chunk_size = 32 * batch_size
 num_train = 200000
 num_res_g = 16
 disc_with_x = True
-p_wise = True
+p_wise = False
 
 # Get the data-set object
 data = Imagenet(num_train=num_train, target_size=(128, 128))

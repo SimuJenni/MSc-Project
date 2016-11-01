@@ -29,7 +29,7 @@ history = generator.fit_generator(
     nb_epoch=nb_epoch,
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=20000,
-    nb_worker=2,
+    nb_worker=4,
     pickle_safe=True)
 
 # Save the model

@@ -7,36 +7,41 @@ import random
 import sys
 import threading
 from datetime import datetime
+
 import numpy as np
 import tensorflow as tf
 
-from constants import NUM_THREADS
 from constants import IMAGENET_DATADIR, DATA_DIR
-
+from constants import NUM_THREADS
 
 
 class ImageCoder(object):
-  """Helper class that provides TensorFlow image coding utilities."""
+    """Helper class that provides TensorFlow image coding utilities."""
 
-  def __init__(self):
-    # Create a single Session to run all image coding calls.
-    self._sess = tf.Session()
+    def __init__(self):
+        # Create a single Session to run all image coding calls.
+        self._sess = tf.Session()
 
-    # Initializes function that decodes RGB JPEG data.
-    self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
-    self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
+        # Initializes function that decodes RGB JPEG data.
+        self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
+        self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
 
-  def decode_jpeg(self, image_data):
-    image = self._sess.run(self._decode_jpeg,
-                           feed_dict={self._decode_jpeg_data: image_data})
-    assert len(image.shape) == 3
-    assert image.shape[2] == 3
-    return image
+    def decode_jpeg(self, image_data):
+        image = self._sess.run(self._decode_jpeg,
+                               feed_dict={self._decode_jpeg_data: image_data})
+        assert len(image.shape) == 3
+        assert image.shape[2] == 3
+        return image
+
+
+def int64_feature(value):
+    if not isinstance(value, list):
+        value = [value]
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
 def bytes_feature(value):
-  """Wrapper for inserting bytes features into Example proto."""
-  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
 def process_image_files_batch(thread_index, ranges, name, out_dir, data, coder):
@@ -70,9 +75,9 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data, coder):
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={
-                    'image_cartoon/encoded': bytes_feature(x_im),
+                    'image_cartoon/encoded': int64_feature(x_im),
                     'image_cartoon/format': bytes_feature(image_format),
-                    'image_original/encoded': bytes_feature(y_im),
+                    'image_original/encoded': int64_feature(y_im),
                     'image_original/format': bytes_feature(image_format),
                 }))
         # use the proto object to serialize the example to a string
@@ -149,6 +154,7 @@ def process_dataset(name, src_dir, out_dir):
     """
     data = get_data(src_dir, name)
     process_image_files(name, out_dir, data)
+
 
 if __name__ == '__main__':
     out_dir = os.path.join(DATA_DIR, 'imagenet_toon_tf/')

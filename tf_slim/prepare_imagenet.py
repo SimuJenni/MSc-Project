@@ -34,10 +34,6 @@ class ImageCoder(object):
         return image
 
 
-def int64_feature(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=value.astype(np.int64)))
-
-
 def bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
@@ -73,9 +69,9 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data, coder):
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={
-                    'image_cartoon/encoded': bytes_feature(x_im.astype(np.int64)),
+                    'image_cartoon/encoded': bytes_feature(x_im.tostring()),
                     'image_cartoon/format': bytes_feature(image_format),
-                    'image_original/encoded': bytes_feature(y_im.astype(np.int64)),
+                    'image_original/encoded': bytes_feature(y_im.tostring()),
                     'image_original/format': bytes_feature(image_format),
                 }))
         # use the proto object to serialize the example to a string

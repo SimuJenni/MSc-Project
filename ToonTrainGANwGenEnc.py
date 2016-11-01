@@ -64,7 +64,7 @@ chunk_size = 16 * batch_size
 num_chunks = 4096
 nb_epoch = 1
 r_weight = 100.0
-e_weight = 10.0
+e_weight = 1.0
 loss_target_ratio = 0.05
 num_train = num_chunks * chunk_size
 num_res_g = 16
@@ -84,10 +84,10 @@ datagen = ImageDataGenerator()
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter, activation=activation)
 discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x)
 gan, gen_gan, disc_gan, gen_enc, enc_on_gan = GANwGen(data.dims, load_weights=True, recon_weight=r_weight,
-                                                      enc_weight=e_weight, num_res_g=num_res_g, layer=layer,
-                                                      learning_rate=learning_rate, w_outter=w_outter, withx=disc_with_x,
+                                                      withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
+                                                      layers=layer, learning_rate=learning_rate, w_outter=w_outter,
                                                       p_wise_out=p_wise_disc, activation=activation)
-encoder, _ = Encoder(data.dims, load_weights=False, train=False, layer=layer, num_res=num_res_g, activation=activation)
+encoder, _ = Encoder(data.dims, load_weights=False, train=False, num_res=num_res_g, layers=layer, activation=activation)
 
 # Load encoder weights
 enc_on_gan.set_weights(gen_enc.get_weights())

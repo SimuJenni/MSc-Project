@@ -334,12 +334,13 @@ def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_
     return generator
 
 
-def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8, layer=5, activation='relu'):
+def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8, layers=[5], activation='relu'):
     # Build encoder and generator
     input_gen = Input(shape=input_shape)
     decoded, enc_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False,
                                         activation=activation)
-    encoder = Model(input_gen, enc_layers[layer - 1])
+    enc_out = [enc_layers[l - 1] for l in layers]
+    encoder = Model(input_gen, enc_out)
     generator = Model(input_gen, decoded)
     encoder.name = make_name('ToonEncoder', big_f=big_f, num_res=num_res, activation=activation)
     generator.name = make_name('EncGenTrain', big_f=big_f, num_res=num_res, activation=activation)
@@ -353,7 +354,7 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     if train:
         generator.compile(loss='mse', optimizer=optimizer)
     else:
-        encoder.compile(loss='mse', optimizer=optimizer)
+        encoder.compile(loss=['mse'] * len(layers), optimizer=optimizer)
     return encoder, generator
 
 
@@ -385,13 +386,14 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
 
 
 def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layer=5, learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
+            enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
                                         activation=activation)
     generator = Model(input_gen, gen_out)
-    gen_enc = Model(input_gen, gen_layers[layer - 1])
+    gen_enc_out = [gen_layers[l - 1] for l in layers]
+    gen_enc = Model(input_gen, gen_enc_out)
     gen_enc.name = make_name('ToonGenEnc', big_f=big_f, num_res=num_res_g, w_outter=w_outter, activation=activation)
     generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
                                activation=activation)
@@ -411,7 +413,8 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     input_encoder = Input(shape=input_shape)
     _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
                                   activation=activation)
-    enc_on_gan = Model(input_encoder, output=enc_layers[layer - 1])
+    enc_out = [enc_layers[l - 1] for l in layers]
+    enc_on_gan = Model(input_encoder, output=enc_out)
     make_trainable(enc_on_gan, False)
     enc_on_gan.name = make_name('ToonEncOnGan', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
                                 activation=activation)
@@ -431,13 +434,13 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
         disc_in = im_recon
     disc_out = discriminator(disc_in)
     encoded = enc_on_gan(im_recon)
-    gan = Model(input=im_input, output=[disc_out, encoded, im_recon])
+    gan = Model(input=im_input, output=[disc_out] + encoded + [im_recon])
 
     # Compile model
     optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    disc_weight = 1.0
-    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'],
-                loss_weights=[disc_weight, enc_weight, recon_weight],
+    loss_weights = [1.0] + range(1, len(layers)+1) * enc_weight + [recon_weight]
+    gan.compile(loss=['binary_crossentropy'] + len(layers)*['mse'] + ['mse'],
+                loss_weights=loss_weights,
                 optimizer=optimizer)
     return gan, generator, discriminator, gen_enc, enc_on_gan
 

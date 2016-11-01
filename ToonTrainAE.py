@@ -6,9 +6,9 @@ from constants import MODEL_DIR, IMG_DIR
 from datasets import Imagenet
 from utils import montage
 
-batch_size = 64
-nb_epoch = 1
-samples_per_epoch = 12000000
+batch_size = 128
+nb_epoch = 2
+samples_per_epoch = 500000
 
 # Get the data-set object
 data = Imagenet(num_train=samples_per_epoch, target_size=(128, 128))

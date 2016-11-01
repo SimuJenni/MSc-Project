@@ -488,7 +488,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
     # Compile model
     optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     loss_weights = [enc_weight*l for l in range(1, len(layers)+1)] + [1.0, recon_weight]
-    gan.compile(loss=['binary_crossentropy'] + len(layers)*['mse'] + ['mse'],
+    gan.compile(loss=len(layers)*['mse'] + ['binary_crossentropy'] + ['mse'],
                 loss_weights=loss_weights,
                 optimizer=optimizer)
     return gan, generator, discriminator

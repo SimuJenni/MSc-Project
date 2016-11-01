@@ -163,9 +163,9 @@ for epoch in range(nb_epoch):
         # Train generator
         Yg_train = disc_enc.predict(Y_train)
         if p_wise_disc:
-            Yg_train[0] = np.ones((len(Y_train), 4, 4, 1))
+            Yg_train[-1] = np.ones((len(Y_train), 4, 4, 1))
         else:
-            Yg_train[0] = np.ones((len(Y_train), 1))
+            Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=1)
         t_loss = h.history['loss'][0]
         e_loss = h.history[h.history.keys()[-2]][0]

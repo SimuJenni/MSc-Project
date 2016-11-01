@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 
 from constants import NUM_THREADS
-from constants import IMAGENET_DATADIR
+from constants import IMAGENET_DATADIR, DATA_DIR
 
 
 def process_image_files_batch(thread_index, ranges, name, out_dir, data):
@@ -97,9 +97,9 @@ def process_image_files(name, out_dir, data):
     sys.stdout.flush()
 
 
-def get_data(data_dir):
-    x_dir = os.path.join(IMAGENET_DATADIR, 'Train/X/')
-    y_dir = os.path.join(IMAGENET_DATADIR, 'Train/X/')
+def get_data(data_dir, name):
+    x_dir = os.path.join(data_dir, '{}/X/'.format(name))
+    y_dir = os.path.join(data_dir, '{}/Y/'.format(name))
     data = zip(sorted(os.listdir(x_dir)), sorted(os.listdir(y_dir)))
     shuffled_index = range(len(data))
     random.shuffle(shuffled_index)
@@ -120,5 +120,9 @@ def process_dataset(name, src_dir, out_dir):
       num_shards: integer number of shards for this data set.
       im_dim: Tuple (height, width) defining the size of the images
     """
-    data = get_data(src_dir)
+    data = get_data(src_dir, name)
     process_image_files(name, out_dir, data)
+
+if __name__ == '__main__':
+    out_dir = os.path.join(DATA_DIR, 'imagenet_toon_tf/')
+    process_dataset('validation', IMAGENET_DATADIR, out_dir)

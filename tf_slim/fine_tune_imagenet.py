@@ -1,5 +1,6 @@
 import tensorflow as tf
 import imagenet
+from tensorflow.contrib.framework import assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
@@ -55,7 +56,7 @@ with g.as_default():
 
     # Restore only the convolutional layers:
     variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
-    init_fn = slim.assign_from_checkpoint_fn(model_path, variables_to_restore)
+    init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
     # Start training.
     slim.learning.train(train_op, log_dir, init_fn=init_fn)

@@ -35,8 +35,8 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data):
 
     for i in files_in_batch:
         x_fpath, y_fpath = data[i]
-        x_im = misc.imread(x_fpath, mode='RGB')
-        y_im = misc.imread(y_fpath, mode='RGB')
+        x_im = np.asscalar(misc.imread(x_fpath, mode='RGB'))
+        y_im = np.asscalar(misc.imread(y_fpath, mode='RGB'))
 
         # construct the Example proto object
         example = tf.train.Example(

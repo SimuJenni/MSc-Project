@@ -35,9 +35,7 @@ class ImageCoder(object):
 
 
 def int64_feature(value):
-    if not isinstance(value, list):
-        value = [value]
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=np.array(value, dtype=np.int64)))
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value.astype(np.int64)))
 
 
 def bytes_feature(value):

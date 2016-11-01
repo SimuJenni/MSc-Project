@@ -9,6 +9,7 @@ import threading
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
+from scipy import misc
 
 from constants import NUM_THREADS
 from constants import IMAGENET_DATADIR, DATA_DIR
@@ -33,7 +34,10 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data):
     image_format = 'JPEG'
 
     for i in files_in_batch:
-        x_im, y_im = data[i]
+        x_fpath, y_fpath = data[i]
+        x_im = misc.imread(x_fpath, mode='RGB')
+        y_im = misc.imread(y_fpath, mode='RGB')
+
         # construct the Example proto object
         example = tf.train.Example(
             features=tf.train.Features(
@@ -100,7 +104,9 @@ def process_image_files(name, out_dir, data):
 def get_data(data_dir, name):
     x_dir = os.path.join(data_dir, '{}/X/'.format(name))
     y_dir = os.path.join(data_dir, '{}/Y/'.format(name))
-    data = zip(sorted(os.listdir(x_dir)), sorted(os.listdir(y_dir)))
+    x_fpaths = [os.path.join(x_dir, fname) for fname in sorted(os.listdir(x_dir))]
+    y_fpaths = [os.path.join(y_dir, fname) for fname in sorted(os.listdir(y_dir))]
+    data = zip(x_fpaths, y_fpaths)
     shuffled_index = range(len(data))
     random.shuffle(shuffled_index)
     data = [data[i] for i in shuffled_index]

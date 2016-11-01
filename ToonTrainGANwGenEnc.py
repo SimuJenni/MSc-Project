@@ -70,10 +70,10 @@ num_train = num_chunks * chunk_size
 num_res_g = 16
 layer = 5
 learning_rate = 0.0002
-w_outter = False
+w_outter = True
 p_wise_disc = False
-disc_with_x = True
-activation = 'lrelu'
+disc_with_x = False
+activation = 'relu'
 
 
 # Get the data-set object

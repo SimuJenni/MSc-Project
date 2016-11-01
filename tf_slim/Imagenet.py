@@ -16,8 +16,8 @@ _SPLITS_TO_SIZES = {
 }
 
 _ITEMS_TO_DESCRIPTIONS = {
-    'cartooned_img': 'A cartooned image',
-    'original_img': 'The ground truth image',
+    'image_cartoon': 'A cartooned image',
+    'image_original': 'The ground truth image',
 }
 
 _NUM_CLASSES = 1001
@@ -51,19 +51,19 @@ def get_split(split_name='Train', dataset_dir=IMAGENET_DATADIR, reader=None):
         reader = tf.TFRecordReader
 
     keys_to_features = {
-        'cartooned_img/encoded': tf.FixedLenFeature(
+        'image_cartoon/encoded': tf.FixedLenFeature(
             (), tf.string, default_value=''),
-        'cartooned_img/format': tf.FixedLenFeature(
-            (), tf.string, default_value='jpeg'),
-        'original_img/encoded': tf.FixedLenFeature(
+        'image_cartoon/format': tf.FixedLenFeature(
+            (), tf.string, default_value='JPEG'),
+        'image_original/encoded': tf.FixedLenFeature(
             (), tf.string, default_value=''),
-        'original_img/format': tf.FixedLenFeature(
-            (), tf.string, default_value='jpeg'),
+        'image_original/format': tf.FixedLenFeature(
+            (), tf.string, default_value='JPEG'),
     }
 
     items_to_handlers = {
-        'cartooned_img': slim.tfexample_decoder.Image('cartooned_img/encoded', 'cartooned_img/format'),
-        'original_img': slim.tfexample_decoder.Image('original_img/encoded', 'original_img/format'),
+        'image_cartoon': slim.tfexample_decoder.Image('image_cartoon/encoded', 'image_cartoon/format'),
+        'image_original': slim.tfexample_decoder.Image('image_original/encoded', 'image_original/format'),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(

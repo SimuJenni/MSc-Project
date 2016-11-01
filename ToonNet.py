@@ -358,7 +358,7 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     return encoder, generator
 
 
-def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layer=None, withx=False, num_res=8,
+def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layers=None, withx=False, num_res=8,
                   p_wise_out=False):
     # Build the model
     if withx:
@@ -367,8 +367,9 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
         input_disc = Input(shape=input_shape)
     dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res,
                                                    p_wise_out=p_wise_out)
-    if layer:
-        discriminator = Model(input_disc, output=[layer_activations[layer], dis_out])
+    if layers:
+        disc_layers_out = [layer_activations[l - 1] for l in layers]
+        discriminator = Model(input_disc, output=disc_layers_out + [dis_out])
     else:
         discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
@@ -381,7 +382,10 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    if train:
+        discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    else:
+        discriminator.compile(loss=len(layers)*['mse']+['binary_crossentropy'], optimizer=optimizer)
     return discriminator
 
 
@@ -443,6 +447,52 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
                 loss_weights=loss_weights,
                 optimizer=optimizer)
     return gan, generator, discriminator, gen_enc, enc_on_gan
+
+
+def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
+            enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
+    # Build Generator
+    input_gen = Input(shape=input_shape)
+    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+                                        activation=activation)
+    generator = Model(input_gen, gen_out)
+    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
+                               activation=activation)
+
+    # Build Discriminator
+    if withx:
+        input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
+    else:
+        input_disc = Input(shape=input_shape)
+    dis_out, disc_layers = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
+    disc_layers_out = [disc_layers[l - 1] for l in layers]
+    discriminator = Model(input_disc, output=disc_layers_out+[dis_out])
+    make_trainable(discriminator, False)
+    discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d,
+                                   p_wise_out=p_wise_out)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Build GAN
+    im_input = Input(shape=input_shape)
+    im_recon = generator(im_input)
+    if withx:
+        disc_in = merge([im_input, im_recon], mode='concat')
+    else:
+        disc_in = im_recon
+    disc_out = discriminator(disc_in)
+    gan = Model(input=im_input, output=disc_out + [im_recon])
+
+    # Compile model
+    optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    loss_weights = range(1, len(layers)+1) * enc_weight + [1.0, recon_weight]
+    gan.compile(loss=['binary_crossentropy'] + len(layers)*['mse'] + ['mse'],
+                loss_weights=loss_weights,
+                optimizer=optimizer)
+    return gan, generator, discriminator
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,

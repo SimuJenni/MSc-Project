@@ -1,7 +1,6 @@
 from threading import Thread
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 from skimage.restoration import denoise_tv_chambolle
 
@@ -45,15 +44,15 @@ def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
 
     """
     # Downsample
-    for _ in xrange(num_donw_samp):
+    for _ in range(num_donw_samp):
         im = cv2.pyrDown(im)
 
     # Repeatedly apply small bilateral filter
-    for _ in xrange(num_filter):
+    for _ in range(num_filter):
         im = cv2.bilateralFilter(im, 8, 16, 7)
 
     # Upsample
-    for _ in xrange(num_donw_samp):
+    for _ in range(num_donw_samp):
         im = cv2.pyrUp(im)
 
     return im
@@ -105,26 +104,3 @@ def process_data(X, num_threads=10):
         X_proc[starts[ii]:ends[ii], :, :] = value
 
     return X_proc
-
-
-if __name__ == '__main__':
-    im = plt.imread('landscape.jpg')
-
-    cartoon_BL = cartoonify_bilateral(im)
-    cartoon_TV = cartoonify_tv1(im)
-
-    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(8, 5), sharex=True, sharey=True,
-                           subplot_kw={'adjustable': 'box-forced'})
-    plt.gray()
-    ax[0].imshow(im)
-    ax[0].axis('off')
-    ax[0].set_title('Original')
-    ax[1].imshow(cartoon_BL)
-    ax[1].axis('off')
-    ax[1].set_title('Bilateral')
-    ax[2].imshow(cartoon_TV)
-    ax[2].axis('off')
-    ax[2].set_title('TV L1')
-    fig.subplots_adjust(wspace=0.02, hspace=0.2,
-                        top=0.9, bottom=0.05, left=0, right=1)
-    plt.show()

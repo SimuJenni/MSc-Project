@@ -31,8 +31,6 @@ with g.as_default():
 
     labels = slim.one_hot_encoding(
         labels, dataset.num_classes)
-    batch_queue = slim.prefetch_queue.prefetch_queue(
-        [images, labels], capacity=2)
 
     # Create the model
     predictions = myModel(images, is_training=True)

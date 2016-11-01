@@ -452,10 +452,10 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
             enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, _ = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+    gen_out, _ = ToonGenerator(input_gen, num_res_layers=num_res_g, outter=w_outter,
                                         activation=activation)
     generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res_g, w_outter=w_outter,
+    generator.name = make_name('ToonGenerator', num_res=num_res_g, w_outter=w_outter,
                                activation=activation)
 
     # Build Discriminator

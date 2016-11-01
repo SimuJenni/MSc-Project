@@ -40,13 +40,12 @@ def get_split(split_name='Train', dataset_dir=IMAGENET_DATADIR, reader=None):
     if split_name not in _SPLITS_TO_SIZES:
         raise ValueError('split name %s was not recognized.' % split_name)
 
-    X_dir = os.path.join(IMAGENET_DATADIR, '%s/X/' % split_name)
-    Y_dir = os.path.join(IMAGENET_DATADIR, '%s/Y/' % split_name)
+    X_dir = os.path.join(dataset_dir, '%s/X/' % split_name)
+    Y_dir = os.path.join(dataset_dir, '%s/Y/' % split_name)
 
     data_sources = zip(sorted(os.listdir(X_dir)), sorted(os.listdir(Y_dir)))
 
     # Allowing None in the signature so that dataset_factory can use the default.
-    # TODO: Must define appropriate reader
     if reader is None:
         reader = tf.TFRecordReader
 

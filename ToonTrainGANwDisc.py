@@ -63,12 +63,13 @@ batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 500000 // chunk_size
 nb_epoch = 1
-r_weight = 100.0
-e_weight = 0.5
+r_weight = 50.0
+e_weight = 1.0
 loss_target_ratio = 0.05
 num_train = num_chunks * chunk_size
 num_res_g = 16
-layer = [2, 3, 4, 5]
+num_res_d = 0
+layer = [3, 5]
 learning_rate = 0.0002
 w_outter = False
 p_wise_disc = False
@@ -81,12 +82,13 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter, activation=activation)
-discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x)
+discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x,
+                              num_res=num_res_d, big_f=True)
 gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight,
-                                  withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
+                                  withx=disc_with_x, num_res_g=num_res_g, num_res_d=num_res_d, enc_weight=e_weight,
                                   layers=layer, learning_rate=learning_rate, w_outter=w_outter,
-                                  p_wise_out=p_wise_disc, activation=activation)
-disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer)
+                                  p_wise_out=p_wise_disc, activation=activation, big_f=True)
+disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer, num_res=num_res_d, big_f=True)
 
 net_specs = 'rw{}_ew{}_l{}_ltr{}'.format(r_weight, e_weight, layer, loss_target_ratio)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
@@ -168,7 +170,7 @@ for epoch in range(nb_epoch):
             Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
-        g_loss = h.history['{}_loss_{}'.format(gan.output_names[-2], len(layer)+1)][0]
+        g_loss = h.history['{}_loss_{}'.format(gan.output_names[-2], len(layer) + 1)][0]
         e_loss = h.history['{}_loss_{}'.format(gan.output_names[-3], len(layer))][0]
         r_loss = h.history['{}_loss'.format(gan.output_names[-1])][0]
 

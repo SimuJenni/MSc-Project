@@ -15,6 +15,11 @@ from constants import NUM_THREADS
 from constants import IMAGENET_DATADIR, DATA_DIR
 
 
+def bytes_feature(value):
+  """Wrapper for inserting bytes features into Example proto."""
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
 def process_image_files_batch(thread_index, ranges, name, out_dir, data):
     """Processes and saves list of images in 1 thread.
 
@@ -35,21 +40,21 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data):
 
     for i in files_in_batch:
         x_fpath, y_fpath = data[i]
-        x_im = misc.imread(x_fpath, mode='RGB').tolist()
-        y_im = misc.imread(y_fpath, mode='RGB').tolist()
+        x_im = misc.imread(x_fpath, mode='RGB')
+        y_im = misc.imread(y_fpath, mode='RGB')
 
         # construct the Example proto object
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={
                     'image_cartoon/encoded': tf.train.Feature(
-                        int64_list=tf.train.Int64List(value=x_im.astype("int64"))),
+                        int64_list=bytes_feature(x_im)),
                     'image_cartoon/format': tf.train.Feature(
-                        bytes_list=tf.train.BytesList(value=[image_format])),
+                        bytes_list=bytes_feature(image_format)),
                     'image_original/encoded': tf.train.Feature(
-                        int64_list=tf.train.Int64List(value=y_im.astype("int64"))),
+                        int64_list=bytes_feature(y_im)),
                     'image_original/format': tf.train.Feature(
-                        bytes_list=tf.train.BytesList(value=[image_format])),
+                        bytes_list=bytes_feature(image_format)),
                 }))
         # use the proto object to serialize the example to a string
         serialized = example.SerializeToString()

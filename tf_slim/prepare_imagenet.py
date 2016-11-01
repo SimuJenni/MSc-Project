@@ -73,9 +73,9 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data, coder):
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={
-                    'image_cartoon/encoded': int64_feature(x_im),
+                    'image_cartoon/encoded': bytes_feature(x_im.astype(np.int64)),
                     'image_cartoon/format': bytes_feature(image_format),
-                    'image_original/encoded': int64_feature(y_im),
+                    'image_original/encoded': bytes_feature(y_im.astype(np.int64)),
                     'image_original/format': bytes_feature(image_format),
                 }))
         # use the proto object to serialize the example to a string

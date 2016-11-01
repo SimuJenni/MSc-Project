@@ -98,10 +98,6 @@ def process_image_files(name, out_dir, data):
       out_dir: Directory for storing results
       data: List of strings; each string is a path to an image file
     """
-    if not os.path.exists(os.path.join(out_dir, 'X')):
-        os.makedirs(os.path.join(out_dir, 'X'))
-    if not os.path.exists(os.path.join(out_dir, 'Y')):
-        os.makedirs(os.path.join(out_dir, 'Y'))
 
     # Break all images into batches with a [ranges[i][0], ranges[i][1]].
     spacing = np.linspace(0, len(data), NUM_THREADS + 1).astype(np.int)

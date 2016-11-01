@@ -101,7 +101,7 @@ losses = {"d": [], "g": []}
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
-montage(X_test[:batch_size] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
+montage(X_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gen_name)))
 
 # Training
 print('Adversarial training: {}'.format(gen_name))
@@ -168,9 +168,9 @@ for epoch in range(nb_epoch):
             Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
-        e_loss = h.history[h.history.keys()[-3]][0]
-        g_loss = h.history[h.history.keys()[-2]][0]
-        r_loss = h.history[h.history.keys()[-1]][0]
+        g_loss = h.history['{}_loss_{}'.format(gan.output_names[0], len(layer)+1)][0]
+        e_loss = h.history['{}_loss_{}'.format(gan.output_names[1], len(layer))][0]
+        r_loss = h.history['{}_loss'.format(gan.output_names[2])][0]
 
         # Record and print loss
         losses["g"].append(g_loss)
@@ -180,7 +180,7 @@ for epoch in range(nb_epoch):
         if not chunk % 50:
             generator.set_weights(gen_gan.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
-            montage(decoded_imgs * 0.5 + 0.5,
+            montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gen_name, epoch, chunk)))
             # Save the weights
             discriminator.save_weights(disc_weights)

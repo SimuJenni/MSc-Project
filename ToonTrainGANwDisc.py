@@ -168,9 +168,9 @@ for epoch in range(nb_epoch):
             Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
-        g_loss = h.history['{}_loss_{}'.format(gan.output_names[0], len(layer)+1)][0]
-        e_loss = h.history['{}_loss_{}'.format(gan.output_names[1], len(layer))][0]
-        r_loss = h.history['{}_loss'.format(gan.output_names[2])][0]
+        g_loss = h.history['{}_loss_{}'.format(gan.output_names[-2], len(layer)+1)][0]
+        e_loss = h.history['{}_loss_{}'.format(gan.output_names[-3], len(layer))][0]
+        r_loss = h.history['{}_loss'.format(gan.output_names[-1])][0]
 
         # Record and print loss
         losses["g"].append(g_loss)

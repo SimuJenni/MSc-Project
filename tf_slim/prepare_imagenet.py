@@ -152,4 +152,4 @@ def process_dataset(name, src_dir, out_dir):
 
 if __name__ == '__main__':
     out_dir = os.path.join(DATA_DIR, 'imagenet_toon_tf/')
-    process_dataset('Validation', IMAGENET_DATADIR, out_dir)
+    process_dataset('Train', IMAGENET_DATADIR, out_dir)

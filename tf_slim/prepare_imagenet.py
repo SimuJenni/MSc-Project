@@ -9,10 +9,29 @@ import threading
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
-from scipy import misc
 
 from constants import NUM_THREADS
 from constants import IMAGENET_DATADIR, DATA_DIR
+
+
+
+class ImageCoder(object):
+  """Helper class that provides TensorFlow image coding utilities."""
+
+  def __init__(self):
+    # Create a single Session to run all image coding calls.
+    self._sess = tf.Session()
+
+    # Initializes function that decodes RGB JPEG data.
+    self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
+    self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
+
+  def decode_jpeg(self, image_data):
+    image = self._sess.run(self._decode_jpeg,
+                           feed_dict={self._decode_jpeg_data: image_data})
+    assert len(image.shape) == 3
+    assert image.shape[2] == 3
+    return image
 
 
 def bytes_feature(value):
@@ -20,7 +39,7 @@ def bytes_feature(value):
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def process_image_files_batch(thread_index, ranges, name, out_dir, data):
+def process_image_files_batch(thread_index, ranges, name, out_dir, data, coder):
     """Processes and saves list of images in 1 thread.
 
     Args:
@@ -40,8 +59,12 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, data):
 
     for i in files_in_batch:
         x_fpath, y_fpath = data[i]
-        x_im = misc.imread(x_fpath, mode='RGB')
-        y_im = misc.imread(y_fpath, mode='RGB')
+        with tf.gfile.FastGFile(x_fpath, 'r') as f:
+            x_im_data = f.read()
+        with tf.gfile.FastGFile(y_fpath, 'r') as f:
+            y_im_data = f.read()
+        x_im = coder.decode_jpeg(x_im_data)
+        y_im = coder.decode_jpeg(y_im_data)
 
         # construct the Example proto object
         example = tf.train.Example(
@@ -89,10 +112,11 @@ def process_image_files(name, out_dir, data):
     # Launch a thread for each batch.
     print('Launching %d threads for spacings: %s' % (NUM_THREADS, ranges))
     sys.stdout.flush()
+    coder = ImageCoder()
 
     threads = []
     for thread_index in range(len(ranges)):
-        args = (thread_index, ranges, name, out_dir, data)
+        args = (thread_index, ranges, name, out_dir, data, coder)
         t = threading.Thread(target=process_image_files_batch, args=args)
         t.start()
         threads.append(t)

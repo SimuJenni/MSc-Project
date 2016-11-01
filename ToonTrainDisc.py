@@ -32,7 +32,7 @@ batch_size = 64
 chunk_size = 32 * batch_size
 num_train = 200000
 num_res_g = 16
-disc_with_x = True
+disc_with_x = False
 p_wise = False
 
 # Get the data-set object
@@ -41,7 +41,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, w_outter=False, num_res=num_res_g)
-discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise)
+discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise, num_res=0, big_f=True)
 discriminator.summary()
 
 # Name used for saving of model and outputs

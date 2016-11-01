@@ -166,15 +166,14 @@ for epoch in range(nb_epoch):
             Yg_train[-1] = np.ones((len(Y_train), 4, 4, 1))
         else:
             Yg_train[-1] = np.ones((len(Y_train), 1))
-        h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=1)
         t_loss = h.history['loss'][0]
-        e_loss = h.history['{}_loss'.format(gan.output_names[-3])][0]
         g_loss = h.history['{}_loss'.format(gan.output_names[-2])][0]
         r_loss = h.history['{}_loss'.format(gan.output_names[-1])][0]
 
         # Record and print loss
         losses["g"].append(g_loss)
-        print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss, e_loss))
+        print('Loss: {} g-Loss: {} r-Loss: {} e-Loss: {}'.format(t_loss, g_loss, r_loss))
 
         # Generate montage of test-images
         if not chunk % 50:

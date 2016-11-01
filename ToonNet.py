@@ -51,34 +51,33 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
         f_dims = BF_DIMS
     else:
         f_dims = F_DIMS
-    outter_old=False
 
     # Layer 1
     with tf.name_scope('conv_1'):
         x = conv_act(in_layer, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
         l1 = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', activation=activation)
-        if outter_old:
+        if outter:
             ol1 = outter_connection(l1, f_dims[0])
 
     # Layer 2
     with tf.name_scope('conv_2'):
         x = conv_act(l1, f_size=3, f_channels=f_dims[0], stride=1, border='same')
         l2 = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=2, border='same', activation=activation)
-        if outter_old:
+        if outter:
             ol2 = outter_connection(l2, f_dims[1])
 
     # Layer 3
     with tf.name_scope('conv_3'):
         x = conv_act(l2, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
         l3 = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=2, border='same', activation=activation)
-        if outter_old:
+        if outter:
             ol3 = outter_connection(l3, f_dims[2])
 
     # Layer 4
     with tf.name_scope('conv_4'):
         x = conv_act(l3, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
         l4 = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=2, border='same', activation=activation)
-        if outter_old:
+        if outter:
             ol4 = outter_connection(l4, f_dims[3])
 
     # Layer 5
@@ -101,28 +100,28 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
     # Layer 6
     with tf.name_scope('deconv_1'):
         x = up_conv_act(x, f_size=3, f_channels=f_dims[3], activation=activation)
-        if outter_old:
+        if outter:
             x = merge([x, ol4], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[3], stride=1, border='same', activation=activation)
 
     # Layer 7
     with tf.name_scope('deconv_2'):
         x = up_conv_act(x, f_size=3, f_channels=f_dims[2], activation=activation)
-        if outter_old:
+        if outter:
             x = merge([x, ol3], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[2], stride=1, border='same', activation=activation)
 
     # Layer 8
     with tf.name_scope('deconv_3'):
         x = up_conv_act(x, f_size=3, f_channels=f_dims[1], activation=activation)
-        if outter_old:
+        if outter:
             x = merge([x, ol2], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[1], stride=1, border='same', activation=activation)
 
     # Layer 9
     with tf.name_scope('deconv_4'):
         x = up_conv_act(x, f_size=3, f_channels=f_dims[0], activation=activation)
-        if outter_old:
+        if outter:
             x = merge([x, ol1], mode='sum')
         x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 

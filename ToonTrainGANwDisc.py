@@ -17,9 +17,9 @@ batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 2000000 // chunk_size
 nb_epoch = 1
-r_weight = 10.0
+r_weight = 25.0
 e_weight = 1.0
-loss_target_ratio = 0.05
+loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
 num_res_d = 0
@@ -29,7 +29,8 @@ w_outter = False
 p_wise_disc = False
 disc_with_x = False
 activation = 'relu'
-sigma = K.variable(value=0.2, name='sigma')
+sigma = K.variable(value=0.3, name='sigma')
+noise_lower_factor = 0.95
 
 # Get the data-set object
 data = ImagenetToon(num_train=num_train, target_size=(128, 128))
@@ -65,7 +66,8 @@ print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
 dl_thresh = -np.log(0.5)
-max_skip_dtrain = 20
+max_skip_dtrain = 50
+lower_noise_count = 4
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -74,6 +76,7 @@ for epoch in range(nb_epoch):
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
     skip_dtrain_count = 0
+    dtrain_count = 0
 
     for chunk in range(num_chunks):
 
@@ -87,7 +90,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or skip_dtrain_count > max_skip_dtrain or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
+        if not d_loss or skip_dtrain_count > max_skip_dtrain-1 or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())
@@ -106,9 +109,17 @@ for epoch in range(nb_epoch):
 
             update_disc = True
             skip_dtrain_count = 0
+            dtrain_count += 1
+            if dtrain_count > lower_noise_count-1:
+                new_sigma = K.get_value(sigma)*noise_lower_factor
+                print('Lowering noise-level to {}'.format(new_sigma))
+                K.set_value(sigma, new_sigma)
+                dtrain_count = 0
+
             del Xd_train, yd_train, Yd
         else:
             skip_dtrain_count += 1
+            dtrain_count = 0
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
@@ -124,6 +135,8 @@ for epoch in range(nb_epoch):
         else:
             Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
+        print(gan.output_names[-2])
         t_loss = h.history['loss'][0]
         g_loss = h.history['{}_loss_{}'.format(gan.output_names[-2], len(layer) + 1)][0]
         e_loss = h.history['{}_loss_{}'.format(gan.output_names[-3], len(layer))][0]

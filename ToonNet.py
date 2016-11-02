@@ -162,7 +162,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
         f_dims = F_DIMS
 
     if noise:
-        in_layer = GaussianNoise(sigma=noise)(in_layer)
+        in_layer = GaussianNoise(sigma=K.get_value(noise))(in_layer)
 
     # Layer 1
     with tf.name_scope('conv_1'):

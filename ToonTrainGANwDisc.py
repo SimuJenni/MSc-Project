@@ -3,6 +3,7 @@ import os
 import sys
 import time
 
+import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator, generator_queue
@@ -28,6 +29,7 @@ w_outter = False
 p_wise_disc = False
 disc_with_x = False
 activation = 'relu'
+sigma = K.variable(value=0.2, dtype=np.float32, name='sigma')
 
 # Get the data-set object
 data = ImagenetToon(num_train=num_train, target_size=(128, 128))
@@ -36,11 +38,11 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter, activation=activation)
 discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x,
-                              noise=0.2)
+                              noise=sigma)
 gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight,
                                   withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
                                   layers=layer, learning_rate=learning_rate, w_outter=w_outter,
-                                  p_wise_out=p_wise_disc, activation=activation)
+                                  p_wise_out=p_wise_disc, activation=activation, noise=sigma)
 disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer)
 
 net_specs = 'rw{}_ew{}_l{}_ltr{}'.format(r_weight, e_weight, layer, loss_target_ratio)

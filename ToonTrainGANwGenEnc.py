@@ -1,64 +1,18 @@
 import gc
 import os
 import sys
-import multiprocessing
 import time
 
 import numpy as np
 
-from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, GANwGen, Encoder
+from ToonDataGenerator import ImageDataGenerator, generator_queue
+from ToonNet import Generator, Discriminator, GANwGen, Encoder, disc_data
 from constants import MODEL_DIR, IMG_DIR
-from datasets import Imagenet
+from datasets import ImagenetToon
 from utils import montage
 
 
-def disc_data(X, Y, Yd, p_wise=False, with_x=False):
-    if with_x:
-        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
-    else:
-        Xd = np.concatenate((Y, Yd))
-
-    if p_wise:
-        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
-    else:
-        yd = np.zeros((len(Y) + len(Yd), 1))
-        yd[:len(Y)] = 1
-    return Xd, yd
-
-
-def generator_queue(generator, max_q_size=8, nb_worker=2):
-    q = multiprocessing.Queue(maxsize=max_q_size)
-    _stop = multiprocessing.Event()
-    threads = []
-    try:
-        def data_generator_task():
-            while not _stop.is_set():
-                try:
-                    generator_output = next(generator)
-                    q.put(generator_output)
-                except Exception:
-                    _stop.set()
-                    raise
-
-        for i in range(nb_worker):
-            np.random.seed()
-            thread = multiprocessing.Process(target=data_generator_task)
-            threads.append(thread)
-            thread.daemon = True
-            thread.start()
-    except:
-        _stop.set()
-        # Terminate all daemon processes
-        for p in threads:
-            if p.is_alive():
-                p.terminate()
-        q.close()
-        raise
-
-    return q, _stop, threads
-
-
+# Training parameters
 batch_size = 64
 chunk_size = 16 * batch_size
 num_chunks = 4096
@@ -75,9 +29,8 @@ p_wise_disc = False
 disc_with_x = False
 activation = 'relu'
 
-
 # Get the data-set object
-data = Imagenet(num_train=num_train, target_size=(128, 128))
+data = ImagenetToon(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
@@ -137,7 +90,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or skip_dtrain_count>max_skip_dtrain or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
+        if not d_loss or skip_dtrain_count > max_skip_dtrain or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())

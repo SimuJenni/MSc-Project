@@ -1,12 +1,45 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import numpy as np
-import re
+import multiprocessing
 import os
+import re
 import threading
 
+import numpy as np
 from keras import backend as K
+
+
+def generator_queue(generator, max_q_size=8, nb_worker=4):
+    q = multiprocessing.Queue(maxsize=max_q_size)
+    _stop = multiprocessing.Event()
+    threads = []
+    try:
+        def data_generator_task():
+            while not _stop.is_set():
+                try:
+                    generator_output = next(generator)
+                    q.put(generator_output)
+                except Exception:
+                    _stop.set()
+                    raise
+
+        for i in range(nb_worker):
+            np.random.seed()
+            thread = multiprocessing.Process(target=data_generator_task)
+            threads.append(thread)
+            thread.daemon = True
+            thread.start()
+    except:
+        _stop.set()
+        # Terminate all daemon processes
+        for p in threads:
+            if p.is_alive():
+                p.terminate()
+        q.close()
+        raise
+
+    return q, _stop, threads
 
 
 def X2X_Y2Y(x, y):
@@ -90,6 +123,7 @@ class ImageDataGenerator(object):
             Keras config file at `~/.keras/keras.json`.
             If you never set it, then it will be "th".
     '''
+
     def __init__(self,
                  horizontal_flip=False,
                  dim_ordering='default'):
@@ -142,7 +176,6 @@ class ImageDataGenerator(object):
 
 
 class Iterator(object):
-
     def __init__(self, N, batch_size, shuffle, seed):
         self.N = N
         self.batch_size = batch_size
@@ -187,7 +220,6 @@ class Iterator(object):
 
 
 class NumpyArrayIterator(Iterator):
-
     def __init__(self, X, Y, image_data_generator,
                  batch_size=32, shuffle=False, seed=None,
                  dim_ordering='default',
@@ -237,7 +269,6 @@ class NumpyArrayIterator(Iterator):
 
 
 class DirectoryIterator(Iterator):
-
     def __init__(self, directory, image_data_generator,
                  target_size=(192, 192), color_mode='rgb',
                  batch_size=32, shuffle=True, seed=None,

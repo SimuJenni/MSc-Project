@@ -1,12 +1,12 @@
 import os
-
+import numpy as np
+import keras.backend as K
 import tensorflow as tf
-from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, UpSampling2D, \
-    GlobalAveragePooling2D, Lambda
+from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, GlobalAveragePooling2D, \
+    Lambda, Flatten, Dropout
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
-import keras.backend as K
 
 from constants import MODEL_DIR
 
@@ -209,7 +209,6 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
 
 
 def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
-
     def resize(x):
         return K.resize_images(x, height_factor=2.0, width_factor=2.0, dim_ordering='tf')
 
@@ -316,6 +315,39 @@ def my_activation(x, type='relu', alpha=0.3):
         raise ValueError('Activation type {} not supported'.format(type))
 
 
+def Classifier(input_shape, num_res=8, activation='relu', big_f=False, num_classes=1000):
+    # Build encoder
+    input_gen = Input(shape=input_shape)
+    decoded, enc_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res, outter=False,
+                                        activation=activation)
+    enc_out = enc_layers[-1]
+    encoder = Model(input_gen, enc_out)
+    generator = Model(input_gen, decoded)
+    generator.name = make_name('ToonGenerator', big_f=big_f, num_res=num_res, activation=activation)
+    generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+    make_trainable(encoder, False)
+
+    # Build classifier
+    im_input = Input(shape=input_shape)
+    enc_out = encoder(im_input)
+
+    # Dense Layers
+    dense_1 = Flatten(name="flatten")(enc_out)
+    dense_1 = Dense(4096, activation='relu', name='dense_1')(dense_1)
+    dense_2 = Dropout(0.5)(dense_1)
+    dense_2 = Dense(4096, activation='relu', name='dense_2')(dense_2)
+    dense_3 = Dropout(0.5)(dense_2)
+    dense_3 = Dense(num_classes, name='dense_3')(dense_3)
+    prediction = Activation("softmax", name="softmax")(dense_3)
+
+    classifier = Model(input=im_input, output=prediction)
+
+    # Compile model
+    optimizer = Adam(lr=0.001, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    classifier.compile(loss='categorical_crossentropy', optimizer=optimizer)
+    return classifier
+
+
 def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):
     # Build the model
     input_gen = Input(shape=input_shape)
@@ -384,7 +416,7 @@ def Discriminator(input_shape, load_weights=False, big_f=False, train=True, laye
     if train:
         discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
     else:
-        discriminator.compile(loss=len(layers)*['mse']+['binary_crossentropy'], optimizer=optimizer)
+        discriminator.compile(loss=len(layers) * ['mse'] + ['binary_crossentropy'], optimizer=optimizer)
     return discriminator
 
 
@@ -441,19 +473,19 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
 
     # Compile model
     optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    loss_weights = [1.0] + range(1, len(layers)+1) * enc_weight + [recon_weight]
-    gan.compile(loss=['binary_crossentropy'] + len(layers)*['mse'] + ['mse'],
+    loss_weights = [1.0] + range(1, len(layers) + 1) * enc_weight + [recon_weight]
+    gan.compile(loss=['binary_crossentropy'] + len(layers) * ['mse'] + ['mse'],
                 loss_weights=loss_weights,
                 optimizer=optimizer)
     return gan, generator, discriminator, gen_enc, enc_on_gan
 
 
 def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-            enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
+             enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, num_res_layers=num_res_g, outter=w_outter,
-                                        activation=activation)
+                               activation=activation)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGenerator', num_res=num_res_g, w_outter=w_outter,
                                activation=activation)
@@ -465,7 +497,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
         input_disc = Input(shape=input_shape)
     dis_out, disc_layers = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
     disc_layers_out = [disc_layers[l - 1] for l in layers]
-    discriminator = Model(input_disc, output=disc_layers_out+[dis_out])
+    discriminator = Model(input_disc, output=disc_layers_out + [dis_out])
     make_trainable(discriminator, False)
     discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d,
                                    p_wise_out=p_wise_out)
@@ -487,8 +519,8 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
 
     # Compile model
     optimizer = Adam(lr=learning_rate, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    loss_weights = [enc_weight*l for l in range(1, len(layers)+1)] + [1.0, recon_weight]
-    gan.compile(loss=len(layers)*['mse'] + ['binary_crossentropy'] + ['mse'],
+    loss_weights = [enc_weight * l for l in range(1, len(layers) + 1)] + [1.0, recon_weight]
+    gan.compile(loss=len(layers) * ['mse'] + ['binary_crossentropy'] + ['mse'],
                 loss_weights=loss_weights,
                 optimizer=optimizer)
     return gan, generator, discriminator
@@ -517,3 +549,17 @@ def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
         l.trainable = val
+
+
+def disc_data(X, Y, Yd, p_wise=False, with_x=False):
+    if with_x:
+        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
+    else:
+        Xd = np.concatenate((Y, Yd))
+
+    if p_wise:
+        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
+    else:
+        yd = np.zeros((len(Y) + len(Yd), 1))
+        yd[:len(Y)] = 1
+    return Xd, yd

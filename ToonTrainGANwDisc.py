@@ -1,64 +1,18 @@
 import gc
-import multiprocessing
 import os
 import sys
 import time
 
 import numpy as np
 
-from DataGenerator import ImageDataGenerator
-from ToonNet import Generator, Discriminator, GANwDisc
+from ToonDataGenerator import ImageDataGenerator, generator_queue
+from ToonNet import Generator, Discriminator, GANwDisc, disc_data
 from constants import MODEL_DIR, IMG_DIR
-from datasets import Imagenet
+from datasets import ImagenetToon
 from utils import montage
 
 
-def disc_data(X, Y, Yd, p_wise=False, with_x=False):
-    if with_x:
-        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
-    else:
-        Xd = np.concatenate((Y, Yd))
-
-    if p_wise:
-        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
-    else:
-        yd = np.zeros((len(Y) + len(Yd), 1))
-        yd[:len(Y)] = 1
-    return Xd, yd
-
-
-def generator_queue(generator, max_q_size=8, nb_worker=4):
-    q = multiprocessing.Queue(maxsize=max_q_size)
-    _stop = multiprocessing.Event()
-    threads = []
-    try:
-        def data_generator_task():
-            while not _stop.is_set():
-                try:
-                    generator_output = next(generator)
-                    q.put(generator_output)
-                except Exception:
-                    _stop.set()
-                    raise
-
-        for i in range(nb_worker):
-            np.random.seed()
-            thread = multiprocessing.Process(target=data_generator_task)
-            threads.append(thread)
-            thread.daemon = True
-            thread.start()
-    except:
-        _stop.set()
-        # Terminate all daemon processes
-        for p in threads:
-            if p.is_alive():
-                p.terminate()
-        q.close()
-        raise
-
-    return q, _stop, threads
-
-
+# Training parameters
 batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 2000000 // chunk_size
@@ -77,7 +31,7 @@ disc_with_x = False
 activation = 'relu'
 
 # Get the data-set object
-data = Imagenet(num_train=num_train, target_size=(128, 128))
+data = ImagenetToon(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models

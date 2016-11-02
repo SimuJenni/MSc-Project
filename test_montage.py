@@ -1,6 +1,6 @@
-from DataGenerator import ImageDataGenerator, Y2X_Y2Y
+from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import Encoder
-from datasets import Imagenet
+from datasets import ImagenetToon
 from utils import montage
 import os
 from constants import MODEL_DIR
@@ -8,7 +8,7 @@ from constants import MODEL_DIR
 batch_size = 32
 
 # Get the data-set object
-data = Imagenet(target_size=(128, 128))
+data = ImagenetToon(target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the auto-encoder

@@ -1,6 +1,6 @@
 import numpy as np
 
-from DataGenerator import ImageDataGenerator, Y2X_Y2Y
+from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import GANwEncoder
 from datasets import TinyImagenet
 from utils import montage

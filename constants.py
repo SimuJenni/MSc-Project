@@ -18,4 +18,5 @@ IMAGENET_DATADIR = os.path.join(DATA_DIR, 'imagenet-toon-strong/')
 # Source directories for datasets
 TINYIMAGENET_SRC_DIR = os.path.join(DATA_DIR, 'tiny-imagenet-200-prepped/')
 IMAGENET_SRC_DIR = '/data/cvg/imagenet/ILSVRC2012/'
-
+IMAGENET_TRAIN_DIR = os.path.join(IMAGENET_SRC_DIR, 'ILSVRC2012_img_train/')
+IMAGENET_VAL_DIR = os.path.join(DATA_DIR, 'ILSVRC2012_img_val/')

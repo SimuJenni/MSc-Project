@@ -1,33 +1,20 @@
+import gc
 import os
 import sys
-import gc
 
 import numpy as np
 
-from DataGenerator import ImageDataGenerator
-from ToonNet import Discriminator, Generator
+from ToonDataGenerator import ImageDataGenerator
+from ToonNet import Discriminator, Generator, disc_data
 from constants import MODEL_DIR
-from datasets import Imagenet
+from datasets import ImagenetToon
 
 
 def compute_accuracy(y_hat, y):
     return 1.0 - np.mean(np.abs(np.round(y_hat) - y))
 
 
-def disc_data(X, Y, Yd, p_wise=False, with_x=False):
-    if with_x:
-        Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
-    else:
-        Xd = np.concatenate((Y, Yd))
-
-    if p_wise:
-        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
-    else:
-        yd = np.zeros((len(Y) + len(Yd), 1))
-        yd[:len(Y)] = 1
-    return Xd, yd
-
-
+# Training parameters
 batch_size = 64
 chunk_size = 32 * batch_size
 num_train = 200000
@@ -36,12 +23,13 @@ disc_with_x = False
 p_wise = False
 
 # Get the data-set object
-data = Imagenet(num_train=num_train, target_size=(128, 128))
+data = ImagenetToon(num_train=num_train, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, w_outter=False, num_res=num_res_g)
-discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise, num_res=0, big_f=True)
+discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise,
+                              num_res=0, big_f=True)
 discriminator.summary()
 
 # Name used for saving of model and outputs

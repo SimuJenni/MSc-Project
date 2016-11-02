@@ -17,17 +17,18 @@ batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 2000000 // chunk_size
 nb_epoch = 1
-r_weight = 25.0
+r_weight = 10.0
 e_weight = 1.0
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
 num_res_d = 0
-layer = [5]
+layer = [3, 5]
 learning_rate = 0.0001
 w_outter = False
 p_wise_disc = False
 disc_with_x = False
+big_fd = True
 activation = 'relu'
 sigma = K.variable(value=0.25, name='sigma')
 noise_lower_factor = 0.95
@@ -39,12 +40,13 @@ datagen = ImageDataGenerator()
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter, activation=activation)
 discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x,
-                              noise=sigma)
+                              noise=sigma, num_res=num_res_d, big_f=big_fd)
 gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight,
                                   withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
                                   layers=layer, learning_rate=learning_rate, w_outter=w_outter,
-                                  p_wise_out=p_wise_disc, activation=activation, noise=sigma)
-disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer)
+                                  p_wise_out=p_wise_disc, activation=activation, noise=sigma, num_res_d=num_res_d,
+                                  big_f=big_fd)
+disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer, num_res=num_res_d, big_f=big_fd)
 
 net_specs = 'rw{}_ew{}_l{}_ltr{}'.format(r_weight, e_weight, layer, loss_target_ratio)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
@@ -90,7 +92,7 @@ for epoch in range(nb_epoch):
 
         update_disc = False
 
-        if not d_loss or skip_dtrain_count > max_skip_dtrain-1 or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
+        if not d_loss or skip_dtrain_count > max_skip_dtrain - 1 or d_loss > g_loss * loss_target_ratio or g_loss < dl_thresh:
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Update the weights
             generator.set_weights(gen_gan.get_weights())
@@ -109,9 +111,9 @@ for epoch in range(nb_epoch):
 
             update_disc = True
             dtrain_count += 1
-            if dtrain_count > lower_noise_count-1:
+            if dtrain_count > lower_noise_count - 1:
                 if skip_dtrain_count < max_skip_dtrain:
-                    new_sigma = K.get_value(sigma)*noise_lower_factor
+                    new_sigma = K.get_value(sigma) * noise_lower_factor
                     print('Lowering noise-level to {}'.format(new_sigma))
                     K.set_value(sigma, new_sigma)
                 dtrain_count = 0

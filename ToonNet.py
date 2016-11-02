@@ -210,7 +210,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
 
 def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
     def resize(x):
-        return K.resize_images(x, height_factor=2.0, width_factor=2.0, dim_ordering=K.image_dim_ordering())
+        return K.resize_images(x, height_factor=2, width_factor=2, dim_ordering=K.image_dim_ordering())
 
     def resize_output_shape(input_shape):
         shape = list(input_shape)

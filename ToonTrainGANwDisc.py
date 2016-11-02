@@ -29,7 +29,7 @@ w_outter = False
 p_wise_disc = False
 disc_with_x = False
 activation = 'relu'
-sigma = K.variable(value=0.2, dtype=np.float32, name='sigma')
+sigma = K.variable(value=0.2, name='sigma')
 
 # Get the data-set object
 data = ImagenetToon(num_train=num_train, target_size=(128, 128))

@@ -2,10 +2,10 @@ import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import GANwEncoder
-from datasets import TinyImagenet
+from datasets import TinyImagenetToon
 from utils import montage
 
-data = TinyImagenet(target_size=(128, 128))
+data = TinyImagenetToon(target_size=(128, 128))
 datagen = ImageDataGenerator()
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=2, target_size=data.target_size).next()
 

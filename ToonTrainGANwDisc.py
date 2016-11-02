@@ -17,7 +17,7 @@ batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 2000000 // chunk_size
 nb_epoch = 1
-r_weight = 20.0
+r_weight = 50.0
 e_weight = 1.0
 loss_target_ratio = 0.01
 num_train = num_chunks * chunk_size
@@ -68,7 +68,7 @@ print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
 dl_thresh = -np.log(0.5)
-max_skip_dtrain = 10
+max_skip_dtrain = 5
 lower_noise_count = 2
 
 for epoch in range(nb_epoch):

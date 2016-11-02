@@ -1,6 +1,7 @@
 import os
-import numpy as np
+
 import keras.backend as K
+import numpy as np
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, GlobalAveragePooling2D, \
     Lambda, Flatten, Dropout, GaussianNoise
@@ -134,7 +135,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
     return decoded, layers
 
 
-def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False, activation='lrelu'):
+def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False, activation='lrelu', noise=None):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -159,6 +160,9 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
         f_dims = BF_DIMS
     else:
         f_dims = F_DIMS
+
+    if noise:
+        in_layer = GaussianNoise(sigma=noise)(in_layer)
 
     # Layer 1
     with tf.name_scope('conv_1'):
@@ -390,16 +394,14 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
 
 
 def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layers=None, withx=False, num_res=8,
-                  p_wise_out=False, add_noise=False):
+                  p_wise_out=False, noise=None):
     # Build the model
     if withx:
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    if add_noise:
-        input_disc = GaussianNoise(sigma=0.2)(input_disc)
     dis_out, layer_activations = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res,
-                                                   p_wise_out=p_wise_out)
+                                                   p_wise_out=p_wise_out, noise=noise)
     if layers:
         disc_layers_out = [layer_activations[l - 1] for l in layers]
         discriminator = Model(input_disc, output=disc_layers_out + [dis_out])
@@ -483,7 +485,8 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
 
 
 def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, withx=False, num_res_g=8, num_res_d=8,
-             enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu', add_noise=False):
+             enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu',
+             noise=None):
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, _ = ToonGenerator(input_gen, num_res_layers=num_res_g, outter=w_outter,
@@ -497,9 +500,8 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    if add_noise:
-        input_disc = GaussianNoise(sigma=0.2)(input_disc)
-    dis_out, disc_layers = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
+    dis_out, disc_layers = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out,
+                                             noise=noise)
     disc_layers_out = [disc_layers[l - 1] for l in layers]
     discriminator = Model(input_disc, output=disc_layers_out + [dis_out])
     make_trainable(discriminator, False)

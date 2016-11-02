@@ -14,7 +14,7 @@ class Dataset:
             self.target_size = target_size
         else:
             self.target_size = self.im_size
-        self.dims = target_size + (3,)
+        self.dims = self.target_size + (3,)
         if data_dir:
             self.data_dir = data_dir
             self.train_dir = os.path.join(self.data_dir, 'Train/')

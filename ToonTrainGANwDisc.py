@@ -36,7 +36,7 @@ datagen = ImageDataGenerator()
 
 # Load the models
 generator = Generator(data.dims, load_weights=True, num_res=num_res_g, w_outter=w_outter, activation=activation)
-discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x)
+discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_out=p_wise_disc, withx=disc_with_x, add_noise=True)
 gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight,
                                   withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
                                   layers=layer, learning_rate=learning_rate, w_outter=w_outter,

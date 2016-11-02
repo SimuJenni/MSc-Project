@@ -32,7 +32,7 @@ with g.as_default():
     labels = slim.one_hot_encoding(
         labels, dataset.num_classes)
 
-    # Create the model
+    # TODO: Create the model
     predictions = myModel(images, is_training=True)
 
     # Define the loss
@@ -46,13 +46,13 @@ with g.as_default():
     # Create training operation
     train_op = slim.learning.create_train_op(total_loss, optimizer)
 
-    # Specify where the Model, trained on ImageNet, was saved.
+    # TODO: Specify where the Model, trained on ImageNet, was saved.
     model_path = '/path/to/pre_trained_model.checkpoint'
 
-    # Specify where the new model will live:
+    # TODO: Specify where the new model will live:
     log_dir = '/path/to/my_model_dir/'
 
-    # Restore only the convolutional layers:
+    # TODO: Restore only the convolutional layers:
     variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
     init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 

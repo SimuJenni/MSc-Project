@@ -17,20 +17,20 @@ batch_size = 128
 chunk_size = 8 * batch_size
 num_chunks = 2000000 // chunk_size
 nb_epoch = 1
-r_weight = 10.0
+r_weight = 20.0
 e_weight = 1.0
 loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
 num_res_d = 0
-layer = [3, 5]
+layer = [5]
 learning_rate = 0.0001
 w_outter = False
 p_wise_disc = False
 disc_with_x = False
 big_fd = True
 activation = 'relu'
-sigma = K.variable(value=0.25, name='sigma')
+sigma = K.variable(value=0.2, name='sigma')
 noise_lower_factor = 0.95
 
 # Get the data-set object
@@ -44,9 +44,9 @@ discriminator = Discriminator(data.dims, load_weights=True, train=True, p_wise_o
 gan, gen_gan, disc_gan = GANwDisc(data.dims, load_weights=True, recon_weight=r_weight,
                                   withx=disc_with_x, num_res_g=num_res_g, enc_weight=e_weight,
                                   layers=layer, learning_rate=learning_rate, w_outter=w_outter,
-                                  p_wise_out=p_wise_disc, activation=activation, noise=sigma, num_res_d=num_res_d,
-                                  big_f=big_fd)
-disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer, num_res=num_res_d, big_f=big_fd)
+                                  p_wise_out=p_wise_disc, activation=activation, noise=sigma,
+                                  num_res_d=num_res_d, big_f=big_fd)
+disc_enc = Discriminator(data.dims, load_weights=False, train=False, layers=layer, num_res=num_res_d, big_f=big_fd, noise=sigma)
 
 net_specs = 'rw{}_ew{}_l{}_ltr{}'.format(r_weight, e_weight, layer, loss_target_ratio)
 gen_name = '{}_{}'.format(gen_gan.name, net_specs)
@@ -68,15 +68,17 @@ print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
 dl_thresh = -np.log(0.5)
-max_skip_dtrain = 20
-lower_noise_count = 5
+max_skip_dtrain = 10
+lower_noise_count = 2
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
 
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
-        datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size))
+        datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
+        max_q_size=16,
+        nb_worker=4)
     skip_dtrain_count = 0
     dtrain_count = 0
 

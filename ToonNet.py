@@ -12,10 +12,38 @@ from keras.optimizers import Adam
 from constants import MODEL_DIR
 
 F_DIMS = [64, 96, 160, 256, 512]
-BF_DIMS = [64, 128, 256, 512, 1024]
+BF_DIMS = [64, 128, 256, 512, 1024, 2048]
+NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
-def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False, outter=False, activation='relu'):
+def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu', num_layers=5):
+    f_dims = BF_DIMS[:num_layers]
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+
+    for l in range(0, num_layers):
+        with tf.name_scope('conv_{}'.format(l + 1)):
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
+
+    # Residual layers
+    for i in range(num_res_layers):
+        with tf.name_scope('res_layer_{}'.format(i + 1)):
+            x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
+
+    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
+    x = add_noise_planes(x, NOISE_CHANNELS[num_layers - 1])
+
+    for l in range(1, num_layers):
+        with tf.name_scope('deconv_{}'.format(l + 1)):
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - 1 - l], activation=activation,
+                                     noise_ch=NOISE_CHANNELS[num_layers - l - 1])
+
+    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    decoded = Activation(out_activation)(x)
+
+    return decoded
+
+
+def ToonGenerator_old(in_layer, out_activation='tanh', num_res_layers=8, big_f=True, outter=False, activation='relu'):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
 
@@ -55,7 +83,7 @@ def ToonGenerator(in_layer, out_activation='tanh', num_res_layers=8, big_f=False
 
     # Layer 1
     with tf.name_scope('conv_1'):
-        x = conv_act(in_layer, f_size=3, f_channels=32, stride=1, border='same', activation=activation)
+        x = conv_act(in_layer, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
         l1 = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=2, border='same', activation=activation)
         if outter:
             ol1 = outter_connection(l1, f_dims[0])
@@ -212,6 +240,13 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
     return x, layer_activations
 
 
+def add_noise_planes(x, n_chan):
+    layer_shape = K.shape(x)
+    noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
+    x = merge([x, noise], mode='concat')
+    return x
+
+
 def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
     def resize(x):
         return K.resize_images(x, height_factor=2, width_factor=2, dim_ordering=K.image_dim_ordering())
@@ -225,6 +260,23 @@ def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
     x = Lambda(resize, output_shape=resize_output_shape)(layer_in)
     # x = UpSampling2D()(layer_in)
     x = conv_act(x, f_size=f_size, f_channels=f_channels, stride=1, border='same', activation=activation)
+    return x
+
+
+def up_conv_act_bn_noise(layer_in, f_size, f_channels, activation='relu', noise_ch=None):
+    def resize(x):
+        return K.resize_images(x, height_factor=2, width_factor=2, dim_ordering=K.image_dim_ordering())
+
+    def resize_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[1] *= 2
+        shape[2] *= 2
+        return tuple(shape)
+
+    x = Lambda(resize, output_shape=resize_output_shape)(layer_in)
+    if noise_ch:
+        x = add_noise_planes(x, noise_ch)
+    x = conv_act_bn(x, f_size=f_size, f_channels=f_channels, stride=1, border='same', activation=activation)
     return x
 
 
@@ -352,7 +404,24 @@ def Classifier(input_shape, num_res=8, activation='relu', big_f=False, num_class
     return classifier
 
 
-def Generator(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):
+def Generator(input_shape, load_weights=False, num_layers=4):
+    # Build the model
+    input_gen = Input(shape=input_shape)
+    decoded, _ = ToonGenerator(input_gen, num_layers=num_layers)
+    generator = Model(input_gen, decoded)
+    generator.name = make_name('ToonGenerator', num_layers=num_layers)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+
+    # Compile
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    generator.compile(loss='mse', optimizer=optimizer)
+    return generator
+
+
+def Generator_old(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):
     # Build the model
     input_gen = Input(shape=input_shape)
     decoded, _ = ToonGenerator(input_gen, big_f=big_f, outter=w_outter, num_res_layers=num_res, activation=activation)
@@ -533,7 +602,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,
-              activation=None):
+              activation=None, num_layers=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -548,6 +617,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_pwo".format(net_name)
     if activation:
         net_name = "{}_{}".format(net_name, activation)
+    if num_layers:
+        net_name = "{}_nl{}".format(net_name, num_layers)
     return net_name
 
 

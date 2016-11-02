@@ -1,8 +1,5 @@
 import glob
-
-from keras.datasets import cifar10
 from scipy import misc
-
 from constants import *
 
 
@@ -22,6 +19,13 @@ class Dataset:
             # Check if dataset has already been preprocessed
             if not os.path.exists(self.data_dir):
                 os.mkdir(self.data_dir)
+                os.mkdir(self.train_dir)
+                os.mkdir(self.val_dir)
+                os.mkdir(os.path.join(self.train_dir, 'X/'))
+                os.mkdir(os.path.join(self.train_dir, 'Y/'))
+                os.mkdir(os.path.join(self.val_dir, 'X/'))
+                os.mkdir(os.path.join(self.val_dir, 'Y/'))
+
                 self.process_dataset()
             # Paths to data-files with randomized train and test images
             self.val_files = glob.glob('%s/X/%s*' % (self.val_dir, 'val'))
@@ -89,9 +93,10 @@ class CIFAR10_Toon(Dataset):
     def process_dataset(self):
         # Otherwise get the data set and process it
         from cartooning import process_data
+        from keras.datasets import cifar10
         (Y_train, _), (Y_val, _) = cifar10.load_data()
-        X_train = process_data(Y_train)
-        X_val = process_data(Y_val)
+        X_train = process_data(Y_train, num_downsample=1)
+        X_val = process_data(Y_val, num_downsample=1)
 
         for i in range(len(X_train)):
             filename = 'train_{}'.format(i + 1)

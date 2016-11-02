@@ -3,20 +3,21 @@ import os
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import Generator
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon
+from datasets import ImagenetToon
 from utils import montage
 
 
 # Training parameters
-batch_size = 256
-nb_epoch = 10
+batch_size = 128
+nb_epoch = 2
+samples_per_epoch = 500000
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = ImagenetToon(num_train=samples_per_epoch, target_size=(128, 128))
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, num_layers=3)
+generator = Generator(input_shape=data.dims, load_weights=False, num_res=16, w_outter=False, activation='relu')
 generator.summary()
 
 # Name used for saving of model and outputs
@@ -26,10 +27,10 @@ print('Training network: {}'.format(net_name))
 # Training
 history = generator.fit_generator(
     datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=data.target_size),
-    samples_per_epoch=data.num_train,
+    samples_per_epoch=samples_per_epoch,
     nb_epoch=nb_epoch,
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
-    nb_val_samples=data.num_val,
+    nb_val_samples=20000,
     nb_worker=4,
     pickle_safe=True)
 
@@ -37,7 +38,7 @@ history = generator.fit_generator(
 generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))
 
 # Generate montage of sample-images
-sample_size = 100
+sample_size = 64
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=sample_size,
                                              target_size=data.target_size).next()
 decoded_imgs = generator.predict(X_test, batch_size=batch_size)

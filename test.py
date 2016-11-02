@@ -1,23 +1,22 @@
 import numpy as np
 
-from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
-from ToonNet import GANwEncoder
-from datasets import TinyImagenetToon
+from ToonDataGenerator import ImageDataGenerator
+from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage
 
-data = TinyImagenetToon(target_size=(128, 128))
-datagen = ImageDataGenerator()
-X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=2, target_size=data.target_size).next()
-
-gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=False)
-h = gan.fit(x=X_test, y=[np.ones((len(Y_test), 1)), np.zeros((2,4,4,512)), Y_test], nb_epoch=1, batch_size=2, verbose=0)
-print(h.history.keys())
-print(h.history)
-print(h.history['ToonGenerator_nr8_loss'][0])
-print(gan.output_names)
-print(h.history['{}_loss'.format(gan.output_names[0])][0])
-
-print(h.history['%s_loss' % gan.output_names[0]])
+data = CIFAR10_Toon()
+# datagen = ImageDataGenerator()
+# X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=2, target_size=data.target_size).next()
+#
+# gan, gen_gan, disc_gan = GANwEncoder(data.dims, load_weights=False)
+# h = gan.fit(x=X_test, y=[np.ones((len(Y_test), 1)), np.zeros((2,4,4,512)), Y_test], nb_epoch=1, batch_size=2, verbose=0)
+# print(h.history.keys())
+# print(h.history)
+# print(h.history['ToonGenerator_nr8_loss'][0])
+# print(gan.output_names)
+# print(h.history['{}_loss'.format(gan.output_names[0])][0])
+#
+# print(h.history['%s_loss' % gan.output_names[0]])
 
 
 

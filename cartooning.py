@@ -58,7 +58,7 @@ def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
     return im
 
 
-def process_data(X, num_threads=10):
+def process_data(X, num_threads=10, num_downsample=2):
     """Process an array of images with specified number of threads
 
     Args:
@@ -85,7 +85,7 @@ def process_data(X, num_threads=10):
         for i in range(0, num_im):
             if i % 1000 == 0:
                 print('Thread {}: {}/{}'.format(idx, i, num_im))
-            X_toon[i, :, :] = cartoonify_bilateral(X[i, :, :])
+            X_toon[i, :, :] = cartoonify_bilateral(X[i, :, :], num_donw_samp=num_downsample)
         results[idx] = X_toon
 
     # Create threads and feed slices

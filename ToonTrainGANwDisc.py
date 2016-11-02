@@ -23,13 +23,13 @@ loss_target_ratio = 0.1
 num_train = num_chunks * chunk_size
 num_res_g = 16
 num_res_d = 0
-layer = [3, 5]
-learning_rate = 0.0002
+layer = [5]
+learning_rate = 0.0001
 w_outter = False
 p_wise_disc = False
 disc_with_x = False
 activation = 'relu'
-sigma = K.variable(value=0.3, name='sigma')
+sigma = K.variable(value=0.25, name='sigma')
 noise_lower_factor = 0.95
 
 # Get the data-set object
@@ -66,8 +66,8 @@ print('Adversarial training: {}'.format(gen_name))
 g_loss = None
 d_loss = None
 dl_thresh = -np.log(0.5)
-max_skip_dtrain = 50
-lower_noise_count = 4
+max_skip_dtrain = 20
+lower_noise_count = 5
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -108,13 +108,14 @@ for epoch in range(nb_epoch):
             print('d-Loss: {}'.format(d_loss))
 
             update_disc = True
-            skip_dtrain_count = 0
             dtrain_count += 1
             if dtrain_count > lower_noise_count-1:
-                new_sigma = K.get_value(sigma)*noise_lower_factor
-                print('Lowering noise-level to {}'.format(new_sigma))
-                K.set_value(sigma, new_sigma)
+                if skip_dtrain_count < max_skip_dtrain:
+                    new_sigma = K.get_value(sigma)*noise_lower_factor
+                    print('Lowering noise-level to {}'.format(new_sigma))
+                    K.set_value(sigma, new_sigma)
                 dtrain_count = 0
+            skip_dtrain_count = 0
 
             del Xd_train, yd_train, Yd
         else:
@@ -135,8 +136,6 @@ for epoch in range(nb_epoch):
         else:
             Yg_train[-1] = np.ones((len(Y_train), 1))
         h = gan.fit(x=X_train, y=Yg_train + [Y_train], nb_epoch=1, batch_size=batch_size, verbose=0)
-        print(h.history)
-        print(gan.output_names[-2])
         t_loss = h.history['loss'][0]
         g_loss = h.history['{}_loss_{}'.format(gan.output_names[-2], len(layer) + 1)][0]
         e_loss = h.history['{}_loss_{}'.format(gan.output_names[-3], len(layer))][0]

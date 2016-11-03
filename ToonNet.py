@@ -43,13 +43,12 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
     return decoded
 
 
-def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noise=None):
+def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noise=None, out_activation='tanh'):
 
     if noise:
         x = GaussianNoise(sigma=K.get_value(noise))(x)
 
     f_dims = BF_DIMS[:num_layers]
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
@@ -60,8 +59,14 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
 
+    for l in range(0, num_layers):
+        with tf.name_scope('deconv_{}'.format(l + 1)):
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l -1], activation=activation)
 
-    return x
+    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    decoded = Activation(out_activation)(x)
+
+    return decoded
 
 
 def ToonGenerator_old(in_layer, out_activation='tanh', num_res_layers=8, big_f=True, outter=False, activation='relu'):
@@ -450,6 +455,24 @@ def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128):
     return generator
 
 
+def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noise=None):
+    # Build the model
+    input_disc = Input(shape=input_shape)
+    dis_out = ToonDiscriminator(input_disc, num_layers=num_layers, noise=noise)
+    discriminator = Model(input_disc, dis_out)
+    make_trainable(discriminator, train)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
+
+    # Load weights
+    if load_weights:
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Compile
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    discriminator.compile(loss='mse', optimizer=optimizer)
+    return discriminator
+
+
 def Generator_old(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):
     # Build the model
     input_gen = Input(shape=input_shape)
@@ -491,7 +514,7 @@ def Encoder(input_shape, load_weights=False, train=False, big_f=False, num_res=8
     return encoder, generator
 
 
-def Discriminator(input_shape, load_weights=False, big_f=False, train=True, layers=None, withx=False, num_res=8,
+def Discriminator_old(input_shape, load_weights=False, big_f=False, train=True, layers=None, withx=False, num_res=8,
                   p_wise_out=False, noise=None):
     # Build the model
     if withx:

@@ -405,6 +405,14 @@ def my_activation(x, type='relu', alpha=0.2):
         raise ValueError('Activation type {} not supported'.format(type))
 
 
+def sub(a, b):
+    return merge([a, b], mode=lambda x: x[0] - x[1], output_shape=lambda x: x[0])
+
+
+def l2_loss(y_true, y_pred):
+    return K.mean(K.square(y_pred), axis=-1)
+
+
 def Classifier(input_shape, num_res=8, activation='relu', big_f=False, num_classes=1000):
     # Build encoder
     input_gen = Input(shape=input_shape)
@@ -471,6 +479,59 @@ def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noi
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
     discriminator.compile(loss='mse', optimizer=optimizer)
     return discriminator
+
+
+def EBGAN(input_shape, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True):
+    # Build Generator
+    input_gen = Input(shape=input_shape)
+    gen_out = ToonGenerator(input_gen, num_layers=num_layers_g)
+    generator = Model(input_gen, gen_out)
+    generator.name = make_name('ToonGenerator', num_layers=num_layers_g)
+    if train_disc:
+        make_trainable(generator, False)
+
+    # Build Discriminator
+    input_disc = Input(shape=input_shape)
+    dis_out = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise)
+    discriminator = Model(input_disc, output=dis_out)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d)
+    if not train_disc:
+        make_trainable(discriminator, False)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+
+    # Build GAN
+    if train_disc:
+        x_input = Input(shape=input_shape)
+        y_input = Input(shape=input_shape)
+        g_x = generator(x_input)
+        d_g_x = discriminator(g_x)
+        d_y = discriminator(y_input)
+        l1 = sub(d_y, y_input)
+        l2 = sub(d_g_x, g_x)
+        l3 = sub(d_g_x, d_y)
+        gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
+        gan.compile(loss=[l2_loss]*3, loss_weights=[1.0, -1.0, -1.0], optimizer=optimizer)
+        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g])
+    else:
+        x_input = Input(shape=input_shape)
+        y_input = Input(shape=input_shape)
+        g_x = generator(x_input)
+        d_g_x = discriminator(g_x)
+        d_y = discriminator(y_input)
+        l2 = sub(d_g_x, g_x)
+        l3 = sub(d_g_x, d_y)
+        gan = Model(input=[x_input, y_input], output=[l2, l3])
+        gan.compile(loss=[l2_loss] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g])
+
+    return gan, generator, discriminator
+
 
 
 def Generator_old(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):

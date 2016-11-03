@@ -3,12 +3,13 @@ import os
 import sys
 import time
 
+import numpy as np
+
 from ToonDataGenerator import ImageDataGenerator, generator_queue
 from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon
 from utils import montage
-import numpy as np
 
 # Get the data-set object
 data = CIFAR10_Toon()
@@ -23,9 +24,11 @@ nb_epoch = 10
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
-dGAN, d_gen, d_disc = EBGAN(data.dims, load_weights=True, train_disc=True, num_layers_d=num_layers,
+dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=True,
+                            num_layers_d=num_layers,
                             num_layers_g=num_layers)
-gGAN, g_gen, g_disc = EBGAN(data.dims, load_weights=True, train_disc=False, num_layers_d=num_layers,
+gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=False,
+                            num_layers_d=num_layers,
                             num_layers_g=num_layers)
 gGAN.summary()
 

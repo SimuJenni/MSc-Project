@@ -481,9 +481,9 @@ def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noi
     return discriminator
 
 
-def EBGAN(input_shape, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True):
+def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True):
     # Build Generator
-    input_gen = Input(shape=input_shape)
+    input_gen = Input(batch_shape=(batch_size,)+input_shape)
     gen_out = ToonGenerator(input_gen, num_layers=num_layers_g)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGenerator', num_layers=num_layers_g)

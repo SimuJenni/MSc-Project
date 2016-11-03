@@ -417,7 +417,7 @@ def l2_loss(y_true, y_pred):
 def Classifier(input_shape, num_layers=4, num_classes=1000, fine_tune=True):
     # Build encoder
     input_im = Input(shape=input_shape)
-    decoded, encoded = ToonDiscriminator(input_im)
+    decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers)
     encoder = Model(input_im, encoded)
     generator = Model(input_im, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers)

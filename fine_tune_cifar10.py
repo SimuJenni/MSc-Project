@@ -34,6 +34,10 @@ with g.as_default():
         common_queue_min=10 * BATCH_SIZE)
 
     [image, label] = provider.get(['image', 'label'])
+
+    # Preprocess images
+    image = (tf.to_float(image) / 255. - 0.5) * 2.0
+
     images, labels = tf.train.batch(
         [image, label],
         batch_size=BATCH_SIZE,

@@ -1,5 +1,9 @@
 import tensorflow as tf
 from ToonNet import Classifier
+sess = tf.Session()
+
+from keras import backend as K
+K.set_session(sess)
 
 from tf_slim.datasets import cifar10
 from constants import LOG_DIR

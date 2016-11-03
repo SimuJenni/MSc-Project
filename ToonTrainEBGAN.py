@@ -65,7 +65,8 @@ for epoch in range(nb_epoch):
         target = np.zeros_like(Y_train)
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Update the weights
-        dGAN.set_weights(gGAN.get_weights())
+        d_disc.set_weights(g_disc.get_weights())
+        d_gen.set_weights(g_gen.get_weights())
 
         # Train discriminator
         h = dGAN.fit(x=[X_train, Y_train], y=[target, target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
@@ -80,7 +81,8 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Update the weights
-        gGAN.set_weights(dGAN.get_weights())
+        g_disc.set_weights(d_disc.get_weights())
+        g_gen.set_weights(d_gen.get_weights())
 
         # Train generator
         h = gGAN.fit(x=[X_train, Y_train], y=[target, target], nb_epoch=1, batch_size=batch_size, verbose=0)

@@ -32,7 +32,7 @@ history = generator.fit_generator(
     nb_val_samples=data.num_val,
     nb_worker=4,
     pickle_safe=True,
-    max_q_size=32)
+    max_q_size=16)
 
 # Save the model
 generator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

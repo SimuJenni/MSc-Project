@@ -71,9 +71,9 @@ for epoch in range(nb_epoch):
         # Train discriminator
         h = dGAN.fit(x=[X_train, Y_train], y=[target, target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
-        l1 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
-        l2 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
-        l3 = h.history['{}_loss'.format(dGAN.output_names[3])][0]
+        l1 = h.history['{}_loss'.format(dGAN.output_names[0])][0]
+        l2 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
+        l3 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
 
         # Record and print loss
         print('Loss: {} L_2: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
@@ -87,8 +87,8 @@ for epoch in range(nb_epoch):
         # Train generator
         h = gGAN.fit(x=[X_train, Y_train], y=[target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
-        l2 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
-        l3 = h.history['{}_loss'.format(gGAN.output_names[2])][0]
+        l2 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
+        l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
 
         # Record and print loss
         print('Loss: {} L_2: {} L_3: {}'.format(t_loss, l2, l3))

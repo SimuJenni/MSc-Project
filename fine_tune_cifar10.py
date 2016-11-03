@@ -6,7 +6,7 @@ from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
-DATA_DIR = '/data/cvg/simon/cifar-10-TFRecords/'
+DATA_DIR = '/data/cvg/simon/data/cifar-10-TFRecords/'
 BATCH_SIZE = 256
 
 # TODO: Specify where the new model will live:

@@ -1,8 +1,7 @@
 import tensorflow as tf
-from ToonNet import Classifier
 
-from tf_slim.datasets import cifar10
-from constants import LOG_DIR
+from ToonNet import Classifier
+from datasets import cifar10
 
 slim = tf.contrib.slim
 
@@ -10,18 +9,23 @@ DATA_DIR = '/data/cvg/simon/data/cifar-10-TFRecords/'
 BATCH_SIZE = 256
 NUM_CLASSES = 10
 
-# TODO: Specify where the new model will live:
-log_dir = LOG_DIR
-load_weights_tf = False
+# TODO: Set path for storing the model
+log_dir = '/path/to/store/model'
+
+# TODO: Indicate whether to use Keras or tensorflow model
+tensorflow_model = False
 
 sess = tf.Session()
-import keras.backend as K
-K.set_session(sess)
-model = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
-K.set_learning_phase(1)
 
-g = K.get_session().graph
-# g = tf.Graph()
+if not tensorflow_model:
+    import keras.backend as K
+    K.set_session(sess)
+    myModel = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
+    K.set_learning_phase(1)
+    g = K.get_session().graph
+else:
+    model_path = '/path/to/pre_trained_model.checkpoint'
+    g = tf.Graph()
 
 with sess.as_default():
     with g.as_default():
@@ -39,7 +43,7 @@ with sess.as_default():
 
         [image, label] = provider.get(['image', 'label'])
 
-        # Preprocess images
+        # TODO: Adjust preprocessing of images
         image = (tf.to_float(image) / 255. - 0.5) * 2.0
 
         images, labels = tf.train.batch(
@@ -50,9 +54,8 @@ with sess.as_default():
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
-        # TODO: Create the model
-        # predictions = myModel(images, is_training=True)
-        predictions = model(images)
+        # TODO: Create your model
+        predictions = myModel(images)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
@@ -65,17 +68,12 @@ with sess.as_default():
         # Create training operation
         train_op = slim.learning.create_train_op(total_loss, optimizer)
 
-        if load_weights_tf:
-            # TODO: Specify where the Model, trained on ImageNet, was saved.
-            model_path = '/path/to/pre_trained_model.checkpoint'
-
-            # TODO: Specify the layers of your model you want to exclude
+        init_fn = None
+        if tensorflow_model:
             from tensorflow.contrib.framework import assign_from_checkpoint_fn
+            # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
             init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
-            # Start training.
-            slim.learning.train(train_op, log_dir, init_fn=init_fn)
-
-        else:
-            slim.learning.train(train_op, log_dir)
+        # Start training.
+        slim.learning.train(train_op, log_dir, init_fn=init_fn)

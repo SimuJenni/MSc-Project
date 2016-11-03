@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.framework import assign_from_checkpoint_fn
 
-from tf_slim.datasets import imagenet
+from datasets import imagenet
 
 slim = tf.contrib.slim
 

@@ -53,8 +53,8 @@ for epoch in range(nb_epoch):
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
-        max_q_size=16,
-        nb_worker=4)
+        max_q_size=8,
+        nb_worker=2)
 
     for chunk in range(num_chunks):
 
@@ -108,7 +108,7 @@ for epoch in range(nb_epoch):
             g_gen.save_weights(gen_weights)
 
         sys.stdout.flush()
-        del X_train, Y_train
+        del X_train, Y_train, target, decoded_imgs, h
         gc.collect()
 
     # Save the weights

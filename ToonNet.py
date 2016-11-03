@@ -29,13 +29,13 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
 
-    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers - 1])
+    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
-    for l in range(1, num_layers):
+    for l in range(0, num_layers):
         with tf.name_scope('deconv_{}'.format(l + 1)):
-            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - 1 - l], activation=activation,
-                                     noise_ch=NOISE_CHANNELS[num_layers - l - 1])
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l -1], activation=activation,
+                                     noise_ch=NOISE_CHANNELS[num_layers - l -1])
 
     x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
@@ -241,9 +241,17 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
 
 
 def add_noise_planes(x, n_chan):
-    layer_shape = K.shape(x)
-    noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
-    x = merge([x, noise], mode='concat')
+    def add_noise(x):
+        layer_shape = K.int_shape(x)
+        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
+        return merge([x, noise], mode='concat')
+
+    def add_noise_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[-1] += n_chan
+        return tuple(shape)
+
+    x = Lambda(add_noise, output_shape=add_noise_output_shape)(x)
     return x
 
 
@@ -404,10 +412,10 @@ def Classifier(input_shape, num_res=8, activation='relu', big_f=False, num_class
     return classifier
 
 
-def Generator(input_shape, load_weights=False, num_layers=4):
+def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128):
     # Build the model
-    input_gen = Input(shape=input_shape)
-    decoded, _ = ToonGenerator(input_gen, num_layers=num_layers)
+    input_gen = Input(batch_shape=(batch_size,)+input_shape)
+    decoded = ToonGenerator(input_gen, num_layers=num_layers)
     generator = Model(input_gen, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers)
 

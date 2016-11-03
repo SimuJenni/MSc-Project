@@ -16,7 +16,7 @@ data = CIFAR10_Toon()
 datagen = ImageDataGenerator()
 
 # Load the net
-generator = Generator(input_shape=data.dims, num_layers=3)
+generator = Generator(input_shape=data.dims, num_layers=3, batch_size=batch_size)
 generator.summary()
 
 # Name used for saving of model and outputs

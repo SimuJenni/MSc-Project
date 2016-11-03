@@ -106,9 +106,10 @@ for epoch in range(nb_epoch):
             # Save the weights
             g_disc.save_weights(disc_weights)
             g_gen.save_weights(gen_weights)
+            del decoded_imgs
 
         sys.stdout.flush()
-        del X_train, Y_train, target, decoded_imgs, h
+        del X_train, Y_train, target, h
         gc.collect()
 
     # Save the weights

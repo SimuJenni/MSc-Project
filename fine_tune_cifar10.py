@@ -76,4 +76,4 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
         # Start training.
-        slim.learning.train(train_op, log_dir, init_fn=init_fn)
+        slim.learning.train(train_op, log_dir, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600)

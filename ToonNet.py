@@ -419,10 +419,10 @@ def Classifier(input_shape, num_layers=4, num_classes=1000, fine_tune=True):
     input_im = Input(shape=input_shape)
     decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers)
     encoder = Model(input_im, encoded)
-    generator = Model(input_im, decoded)
-    generator.name = make_name('ToonGenerator', num_layers=num_layers)
+    discriminator = Model(input_im, decoded)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
     if fine_tune:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
         make_trainable(encoder, False)
 
     # Build classifier

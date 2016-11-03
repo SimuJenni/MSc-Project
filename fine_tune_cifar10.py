@@ -53,7 +53,7 @@ with g.as_default():
     # Define the loss
     slim.losses.softmax_cross_entropy(predictions, labels)
     total_loss = slim.losses.get_total_loss()
-    tf.summary.scalar('losses/total loss', total_loss)
+    tf.scalar_summary('losses/total loss', total_loss)
 
     # Define optimizer
     optimizer = tf.train.AdamOptimizer(learning_rate=0.0002)

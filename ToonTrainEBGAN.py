@@ -65,6 +65,7 @@ for epoch in range(nb_epoch):
                 break
             else:
                 time.sleep(0.05)
+                print('waiting')
 
         target = np.zeros_like(Y_train)
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))

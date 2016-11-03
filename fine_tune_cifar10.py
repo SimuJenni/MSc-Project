@@ -62,5 +62,8 @@ with g.as_default():
         variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
         init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
-    # Start training.
-    slim.learning.train(train_op, log_dir, init_fn=init_fn)
+        # Start training.
+        slim.learning.train(train_op, log_dir, init_fn=init_fn)
+
+    else:
+        slim.learning.train(train_op, log_dir)

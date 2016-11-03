@@ -76,7 +76,7 @@ for epoch in range(nb_epoch):
         l3 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
 
         # Record and print loss
-        print('Loss: {} L_2: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 

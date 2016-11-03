@@ -18,7 +18,6 @@ sess = tf.Session()
 
 from keras import backend as K
 K.set_session(sess)
-model = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
 
 with sess.as_default():
     g = tf.Graph()
@@ -46,6 +45,7 @@ with sess.as_default():
 
         # TODO: Create the model
         # predictions = myModel(images, is_training=True)
+        model = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
         predictions = model(images)
 
         # Define the loss

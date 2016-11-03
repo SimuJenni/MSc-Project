@@ -8,7 +8,7 @@ from utils import montage
 
 
 # Training parameters
-batch_size = 500
+batch_size = 200
 nb_epoch = 10
 
 # Get the data-set object

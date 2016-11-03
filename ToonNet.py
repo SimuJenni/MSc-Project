@@ -43,6 +43,27 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
     return decoded
 
 
+def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noise=None):
+
+    if noise:
+        x = GaussianNoise(sigma=K.get_value(noise))(x)
+
+    f_dims = BF_DIMS[:num_layers]
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+
+    for l in range(0, num_layers):
+        with tf.name_scope('conv_{}'.format(l + 1)):
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
+
+    # Residual layers
+    for i in range(num_res_layers):
+        with tf.name_scope('res_layer_{}'.format(i + 1)):
+            x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
+
+
+    return x
+
+
 def ToonGenerator_old(in_layer, out_activation='tanh', num_res_layers=8, big_f=True, outter=False, activation='relu'):
     """Constructs a fully convolutional residual auto-encoder network.
     The network has the follow architecture:
@@ -163,7 +184,7 @@ def ToonGenerator_old(in_layer, out_activation='tanh', num_res_layers=8, big_f=T
     return decoded, layers
 
 
-def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False, activation='lrelu', noise=None):
+def ToonDiscriminator_old(in_layer, num_res_layers=8, big_f=False, p_wise_out=False, activation='lrelu', noise=None):
     """Builds ConvNet used as discrimator between real-images and de-tooned images.
     The network has the follow architecture:
 
@@ -243,7 +264,7 @@ def ToonDiscriminator(in_layer, num_res_layers=8, big_f=False, p_wise_out=False,
 def add_noise_planes(x, n_chan):
     def add_noise(x):
         layer_shape = K.int_shape(x)
-        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
+        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=0.5)
         return merge([x, noise], mode='concat')
 
     def add_noise_output_shape(input_shape):
@@ -370,7 +391,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', lightweig
     return my_activation(x, type=activation)
 
 
-def my_activation(x, type='relu', alpha=0.3):
+def my_activation(x, type='relu', alpha=0.2):
     if type == 'relu':
         return Activation(type)(x)
     elif type == 'lrelu':

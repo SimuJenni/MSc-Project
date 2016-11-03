@@ -8,6 +8,7 @@ slim = tf.contrib.slim
 
 DATA_DIR = '/data/cvg/simon/data/cifar-10-TFRecords/'
 BATCH_SIZE = 256
+NUM_CLASSES=10
 
 # TODO: Specify where the new model will live:
 log_dir = LOG_DIR
@@ -34,12 +35,11 @@ with g.as_default():
         num_threads=4,
         capacity=5 * BATCH_SIZE)
 
-    labels = slim.one_hot_encoding(
-        labels, dataset.num_classes)
+    labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
     # TODO: Create the model
     # predictions = myModel(images, is_training=True)
-    model = Classifier((32, 32, 3), num_classes=10, num_layers=3, fine_tune=True)
+    model = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
     predictions = model(images)
 
     # Define the loss

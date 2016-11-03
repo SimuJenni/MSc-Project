@@ -39,6 +39,7 @@ disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
 montage(X_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gGAN.name)))
+montage(Y_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y.jpeg'.format(gGAN.name)))
 
 # Training
 print('EBGAN training: {}'.format(gGAN.name))

@@ -29,14 +29,15 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
 
-    x = add_noise_planes(x, NOISE_CHANNELS[num_layers - 1])
+    x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
         with tf.name_scope('deconv_{}'.format(l + 1)):
-            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l -1], activation=activation,
-                                     noise_ch=NOISE_CHANNELS[num_layers - l -1])
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
+                                     noise_ch=NOISE_CHANNELS[num_layers - l])
 
+    x = add_noise_planes(x, NOISE_CHANNELS[0])
     x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
@@ -269,7 +270,7 @@ def ToonDiscriminator_old(in_layer, num_res_layers=8, big_f=False, p_wise_out=Fa
 def add_noise_planes(x, n_chan):
     def add_noise(x):
         layer_shape = K.int_shape(x)
-        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=0.5)
+        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
         return merge([x, noise], mode='concat')
 
     def add_noise_output_shape(input_shape):

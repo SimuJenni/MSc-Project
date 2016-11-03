@@ -18,18 +18,21 @@ datagen = ImageDataGenerator()
 # Training parameters
 num_layers = 3
 batch_size = 200
-chunk_size = 8 * batch_size
+chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 10
+nb_epoch = 30
+r_weight = 50.0
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
 dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=True,
                             num_layers_d=num_layers,
-                            num_layers_g=num_layers)
+                            num_layers_g=num_layers,
+                            r_weight=r_weight)
 gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=False,
                             num_layers_d=num_layers,
-                            num_layers_g=num_layers)
+                            num_layers_g=num_layers,
+                            r_weight=r_weight)
 gGAN.summary()
 
 # Paths for storing the weights

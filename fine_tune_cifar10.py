@@ -1,5 +1,6 @@
 import tensorflow as tf
 from datasets import cifar10
+from constants import MODEL_DIR
 
 slim = tf.contrib.slim
 
@@ -8,7 +9,7 @@ BATCH_SIZE = 256
 NUM_CLASSES = 10
 
 # TODO: Set path for storing the model
-log_dir = '/path/to/store/model'
+log_dir = MODEL_DIR
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = False

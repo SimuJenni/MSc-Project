@@ -516,7 +516,7 @@ def EBGAN(input_shape, load_weights=False, num_layers_g=4, num_layers_d=4, noise
         l2 = sub(d_g_x, g_x)
         l3 = sub(d_g_x, d_y)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=[l2_loss]*3, loss_weights=[1.0, -1.0, -1.0], optimizer=optimizer)
+        gan.compile(loss=['mse']*3, loss_weights=[1.0, -1.0, -1.0], optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g])
     else:
         x_input = Input(shape=input_shape)
@@ -527,7 +527,7 @@ def EBGAN(input_shape, load_weights=False, num_layers_g=4, num_layers_d=4, noise
         l2 = sub(d_g_x, g_x)
         l3 = sub(d_g_x, d_y)
         gan = Model(input=[x_input, y_input], output=[l2, l3])
-        gan.compile(loss=[l2_loss] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=['mse'] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g])
 
     return gan, generator, discriminator

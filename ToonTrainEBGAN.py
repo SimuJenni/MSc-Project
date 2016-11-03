@@ -8,6 +8,7 @@ from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon
 from utils import montage
+import numpy as np
 
 # Get the data-set object
 data = CIFAR10_Toon()
@@ -58,12 +59,13 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
+        target = np.zeros_like(Y_train)
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Update the weights
         dGAN.set_weights(gGAN.get_weights())
 
         # Train discriminator
-        h = dGAN.fit(x=[X_train, Y_train], y=[0, 0, 0], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[X_train, Y_train], y=[target, target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
         l2 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
@@ -78,7 +80,7 @@ for epoch in range(nb_epoch):
         gGAN.set_weights(dGAN.get_weights())
 
         # Train generator
-        h = gGAN.fit(x=[X_train, Y_train], y=[0, 0], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[X_train, Y_train], y=[target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l2 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
         l3 = h.history['{}_loss'.format(gGAN.output_names[2])][0]

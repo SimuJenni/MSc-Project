@@ -1,6 +1,4 @@
 import tensorflow as tf
-
-from ToonNet import Classifier
 from datasets import cifar10
 
 slim = tf.contrib.slim
@@ -18,6 +16,7 @@ tensorflow_model = False
 sess = tf.Session()
 
 if not tensorflow_model:
+    from ToonNet import Classifier
     import keras.backend as K
     K.set_session(sess)
     myModel = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)

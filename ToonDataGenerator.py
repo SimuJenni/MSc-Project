@@ -20,6 +20,7 @@ def generator_queue(generator, max_q_size=8, nb_worker=4):
                 try:
                     generator_output = next(generator)
                     q.put(generator_output)
+                    del generator_output
                 except Exception:
                     _stop.set()
                     raise

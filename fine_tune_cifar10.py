@@ -18,7 +18,7 @@ sess = tf.Session()
 import keras.backend as K
 K.set_session(sess)
 model = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
-
+K.set_learning_phase(1)
 
 g = K.get_session().graph
 # g = tf.Graph()
@@ -78,4 +78,4 @@ with sess.as_default():
             slim.learning.train(train_op, log_dir, init_fn=init_fn)
 
         else:
-            slim.learning.train(train_op, log_dir, init_feed_dict={K.learning_phase(): 1})
+            slim.learning.train(train_op, log_dir)

@@ -25,8 +25,6 @@ import os
 
 import tensorflow as tf
 
-from tf_slim.datasets import dataset_utils
-
 slim = tf.contrib.slim
 
 _FILE_PATTERN = 'cifar10_%s.tfrecord'
@@ -80,10 +78,6 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(
         keys_to_features, items_to_handlers)
-
-    labels_to_names = None
-    if dataset_utils.has_labels(dataset_dir):
-        labels_to_names = dataset_utils.read_label_file(dataset_dir)
 
     return slim.dataset.Dataset(
         data_sources=file_pattern,

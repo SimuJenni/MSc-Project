@@ -1,19 +1,23 @@
 import tensorflow as tf
-from tensorflow.contrib.framework import assign_from_checkpoint_fn
+from ToonNet import Classifier
 
-from tf_slim.datasets import imagenet
+from tf_slim.datasets import cifar10
+from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
-DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'
-BATCH_SIZE = 128
+DATA_DIR = 'data/cvg/simon/cifar-10-TFRecords/'
+BATCH_SIZE = 256
 
+# TODO: Specify where the new model will live:
+log_dir = LOG_DIR
+load_weights_tf = False
 
 g = tf.Graph()
 with g.as_default():
 
     # Selects the 'validation' dataset.
-    dataset = imagenet.get_split('train', DATA_DIR)
+    dataset = cifar10.get_split('train', DATA_DIR)
 
     # Creates a TF-Slim DataProvider which reads the dataset in the background
     # during both training and testing.
@@ -34,7 +38,9 @@ with g.as_default():
         labels, dataset.num_classes)
 
     # TODO: Create the model
-    predictions = myModel(images, is_training=True)
+    # predictions = myModel(images, is_training=True)
+    model = Classifier((32, 32, 3), num_classes=10, num_layers=3, fine_tune=True)
+    predictions = model(images)
 
     # Define the loss
     slim.losses.softmax_cross_entropy(predictions, labels)
@@ -47,15 +53,14 @@ with g.as_default():
     # Create training operation
     train_op = slim.learning.create_train_op(total_loss, optimizer)
 
-    # TODO: Specify where the Model, trained on ImageNet, was saved.
-    model_path = '/path/to/pre_trained_model.checkpoint'
+    if load_weights_tf:
+        # TODO: Specify where the Model, trained on ImageNet, was saved.
+        model_path = '/path/to/pre_trained_model.checkpoint'
 
-    # TODO: Specify where the new model will live:
-    log_dir = '/path/to/my_model_dir/'
-
-    # TODO: Specify the layers of your model you want to exclude
-    variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
-    init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
+        # TODO: Specify the layers of your model you want to exclude
+        from tensorflow.contrib.framework import assign_from_checkpoint_fn
+        variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
+        init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
     # Start training.
     slim.learning.train(train_op, log_dir, init_fn=init_fn)

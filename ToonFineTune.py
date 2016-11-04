@@ -11,7 +11,7 @@ nb_epoch = 5
 num_layers = 3
 num_res = 4
 r_weight = 10.0
-use_gen = False
+use_gen = True
 if use_gen:
     net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
 else:

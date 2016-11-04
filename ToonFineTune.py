@@ -7,7 +7,7 @@ from datasets import CIFAR10
 
 # Training parameters
 batch_size = 200
-nb_epoch = 5
+nb_epoch = 10
 num_layers = 3
 num_res = 4
 r_weight = 5.0

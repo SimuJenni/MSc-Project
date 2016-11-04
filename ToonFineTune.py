@@ -1,6 +1,7 @@
 import numpy as np
 from keras.metrics import categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
+import os
 
 from ToonNet import Classifier, make_name
 from datasets import CIFAR10
@@ -37,13 +38,16 @@ history = classifier.fit_generator(
     pickle_safe=False,
     max_q_size=8)
 
+
+class_dirs = os.listdir(data.val_dir)
 y_true = []
-for _, ys in datagen.flow_from_directory(data.val_dir, target_size=data.target_size, batch_size=batch_size,
-                                         shuffle=False):
-    y_true.append(y_true)
+for i, c in enumerate(class_dirs):
+    y_true += [i]*len(os.listdir(os.path.join(data.val_dir, c)))
 
 pred = classifier.predict_generator(generator=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
                                                                           batch_size=batch_size, shuffle=False),
                                     val_samples=data.num_val)
+print(pred)
 y_pred = np.argmax(pred, axis=1)
+print(y_pred)
 print(categorical_accuracy(y_true=y_true, y_pred=y_pred))

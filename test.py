@@ -1,10 +1,18 @@
 import numpy as np
+import os
 
 from ToonDataGenerator import ImageDataGenerator
-from datasets import TinyImagenetToon, CIFAR10_Toon
+from datasets import TinyImagenetToon, CIFAR10
 from utils import montage
 
-data = CIFAR10_Toon()
+data = CIFAR10()
+class_dirs = os.listdir(data.val_dir)
+y_true = []
+for i, c in enumerate(class_dirs):
+    y_true += [i]*len(os.listdir(os.path.join(data.val_dir, c)))
+print(y_true)
+print(len(y_true))
+print(data.num_val)
 # datagen = ImageDataGenerator()
 # X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=2, target_size=data.target_size).next()
 #

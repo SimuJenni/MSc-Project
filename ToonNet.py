@@ -24,6 +24,8 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
 
+    encoded = x
+
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
@@ -41,7 +43,7 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
     x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
-    return decoded
+    return decoded, encoded
 
 
 def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noise=None, out_activation='tanh'):
@@ -433,10 +435,13 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True):
+def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True, use_gen=False):
     # Build encoder
     input_im = Input(shape=input_shape)
-    decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers, num_res_layers=num_res)
+    if use_gen:
+        decoded, encoded = ToonGenerator(input_im, num_layers=num_layers, num_res_layers=num_res)
+    else:
+        decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers, num_res_layers=num_res)
     encoder = Model(input_im, encoded)
     discriminator = Model(input_im, decoded)
     if net_load_name:
@@ -467,7 +472,7 @@ def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_
 def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128, num_res=0):
     # Build the model
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    decoded = ToonGenerator(input_gen, num_layers=num_layers, num_res_layers=num_res)
+    decoded, _ = ToonGenerator(input_gen, num_layers=num_layers, num_res_layers=num_res)
     generator = Model(input_gen, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers, num_res=num_res)
 
@@ -503,7 +508,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
           r_weight=50.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
+    gen_out, _ = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
     if train_disc:

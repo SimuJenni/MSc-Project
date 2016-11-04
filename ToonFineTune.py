@@ -11,8 +11,12 @@ nb_epoch = 5
 num_layers = 3
 num_res = 4
 r_weight = 5.0
-net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
-#net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
+use_gen = True
+if use_gen:
+    net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+else:
+    net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+# net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
 
 
 # Get the data-set object
@@ -21,7 +25,7 @@ datagen = ImageDataGenerator()
 
 # Load the net
 classifier = Classifier(input_shape=data.dims, num_layers=3, num_res=num_res, num_classes=data.num_classes,
-                        net_load_name=net_load_name)
+                        net_load_name=net_load_name, use_gen=use_gen)
 classifier.summary()
 
 # Name used for saving of model and outputs

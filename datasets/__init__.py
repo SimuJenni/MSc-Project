@@ -127,9 +127,10 @@ class CIFAR10_Toon(Dataset):
 
 
 class CIFAR10(Dataset):
-    def __init__(self, src_dir=None, data_dir=CIFAR10_DATADIR, im_size=(32, 32), name='CIFAR10', num_train=None,
+    def __init__(self, src_dir=None, data_dir=CIFAR10_DATADIR, im_size=(32, 32), name='CIFAR10', num_train=50000,
                  target_size=None):
-        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size)
+        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size, num_classes=10)
+        self.num_val = 10000
 
     def process_dataset(self):
         import numpy as np

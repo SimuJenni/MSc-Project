@@ -39,14 +39,14 @@ def generator_queue(generator, max_q_size=8, nb_worker=4, pickle_safe=False, wai
                 thread = multiprocessing.Process(target=data_generator_task)
             else:
                 thread = threading.Thread(target=data_generator_task)
-            generator_threads.append(thread)
+            threads.append(thread)
             thread.daemon = True
             thread.start()
     except:
         _stop.set()
         if pickle_safe:
             # Terminate all daemon processes
-            for p in generator_threads:
+            for p in threads:
                 if p.is_alive():
                     p.terminate()
             q.close()

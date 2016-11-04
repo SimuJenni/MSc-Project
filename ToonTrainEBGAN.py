@@ -25,7 +25,7 @@ nb_epoch = 20
 r_weight = 100.0
 
 # Load the models
-generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
+generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
 dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,

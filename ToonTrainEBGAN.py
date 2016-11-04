@@ -21,8 +21,8 @@ num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 30
-r_weight = 10.0
+nb_epoch = 50
+r_weight = 20.0
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)

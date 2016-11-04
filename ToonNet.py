@@ -448,17 +448,18 @@ def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_
     enc_out = encoder(im_input)
 
     # Dense Layers
-    dense_1 = Flatten(name="flatten")(enc_out)
-    dense_1 = Dense(4096, activation='relu', name='dense_1')(dense_1)
-    dense_2 = Dropout(0.5)(dense_1)
-    dense_2 = Dense(num_classes, name='dense_3')(dense_2)
-    prediction = Activation("softmax", name="softmax")(dense_2)
+    x = Flatten()(enc_out)
+    x = Dense(2048, init='he_normal')(x)
+    x = my_activation(x, type='lrelu')
+    x = BatchNormalization(axis=1)(x)
+    prediction = Dense(2048, init='he_normal', activation='softmax')(x)
 
     classifier = Model(input=im_input, output=prediction)
     classifier.name = 'Classifier_{}'.format(net_load_name)
 
     if compile_model:
-        classifier.compile(loss='categorical_crossentropy', optimizer='adam')
+        optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+        classifier.compile(loss='categorical_crossentropy', optimizer=optimizer)
     return classifier
 
 

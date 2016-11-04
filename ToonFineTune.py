@@ -10,7 +10,7 @@ batch_size = 200
 nb_epoch = 5
 num_layers = 3
 num_res = 0
-r_weight = 10.0
+r_weight = 5.0
 use_gan = True
 use_gen = False
 if use_gen:
@@ -46,7 +46,7 @@ history = classifier.fit_generator(
     validation_data=datagen.flow_from_directory(data.val_dir, target_size=data.target_size, batch_size=batch_size),
     nb_val_samples=data.num_val,
     nb_worker=2,
-    pickle_safe=False,
+    pickle_safe=True,
     max_q_size=16)
 
 

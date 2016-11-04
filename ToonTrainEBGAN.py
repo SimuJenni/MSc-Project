@@ -22,7 +22,7 @@ batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
-r_weight = 100.0
+r_weight = 10.0
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
@@ -98,7 +98,7 @@ for epoch in range(nb_epoch):
         l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
 
         # Record and print loss
-        print('Loss: {} L_1:{} L_2: {} L_3: {}'.format(t_loss+l1, l1, l2, l3))
+        print('Loss: {} L_1:{} L_2: {} L_3: {}'.format(-t_loss+r_weight*l1, l1, l2, l3))
 
         # Generate montage of test-images
         if not chunk % 50:

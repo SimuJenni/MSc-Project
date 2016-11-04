@@ -531,11 +531,11 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
         l1 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
         gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -1.0], optimizer=optimizer)
-        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res)
+        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
     else:
         gan = Model(input=[x_input, y_input], output=[l2, l3])
         gan.compile(loss=['mse'] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
-        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res)
+        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
 
     return gan, generator, discriminator
 
@@ -721,7 +721,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,
-              activation=None, num_layers=None):
+              activation=None, num_layers=None, r_weight=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -738,6 +738,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_{}".format(net_name, activation)
     if num_layers:
         net_name = "{}_nl{}".format(net_name, num_layers)
+    if r_weight:
+        net_name = "{}_rw{}".format(net_name, r_weight)
     return net_name
 
 

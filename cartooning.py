@@ -5,7 +5,7 @@ import numpy as np
 from skimage.restoration import denoise_tv_chambolle
 
 
-def cartoonify_tv1(im, num_donw_samp=2, weight=0.1):
+def cartoonify_tv1(im, num_donw_samp=1, weight=0.1):
     """Cartoonify an image with total variation de-noising
 
     Args:
@@ -31,7 +31,7 @@ def cartoonify_tv1(im, num_donw_samp=2, weight=0.1):
     return im
 
 
-def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
+def cartoonify_bilateral(im, num_donw_samp=1, num_filter=100):
     """Cartoonify an image with bilateral filtering
 
     Args:
@@ -58,7 +58,7 @@ def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
     return im
 
 
-def process_data(X, num_threads=10, num_downsample=2):
+def process_data(X, num_threads=10, num_downsample=1):
     """Process an array of images with specified number of threads
 
     Args:

@@ -30,12 +30,10 @@ print('Training network: {}'.format(net_name))
 
 # Training
 history = generator.fit_generator(
-    datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=data.target_size,
-                                classes=data.num_classes),
+    datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=data.target_size),
     samples_per_epoch=data.num_train,
     nb_epoch=nb_epoch,
-    validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size,
-                                                classes=data.num_classes),
+    validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=data.num_val,
     nb_worker=2,
     pickle_safe=True,

@@ -10,13 +10,15 @@ from utils import montage
 # Training parameters
 batch_size = 200
 nb_epoch = 10
+num_layers = 3
+num_res = 4
 
 # Get the data-set object
 data = CIFAR10_Toon()
 datagen = ImageDataGenerator()
 
 # Load the net
-discriminator = Discriminator(input_shape=data.dims, num_layers=3)
+discriminator = Discriminator(input_shape=data.dims, num_layers=num_layers, num_res=num_res)
 discriminator.summary()
 
 # Name used for saving of model and outputs

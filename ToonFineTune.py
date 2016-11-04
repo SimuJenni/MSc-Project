@@ -47,7 +47,7 @@ for i, c in enumerate(class_dirs):
 pred = classifier.predict_generator(generator=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
                                                                           batch_size=batch_size, shuffle=False),
                                     val_samples=data.num_val)
-print(pred)
 y_pred = np.argmax(pred, axis=1)
 print(y_pred)
-print(categorical_accuracy(y_true=y_true, y_pred=y_pred))
+print(np.equal(y_true, y_pred))
+print(np.mean(np.equal(y_true, y_pred)))

@@ -8,7 +8,7 @@ from datasets import CIFAR10
 
 # Training parameters
 batch_size = 200
-nb_epoch = 1
+nb_epoch = 10
 num_layers = 3
 num_res = 4
 r_weight = None
@@ -48,6 +48,4 @@ pred = classifier.predict_generator(generator=datagen.flow_from_directory(data.v
                                                                           batch_size=batch_size, shuffle=False),
                                     val_samples=data.num_val)
 y_pred = np.argmax(pred, axis=1)
-print(y_pred)
-print(np.equal(y_true, y_pred))
 print(np.mean(np.equal(y_true, y_pred)))

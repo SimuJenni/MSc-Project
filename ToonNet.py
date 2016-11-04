@@ -32,7 +32,7 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
             x = res_layer(x, f_dims[num_layers - 1], activation=activation, noise_ch=NOISE_CHANNELS[num_layers])
 
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
-    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
         with tf.name_scope('deconv_{}'.format(l + 1)):

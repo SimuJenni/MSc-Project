@@ -20,7 +20,7 @@ r_weight = None
 net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers, r_weight=r_weight)
 
 # Load the net
-classifier = Classifier(input_shape=(32, 32), num_layers=3, num_res=num_res, num_classes=10,
+classifier = Classifier(input_shape=(32, 32, 3), num_layers=3, num_res=num_res, num_classes=10,
                         net_load_name=net_load_name)
 classifier.summary()
 

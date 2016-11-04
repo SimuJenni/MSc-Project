@@ -9,7 +9,7 @@ from utils import montage
 
 # Training parameters
 batch_size = 200
-nb_epoch = 10
+nb_epoch = 5
 num_layers = 3
 num_res = 0
 

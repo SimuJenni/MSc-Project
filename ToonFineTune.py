@@ -10,14 +10,19 @@ batch_size = 200
 nb_epoch = 5
 num_layers = 3
 num_res = 0
-r_weight = 5.0
-use_gen = True
+r_weight = 20.0
+use_gan = False
+use_gen = False
 if use_gen:
-    net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+    if use_gan:
+        net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+    else:
+        net_load_name = make_name('ToonGenerator', num_res=num_res, num_layers=num_layers)
 else:
-    net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
-# net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
-net_load_name = make_name('ToonGenerator', num_res=num_res, num_layers=num_layers)
+    if use_gan:
+        net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+    else:
+        net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
 
 # Get the data-set object
 data = CIFAR10()

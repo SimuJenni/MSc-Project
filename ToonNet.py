@@ -433,15 +433,14 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def Classifier(input_shape, num_layers=4, num_classes=1000, fine_tune=True):
+def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None):
     # Build encoder
     input_im = Input(shape=input_shape)
-    decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers)
+    decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers, num_res_layers=num_res)
     encoder = Model(input_im, encoded)
     discriminator = Model(input_im, decoded)
-    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
-    if fine_tune:
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+    if net_load_name:
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_load_name)))
         make_trainable(encoder, False)
 
     # Build classifier
@@ -456,6 +455,7 @@ def Classifier(input_shape, num_layers=4, num_classes=1000, fine_tune=True):
     prediction = Activation("softmax", name="softmax")(dense_2)
 
     classifier = Model(input=im_input, output=prediction)
+    classifier.name = 'Classifier_{}'.format(net_load_name)
     return classifier
 
 

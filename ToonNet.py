@@ -451,7 +451,7 @@ def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes
         make_trainable(encoder, False)
 
     # Build classifier
-    im_input = Input(shape=input_shape)
+    im_input = Input(batch_shape=(batch_size,) + input_shape)
     enc_out = encoder(im_input)
 
     # Dense Layers

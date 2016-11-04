@@ -27,7 +27,7 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
+            x = res_layer(x, f_dims[num_layers - 1], activation=activation)
 
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
@@ -57,7 +57,7 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer_bottleneck(x, f_dims[num_layers - 1], f_dims[1], activation=activation, lightweight=True)
+            x = res_layer(x, f_dims[num_layers - 1], activation=activation)
     encoded = x
 
     for l in range(0, num_layers):
@@ -397,6 +397,24 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', lightweig
     return my_activation(x, type=activation)
 
 
+def res_layer(in_layer, out_dim, activation='relu'):
+    """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
+
+    Args:
+        in_layer: Input to residual-layer
+        out_dim: Dimension (number of channels) of the output (should be the same as input)
+        bn_dim: Dimension of the bottlenecked convolutions
+
+    Returns:
+        Output of same dimensionality as input
+    """
+    # 3x3 conv
+    x = conv_act_bn(in_layer, f_size=3, f_channels=out_dim, stride=1, border='same', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=out_dim, stride=1, border='same', activation=activation)
+    x = merge([x, in_layer], mode='sum')
+    return my_activation(x, type=activation)
+
+
 def my_activation(x, type='relu', alpha=0.2):
     if type == 'relu':
         return Activation(type)(x)
@@ -440,12 +458,12 @@ def Classifier(input_shape, num_layers=4, num_classes=1000, fine_tune=True):
     return classifier
 
 
-def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128):
+def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128, num_res=0):
     # Build the model
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    decoded = ToonGenerator(input_gen, num_layers=num_layers)
+    decoded = ToonGenerator(input_gen, num_layers=num_layers, num_res_layers=num_res)
     generator = Model(input_gen, decoded)
-    generator.name = make_name('ToonGenerator', num_layers=num_layers)
+    generator.name = make_name('ToonGenerator', num_layers=num_layers, num_res=num_res)
 
     # Load weights
     if load_weights:
@@ -457,13 +475,13 @@ def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128):
     return generator
 
 
-def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noise=None):
+def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noise=None, num_res=0):
     # Build the model
     input_disc = Input(shape=input_shape)
-    dis_out = ToonDiscriminator(input_disc, num_layers=num_layers, noise=noise)
+    dis_out = ToonDiscriminator(input_disc, num_layers=num_layers, noise=noise, num_res_layers=num_res)
     discriminator, _ = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
-    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers, num_res=num_res)
 
     # Load weights
     if load_weights:
@@ -476,20 +494,20 @@ def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noi
 
 
 def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=50.0):
+          r_weight=50.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out = ToonGenerator(input_gen, num_layers=num_layers_g)
+    gen_out = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
     generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', num_layers=num_layers_g)
+    generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
     if train_disc:
         make_trainable(generator, False)
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise)
+    dis_out, _ = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res)
     discriminator = Model(input_disc, output=dis_out)
-    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:
         make_trainable(discriminator, False)
 

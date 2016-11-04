@@ -20,7 +20,7 @@ num_layers = 3
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 10
+nb_epoch = 20
 r_weight = 100.0
 
 # Load the models
@@ -53,8 +53,8 @@ for epoch in range(nb_epoch):
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
-        max_q_size=2,
-        nb_worker=2)# TODO: just for testing
+        max_q_size=8,
+        nb_worker=2)
 
     for chunk in range(num_chunks):
 

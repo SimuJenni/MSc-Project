@@ -11,7 +11,7 @@ from utils import montage
 batch_size = 200
 nb_epoch = 10
 num_layers = 3
-num_res = 2
+num_res = 4
 
 # Get the data-set object
 data = CIFAR10_Toon()
@@ -33,7 +33,6 @@ history = generator.fit_generator(
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=data.num_val,
     nb_worker=2,
-    pickle_safe=True,
     max_q_size=16)
 
 # Save the model

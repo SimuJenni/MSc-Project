@@ -27,7 +27,7 @@ def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu',
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
-            x = res_layer(x, f_dims[num_layers - 1], activation=activation)
+            x = res_layer(x, f_dims[num_layers - 1], activation=activation, noise_ch=NOISE_CHANNELS[num_layers])
 
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
@@ -397,7 +397,7 @@ def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', lightweig
     return my_activation(x, type=activation)
 
 
-def res_layer(in_layer, out_dim, activation='relu'):
+def res_layer(in_layer, out_dim, activation='relu', noise_ch=None):
     """Constructs a Residual-Layer with bottleneck 1x1 convolutions and 3x3 convolutions
 
     Args:
@@ -408,8 +408,9 @@ def res_layer(in_layer, out_dim, activation='relu'):
     Returns:
         Output of same dimensionality as input
     """
-    # 3x3 conv
-    x = conv_act_bn(in_layer, f_size=3, f_channels=out_dim, stride=1, border='same', activation=activation)
+    x = in_layer
+    if noise_ch:
+        x = add_noise_planes(x, noise_ch)
     x = conv_act_bn(x, f_size=3, f_channels=out_dim, stride=1, border='same', activation=activation)
     x = merge([x, in_layer], mode='sum')
     return my_activation(x, type=activation)

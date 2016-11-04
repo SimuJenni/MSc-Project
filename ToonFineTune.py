@@ -1,3 +1,5 @@
+import numpy as np
+from keras.metrics import categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 
 from ToonNet import Classifier, make_name
@@ -5,7 +7,7 @@ from datasets import CIFAR10
 
 # Training parameters
 batch_size = 200
-nb_epoch = 10
+nb_epoch = 1
 num_layers = 3
 num_res = 4
 r_weight = None
@@ -26,13 +28,22 @@ print('Training network: {}'.format(net_name))
 
 # Training
 history = classifier.fit_generator(
-    datagen.flow_from_directory(data.train_dir, target_size=data.target_size,
-                                batch_size=batch_size),
+    datagen.flow_from_directory(data.train_dir, target_size=data.target_size, batch_size=batch_size),
     samples_per_epoch=data.num_train,
     nb_epoch=nb_epoch,
-    validation_data=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
-                                                batch_size=batch_size),
+    validation_data=datagen.flow_from_directory(data.val_dir, target_size=data.target_size, batch_size=batch_size),
     nb_val_samples=data.num_val,
     nb_worker=2,
     pickle_safe=False,
     max_q_size=8)
+
+y_true = []
+for _, ys in datagen.flow_from_directory(data.val_dir, target_size=data.target_size, batch_size=batch_size,
+                                         shuffle=False):
+    y_true.append(y_true)
+
+pred = classifier.predict_generator(generator=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
+                                                                          batch_size=batch_size, shuffle=False),
+                                    val_samples=data.num_val)
+y_pred = np.argmax(pred, axis=1)
+print(categorical_accuracy(y_true=y_true, y_pred=y_pred))

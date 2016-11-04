@@ -26,11 +26,11 @@ print('Training network: {}'.format(net_name))
 
 # Training
 history = classifier.fit_generator(
-    datagen.flow_from_directory(data.train_dir, target_size=data.target_size, class_mode='binary',
+    datagen.flow_from_directory(data.train_dir, target_size=data.target_size,
                                 batch_size=batch_size),
     samples_per_epoch=data.num_train,
     nb_epoch=nb_epoch,
-    validation_data=datagen.flow_from_directory(data.val_dir, target_size=data.target_size, class_mode='binary',
+    validation_data=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
                                                 batch_size=batch_size),
     nb_val_samples=data.num_val,
     nb_worker=2,

@@ -1,6 +1,7 @@
 import tensorflow as tf
-from datasets import cifar10
+
 from constants import MODEL_DIR
+from tf_slim.datasets import cifar10
 
 slim = tf.contrib.slim
 

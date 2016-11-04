@@ -89,7 +89,7 @@ class TinyImagenetToon(Dataset):
 class CIFAR10_Toon(Dataset):
     def __init__(self, src_dir=None, data_dir=CIFAR10_DATADIR, im_size=(32, 32), name='CIFAR10Toon', num_train=None,
                  target_size=None):
-        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size, num_classes=10)
+        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size)
 
     def process_dataset(self):
         # Otherwise get the data set and process it

@@ -433,7 +433,7 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None):
+def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True):
     # Build encoder
     input_im = Input(shape=input_shape)
     decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers, num_res_layers=num_res)
@@ -456,6 +456,9 @@ def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_
 
     classifier = Model(input=im_input, output=prediction)
     classifier.name = 'Classifier_{}'.format(net_load_name)
+
+    if compile_model:
+        classifier.compile(loss='categorical_crossentropy', optimizer='adam')
     return classifier
 
 

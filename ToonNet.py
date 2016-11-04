@@ -51,7 +51,7 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
         x = GaussianNoise(sigma=K.get_value(noise))(x)
 
     f_dims = BF_DIMS[:num_layers]
-    # x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):

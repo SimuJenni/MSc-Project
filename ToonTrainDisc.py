@@ -11,7 +11,7 @@ from utils import montage
 batch_size = 200
 nb_epoch = 10
 num_layers = 3
-num_res = 4
+num_res = 0
 
 # Get the data-set object
 data = CIFAR10_Toon()

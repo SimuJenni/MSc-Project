@@ -20,7 +20,7 @@ num_layers = 3
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 30
+nb_epoch = 10
 r_weight = 100.0
 
 # Load the models
@@ -106,15 +106,15 @@ for epoch in range(nb_epoch):
             # Save the weights
             g_disc.save_weights(disc_weights)
             g_gen.save_weights(gen_weights)
-            del decoded_imgs
-
+            del X_train, Y_train, target, h, decoded_imgs
+            gc.collect()
         sys.stdout.flush()
-        del X_train, Y_train, target, h
-        gc.collect()
+
 
     # Save the weights
     g_disc.save_weights(disc_weights)
     g_gen.save_weights(gen_weights)
 
     _stop.set()
-    del data_gen_queue
+    del data_gen_queue, threads
+    gc.collect()

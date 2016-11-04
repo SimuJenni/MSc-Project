@@ -452,7 +452,7 @@ def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type='lrelu')
     x = BatchNormalization(axis=1)(x)
-    prediction = Dense(2048, init='he_normal', activation='softmax')(x)
+    prediction = Dense(num_classes, init='he_normal', activation='softmax')(x)
 
     classifier = Model(input=im_input, output=prediction)
     classifier.name = 'Classifier_{}'.format(net_load_name)

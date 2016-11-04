@@ -11,7 +11,7 @@ nb_epoch = 5
 num_layers = 3
 num_res = 0
 r_weight = 20.0
-use_gan = False
+use_gan = True
 use_gen = True
 if use_gen:
     if use_gan:
@@ -23,7 +23,8 @@ else:
         net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
     else:
         net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
-net_load_name = None
+# net_load_name = None
+
 # Get the data-set object
 data = CIFAR10()
 datagen = ImageDataGenerator()

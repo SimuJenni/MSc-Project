@@ -25,7 +25,7 @@ datagen = ImageDataGenerator()
 
 # Load the net
 classifier = Classifier(input_shape=data.dims, num_layers=3, num_res=num_res, num_classes=data.num_classes,
-                        net_load_name=net_load_name, use_gen=use_gen)
+                        net_load_name=net_load_name, use_gen=use_gen, batch_size=batch_size)
 classifier.summary()
 
 # Name used for saving of model and outputs

@@ -435,9 +435,9 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def Classifier(input_shape, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True, use_gen=False):
+def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True, use_gen=False):
     # Build encoder
-    input_im = Input(shape=input_shape)
+    input_im = Input(batch_shape=(batch_size,) + input_shape)
     if use_gen:
         decoded, encoded = ToonGenerator(input_im, num_layers=num_layers, num_res_layers=num_res)
     else:

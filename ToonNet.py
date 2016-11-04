@@ -531,11 +531,11 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
         l1 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
         gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -1.0], optimizer=optimizer)
-        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g])
+        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res)
     else:
         gan = Model(input=[x_input, y_input], output=[l2, l3])
         gan.compile(loss=['mse'] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
-        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g])
+        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res)
 
     return gan, generator, discriminator
 

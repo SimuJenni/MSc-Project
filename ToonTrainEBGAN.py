@@ -17,7 +17,7 @@ datagen = ImageDataGenerator()
 
 # Training parameters
 num_layers = 3
-num_res = 4
+num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size

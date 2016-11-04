@@ -479,8 +479,8 @@ def Generator(input_shape, load_weights=False, num_layers=4, batch_size=128, num
 def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noise=None, num_res=0):
     # Build the model
     input_disc = Input(shape=input_shape)
-    dis_out = ToonDiscriminator(input_disc, num_layers=num_layers, noise=noise, num_res_layers=num_res)
-    discriminator, _ = Model(input_disc, dis_out)
+    dis_out, _ = ToonDiscriminator(input_disc, num_layers=num_layers, noise=noise, num_res_layers=num_res)
+    discriminator = Model(input_disc, dis_out)
     make_trainable(discriminator, train)
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers, num_res=num_res)
 

@@ -4,7 +4,8 @@ from constants import *
 
 
 class Dataset:
-    def __init__(self, src_dir, data_dir, im_size, name, num_train=None, target_size=None):
+    def __init__(self, src_dir, data_dir, im_size, name, num_train=None, target_size=None, num_classes=0):
+        self.num_classes = num_classes
         self.src_data_dir = src_dir
         self.im_size = im_size
         if target_size:
@@ -61,7 +62,7 @@ class ImagenetToon(Dataset):
 class Imagenet(Dataset):
     def __init__(self, num_train=None, target_size=(227, 227), im_size=(256, 256)):
         Dataset.__init__(self, IMAGENET_SRC_DIR, None, im_size, name='Imagenet', num_train=num_train,
-                         target_size=target_size)
+                         target_size=target_size, num_classes=1000)
         self.train_dir = IMAGENET_TRAIN_DIR
         self.val_dir = IMAGENET_VAL_DIR
         self.num_classes = 1000
@@ -88,7 +89,7 @@ class TinyImagenetToon(Dataset):
 class CIFAR10_Toon(Dataset):
     def __init__(self, src_dir=None, data_dir=CIFAR10_DATADIR, im_size=(32, 32), name='CIFAR10Toon', num_train=None,
                  target_size=None):
-        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size)
+        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size, num_classes=10)
 
     def process_dataset(self):
         # Otherwise get the data set and process it

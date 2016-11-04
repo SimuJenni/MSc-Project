@@ -30,7 +30,7 @@ history = generator.fit_generator(
     nb_epoch=nb_epoch,
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=data.num_val,
-    nb_worker=4,
+    nb_worker=2,
     pickle_safe=True,
     max_q_size=16)
 

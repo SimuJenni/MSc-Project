@@ -56,7 +56,7 @@ for epoch in range(nb_epoch):
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
-        max_q_size=8,
+        max_q_size=16,
         nb_worker=2)
 
     for chunk in range(num_chunks):

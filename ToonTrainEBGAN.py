@@ -13,7 +13,7 @@ from utils import montage
 
 # Get the data-set object
 data = CIFAR10_Toon()
-datagen = ImageDataGenerator()
+datagen = ImageDataGenerator(horizontal_flip=True)
 
 # Training parameters
 num_layers = 3
@@ -21,9 +21,8 @@ num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 10
+nb_epoch = 30
 r_weight = 10.0
-w2 = 10
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
@@ -31,13 +30,11 @@ dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
-                            w2=w2,
                             num_res=num_res)
 gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
-                            w2=w2,
                             num_res=num_res)
 gGAN.summary()
 

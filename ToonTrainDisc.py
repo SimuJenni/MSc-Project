@@ -3,18 +3,18 @@ import os
 from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
 from ToonNet import Discriminator
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon
+from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage
 
 
 # Training parameters
 batch_size = 200
 nb_epoch = 5
-num_layers = 3
+num_layers = 4
 num_res = 0
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator()
 
 # Load the net

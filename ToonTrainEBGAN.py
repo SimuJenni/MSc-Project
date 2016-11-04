@@ -39,8 +39,8 @@ gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True,
 gGAN.summary()
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name))
-disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
+gen_weights = os.path.join(MODEL_DIR, '{}_{}.hdf5'.format(gGAN.name, data.name))
+disc_weights = os.path.join(MODEL_DIR, '{}_{}.hdf5'.format(dGAN.name, data.name))
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()

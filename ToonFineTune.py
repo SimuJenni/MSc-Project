@@ -23,7 +23,7 @@ else:
         net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
     else:
         net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
-
+net_load_name = None
 # Get the data-set object
 data = CIFAR10()
 datagen = ImageDataGenerator()

@@ -10,7 +10,7 @@ batch_size = 200
 nb_epoch = 5
 num_layers = 3
 num_res = 0
-r_weight = 20.0
+r_weight = 50.0
 use_gan = True
 use_gen = False
 if use_gen:

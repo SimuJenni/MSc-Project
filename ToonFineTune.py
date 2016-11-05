@@ -42,7 +42,7 @@ classifier = Classifier(input_shape=data.dims, num_layers=num_layers, num_res=nu
 classifier.summary()
 
 # Name used for saving of model and outputs
-net_name = '{}-{}'.format(classifier.name, 'CIFAR10')
+net_name = '{}-{}'.format(classifier.name, data.name)
 print('Training network: {}'.format(net_name))
 
 # Training

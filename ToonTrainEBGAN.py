@@ -22,7 +22,7 @@ datagen = ImageDataGenerator(rotation_range=10,
         fill_mode='nearest')
 
 # Training parameters
-num_layers = 3
+num_layers = 4
 num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
@@ -30,8 +30,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 50
 r_weight = 20.0
 d_weight = 5.0
-
-load_weights = True
+load_weights = False
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)

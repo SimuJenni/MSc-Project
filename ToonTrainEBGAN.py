@@ -12,7 +12,7 @@ from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(rotation_range=10,
         width_shift_range=0.05,
         height_shift_range=0.05,
@@ -27,7 +27,7 @@ num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 10
+nb_epoch = 50
 r_weight = 20.0
 d_weight = 5.0
 

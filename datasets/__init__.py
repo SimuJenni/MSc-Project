@@ -31,9 +31,9 @@ class Dataset:
                 self.train_files = self.train_files[:num_train]
             else:
                 num_train = len(self.train_files)
-            self.name = '{}_numTrain_{}_targetSize_{}'.format(name, num_train, target_size)
             self.num_train = num_train
             self.num_val = len(self.val_files)
+            self.name = '{}_numTrain_{}_targetSize_{}'.format(name, self.num_train, self.target_size)
 
     def process_dataset(self):
         # To be implemented by sub-classes

@@ -21,9 +21,9 @@ num_res = 4
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 30
+nb_epoch = 10
 r_weight = 20.0
-d_weight = 5.0
+d_weight = 1.0
 
 load_weights = False
 

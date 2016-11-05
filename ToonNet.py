@@ -736,7 +736,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,
-              activation=None, num_layers=None, r_weight=None, d_weight=None):
+              activation=None, num_layers=None, r_weight=None, d_weight=None, noise=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -757,6 +757,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_rw{}".format(net_name, r_weight)
     if d_weight:
         net_name = "{}_dw{}".format(net_name, d_weight)
+    if noise:
+        net_name = "{}_noise".format(net_name)
     return net_name
 
 

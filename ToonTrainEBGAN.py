@@ -10,9 +10,10 @@ from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage, generator_queue
+import keras.backend as K
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(rotation_range=10,
         width_shift_range=0.05,
         height_shift_range=0.05,
@@ -22,7 +23,7 @@ datagen = ImageDataGenerator(rotation_range=10,
         fill_mode='nearest')
 
 # Training parameters
-num_layers = 4
+num_layers = 3
 num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
@@ -31,6 +32,8 @@ nb_epoch = 50
 r_weight = 20.0
 d_weight = 5.0
 load_weights = False
+sigma = K.variable(value=0.2, name='sigma')
+noise_lower_factor = 0.95
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
@@ -39,13 +42,15 @@ dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
-                            num_res=num_res)
+                            num_res=num_res,
+                            noise=sigma)
 gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
-                            num_res=num_res)
+                            num_res=num_res,
+                            noise=sigma)
 gGAN.summary()
 
 # Paths for storing the weights
@@ -123,6 +128,9 @@ for epoch in range(nb_epoch):
             gc.collect()
         sys.stdout.flush()
 
+    new_sigma = K.get_value(sigma) * noise_lower_factor
+    print('Lowering noise-level to {}'.format(new_sigma))
+    K.set_value(sigma, new_sigma)
 
     # Save the weights
     g_disc.save_weights(disc_weights)

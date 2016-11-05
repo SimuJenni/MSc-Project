@@ -27,7 +27,7 @@ else:
 # net_load_name = None
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = TinyImagenet()
 datagen = ImageDataGenerator(rotation_range=10,
                              width_shift_range=0.05,
                              height_shift_range=0.05,

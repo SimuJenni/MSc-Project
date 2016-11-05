@@ -3,7 +3,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import os
 
 from ToonNet import Classifier, make_name
-from datasets import CIFAR10, TinyImagenetToon
+from datasets import CIFAR10, TinyImagenet
 
 # Training parameters
 batch_size = 200

@@ -90,6 +90,16 @@ class TinyImagenetToon(Dataset):
         process_dataset('train', train_dir, self.train_dir, self.im_size)
 
 
+class TinyImagenet(Dataset):
+    def __init__(self, src_dir=TINYIMAGENET_SRC_DIR, data_dir=None, im_size=(64, 64),
+                 name='TinyImagenet', num_train=None, target_size=(64, 64)):
+        Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size)
+        self.num_train = 100000
+        self.num_val = 10000
+        self.train_dir = os.path.join(TINYIMAGENET_SRC_DIR, 'train/')
+        self.val_dir = os.path.join(TINYIMAGENET_SRC_DIR, 'val/')
+
+
 class CIFAR10_Toon(Dataset):
     def __init__(self, src_dir=None, data_dir=CIFAR10_TOON_DATADIR, im_size=(32, 32), name='CIFAR10Toon', num_train=None,
                  target_size=None):

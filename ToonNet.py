@@ -507,7 +507,7 @@ def Discriminator(input_shape, num_layers=4, load_weights=False, train=True, noi
 
 
 def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=50.0, num_res=0):
+          r_weight=20.0, d_weight=1.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
     gen_out, _ = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
@@ -542,11 +542,11 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
     if train_disc:
         l1 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -1.0], optimizer=optimizer)
+        gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -d_weight], optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
     else:
         gan = Model(input=[x_input, y_input], output=[l2, l3])
-        gan.compile(loss=['mse'] * 2, loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=['mse'] * 2, loss_weights=[1.0, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
 
     return gan, generator, discriminator

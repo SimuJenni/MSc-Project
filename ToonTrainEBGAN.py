@@ -12,29 +12,34 @@ from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(horizontal_flip=True)
 
 # Training parameters
-num_layers = 4
-num_res = 0
+num_layers = 3
+num_res = 4
 batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 30
-r_weight = 50.0
+r_weight = 20.0
+d_weight = 5.0
+
+load_weights = False
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=True,
+dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
+                            d_weight=d_weight,
                             num_res=num_res)
-gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=True, train_disc=False,
+gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
+                            d_weight=d_weight,
                             num_res=num_res)
 gGAN.summary()
 

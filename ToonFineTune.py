@@ -9,7 +9,7 @@ from datasets import CIFAR10
 batch_size = 200
 nb_epoch = 5
 num_layers = 3
-num_res = 4
+num_res = 0
 r_weight = 20.0
 use_gan = True
 use_gen = True

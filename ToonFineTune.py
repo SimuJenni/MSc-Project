@@ -6,7 +6,7 @@ from ToonNet import Classifier, make_name
 from datasets import CIFAR10, TinyImagenet
 
 # Training parameters
-batch_size = 200
+batch_size = 100
 nb_epoch = 5
 num_layers = 4
 num_res = 0

@@ -3,24 +3,24 @@ import os
 import sys
 import time
 
+import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon, TinyImagenetToon
+from datasets import TinyImagenetToon
 from utils import montage, generator_queue
-import keras.backend as K
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(rotation_range=10,
-        width_shift_range=0.05,
-        height_shift_range=0.05,
-        shear_range=0.05,
-        zoom_range=[0.9, 1.0],
-        horizontal_flip=True,
-        fill_mode='nearest')
+                             width_shift_range=0.05,
+                             height_shift_range=0.05,
+                             shear_range=0.05,
+                             zoom_range=[0.9, 1.0],
+                             horizontal_flip=True,
+                             fill_mode='nearest')
 
 # Training parameters
 num_layers = 3
@@ -29,10 +29,11 @@ batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 50
-r_weight = 20.0
+r_weight = 10.0
 d_weight = 5.0
 load_weights = False
-sigma = K.variable(value=0.2, name='sigma')
+noise = K.variable(value=0.1, name='sigma')
+noise = None
 noise_lower_factor = 0.95
 
 # Load the models
@@ -43,14 +44,14 @@ dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res,
-                            noise=sigma)
+                            noise=noise)
 gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res,
-                            noise=sigma)
+                            noise=noise)
 gGAN.summary()
 
 # Paths for storing the weights
@@ -113,10 +114,10 @@ for epoch in range(nb_epoch):
         l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
 
         # Record and print loss
-        print('Loss: {} L_1:{} L_2: {} L_3: {}'.format(-t_loss+r_weight*l1, l1, l2, l3))
+        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(-t_loss + r_weight * l1, l1, l2, l3))
 
         # Generate montage of test-images
-        if not chunk % 50:
+        if not chunk % 25:
             generator.set_weights(g_gen.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
@@ -128,9 +129,10 @@ for epoch in range(nb_epoch):
             gc.collect()
         sys.stdout.flush()
 
-    new_sigma = K.get_value(sigma) * noise_lower_factor
-    print('Lowering noise-level to {}'.format(new_sigma))
-    K.set_value(sigma, new_sigma)
+    if noise:
+        new_sigma = K.get_value(noise) * noise_lower_factor
+        print('Lowering noise-level to {}'.format(new_sigma))
+        K.set_value(noise, new_sigma)
 
     # Save the weights
     g_disc.save_weights(disc_weights)

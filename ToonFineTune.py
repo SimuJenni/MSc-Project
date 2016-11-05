@@ -3,31 +3,38 @@ from keras.preprocessing.image import ImageDataGenerator
 import os
 
 from ToonNet import Classifier, make_name
-from datasets import CIFAR10
+from datasets import CIFAR10, TinyImagenetToon
 
 # Training parameters
 batch_size = 200
 nb_epoch = 5
-num_layers = 3
+num_layers = 4
 num_res = 0
 r_weight = 20.0
+d_weight = 1.0
 use_gan = True
 use_gen = True
 if use_gen:
     if use_gan:
-        net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+        net_load_name = make_name('gGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)
     else:
         net_load_name = make_name('ToonGenerator', num_res=num_res, num_layers=num_layers)
 else:
     if use_gan:
-        net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight)
+        net_load_name = make_name('dGAN', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)
     else:
         net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
 # net_load_name = None
 
 # Get the data-set object
-data = CIFAR10()
-datagen = ImageDataGenerator()
+data = TinyImagenetToon()
+datagen = ImageDataGenerator(rotation_range=10,
+                             width_shift_range=0.05,
+                             height_shift_range=0.05,
+                             shear_range=0.05,
+                             zoom_range=[0.9, 1.0],
+                             horizontal_flip=True,
+                             fill_mode='nearest')
 
 # Load the net
 classifier = Classifier(input_shape=data.dims, num_layers=num_layers, num_res=num_res, num_classes=data.num_classes,

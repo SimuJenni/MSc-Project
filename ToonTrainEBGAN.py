@@ -29,7 +29,7 @@ batch_size = 200
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 50
-r_weight = 20.0
+r_weight = 50.0
 d_weight = 1.0
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')

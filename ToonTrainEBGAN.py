@@ -108,7 +108,8 @@ for epoch in range(nb_epoch):
         g_gen.set_weights(d_gen.get_weights())
 
         # Train generator
-        h = gGAN.fit(x=[X_train, Y_train], y=[target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+
+        h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l2 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
         l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]

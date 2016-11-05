@@ -8,6 +8,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Activation, m
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
+from keras.objectives import mse
 
 from constants import MODEL_DIR
 
@@ -582,7 +583,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
     # Build GAN
     x_input = Input(batch_shape=(batch_size,) + input_shape)
-    y_input = Input(shape=input_shape)
+    y_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x, ge_x = generator(x_input)
     _, ge_y = generator(y_input)
     d_g_x, de_g_x = discriminator(g_x)
@@ -592,13 +593,13 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     if train_disc:
         l3 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=['mse'] * 3, loss_weights=[-d_weight, -1.0, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss] + [mse] * 2, loss_weights=[-d_weight, -1.0, r_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
         l4 = sub(ge_y, ge_x)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=['mse'] * 2, loss_weights=[d_weight, 1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=[l2_loss] + [mse] * 2, loss_weights=[d_weight, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

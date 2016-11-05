@@ -8,7 +8,7 @@ import numpy as np
 from ToonDataGenerator import ImageDataGenerator, generator_queue
 from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon
+from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage
 
 # Get the data-set object
@@ -16,7 +16,7 @@ data = CIFAR10_Toon()
 datagen = ImageDataGenerator(horizontal_flip=True)
 
 # Training parameters
-num_layers = 3
+num_layers = 4
 num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size

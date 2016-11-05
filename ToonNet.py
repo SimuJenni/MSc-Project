@@ -437,7 +437,8 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None, compile_model=True, use_gen=False):
+def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,
+               compile_model=True, use_gen=False):
     # Build encoder
     input_im = Input(batch_shape=(batch_size,) + input_shape)
     if use_gen:
@@ -543,57 +544,13 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
         l1 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
         gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -d_weight], optimizer=optimizer)
-        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
+        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
+                             d_weight=d_weight)
     else:
         gan = Model(input=[x_input, y_input], output=[l2, l3])
         gan.compile(loss=['mse'] * 2, loss_weights=[1.0, d_weight], optimizer=optimizer)
-        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
-
-    return gan, generator, discriminator
-
-
-def EBGAN_man(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=20.0, d_weight=1.0, num_res=0):
-    # Build Generator
-    input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
-    generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
-    if train_disc:
-        make_trainable(generator, False)
-
-    # Build Discriminator
-    input_disc = Input(shape=input_shape)
-    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res)
-    discriminator = Model(input_disc, output=[dis_out, disc_enc])
-    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
-    if not train_disc:
-        make_trainable(discriminator, False)
-
-    # Load weights
-    if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
-
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-
-    # Build GAN
-    x_input = Input(batch_shape=(batch_size,) + input_shape)
-    y_input = Input(shape=input_shape)
-    g_x = generator(x_input)
-    d_g_x, de_g_x = discriminator(g_x)
-    d_y, de_y = discriminator(y_input)
-    l2 = sub(d_g_x, g_x)
-    l3 = sub(de_g_x, de_y)
-    if train_disc:
-        l1 = sub(d_y, y_input)
-        gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=['mse'] * 3, loss_weights=[r_weight, -1.0, -d_weight], optimizer=optimizer)
-        gan.name = make_name('dGANman', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
-    else:
-        gan = Model(input=[x_input, y_input], output=[l2, l3])
-        gan.compile(loss=['mse'] * 2, loss_weights=[1.0, d_weight], optimizer=optimizer)
-        gan.name = make_name('gGANman', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight)
+        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
+                             d_weight=d_weight)
 
     return gan, generator, discriminator
 
@@ -779,7 +736,7 @@ def GANwDisc(input_shape, load_weights=False, big_f=False, recon_weight=5.0, wit
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,
-              activation=None, num_layers=None, r_weight=None):
+              activation=None, num_layers=None, r_weight=None, d_weight=None):
     if w_outter:
         net_name = "{}_wout".format(net_name)
     if layer:
@@ -798,6 +755,8 @@ def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_
         net_name = "{}_nl{}".format(net_name, num_layers)
     if r_weight:
         net_name = "{}_rw{}".format(net_name, r_weight)
+    if d_weight:
+        net_name = "{}_dw{}".format(net_name, d_weight)
     return net_name
 
 

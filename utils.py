@@ -1,3 +1,8 @@
+import Queue as queue
+import multiprocessing
+import threading
+import time
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -83,3 +88,47 @@ def montage(images, saveto='montage.png'):
 
 def im2float(imgs):
     return np.asarray(imgs, dtype='float32') / 255.
+
+
+def generator_queue(generator, max_q_size=8, nb_worker=4, pickle_safe=False, wait_time=0.05):
+    if pickle_safe:
+        q = multiprocessing.Queue(maxsize=max_q_size)
+        _stop = multiprocessing.Event()
+    else:
+        q = queue.Queue()
+        _stop = threading.Event()
+    threads = []
+    try:
+        def data_generator_task():
+            while not _stop.is_set():
+                try:
+                    if pickle_safe or q.qsize() < max_q_size:
+                        generator_output = next(generator)
+                        q.put(generator_output)
+                    else:
+                        time.sleep(wait_time)
+                except Exception:
+                    _stop.set()
+                    raise
+
+        for i in range(nb_worker):
+            if pickle_safe:
+                # Reset random seed else all children processes share the same seed
+                np.random.seed()
+                thread = multiprocessing.Process(target=data_generator_task)
+            else:
+                thread = threading.Thread(target=data_generator_task)
+            threads.append(thread)
+            thread.daemon = True
+            thread.start()
+    except:
+        _stop.set()
+        if pickle_safe:
+            # Terminate all daemon processes
+            for p in threads:
+                if p.is_alive():
+                    p.terminate()
+            q.close()
+        raise
+
+    return q, _stop, threads

@@ -9,8 +9,7 @@ from ToonDataGenerator import ImageDataGenerator, generator_queue
 from ToonNet import Generator, Discriminator, GANwGen, Encoder, disc_data
 from constants import MODEL_DIR, IMG_DIR
 from datasets import ImagenetToon
-from utils import montage
-
+from utils import montage, generator_queue
 
 # Training parameters
 batch_size = 64

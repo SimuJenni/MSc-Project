@@ -5,15 +5,21 @@ import time
 
 import numpy as np
 
-from ToonDataGenerator import ImageDataGenerator, generator_queue
+from ToonDataGenerator import ImageDataGenerator
 from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon, TinyImagenetToon
-from utils import montage
+from utils import montage, generator_queue
 
 # Get the data-set object
 data = CIFAR10_Toon()
-datagen = ImageDataGenerator(horizontal_flip=True)
+datagen = ImageDataGenerator(rotation_range=10,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.05,
+        zoom_range=[0.9, 1.0],
+        horizontal_flip=True,
+        fill_mode='nearest')
 
 # Training parameters
 num_layers = 3
@@ -44,8 +50,8 @@ gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_
 gGAN.summary()
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name, data.name))
-disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name, data.name))
+gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name))
+disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()

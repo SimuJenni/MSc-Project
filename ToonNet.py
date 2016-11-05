@@ -594,7 +594,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     if train_disc:
         l3 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=[l2_loss] + [mse] * 2, loss_weights=[-d_weight, -r_weight/10, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss] * 3, loss_weights=[-d_weight, -r_weight/10, r_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
@@ -603,7 +603,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
         l4 = sub(ge_g_x, ge_y)
         l4_w = d_weight
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=[l2_loss, mse, l2_loss], loss_weights=[d_weight, r_weight/10, l4_w], optimizer=optimizer)
+        gan.compile(loss=[l2_loss] * 3, loss_weights=[d_weight, r_weight/10, l4_w], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

@@ -7,13 +7,13 @@ import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import EBGAN, Generator
+from ToonNet import EBGAN2, Generator
 from constants import MODEL_DIR, IMG_DIR
-from datasets import TinyImagenetToon
+from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(rotation_range=10,
                              width_shift_range=0.05,
                              height_shift_range=0.05,
@@ -23,7 +23,7 @@ datagen = ImageDataGenerator(rotation_range=10,
                              fill_mode='nearest')
 
 # Training parameters
-num_layers = 4
+num_layers = 3
 num_res = 0
 batch_size = 200
 chunk_size = 10 * batch_size
@@ -38,14 +38,14 @@ noise_lower_factor = 0.95
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
+dGAN, d_gen, d_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res,
                             noise=noise)
-gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
+gGAN, g_gen, g_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,

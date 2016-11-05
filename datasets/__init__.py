@@ -98,6 +98,7 @@ class TinyImagenet(Dataset):
         self.num_val = 10000
         self.train_dir = os.path.join(TINYIMAGENET_SRC_DIR, 'train/')
         self.val_dir = os.path.join(TINYIMAGENET_SRC_DIR, 'val/images/')
+        self.num_classes = 200
 
 
 class CIFAR10_Toon(Dataset):

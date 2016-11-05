@@ -49,8 +49,8 @@ disc_weights = os.path.join(MODEL_DIR, '{}_{}.hdf5'.format(dGAN.name, data.name)
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
-montage(X_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-X.jpeg'.format(gGAN.name)))
-montage(Y_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-Y.jpeg'.format(gGAN.name)))
+montage(X_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-X.jpeg'.format(gGAN.name, data.name)))
+montage(Y_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-Y.jpeg'.format(gGAN.name, data.name)))
 
 # Training
 print('EBGAN training: {}'.format(gGAN.name))
@@ -110,7 +110,7 @@ for epoch in range(nb_epoch):
             generator.set_weights(g_gen.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
-                    os.path.join(IMG_DIR, '{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, epoch, chunk)))
+                    os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights
             g_disc.save_weights(disc_weights)
             g_gen.save_weights(gen_weights)

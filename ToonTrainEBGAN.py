@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator, generator_queue
-from ToonNet import EBGAN, Generator, EBGAN_man
+from ToonNet import EBGAN, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage
@@ -23,19 +23,19 @@ chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 10
 r_weight = 20.0
-d_weight = 1.0
+d_weight = 5.0
 
 load_weights = True
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN_man(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
+dGAN, d_gen, d_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res)
-gGAN, g_gen, g_disc = EBGAN_man(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
+gGAN, g_gen, g_disc = EBGAN(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,

@@ -459,7 +459,7 @@ def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes
     x = Flatten()(enc_out)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.25)(x)
-    x = my_activation(x, type='lrelu')
+    x = my_activation(x, type='relu')
     x = BatchNormalization(axis=1)(x)
     prediction = Dense(num_classes, init='he_normal', activation='softmax')(x)
 

@@ -30,10 +30,10 @@ chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 50
 r_weight = 10.0
-d_weight = 0.5
+d_weight = 1
 load_weights = False
-noise = K.variable(value=0.1, name='sigma')
-# noise = None
+# noise = K.variable(value=0.1, name='sigma')
+noise = None
 noise_lower_factor = 0.95
 
 # Load the models

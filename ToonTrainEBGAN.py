@@ -26,7 +26,7 @@ datagen = ImageDataGenerator(rotation_range=10,
 num_layers = 3
 num_res = 0
 batch_size = 200
-chunk_size = 10 * batch_size
+chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 50
 r_weight = 1.0

@@ -8,6 +8,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Activation, m
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
+from keras.objectives import mae
 
 from constants import MODEL_DIR
 
@@ -55,7 +56,7 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
-            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation, regularizer='l2')
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
 
     encoded = x
 
@@ -439,7 +440,7 @@ def l2_loss(y_true, y_pred):
 
 
 def l2_mb(y_true, y_pred):
-    return K.mean(K.maximum(2.0 - K.abs(y_pred), 0.0), axis=-1)
+    return K.mean(K.maximum(4.0 - K.abs(y_pred), 0.0), axis=-1)
 
 
 def l2_ms(y_true, y_pred):
@@ -602,13 +603,13 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     if train_disc:
         l3 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=[l2_loss, l2_ms, l2_loss], loss_weights=[-1.0, -d_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_mb, l2_ms, l2_loss], loss_weights=[-1.0, -d_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
         l4 = sub(g_x, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=[l2_loss, l2_ms, l2_loss], loss_weights=[1.0, d_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_mb, l2_ms, l2_loss], loss_weights=[1.0, d_weight, r_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

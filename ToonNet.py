@@ -439,7 +439,7 @@ def l2_loss(y_true, y_pred):
 
 
 def l2_mb(y_true, y_pred):
-    return K.mean(K.maximum(1.0 - K.square(y_pred), 0.0), axis=-1)
+    return K.mean(K.maximum(2.0 - K.abs(y_pred), 0.0), axis=-1)
 
 
 def l2_ms(y_true, y_pred):

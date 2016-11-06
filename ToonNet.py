@@ -598,11 +598,11 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
-        l4 = sub(g_x, y_input)
-        l4_w = r_weight/2.0
+        # l4 = sub(g_x, y_input)
+        # l4_w = r_weight/2.0   #19841
 
-        # l4 = sub(ge_x, ge_y)
-        # l4_w = d_weight
+        l4 = sub(ge_x, ge_y)
+        l4_w = d_weight/2.0
 
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
         gan.compile(loss=[l2_loss] * 3, loss_weights=[d_weight, r_weight/10, l4_w], optimizer=optimizer)

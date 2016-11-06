@@ -8,7 +8,7 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Activation, m
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.objectives import mse
+from keras.objectives import mae
 
 from constants import MODEL_DIR
 
@@ -613,7 +613,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
         l4 = sub(g_x, y_input)    # before
         # l4 = sub(ge_x, ge_y)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=[l2_loss, l2_ms, l2_ms2], loss_weights=[d_weight, d_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_ms, mae], loss_weights=[d_weight, d_weight, r_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

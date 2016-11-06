@@ -8,7 +8,6 @@ from keras.layers import Input, Convolution2D, BatchNormalization, Activation, m
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.objectives import mae
 
 from constants import MODEL_DIR
 
@@ -56,7 +55,7 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
-            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation, regularizer='l2')
 
     encoded = x
 
@@ -320,7 +319,7 @@ def up_conv_act_bn_noise(layer_in, f_size, f_channels, activation='relu', noise_
     return x
 
 
-def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
+def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', regularizer=None):
     """Wrapper for first few down-convolution layers including batchnorm and Relu
 
     Args:
@@ -336,7 +335,8 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
     x = Convolution2D(f_channels, f_size, f_size,
                       border_mode=border,
                       subsample=(stride, stride),
-                      init='he_normal')(layer_in)
+                      init='he_normal',
+                      W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
     return BatchNormalization(axis=3)(x)
 
@@ -608,7 +608,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     else:
         l4 = sub(g_x, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=[l2_loss, l2_ms, mae], loss_weights=[1.0, d_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_ms, l2_loss], loss_weights=[1.0, d_weight, r_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

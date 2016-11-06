@@ -34,7 +34,7 @@ d_weight = 0.5
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')
 # noise = None
-noise_lower_factor = 0.95
+noise_lower_factor = 0.5
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)

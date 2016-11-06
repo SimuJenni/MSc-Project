@@ -596,19 +596,20 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     _, ge_y = generator(y_input)
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
-    l1 = sub(de_g_x, de_y)
-    # l1 = sub(d_g_x, d_y)
+    # l1 = sub(de_g_x, de_y)  # before
+    l1 = sub(d_g_x, d_y)
     l2 = sub(d_g_x, g_x)
     if train_disc:
         l3 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=[l2_mb, l2_ms, l2_loss], loss_weights=[-d_weight, -r_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_ms, l2_loss], loss_weights=[-d_weight, -r_weight, r_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
-        l4 = sub(g_x, y_input)
+        # l4 = sub(g_x, y_input)    # before
+        l4 = sub(ge_x, ge_y)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l4])
-        gan.compile(loss=[l2_mb, l2_ms, l2_loss], loss_weights=[d_weight, r_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_mb, l2_ms, l2_mb], loss_weights=[d_weight, r_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

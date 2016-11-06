@@ -25,12 +25,12 @@ datagen = ImageDataGenerator(rotation_range=10,
 # Training parameters
 num_layers = 3
 num_res = 0
-batch_size = 128
+batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 50
 r_weight = 0.5
-d_weight = 0.1
+d_weight = 2.0
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')
 # noise = None

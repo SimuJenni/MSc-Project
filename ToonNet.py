@@ -579,7 +579,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res)
+    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='relu')
     discriminator = Model(input_disc, output=[dis_out, disc_enc])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:

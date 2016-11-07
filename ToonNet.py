@@ -441,12 +441,12 @@ def l2_loss(y_true, y_pred):
 
 def l2_mb(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
     # return -K.mean(K.maximum(10.0-K.abs(y_pred), 0), axis=-1)
-    return K.mean(K.minimum(K.square(y_pred), 1.0), axis=-1)
+    return K.mean(K.minimum(K.square(y_pred), 2.0), axis=-1)
 
 
 def l2_ms(y_true, y_pred):
     # return -K.mean(K.maximum(0.2-K.square(y_pred), 0), axis=-1)
-    return K.mean(K.minimum(K.square(y_pred), 0.15), axis=-1)
+    return K.mean(K.minimum(K.square(y_pred), 0.2), axis=-1)
 
 
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,

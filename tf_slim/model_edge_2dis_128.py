@@ -101,7 +101,7 @@ class DCGAN(object):
         with tf.variable_scope('generator') as scope:
             self.G,self.rep = self.generator(self.sketches, self.z,gflag=True)
             if not is_train:
-                self.G_abstract = self.generator(self.abstract, from_abstract_representation=True,gflag=True)
+                self.G_abstract = self.generator(self.abstract, from_abstract_representation=True, gflag=True)
             scope.reuse_variables()
             self.test_G,_ = self.generator(self.test_sketches, self.z,gflag=True)
             # print("test_G",self.test_G)

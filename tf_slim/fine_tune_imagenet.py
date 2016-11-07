@@ -10,7 +10,7 @@ BATCH_SIZE = 128
 
 
 def Classifier(inputs):
-
+    pass
 
 
 g = tf.Graph()

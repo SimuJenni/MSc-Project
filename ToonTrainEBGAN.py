@@ -29,8 +29,8 @@ batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
-r_weight = 0.5
-d_weight = 0.1
+r_weight = 5.0
+d_weight = 0.5
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')
 noise = None
@@ -93,7 +93,7 @@ for epoch in range(nb_epoch):
         d_gen.set_weights(g_gen.get_weights())
 
         # Train discriminator
-        h = dGAN.fit(x=[X_train, Y_train], y=[target, target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(dGAN.output_names[0])][0]
         l2 = h.history['{}_loss'.format(dGAN.output_names[1])][0]

@@ -599,8 +599,8 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     _, ge_y = generator(y_input)
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
-    l1 = sub(de_g_x, de_y)    # before
-    # l1 = sub(d_g_x, d_y)  # 19931
+    #  l1 = sub(de_g_x, de_y)    # before
+    l1 = sub(d_g_x, d_y)  # 19931
     l2 = sub(d_g_x, g_x)
     if train_disc:
         l3 = sub(d_y, y_input)

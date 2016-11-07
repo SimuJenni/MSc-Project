@@ -439,7 +439,7 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def l2_mb(y_true, y_pred):  # Idea: could pass in margin during training
+def l2_mb(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
     return -K.mean(K.maximum(10.0-K.abs(y_pred), 0), axis=-1)
 
 

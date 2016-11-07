@@ -12,7 +12,7 @@ num_layers = 3
 num_res = 0
 r_weight = 1.0
 d_weight = 0.1
-use_gan = False
+use_gan = True
 use_gen = True
 if use_gen:
     if use_gan:

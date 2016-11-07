@@ -120,7 +120,7 @@ for epoch in range(nb_epoch):
         print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         # Generate montage of test-images
-        if not chunk % 100:
+        if not chunk % 50:
             generator.set_weights(g_gen.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,

@@ -446,7 +446,7 @@ def l2_mb(y_true, y_pred):  # Idea: could pass in margin during training (simila
 
 def l2_ms(y_true, y_pred):
     # return -K.mean(K.maximum(0.2-K.square(y_pred), 0), axis=-1)
-    return K.mean(K.minimum(K.square(y_pred), 0.1), axis=-1)
+    return K.mean(K.minimum(K.square(y_pred), 0.15), axis=-1)
 
 
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,

@@ -7,7 +7,7 @@ from datasets import CIFAR10, TinyImagenet
 
 # Training parameters
 batch_size = 100
-nb_epoch = 5
+nb_epoch = 10
 num_layers = 3
 num_res = 0
 r_weight = 1.0

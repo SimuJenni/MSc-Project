@@ -591,7 +591,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='relu')
+    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res)
     discriminator = Model(input_disc, output=[dis_out, disc_enc])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:
@@ -611,8 +611,9 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
 
-    class_in = Input(batch_shape=K.int_shape(de_y)[1:4])
-    class_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(class_in)
+    class_in = Input(shape=K.int_shape(de_y)[1:4])
+    class_out = conv_act_bn(class_in, 1, 64, 1, activation='lrelu')
+    class_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(class_out)
     class_net = Model(class_in, class_out)
     de_g_x = class_net(de_g_x)
     de_y = class_net(de_y)

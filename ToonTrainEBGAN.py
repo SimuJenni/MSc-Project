@@ -7,7 +7,7 @@ import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import EBGAN2, Generator
+from ToonNet import EBGAN3, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
@@ -31,7 +31,7 @@ batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 30
-r_weight = 10.0
+r_weight = 20.0
 d_weight = 1.0
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')
@@ -40,14 +40,14 @@ noise_lower_factor = 0.75
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
+dGAN, d_gen, d_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res,
                             noise=noise)
-gGAN, g_gen, g_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
+gGAN, g_gen, g_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
@@ -95,8 +95,8 @@ for epoch in range(nb_epoch):
         d_gen.set_weights(g_gen.get_weights())
 
         # Train discriminator
-        h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        # h = dGAN.fit(x=[X_train, Y_train], y=[target, np.zeros((len(X_train), 1)), np.zeros((len(X_train), 1))], nb_epoch=1, batch_size=batch_size, verbose=0)
+        # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[X_train, Y_train], y=[target, np.zeros((len(X_train), 1)), np.zeros((len(X_train), 1))], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -116,7 +116,8 @@ for epoch in range(nb_epoch):
 
         # Train generator
 
-        h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[X_train, Y_train], y=[target, target, np.zeros((len(X_train), 1))], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 

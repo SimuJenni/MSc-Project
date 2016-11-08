@@ -683,7 +683,7 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     else:
         make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, de_g_x])
-        gan.compile(loss=[l2_loss, disc_loss_g], loss_weights=[r_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, disc_loss_d2], loss_weights=[r_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

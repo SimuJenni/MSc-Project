@@ -31,7 +31,7 @@ batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
-r_weight = 10.0
+r_weight = 5.0
 d_weight = 1.0
 load_weights = True
 noise = K.variable(value=0.1, name='sigma')
@@ -115,7 +115,7 @@ for epoch in range(nb_epoch):
         h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l3 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
-        l4 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
+        l2 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
 
         # Record and print loss
         print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))

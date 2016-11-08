@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from tf_slim.datasets import imagenet
+from datasets import imagenet
 from model_edge_2dis_128 import DCGAN
 
 

@@ -53,7 +53,7 @@ with g.as_default():
     train_op = slim.learning.create_train_op(total_loss, optimizer)
 
     # TODO: Specify where the Model, trained on ImageNet, was saved.
-    model_path = '/path/to/pre_trained_model.checkpoint'
+    model_path = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
 
     # TODO: Specify where the new model will live:
     log_dir = LOG_DIR

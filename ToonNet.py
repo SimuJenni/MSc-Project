@@ -6,7 +6,7 @@ import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, GlobalAveragePooling2D, \
     Lambda, Flatten, Dropout, GaussianNoise
 from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
 from constants import MODEL_DIR
@@ -609,8 +609,61 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     g_x, ge_x = generator(x_input)
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
-    de_g_x = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(de_g_x)
-    de_y = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(de_y)
+
+    class_in = Input(K.shape(de_y))
+    class_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(class_in)
+    class_net = Model(class_in, class_out)
+    de_g_x = class_net(de_g_x)
+    de_y = class_net(de_y)
+
+    l1 = sub(d_y, d_g_x)
+    l2 = sub(d_y, y_input)
+    if train_disc:
+        gan = Model(input=[x_input, y_input], output=[l2, de_g_x, de_y])
+        gan.compile(loss=[l2_loss, disc_loss_d1, disc_loss_d2], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
+        gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
+                             d_weight=d_weight)
+    else:
+        gan = Model(input=[x_input, y_input], output=[l1, de_g_x])
+        gan.compile(loss=[l2_loss, disc_loss_d2], loss_weights=[r_weight, d_weight], optimizer=optimizer)
+        gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
+                             d_weight=d_weight)
+
+    return gan, generator, discriminator
+
+
+def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
+          r_weight=20.0, d_weight=1.0, num_res=0):
+
+    # Build Generator
+    input_gen = Input(batch_shape=(batch_size,) + input_shape)
+    gen_out, gen_enc = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
+    generator = Model(input_gen, [gen_out, gen_enc])
+    generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
+    if train_disc:
+        make_trainable(generator, False)
+
+    # Build Discriminator
+    input_disc = Input(shape=input_shape)
+    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='relu')
+    discriminator = Model(input_disc, output=[dis_out, disc_enc])
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
+    if not train_disc:
+        make_trainable(discriminator, False)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+
+    # Build GAN
+    x_input = Input(batch_shape=(batch_size,) + input_shape)
+    y_input = Input(batch_shape=(batch_size,) + input_shape)
+    g_x, ge_x = generator(x_input)
+    d_g_x, de_g_x = discriminator(g_x)
+    d_y, de_y = discriminator(y_input)
     l1 = sub(d_y, d_g_x)
     l2 = sub(d_y, y_input)
     if train_disc:

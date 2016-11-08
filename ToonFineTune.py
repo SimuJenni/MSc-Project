@@ -9,9 +9,9 @@ from datasets import CIFAR10, TinyImagenet
 batch_size = 100
 nb_epoch = 10
 num_layers = 3
-num_res = 0
-r_weight = 1.0
-d_weight = 0.1
+num_res = 2
+r_weight = 5.0
+d_weight = 0.5
 use_gan = True
 use_gen = True
 if use_gen:

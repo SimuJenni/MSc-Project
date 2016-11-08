@@ -3,7 +3,6 @@ import time
 import tensorflow as tf
 
 from ops import *
-from utils import *
 from input_pipeline_rendered_data_vgg import get_chair_pipeline_training_from_dump
 
 class DCGAN(object):
@@ -250,12 +249,6 @@ class DCGAN(object):
 
                     grid_size = np.ceil(np.sqrt(self.batch_size))
                     grid = [grid_size, grid_size]
-                    save_images(samples, grid, os.path.join(config.summary_dir, '%s_train.png' % counter))
-                    save_images(sample_images, grid, os.path.join(config.summary_dir, '%s_train_images.png' % counter))
-                    save_images(sample_sketches, grid, os.path.join(config.summary_dir, '%s_train_edge.png' % counter))
-                    save_images(test_samples, grid, os.path.join(config.summary_dir, '%s_test.png' % counter))
-                    save_images(test_images, grid, os.path.join(config.summary_dir, '%s_test_images.png' % counter))
-                    save_images(test_sketches, grid, os.path.join(config.summary_dir, '%s_test_cartoon.png' % counter))
                 if np.mod(counter, 2000) == 100:
                     self.save(config.checkpoint_dir, counter)
 

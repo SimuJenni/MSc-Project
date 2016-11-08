@@ -446,8 +446,12 @@ def l2_ms(y_true, y_pred):
     return -K.mean(K.maximum(0.5-K.square(y_pred), 0), axis=-1)
 
 
-def l2_1(y_true, y_pred):
-    return K.mean(K.square(1.0-y_pred), axis=-1)
+def ld_0(y_true, y_pred):
+    return K.mean(K.binary_crossentropy(y_pred, 0.0), axis=-1)
+
+
+def ld_1(y_true, y_pred):
+    return K.mean(K.binary_crossentropy(y_pred, 1.0), axis=-1)
 
 
 def disc_loss_g(y_true, y_pred):
@@ -625,13 +629,13 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     l2 = sub(d_y, y_input)
     if train_disc:
         gan = Model(input=[x_input, y_input], output=[l2, de_g_x, de_y])
-        gan.compile(loss=[l2_loss, l2_loss, l2_1], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, ld_0, ld_1], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
         make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, de_g_x])
-        gan.compile(loss=[l2_loss, l2_1], loss_weights=[r_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, ld_1], loss_weights=[r_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 

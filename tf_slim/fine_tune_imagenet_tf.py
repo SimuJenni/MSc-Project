@@ -27,17 +27,15 @@ if not tensorflow_model:
     K.set_learning_phase(1)
     g = K.get_session().graph
 else:
+    model_path = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
     def Classifier(inputs):
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
         net = model.generator(inputs)
-        net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
+        net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
-        net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
+        net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
-
-
-        pass
-    model_path = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
+        return slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax)
     g = tf.Graph()
 
 with sess.as_default():
@@ -85,7 +83,7 @@ with sess.as_default():
         if tensorflow_model:
             from tensorflow.contrib.framework import assign_from_checkpoint_fn
             # TODO: Specify the layers of your model you want to exclude
-            variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])
+            variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3'])
             init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
 
         # Start training.

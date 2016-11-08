@@ -13,7 +13,7 @@ num_res = 0
 r_weight = 1.0
 d_weight = 1.0
 use_gan = True
-use_gen = True
+use_gen = False
 if use_gen:
     if use_gan:
         net_load_name = make_name('gGAN2', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)

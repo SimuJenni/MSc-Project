@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib.framework import assign_from_checkpoint_fn
+from model_edge_2dis_128 import DCGAN
 
 from datasets import imagenet
 from constants import LOG_DIR
@@ -11,6 +12,8 @@ BATCH_SIZE = 128
 
 
 def Classifier(inputs):
+    net = DCGAN()
+
     pass
 
 

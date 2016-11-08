@@ -32,7 +32,7 @@ chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
 r_weight = 20.0
-d_weight = 5.0
+d_weight = 2.0
 load_weights = True
 noise = K.variable(value=0.1, name='sigma')
 noise = None
@@ -102,7 +102,7 @@ for epoch in range(nb_epoch):
         l3 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
 
         # Record and print loss
-        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
@@ -116,9 +116,10 @@ for epoch in range(nb_epoch):
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
         l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
+        l4 = h.history['{}_loss'.format(gGAN.output_names[4])][0]
 
         # Record and print loss
-        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         # Generate montage of test-images
         if not chunk % 50:

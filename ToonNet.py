@@ -447,11 +447,11 @@ def l2_ms(y_true, y_pred):
 
 
 def ld_0(y_true, y_pred):
-    return K.mean(K.binary_crossentropy(y_pred, 0.0), axis=-1)
+    return K.mean(K.binary_crossentropy(y_pred, K.zeros_like(y_pred)), axis=-1)
 
 
 def ld_1(y_true, y_pred):
-    return K.mean(K.binary_crossentropy(y_pred, 1.0), axis=-1)
+    return K.mean(K.binary_crossentropy(y_pred, K.ones_like(y_pred)), axis=-1)
 
 
 def disc_loss_g(y_true, y_pred):

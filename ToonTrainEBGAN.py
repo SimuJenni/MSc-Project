@@ -99,6 +99,7 @@ for epoch in range(nb_epoch):
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(dGAN.output_names[0])][0]
         l2 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
+        l3 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
 
         # Record and print loss
         print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))

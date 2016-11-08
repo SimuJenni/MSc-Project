@@ -96,13 +96,16 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        t_loss = h.history['loss'][0]
-        l1 = h.history['{}_loss'.format(dGAN.output_names[0])][0]
-        l3 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
-        l4 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
+        for key, value in h.history.iteritems():
+            print('{}: {}'.format(key, value))
 
-        # Record and print loss
-        print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
+        # t_loss = h.history['loss'][0]
+        # l1 = h.history['{}_loss'.format(dGAN.output_names[0])][0]
+        # l3 = h.history['{}_loss'.format(dGAN.output_names[1])][0]
+        # l4 = h.history['{}_loss'.format(dGAN.output_names[2])][0]
+        #
+        # # Record and print loss
+        # print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
@@ -113,12 +116,15 @@ for epoch in range(nb_epoch):
         # Train generator
 
         h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        t_loss = h.history['loss'][0]
-        l2 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
-        l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
+        for key, value in h.history.iteritems():
+            print('{}: {}'.format(key, value))
 
-        # Record and print loss
-        print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
+        # t_loss = h.history['loss'][0]
+        # l2 = h.history['{}_loss'.format(gGAN.output_names[0])][0]
+        # l3 = h.history['{}_loss'.format(gGAN.output_names[1])][0]
+        #
+        # # Record and print loss
+        # print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         # Generate montage of test-images
         if not chunk % 50:

@@ -31,12 +31,12 @@ batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
-r_weight = 10.0
+r_weight = 1.0
 d_weight = 1.0
-load_weights = False
+load_weights = True
 noise = K.variable(value=0.1, name='sigma')
-noise = None
-noise_lower_factor = 0.5
+# noise = None
+noise_lower_factor = 0.75
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)

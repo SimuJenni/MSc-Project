@@ -67,7 +67,7 @@ montage(Y_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-Y.jpeg'.format(gG
 
 # Training
 print('EBGAN training: {}'.format(gGAN.name))
-l3 = l4 = 0
+l2 = 0
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))

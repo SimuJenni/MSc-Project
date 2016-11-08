@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.framework import assign_from_checkpoint_fn
 from model_edge_2dis_128 import DCGAN
+from input_pipeline_rendered_data_vgg import preprocess
 
 from datasets import imagenet
 from constants import LOG_DIR

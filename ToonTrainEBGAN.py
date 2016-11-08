@@ -7,31 +7,31 @@ import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import EBGAN3, Generator
+from ToonNet import EBGAN2, Generator
 from constants import MODEL_DIR, IMG_DIR
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
-    # rotation_range=10,
-    # width_shift_range=0.05,
-    # height_shift_range=0.05,
-    # shear_range=0.05,
-    # zoom_range=[0.9, 1.0],
-    # fill_mode='nearest',
+    rotation_range=10,
+    width_shift_range=0.05,
+    height_shift_range=0.05,
+    shear_range=0.05,
+    zoom_range=[0.9, 1.0],
+    fill_mode='nearest',
     horizontal_flip=True
 )
 
 # Training parameters
-num_layers = 4
-num_res = 0
+num_layers = 3
+num_res = 4
 batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
-r_weight = 1.0
+r_weight = 5.0
 d_weight = 1.0
 load_weights = True
 noise = K.variable(value=0.1, name='sigma')
@@ -40,14 +40,14 @@ noise_lower_factor = 0.75
 
 # Load the models
 generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
+dGAN, d_gen, d_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,
                             d_weight=d_weight,
                             num_res=num_res,
                             noise=noise)
-gGAN, g_gen, g_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
+gGAN, g_gen, g_disc = EBGAN2(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
                             num_layers_d=num_layers,
                             num_layers_g=num_layers,
                             r_weight=r_weight,

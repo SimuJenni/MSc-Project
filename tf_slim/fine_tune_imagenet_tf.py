@@ -29,7 +29,12 @@ if not tensorflow_model:
 else:
     def Classifier(inputs):
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
-        model_out = model.generator(inputs)
+        net = model.generator(inputs)
+        net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
+        net = slim.dropout(net)
+        net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
+        net = slim.dropout(net)
+
 
         pass
     model_path = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'

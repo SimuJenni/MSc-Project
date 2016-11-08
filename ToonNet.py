@@ -569,6 +569,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
 
 def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
           r_weight=20.0, d_weight=1.0, num_res=0):
+    
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
     gen_out, gen_enc = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)

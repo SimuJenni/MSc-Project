@@ -4,8 +4,6 @@ import tensorflow as tf
 
 from tensorflow.python.framework import ops
 
-from utils import *
-
 class batch_norm(object):
     assigners = []
     shadow_variables = []

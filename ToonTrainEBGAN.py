@@ -14,17 +14,19 @@ from utils import montage, generator_queue
 
 # Get the data-set object
 data = CIFAR10_Toon()
-datagen = ImageDataGenerator(rotation_range=10,
-                             width_shift_range=0.05,
-                             height_shift_range=0.05,
-                             shear_range=0.05,
-                             zoom_range=[0.9, 1.0],
-                             horizontal_flip=True,
-                             fill_mode='nearest')
+datagen = ImageDataGenerator(
+    # rotation_range=10,
+    # width_shift_range=0.05,
+    # height_shift_range=0.05,
+    # shear_range=0.05,
+    # zoom_range=[0.9, 1.0],
+    # fill_mode='nearest',
+    horizontal_flip=True
+)
 
 # Training parameters
 num_layers = 3
-num_res = 2
+num_res = 0
 batch_size = 100
 chunk_size = 5 * batch_size
 num_chunks = data.num_train // chunk_size

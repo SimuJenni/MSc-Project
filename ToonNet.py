@@ -569,7 +569,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
 
 def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
           r_weight=20.0, d_weight=1.0, num_res=0):
-    
+
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
     gen_out, gen_enc = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
@@ -606,7 +606,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     if train_disc:
         l3 = sub(d_y, y_input)
         gan = Model(input=[x_input, y_input], output=[l1, l2, l3, l5])
-        gan.compile(loss=[l2_loss, l2_ms, l2_loss, l2_loss], loss_weights=[-1.0, -d_weight, d_weight, r_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_ms, l2_loss, l2_loss], loss_weights=[-1.0, -d_weight, 2*d_weight, -r_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:

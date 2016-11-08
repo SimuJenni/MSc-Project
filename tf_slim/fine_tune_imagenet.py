@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib.framework import assign_from_checkpoint_fn
 
 from datasets import imagenet
+from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
@@ -55,7 +56,7 @@ with g.as_default():
     model_path = '/path/to/pre_trained_model.checkpoint'
 
     # TODO: Specify where the new model will live:
-    log_dir = '/path/to/my_model_dir/'
+    log_dir = LOG_DIR
 
     # TODO: Specify the layers of your model you want to exclude
     variables_to_restore = slim.get_variables_to_restore(exclude=['fc6', 'fc7', 'fc8'])

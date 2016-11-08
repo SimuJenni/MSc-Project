@@ -610,7 +610,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
 
-    class_in = Input(batch_shape=K.int_shape(de_y))
+    class_in = Input(batch_shape=K.int_shape(de_y)[1:4])
     class_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(class_in)
     class_net = Model(class_in, class_out)
     de_g_x = class_net(de_g_x)
@@ -666,7 +666,7 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
 
-    class_in = Input(batch_shape=K.int_shape(de_y))
+    class_in = Input(shape=K.int_shape(de_y)[1:4])
     class_out = Flatten()(class_in)
     class_out = Dense(1, activation='sigmoid')(class_out)
     class_net = Model(class_in, class_out)
@@ -677,25 +677,17 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     l2 = sub(d_y, y_input)
     if train_disc:
         gan = Model(input=[x_input, y_input], output=[l2, de_g_x, de_y])
-        gan.compile(loss=[l2_loss, bc_0, bc_1], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, disc_loss_d1, disc_loss_d2], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
         make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, de_g_x])
-        gan.compile(loss=[l2_loss, bc_1], loss_weights=[r_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, disc_loss_g], loss_weights=[r_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 
     return gan, generator, discriminator
-
-
-def bc_1(y_true, y_pred):
-    return K.mean(K.binary_crossentropy(y_pred, K.ones_like(y_pred)), axis=-1)
-
-
-def bc_0(y_true, y_pred):
-    return K.mean(K.binary_crossentropy(y_pred, K.zeros_like(y_pred)), axis=-1)
 
 
 def Generator_old(input_shape, load_weights=False, big_f=False, w_outter=False, num_res=8, activation='relu'):

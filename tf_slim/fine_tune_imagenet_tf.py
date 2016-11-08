@@ -12,7 +12,7 @@ BATCH_SIZE = 256
 NUM_CLASSES = 1000
 
 # TODO: Set path for storing the model
-log_dir = MODEL_DIR
+log_dir = '/Users/simujenni/MSc-Project/data/logs/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = False

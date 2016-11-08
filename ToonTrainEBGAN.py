@@ -35,7 +35,7 @@ r_weight = 5.0
 d_weight = 1.0
 load_weights = False
 noise = K.variable(value=0.1, name='sigma')
-# noise = None
+noise = None
 noise_lower_factor = 0.75
 
 # Load the models

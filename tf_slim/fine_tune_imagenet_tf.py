@@ -13,7 +13,7 @@ NUM_CLASSES = 1000
 log_dir = '/Users/simujenni/MSc-Project/data/logs/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
-tensorflow_model = False
+tensorflow_model = True
 
 sess = tf.Session()
 

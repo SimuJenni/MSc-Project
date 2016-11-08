@@ -608,8 +608,8 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     g_x, ge_x = generator(x_input)
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
-    de_g_x = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='tanh')(de_g_x)
-    de_y = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='tanh')(de_y)
+    de_g_x = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(de_g_x)
+    de_y = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(de_y)
     l1 = sub(d_y, d_g_x)
     l2 = sub(d_y, y_input)
     if train_disc:

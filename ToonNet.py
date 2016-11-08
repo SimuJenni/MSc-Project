@@ -647,7 +647,9 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     # Build Discriminator
     input_disc = Input(shape=input_shape)
     dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='relu')
-    discriminator = Model(input_disc, output=[dis_out, disc_enc])
+    disc_class = Flatten()(disc_enc)
+    disc_class = Dense(1, activation='sigmoid')(disc_class)
+    discriminator = Model(input_disc, output=[dis_out, disc_class])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:
         make_trainable(discriminator, False)
@@ -666,13 +668,6 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
 
-    class_in = Input(shape=K.int_shape(de_y)[1:4])
-    class_out = Flatten()(class_in)
-    class_out = Dense(1, activation='sigmoid')(class_out)
-    class_net = Model(class_in, class_out)
-    de_g_x = class_net(de_g_x)
-    de_y = class_net(de_y)
-
     l1 = sub(d_y, d_g_x)
     l2 = sub(d_y, y_input)
     if train_disc:
@@ -681,7 +676,6 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
-        make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, de_g_x])
         gan.compile(loss=[l2_loss, disc_loss_g], loss_weights=[r_weight, d_weight], optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,

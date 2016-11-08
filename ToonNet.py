@@ -57,12 +57,12 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
 
-    encoded = x
-
     # Residual layers
     for i in range(num_res_layers):
         with tf.name_scope('res_layer_{}'.format(i + 1)):
             x = res_layer(x, f_dims[num_layers - 1], activation=activation)
+
+    encoded = x
 
     for l in range(0, num_layers):
         with tf.name_scope('deconv_{}'.format(l + 1)):

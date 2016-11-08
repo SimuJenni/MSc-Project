@@ -33,7 +33,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 20
 r_weight = 5.0
 d_weight = 1.0
-load_weights = True
+load_weights = False
 noise = K.variable(value=0.1, name='sigma')
 # noise = None
 noise_lower_factor = 0.75

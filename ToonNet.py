@@ -667,8 +667,8 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_y, de_y = discriminator(y_input)
 
     class_in = Input(batch_shape=K.int_shape(de_y))
-    x = Flatten()(class_in)
-    class_out = Dense(1, activation='sigmoid')(x)
+    class_out = Flatten()(class_in)
+    class_out = Dense(1, activation='sigmoid')(class_out)
     class_net = Model(class_in, class_out)
     de_g_x = class_net(de_g_x)
     de_y = class_net(de_y)

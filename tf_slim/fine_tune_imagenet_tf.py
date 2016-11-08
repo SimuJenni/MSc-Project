@@ -5,6 +5,46 @@ from model_edge_2dis_128 import DCGAN
 
 slim = tf.contrib.slim
 
+def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
+                              reshape_variables=False):
+  """Returns a function that assigns specific variables from a checkpoint.
+  Args:
+    model_path: The full path to the model checkpoint. To get latest checkpoint
+        use `model_path = tf.train.latest_checkpoint(checkpoint_dir)`
+    var_list: A list of `Variable` objects or a dictionary mapping names in the
+        checkpoint to the correspoing variables to initialize. If empty or None,
+        it would return  no_op(), None.
+    ignore_missing_vars: Boolean, if True it would ignore variables missing in
+        the checkpoint with a warning instead of failing.
+    reshape_variables: Boolean, if True it would automatically reshape variables
+        which are of different shape then the ones stored in the checkpoint but
+        which have the same number of elements.
+  Returns:
+    A function that takes a single argument, a `tf.Session`, that applies the
+    assignment operation.
+  Raises:
+    ValueError: If the checkpoint specified at `model_path` is missing one of
+      the variables in `var_list`.
+  """
+  if ignore_missing_vars:
+    reader = pywrap_tensorflow.NewCheckpointReader(model_path)
+    if isinstance(var_list, dict):
+      var_dict = var_list
+    else:
+      var_dict = {var.op.name: var for var in var_list}
+    available_vars = {}
+    for var in var_dict:
+      if reader.has_tensor(var):
+        available_vars[var] = var_dict[var]
+      else:
+        logging.warning(
+            'Variable %s missing in checkpoint %s', var, model_path)
+    var_list = available_vars
+  saver = tf_saver.Saver(var_list, reshape=reshape_variables)
+  def callback(session):
+    saver.restore(session, model_path)
+  return callback
+
 DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 256
 NUM_CLASSES = 1000
@@ -79,7 +119,6 @@ with sess.as_default():
 
         init_fn = None
         if tensorflow_model:
-            from tensorflow.contrib.framework import assign_from_checkpoint_fn
             # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3'])
             init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)

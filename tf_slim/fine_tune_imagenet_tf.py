@@ -3,7 +3,6 @@ import tensorflow as tf
 from datasets import imagenet
 from model_edge_2dis_128 import DCGAN
 
-
 slim = tf.contrib.slim
 
 DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'

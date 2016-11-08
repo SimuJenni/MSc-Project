@@ -610,8 +610,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(y_input)
 
-    print(K.int_shape(de_y))
-    class_in = Input()
+    class_in = Input(batch_shape=K.int_shape(de_y))
     class_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(class_in)
     class_net = Model(class_in, class_out)
     de_g_x = class_net(de_g_x)

@@ -33,7 +33,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 20
 r_weight = 5.0
 d_weight = 1.0
-load_weights = True
+load_weights = False
 noise = K.variable(value=0.1, name='sigma')
 noise = None
 noise_lower_factor = 0.5
@@ -95,7 +95,7 @@ for epoch in range(nb_epoch):
         d_gen.set_weights(g_gen.get_weights())
 
         # Train discriminator
-        h = dGAN.fit(x=[X_train, Y_train], y=[0]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -115,7 +115,7 @@ for epoch in range(nb_epoch):
 
         # Train generator
 
-        h = gGAN.fit(x=[X_train, Y_train], y=[0]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 

@@ -447,13 +447,13 @@ def l2_ms(y_true, y_pred):
 
 
 def disc_loss_g(y_true, y_pred):
-    return K.mean(K.max(-K.log(y_pred) + K.log(0.4), 0), axis=-1)
+    return K.mean(K.maximum(K.log(0.4)-K.log(y_pred), 0), axis=-1)
 
 def disc_loss_d1(y_true, y_pred):
-    return K.mean(K.max(-K.log(y_pred), 0), axis=-1)
+    return K.mean(K.maximum(-K.log(y_pred), 0), axis=-1)
 
 def disc_loss_d2(y_true, y_pred):
-    return K.mean(K.max(-K.log(1-y_pred), 0), axis=-1)
+    return K.mean(K.maximum(-K.log(1.0-y_pred), 0), axis=-1)
 
 
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,

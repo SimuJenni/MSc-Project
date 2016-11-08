@@ -12,12 +12,6 @@ DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 
 
-def Classifier(inputs):
-    net = DCGAN()
-
-    pass
-
-
 g = tf.Graph()
 with g.as_default():
 

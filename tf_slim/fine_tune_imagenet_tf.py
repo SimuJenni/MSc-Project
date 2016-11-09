@@ -78,7 +78,7 @@ def get_variables_to_train(trainable_scopes=None):
 fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
-NUM_CLASSES = 1001
+NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
 # IM_SHAPE = [128, 128, 3]
 

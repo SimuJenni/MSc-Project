@@ -7,7 +7,7 @@ from model_edge_2dis_128_1 import DCGAN
 from ops import *
 from preprocess import preprocess_image
 from alexnet import alexnet_v2
-from tf_slim.image_processing import batch_inputs
+from image_processing import batch_inputs
 
 slim = tf.contrib.slim
 

@@ -75,7 +75,7 @@ DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
 IM_SHAPE = [128, 128, 3]
-MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/033/DCGAN.model-38100'
+MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/ft1/'
 
 # TODO: Indicate whether to use Keras or tensorflow model

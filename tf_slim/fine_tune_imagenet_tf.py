@@ -2,12 +2,11 @@ from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
+from alexnet import alexnet_v2
 from datasets import imagenet
 from model_edge_2dis_128_1 import DCGAN
 from ops import *
 from preprocess import preprocess_image
-from alexnet import alexnet_v2
-from image_processing import batch_inputs
 
 slim = tf.contrib.slim
 
@@ -76,16 +75,16 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = False
+fine_tune = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
-# IM_SHAPE = [128, 128, 3]
+IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net/'
-# LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -119,6 +118,7 @@ else:
         else:
             net = alexnet_v2(inputs)
             return net
+
 
     g = tf.Graph()
 
@@ -169,7 +169,7 @@ with sess.as_default():
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
         if fine_tune:
@@ -177,7 +177,8 @@ with sess.as_default():
         else:
             var2train = get_variables_to_train()
 
-        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train, global_step=global_step, summarize_gradients=True)
+        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train,
+                                                 global_step=global_step, summarize_gradients=True)
 
         init_fn = None
         if tensorflow_model and fine_tune:
@@ -187,4 +188,5 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000)
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
+                            log_every_n_steps=100)

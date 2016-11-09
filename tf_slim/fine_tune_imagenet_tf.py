@@ -50,7 +50,7 @@ def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
   return callback
 
 
-DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'
+DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 256
 NUM_CLASSES = 1000
 IM_SHAPE = [256, 256, 3]

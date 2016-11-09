@@ -8,9 +8,7 @@ from model_edge_2dis_128 import DCGAN
 from preprocess import preprocess_image
 from ops import *
 
-
 slim = tf.contrib.slim
-
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
@@ -74,11 +72,11 @@ def _get_variables_to_train(trainable_scopes=None):
 
 fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 NUM_CLASSES = 1000
-IM_SHAPE = [256, 256, 3]
+IM_SHAPE = [128, 128, 3]
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
-LOG_DIR = '/data/cvg/simon/data/logs/'
+LOG_DIR = '/data/cvg/simon/data/logs/m1/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -96,7 +94,7 @@ if not tensorflow_model:
 else:
     def Classifier(inputs, fine_tune=False):
         # if fine_tune:
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False, image_shape=IM_SHAPE)
         net = model.generator(inputs)
         # else:
         #     batch_norm_params = {

@@ -45,15 +45,6 @@ class DCGAN(object):
         self.cg_dim = cg_dim
 
         # batch normalization : deals with poor initialization helps gradient flow
-        self.d_bn1 = batch_norm(is_train, name='d_bn1')
-        self.d_bn2 = batch_norm(is_train, name='d_bn2')
-        self.d_bn3 = batch_norm(is_train, name='d_bn3')
-
-        self.g_bn0 = batch_norm(is_train, name='g_bn0')
-        self.g_bn1 = batch_norm(is_train, name='g_bn1')
-        self.g_bn2 = batch_norm(is_train, name='g_bn2')
-        self.g_bn3 = batch_norm(is_train, name='g_bn3')
-
         self.g_s_bn1 = batch_norm(is_train, name='g_s_bn1')
         self.g_s_bn2 = batch_norm(is_train, name='g_s_bn2')
         self.g_s_bn3 = batch_norm(is_train, name='g_s_bn3')

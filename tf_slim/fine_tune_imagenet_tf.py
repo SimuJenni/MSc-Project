@@ -117,11 +117,25 @@ else:
             model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
             net = model.generator(inputs)
         else:
-            with classifier_argscope() as scope:
-                net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
-                net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
-                net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
-                net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
+            batch_norm_params = {
+                'decay': 0.997,
+                'epsilon': 1e-5,
+                'scale': True,
+                'updates_collections': tf.GraphKeys.UPDATE_OPS,
+            }
+            with slim.arg_scope([slim.conv2d],
+                                kernel_size=[5, 5],
+                                activation_fn=tf.nn.relu,
+                                padding='SAME',
+                                weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
+                                weights_regularizer=slim.l2_regularizer(0.0001),
+                                normalizer_fn=slim.batch_norm,
+                                normalizer_params=batch_norm_params):
+                with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
+                    net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
+                    net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
+                    net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
+                    net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
 
         net = slim.flatten(net)
         net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)

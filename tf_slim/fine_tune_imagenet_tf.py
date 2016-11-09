@@ -70,13 +70,13 @@ def _get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = False
+fine_tune = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
 IM_SHAPE = [128, 128, 3]
-MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
-LOG_DIR = '/data/cvg/simon/data/logs/m1/'
+MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-78100'
+LOG_DIR = '/data/cvg/simon/data/logs/ft1/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -94,7 +94,7 @@ if not tensorflow_model:
 else:
     def Classifier(inputs, fine_tune=False):
         # if fine_tune:
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False, image_shape=IM_SHAPE)
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
         net = model.generator(inputs)
         # else:
         #     batch_norm_params = {

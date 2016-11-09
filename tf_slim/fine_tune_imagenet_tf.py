@@ -128,7 +128,7 @@ with sess.as_default():
 
         # Selects the 'validation' dataset.
         data_files = imagenet.get_datafiles('train', DATA_DIR)
-        images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=2)
+        images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
 
         # # Creates a TF-Slim DataProvider which reads the dataset in the background
         # # during both training and testing.

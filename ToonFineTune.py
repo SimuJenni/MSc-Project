@@ -10,10 +10,10 @@ batch_size = 100
 nb_epoch = 20
 num_layers = 3
 num_res = 0
-r_weight = 10.0
+r_weight = 5.0
 d_weight = 1.0
 use_gan = True
-use_gen = False
+use_gen = True
 if use_gen:
     if use_gan:
         net_load_name = make_name('gGAN2', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)

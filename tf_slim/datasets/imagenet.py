@@ -142,16 +142,16 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
             [], dtype=tf.int64, default_value=-1),
         'image/class/text': tf.FixedLenFeature(
             [], dtype=tf.string, default_value=''),
-        'image/object/bbox/xmin': tf.VarLenFeature(
-            dtype=tf.float32),
-        'image/object/bbox/ymin': tf.VarLenFeature(
-            dtype=tf.float32),
-        'image/object/bbox/xmax': tf.VarLenFeature(
-            dtype=tf.float32),
-        'image/object/bbox/ymax': tf.VarLenFeature(
-            dtype=tf.float32),
-        'image/object/class/label': tf.VarLenFeature(
-            dtype=tf.int64),
+        # 'image/object/bbox/xmin': tf.VarLenFeature(
+        #     dtype=tf.float32),
+        # 'image/object/bbox/ymin': tf.VarLenFeature(
+        #     dtype=tf.float32),
+        # 'image/object/bbox/xmax': tf.VarLenFeature(
+        #     dtype=tf.float32),
+        # 'image/object/bbox/ymax': tf.VarLenFeature(
+        #     dtype=tf.float32),
+        # 'image/object/class/label': tf.VarLenFeature(
+        #     dtype=tf.int64),
     }
 
     items_to_handlers = {
@@ -160,18 +160,18 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
         'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
         # 'object/bbox': slim.tfexample_decoder.BoundingBox(
         #     ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
-        'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
+        # 'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(
         keys_to_features, items_to_handlers)
 
-    labels_to_names = None
-    if dataset_utils.has_labels(dataset_dir):
-        labels_to_names = dataset_utils.read_label_file(dataset_dir)
-    else:
-        labels_to_names = create_readable_names_for_imagenet_labels()
-        dataset_utils.write_label_file(labels_to_names, dataset_dir)
+    # labels_to_names = None
+    # if dataset_utils.has_labels(dataset_dir):
+    #     labels_to_names = dataset_utils.read_label_file(dataset_dir)
+    # else:
+    #     labels_to_names = create_readable_names_for_imagenet_labels()
+    #     dataset_utils.write_label_file(labels_to_names, dataset_dir)
 
     return slim.dataset.Dataset(
         data_sources=file_pattern,

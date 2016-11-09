@@ -10,13 +10,6 @@ from alexnet import alexnet_v2
 
 slim = tf.contrib.slim
 
-def add_variables_summaries(learning_rate):
-  summaries = []
-  for variable in slim.get_model_variables():
-    summaries.append(tf.histogram_summary(variable.op.name, variable))
-  summaries.append(tf.scalar_summary('training/Learning Rate', learning_rate))
-  return summaries
-
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
@@ -82,16 +75,16 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = True
+fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1001
 IM_SHAPE = [224, 224, 3]
-IM_SHAPE = [128, 128, 3]
+# IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net/'
-LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
+# LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True

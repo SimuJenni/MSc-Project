@@ -90,7 +90,7 @@ LOG_DIR = '/data/cvg/simon/data/logs/alex_net/'
 tensorflow_model = True
 
 sess = tf.Session()
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.DEBUG)
 
 if not tensorflow_model:
     from ToonNet import Classifier

@@ -1,14 +1,14 @@
-import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
 from datasets import imagenet
 from model_edge_2dis_128_1 import DCGAN
-from preprocess import preprocess_image
 from ops import *
+from preprocess import preprocess_image
 
 slim = tf.contrib.slim
+
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
@@ -54,7 +54,7 @@ def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
     return callback
 
 
-def _get_variables_to_train(trainable_scopes=None):
+def get_variables_to_train(trainable_scopes=None):
     """Returns a list of variables to train.
     Returns:
       A list of variables to train by the optimizer.
@@ -68,6 +68,9 @@ def _get_variables_to_train(trainable_scopes=None):
     for scope in scopes:
         variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
         variables_to_train.extend(variables)
+
+    print('Variables to train: {}'.format(variables_to_train))
+
     return variables_to_train
 
 
@@ -93,38 +96,20 @@ if not tensorflow_model:
     K.set_learning_phase(1)
     g = K.get_session().graph
 else:
+
     def Classifier(inputs, fine_tune=False):
         # if fine_tune:
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
         with tf.variable_scope('generator') as scope:
             net = model.generator(inputs)
-        # else:
-        #     batch_norm_params = {
-        #         'decay': 0.997,
-        #         'epsilon': 1e-5,
-        #         'scale': True,
-        #         'updates_collections': tf.GraphKeys.UPDATE_OPS,
-        #     }
-        #     with slim.arg_scope([slim.conv2d],
-        #                         kernel_size=[5, 5],
-        #                         activation_fn=tf.nn.relu,
-        #                         padding='SAME',
-        #                         weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
-        #                         weights_regularizer=slim.l2_regularizer(0.0001),
-        #                         normalizer_fn=slim.batch_norm,
-        #                         normalizer_params=batch_norm_params):
-        #         with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
-        #             net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
-        #             net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
-        #             net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
-        #             net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
-
-        net = slim.flatten(net)
-        net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
-        net = slim.dropout(net)
-        net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
-        net = slim.dropout(net)
-        return slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
+        with tf.variable_scope('fully_connected') as scope:
+            net = slim.flatten(net)
+            net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
+            net = slim.dropout(net)
+            net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
+            net = slim.dropout(net)
+            net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
+        return net
 
 
     g = tf.Graph()
@@ -163,14 +148,19 @@ with sess.as_default():
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
-        total_loss = slim.losses.get_total_loss(add_regularization_losses=False)
+        total_loss = slim.losses.get_total_loss()
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
-        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=_get_variables_to_train())
+        if fine_tune:
+            var2train = get_variables_to_train(trainable_scopes=['fully_connected'])
+        else:
+            var2train = get_variables_to_train()
+
+        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=get_variables_to_train())
 
         # See that moving average is also updated with g_optim.
         with tf.control_dependencies([train_op]):
@@ -179,9 +169,10 @@ with sess.as_default():
         init_fn = None
         if tensorflow_model and fine_tune:
             # TODO: Specify the layers of your model you want to exclude
-            variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3', 'beta1_power', 'beta2_power'])
+            variables_to_restore = slim.get_variables_to_restore(
+                exclude=['fc1', 'fc2', 'fc3', 'beta1_power', 'beta2_power'])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600,
-                            log_every_n_steps=10)
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
+                            log_every_n_steps=100)

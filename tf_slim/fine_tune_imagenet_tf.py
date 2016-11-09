@@ -1,55 +1,77 @@
 import tensorflow as tf
-
-from datasets import imagenet
-from model_edge_2dis_128 import DCGAN
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
+
+from datasets import imagenet
+from model_edge_2dis_128 import DCGAN
 from preprocess import preprocess_image
+from alexnet import alexnet_v2
 
 slim = tf.contrib.slim
 
+
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
-  """Returns a function that assigns specific variables from a checkpoint.
-  Args:
-    model_path: The full path to the model checkpoint. To get latest checkpoint
-        use `model_path = tf.train.latest_checkpoint(checkpoint_dir)`
-    var_list: A list of `Variable` objects or a dictionary mapping names in the
-        checkpoint to the correspoing variables to initialize. If empty or None,
-        it would return  no_op(), None.
-    ignore_missing_vars: Boolean, if True it would ignore variables missing in
-        the checkpoint with a warning instead of failing.
-    reshape_variables: Boolean, if True it would automatically reshape variables
-        which are of different shape then the ones stored in the checkpoint but
-        which have the same number of elements.
-  Returns:
-    A function that takes a single argument, a `tf.Session`, that applies the
-    assignment operation.
-  Raises:
-    ValueError: If the checkpoint specified at `model_path` is missing one of
-      the variables in `var_list`.
-  """
-  if ignore_missing_vars:
-    reader = pywrap_tensorflow.NewCheckpointReader(model_path)
-    if isinstance(var_list, dict):
-      var_dict = var_list
+    """Returns a function that assigns specific variables from a checkpoint.
+    Args:
+      model_path: The full path to the model checkpoint. To get latest checkpoint
+          use `model_path = tf.train.latest_checkpoint(checkpoint_dir)`
+      var_list: A list of `Variable` objects or a dictionary mapping names in the
+          checkpoint to the correspoing variables to initialize. If empty or None,
+          it would return  no_op(), None.
+      ignore_missing_vars: Boolean, if True it would ignore variables missing in
+          the checkpoint with a warning instead of failing.
+      reshape_variables: Boolean, if True it would automatically reshape variables
+          which are of different shape then the ones stored in the checkpoint but
+          which have the same number of elements.
+    Returns:
+      A function that takes a single argument, a `tf.Session`, that applies the
+      assignment operation.
+    Raises:
+      ValueError: If the checkpoint specified at `model_path` is missing one of
+        the variables in `var_list`.
+    """
+    if ignore_missing_vars:
+        reader = pywrap_tensorflow.NewCheckpointReader(model_path)
+        if isinstance(var_list, dict):
+            var_dict = var_list
+        else:
+            var_dict = {var.op.name: var for var in var_list}
+        available_vars = {}
+        for var in var_dict:
+            if reader.has_tensor(var):
+                available_vars[var] = var_dict[var]
+            else:
+                logging.warning(
+                    'Variable %s missing in checkpoint %s', var, model_path)
+        var_list = available_vars
+    saver = tf_saver.Saver(var_list, reshape=reshape_variables)
+
+    def callback(session):
+        saver.restore(session, model_path)
+
+    return callback
+
+
+def _get_variables_to_train(trainable_scopes=None):
+    """Returns a list of variables to train.
+    Returns:
+      A list of variables to train by the optimizer.
+    """
+    if trainable_scopes is None:
+        return tf.trainable_variables()
     else:
-      var_dict = {var.op.name: var for var in var_list}
-    available_vars = {}
-    for var in var_dict:
-      if reader.has_tensor(var):
-        available_vars[var] = var_dict[var]
-      else:
-        logging.warning(
-            'Variable %s missing in checkpoint %s', var, model_path)
-    var_list = available_vars
-  saver = tf_saver.Saver(var_list, reshape=reshape_variables)
-  def callback(session):
-    saver.restore(session, model_path)
-  return callback
+        scopes = [scope.strip() for scope in trainable_scopes.split(',')]
+
+    variables_to_train = []
+    for scope in scopes:
+        variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
+        variables_to_train.extend(variables)
+    return variables_to_train
 
 
+fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 256
 NUM_CLASSES = 1000
@@ -65,6 +87,7 @@ sess = tf.Session()
 if not tensorflow_model:
     from ToonNet import Classifier
     import keras.backend as K
+
     K.set_session(sess)
     myModel = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
     K.set_learning_phase(1)
@@ -79,11 +102,12 @@ else:
         net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
         return slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax)
+
+
     g = tf.Graph()
 
 with sess.as_default():
     with g.as_default():
-
         global_step = slim.create_global_step()
 
         # Selects the 'validation' dataset.
@@ -112,7 +136,10 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        predictions = Classifier(images)
+        if fine_tune:
+            predictions = Classifier(images)
+        else:
+            predictions = alexnet_v2(images)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
@@ -123,13 +150,14 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0002)
 
         # Create training operation
-        train_op = slim.learning.create_train_op(total_loss, optimizer)
+        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=_get_variables_to_train())
 
         init_fn = None
-        if tensorflow_model:
+        if tensorflow_model and fine_tune:
             # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3'])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore)
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600)
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600,
+                            log_every_n_steps=10)

@@ -152,3 +152,31 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
         'image/object/class/label': tf.VarLenFeature(
             dtype=tf.int64),
     }
+
+    items_to_handlers = {
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
+        'label': slim.tfexample_decoder.Tensor('image/class/label'),
+        'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
+        'object/bbox': slim.tfexample_decoder.BoundingBox(
+            ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
+        'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
+    }
+
+    decoder = slim.tfexample_decoder.TFExampleDecoder(
+        keys_to_features, items_to_handlers)
+
+    labels_to_names = None
+    if dataset_utils.has_labels(dataset_dir):
+        labels_to_names = dataset_utils.read_label_file(dataset_dir)
+    else:
+        labels_to_names = create_readable_names_for_imagenet_labels()
+        dataset_utils.write_label_file(labels_to_names, dataset_dir)
+
+    return slim.dataset.Dataset(
+        data_sources=file_pattern,
+        reader=reader,
+        decoder=decoder,
+        num_samples=_SPLITS_TO_SIZES[split_name],
+        items_to_descriptions=_ITEMS_TO_DESCRIPTIONS,
+        num_classes=_NUM_CLASSES,
+        labels_to_names=labels_to_names)

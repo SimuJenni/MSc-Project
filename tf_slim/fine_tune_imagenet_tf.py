@@ -36,9 +36,10 @@ def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
         if isinstance(var_list, dict):
             var_dict = var_list
         else:
-            var_dict = {var.op.name: 'generator/{}'.format(var) for var in var_list}
+            var_dict = {var.op.name: var for var in var_list}
         available_vars = {}
         for var in var_dict:
+
             if reader.has_tensor(var):
                 available_vars[var] = var_dict[var]
             else:
@@ -95,7 +96,8 @@ else:
     def Classifier(inputs, fine_tune=False):
         # if fine_tune:
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
-        net = model.generator(inputs)
+        with tf.variable_scope('generator') as scope:
+            net = model.generator(inputs)
         # else:
         #     batch_norm_params = {
         #         'decay': 0.997,

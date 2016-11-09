@@ -167,12 +167,12 @@ with sess.as_default():
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0002)
 
-        # See that moving average is also updated with g_optim.
-        with tf.control_dependencies([optimizer]):
-            optimizer = tf.group(model.bn_assigners)
-
         # Create training operation
         train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=_get_variables_to_train())
+
+        # See that moving average is also updated with g_optim.
+        with tf.control_dependencies([train_op]):
+            train_op = tf.group(model.bn_assigners)
 
         init_fn = None
         if tensorflow_model and fine_tune:

@@ -156,7 +156,7 @@ with sess.as_default():
 
         # Create training operation
         if fine_tune:
-            var2train = get_variables_to_train(trainable_scopes=['fully_connected'])
+            var2train = get_variables_to_train(trainable_scopes='fully_connected')
         else:
             var2train = get_variables_to_train()
 

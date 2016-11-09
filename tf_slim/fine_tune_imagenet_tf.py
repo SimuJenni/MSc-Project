@@ -148,7 +148,8 @@ with sess.as_default():
         #     batch_size=BATCH_SIZE,
         #     num_threads=4,
         #     capacity=5 * BATCH_SIZE)
-        # labels = slim.one_hot_encoding(labels, NUM_CLASSES)
+
+        labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
         predictions = Classifier(images, fine_tune)

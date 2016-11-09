@@ -444,7 +444,6 @@ def batch_inputs(data_files, batch_size, train, num_preprocess_threads=None,
             # Parse a serialized Example proto to extract the image and metadata.
             image_buffer, label_index, bbox, _ = parse_example_proto(
                 example_serialized)
-            print(bbox)
             image = image_preprocessing(image_buffer, bbox, train, thread_id)
             images_and_labels.append([image, label_index])
 

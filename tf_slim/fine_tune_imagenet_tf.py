@@ -55,9 +55,7 @@ BATCH_SIZE = 256
 NUM_CLASSES = 1000
 IM_SHAPE = [256, 256, 3]
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
-
-# TODO: Set path for storing the model
-log_dir = '/Users/simujenni/MSc-Project/data/logs/'
+LOG_DIR = '/data/cvg/simon/data/logs/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -134,4 +132,4 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore)
 
         # Start training.
-        slim.learning.train(train_op, log_dir, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600)
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600)

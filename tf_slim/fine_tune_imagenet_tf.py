@@ -2,6 +2,10 @@ import tensorflow as tf
 
 from datasets import imagenet
 from model_edge_2dis_128 import DCGAN
+from tensorflow.python import pywrap_tensorflow
+from tensorflow.python.platform import tf_logging as logging
+from tensorflow.python.training import saver as tf_saver
+from preprocess import preprocess_image
 
 slim = tf.contrib.slim
 
@@ -45,9 +49,12 @@ def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
     saver.restore(session, model_path)
   return callback
 
+
 DATA_DIR = 'data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 256
 NUM_CLASSES = 1000
+IM_SHAPE = [256, 256, 3]
+MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
 
 # TODO: Set path for storing the model
 log_dir = '/Users/simujenni/MSc-Project/data/logs/'
@@ -65,7 +72,6 @@ if not tensorflow_model:
     K.set_learning_phase(1)
     g = K.get_session().graph
 else:
-    model_path = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/028/DCGAN.model-100'
     def Classifier(inputs):
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
         net = model.generator(inputs)
@@ -78,6 +84,8 @@ else:
 
 with sess.as_default():
     with g.as_default():
+
+        global_step = slim.create_global_step()
 
         # Selects the 'validation' dataset.
         dataset = imagenet.get_split('train', DATA_DIR)
@@ -93,6 +101,7 @@ with sess.as_default():
         [image, label] = provider.get(['image', 'label'])
 
         # TODO: Adjust preprocessing of images
+        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         image = (tf.to_float(image) / 255. - 0.5) * 2.0
 
         images, labels = tf.train.batch(
@@ -121,7 +130,7 @@ with sess.as_default():
         if tensorflow_model:
             # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3'])
-            init_fn = assign_from_checkpoint_fn(model_path, variables_to_restore)
+            init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore)
 
         # Start training.
         slim.learning.train(train_op, log_dir, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=600)

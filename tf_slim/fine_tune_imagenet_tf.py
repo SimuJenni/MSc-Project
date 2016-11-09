@@ -117,7 +117,7 @@ else:
             model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
             net = model.generator(inputs)
         else:
-            with classifier_argscope():
+            with classifier_argscope() as scope:
                 net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
                 net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
                 net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)

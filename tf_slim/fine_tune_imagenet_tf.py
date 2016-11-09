@@ -61,14 +61,14 @@ def get_variables_to_train(trainable_scopes=None):
       A list of variables to train by the optimizer.
     """
     if trainable_scopes is None:
-        return tf.trainable_variables()
+        variables_to_train = tf.trainable_variables()
     else:
         scopes = [scope.strip() for scope in trainable_scopes.split(',')]
 
-    variables_to_train = []
-    for scope in scopes:
-        variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
-        variables_to_train.extend(variables)
+        variables_to_train = []
+        for scope in scopes:
+            variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
+            variables_to_train.extend(variables)
 
     print('Variables to train: {}'.format([v.op.name for v in variables_to_train]))
 
@@ -192,4 +192,4 @@ with sess.as_default():
 
         # Start training.
         slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
-                            log_every_n_steps=100)
+                            log_every_n_steps=10)

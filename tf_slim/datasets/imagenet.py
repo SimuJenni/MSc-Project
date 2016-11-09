@@ -108,7 +108,7 @@ def create_readable_names_for_imagenet_labels():
     return labels_to_names
 
 
-def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
+def get_split(split_name, dataset_dir, reader=None):
     """Gets a dataset tuple with instructions for reading ImageNet.
     Args:
       split_name: A train/test split name.
@@ -125,9 +125,9 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
     if split_name not in _SPLITS_TO_SIZES:
         raise ValueError('split name %s was not recognized.' % split_name)
 
-    if not file_pattern:
-        file_pattern = _FILE_PATTERN
-    file_pattern = os.path.join(dataset_dir, file_pattern % split_name)
+    tf_record_pattern = os.path.join(dataset_dir, '%s-*' % split_name)
+    data_files = tf.gfile.Glob(tf_record_pattern)
+
 
     # Allowing None in the signature so that dataset_factory can use the default.
     if reader is None:
@@ -157,7 +157,7 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
     items_to_handlers = {
         'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
-        'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
+        # 'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
         # 'object/bbox': slim.tfexample_decoder.BoundingBox(
         #     ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
         # 'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
@@ -174,7 +174,7 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
     #     dataset_utils.write_label_file(labels_to_names, dataset_dir)
 
     return slim.dataset.Dataset(
-        data_sources=file_pattern,
+        data_sources=data_files,
         reader=reader,
         decoder=decoder,
         num_samples=_SPLITS_TO_SIZES[split_name],

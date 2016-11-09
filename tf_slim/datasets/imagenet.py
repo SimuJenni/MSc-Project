@@ -157,8 +157,8 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
         'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
         'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
-        'object/bbox': slim.tfexample_decoder.BoundingBox(
-            ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
+        # 'object/bbox': slim.tfexample_decoder.BoundingBox(
+        #     ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
         'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
     }
 

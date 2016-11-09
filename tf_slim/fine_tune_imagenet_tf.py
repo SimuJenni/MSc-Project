@@ -126,28 +126,29 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Selects the 'validation' dataset.
-        data_files = imagenet.get_datafiles('train', DATA_DIR)
-        images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
+        # # Selects the 'validation' dataset.
+        # data_files = imagenet.get_datafiles('train', DATA_DIR)
+        # images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
 
-        # # Creates a TF-Slim DataProvider which reads the dataset in the background
-        # # during both training and testing.
-        # provider = slim.dataset_data_provider.DatasetDataProvider(
-        #     dataset,
-        #     num_readers=4,
-        #     common_queue_capacity=20 * BATCH_SIZE,
-        #     common_queue_min=10 * BATCH_SIZE)
-        #
-        # [image, label] = provider.get(['image', 'label'])
-        #
-        # # TODO: Adjust preprocessing of images
-        # image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        #
-        # images, labels = tf.train.batch(
-        #     [image, label],
-        #     batch_size=BATCH_SIZE,
-        #     num_threads=4,
-        #     capacity=5 * BATCH_SIZE)
+        dataset = imagenet.get_split('train', DATA_DIR)
+        # Creates a TF-Slim DataProvider which reads the dataset in the background
+        # during both training and testing.
+        provider = slim.dataset_data_provider.DatasetDataProvider(
+            dataset,
+            num_readers=8,
+            common_queue_capacity=20 * BATCH_SIZE,
+            common_queue_min=10 * BATCH_SIZE)
+
+        [image, label] = provider.get(['image', 'label'])
+
+        # TODO: Adjust preprocessing of images
+        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+
+        images, labels = tf.train.batch(
+            [image, label],
+            batch_size=BATCH_SIZE,
+            num_threads=4,
+            capacity=5 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
@@ -168,7 +169,7 @@ with sess.as_default():
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005)
 
         # Create training operation
         if fine_tune:

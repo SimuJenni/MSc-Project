@@ -6,28 +6,8 @@ from tensorflow.python.training import saver as tf_saver
 from datasets import imagenet
 from model_edge_2dis_128 import DCGAN
 from preprocess import preprocess_image
-from alexnet import alexnet_v2
 
 slim = tf.contrib.slim
-
-
-def classifier_argscope(activation=tf.nn.relu):
-    batch_norm_params = {
-        'decay': 0.997,
-        'epsilon': 1e-5,
-        'scale': True,
-        'updates_collections': tf.GraphKeys.UPDATE_OPS,
-    }
-    with slim.arg_scope([slim.conv2d],
-                        kernel_size=[5, 5],
-                        activation_fn=activation,
-                        padding='SAME',
-                        weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
-                        weights_regularizer=slim.l2_regularizer(0.0001),
-                        normalizer_fn=slim.batch_norm,
-                        normalizer_params=batch_norm_params):
-        with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
-            return arg_sc
 
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
@@ -113,36 +93,36 @@ if not tensorflow_model:
     g = K.get_session().graph
 else:
     def Classifier(inputs, fine_tune=False):
-        if fine_tune:
-            model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
-            net = model.generator(inputs)
-        else:
-            batch_norm_params = {
-                'decay': 0.997,
-                'epsilon': 1e-5,
-                'scale': True,
-                'updates_collections': tf.GraphKeys.UPDATE_OPS,
-            }
-            with slim.arg_scope([slim.conv2d],
-                                kernel_size=[5, 5],
-                                activation_fn=tf.nn.relu,
-                                padding='SAME',
-                                weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
-                                weights_regularizer=slim.l2_regularizer(0.0001),
-                                normalizer_fn=slim.batch_norm,
-                                normalizer_params=batch_norm_params):
-                with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
-                    net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
-                    net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
-                    net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
-                    net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
+        # if fine_tune:
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
+        net = model.generator(inputs)
+        # else:
+        #     batch_norm_params = {
+        #         'decay': 0.997,
+        #         'epsilon': 1e-5,
+        #         'scale': True,
+        #         'updates_collections': tf.GraphKeys.UPDATE_OPS,
+        #     }
+        #     with slim.arg_scope([slim.conv2d],
+        #                         kernel_size=[5, 5],
+        #                         activation_fn=tf.nn.relu,
+        #                         padding='SAME',
+        #                         weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
+        #                         weights_regularizer=slim.l2_regularizer(0.0001),
+        #                         normalizer_fn=slim.batch_norm,
+        #                         normalizer_params=batch_norm_params):
+        #         with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
+        #             net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
+        #             net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
+        #             net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
+        #             net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
 
         net = slim.flatten(net)
         net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
         net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
-        return slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax)
+        return slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
 
 
     g = tf.Graph()
@@ -177,15 +157,19 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        predictions = Classifier(images, fine_tune)
+        predictions, model = Classifier(images, fine_tune)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
-        total_loss = slim.losses.get_total_loss()
+        total_loss = slim.losses.get_total_loss(add_regularization_losses=False)
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0002)
+
+        # See that moving average is also updated with g_optim.
+        with tf.control_dependencies([optimizer]):
+            optimizer = tf.group(model.bn_assigners)
 
         # Create training operation
         train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=_get_variables_to_train())

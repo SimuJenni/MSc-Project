@@ -176,7 +176,7 @@ with sess.as_default():
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005)
 
         # Create training operation
         if fine_tune:

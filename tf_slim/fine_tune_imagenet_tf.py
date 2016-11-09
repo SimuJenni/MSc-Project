@@ -10,6 +10,13 @@ from alexnet import alexnet_v2
 
 slim = tf.contrib.slim
 
+def add_variables_summaries(learning_rate):
+  summaries = []
+  for variable in slim.get_model_variables():
+    summaries.append(tf.histogram_summary(variable.op.name, variable))
+  summaries.append(tf.scalar_summary('training/Learning Rate', learning_rate))
+  return summaries
+
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
@@ -70,7 +77,7 @@ def get_variables_to_train(trainable_scopes=None):
         variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
         variables_to_train.extend(variables)
 
-    print('Variables to train: {}'.format(variables_to_train))
+    print('Variables to train: {}'.format([v.op.name for v in variables_to_train]))
 
     return variables_to_train
 
@@ -78,7 +85,7 @@ def get_variables_to_train(trainable_scopes=None):
 fine_tune = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
-NUM_CLASSES = 1000
+NUM_CLASSES = 1001
 IM_SHAPE = [224, 224, 3]
 IM_SHAPE = [128, 128, 3]
 
@@ -90,6 +97,7 @@ LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
 tensorflow_model = True
 
 sess = tf.Session()
+tf.logging.set_verbosity(tf.logging.INFO)
 
 if not tensorflow_model:
     from ToonNet import Classifier
@@ -139,7 +147,6 @@ with sess.as_default():
 
         # TODO: Adjust preprocessing of images
         image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        image = (tf.to_float(image) / 255. - 0.5) * 2.0
 
         images, labels = tf.train.batch(
             [image, label],
@@ -148,17 +155,28 @@ with sess.as_default():
             capacity=5 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
+        batch_queue = slim.prefetch_queue.prefetch_queue(
+            [images, labels], capacity=2)
+        images, labels = batch_queue.dequeue()
 
         # TODO: Create your model
         predictions = Classifier(images, fine_tune)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
+
+        # Gather initial summaries.
+        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+
+        # Add summaries for variables.
+        for variable in slim.get_model_variables():
+            summaries.add(tf.histogram_summary(variable.op.name, variable))
+
         total_loss = slim.losses.get_total_loss()
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+        optimizer = tf.train.AdamOptimizer(learning_rate=)
 
         # Create training operation
         if fine_tune:
@@ -166,7 +184,7 @@ with sess.as_default():
         else:
             var2train = get_variables_to_train()
 
-        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=get_variables_to_train())
+        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train)
 
         # See that moving average is also updated with g_optim.
         with tf.control_dependencies([train_op]):

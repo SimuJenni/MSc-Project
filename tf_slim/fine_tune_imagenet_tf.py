@@ -105,9 +105,9 @@ else:
                 net = model.generator(inputs)
             with tf.variable_scope('fully_connected') as scope:
                 net = slim.flatten(net)
-                net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
+                net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
                 net = slim.dropout(net)
-                net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
+                net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
                 net = slim.dropout(net)
                 net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
             return net

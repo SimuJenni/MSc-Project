@@ -6,6 +6,8 @@ from tensorflow.python.training import saver as tf_saver
 from datasets import imagenet
 from model_edge_2dis_128 import DCGAN
 from preprocess import preprocess_image
+from ops import *
+
 
 slim = tf.contrib.slim
 

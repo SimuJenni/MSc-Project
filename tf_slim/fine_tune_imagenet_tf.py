@@ -11,6 +11,25 @@ from alexnet import alexnet_v2
 slim = tf.contrib.slim
 
 
+def classifier_argscope(activation=tf.nn.relu):
+    batch_norm_params = {
+        'decay': 0.997,
+        'epsilon': 1e-5,
+        'scale': True,
+        'updates_collections': tf.GraphKeys.UPDATE_OPS,
+    }
+    with slim.arg_scope([slim.conv2d],
+                        kernel_size=[5, 5],
+                        activation_fn=activation,
+                        padding='SAME',
+                        weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
+                        weights_regularizer=slim.l2_regularizer(0.0001),
+                        normalizer_fn=slim.batch_norm,
+                        normalizer_params=batch_norm_params):
+        with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
+            return arg_sc
+
+
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
     """Returns a function that assigns specific variables from a checkpoint.
@@ -93,9 +112,17 @@ if not tensorflow_model:
     K.set_learning_phase(1)
     g = K.get_session().graph
 else:
-    def Classifier(inputs, is_train=False):
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=is_train)
-        net = model.generator(inputs)
+    def Classifier(inputs, fine_tune=False):
+        if fine_tune:
+            model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
+            net = model.generator(inputs)
+        else:
+            with classifier_argscope():
+                net = slim.conv2d(inputs, num_outputs=64, scope='conv_1', stride=2)
+                net = slim.conv2d(net, num_outputs=128, scope='conv_2', stride=2)
+                net = slim.conv2d(net, num_outputs=256, scope='conv_3', stride=2)
+                net = slim.conv2d(net, num_outputs=512, scope='conv_4', stride=2)
+
         net = slim.flatten(net)
         net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
@@ -136,7 +163,7 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        predictions = Classifier(images, is_train=not fine_tune)
+        predictions = Classifier(images, fine_tune)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)

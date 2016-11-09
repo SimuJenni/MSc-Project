@@ -75,6 +75,7 @@ else:
     def Classifier(inputs):
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
         net = model.generator(inputs)
+        net = slim.flatten(net)
         net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
         net = slim.dropout(net)
         net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)

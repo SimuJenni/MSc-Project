@@ -177,7 +177,7 @@ with sess.as_default():
         init_fn = None
         if tensorflow_model and fine_tune:
             # TODO: Specify the layers of your model you want to exclude
-            variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3'])
+            variables_to_restore = slim.get_variables_to_restore(exclude=['fc1', 'fc2', 'fc3', 'beta1_power'])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore)
 
         # Start training.

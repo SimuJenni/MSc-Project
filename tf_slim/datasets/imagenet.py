@@ -29,7 +29,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import datasets.dataset_utils as dataset_utils
 
 import tensorflow as tf
 from six.moves import urllib
@@ -127,7 +126,10 @@ def get_split(split_name, dataset_dir, reader=None):
 
     tf_record_pattern = os.path.join(dataset_dir, '%s-*' % split_name)
     data_files = tf.gfile.Glob(tf_record_pattern)
-
+    if not data_files:
+        print('No files found for dataset at %s' % dataset_dir)
+    else:
+        print(data_files[:10])
 
     # Allowing None in the signature so that dataset_factory can use the default.
     if reader is None:
@@ -181,4 +183,4 @@ def get_split(split_name, dataset_dir, reader=None):
         items_to_descriptions=_ITEMS_TO_DESCRIPTIONS,
         # num_classes=_NUM_CLASSES,
         # labels_to_names=labels_to_names
-        )
+    )

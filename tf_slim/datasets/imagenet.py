@@ -107,6 +107,16 @@ def create_readable_names_for_imagenet_labels():
     return labels_to_names
 
 
+def get_datafiles(split_name, dataset_dir):
+    tf_record_pattern = os.path.join(dataset_dir, '%s-*' % split_name)
+    data_files = tf.gfile.Glob(tf_record_pattern)
+    if not data_files:
+        print('No files found for dataset at %s' % dataset_dir)
+    else:
+        print(data_files[:10])
+    return data_files
+
+
 def get_split(split_name, dataset_dir, reader=None):
     """Gets a dataset tuple with instructions for reading ImageNet.
     Args:

@@ -7,6 +7,7 @@ from model_edge_2dis_128_1 import DCGAN
 from ops import *
 from preprocess import preprocess_image
 from alexnet import alexnet_v2
+from tf_slim.image_processing import batch_inputs
 
 slim = tf.contrib.slim
 
@@ -126,31 +127,28 @@ with sess.as_default():
         global_step = slim.create_global_step()
 
         # Selects the 'validation' dataset.
-        dataset = imagenet.get_split('train', DATA_DIR)
+        data_files = imagenet.get_datafiles('train', DATA_DIR)
+        images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=2)
 
-        # Creates a TF-Slim DataProvider which reads the dataset in the background
-        # during both training and testing.
-        provider = slim.dataset_data_provider.DatasetDataProvider(
-            dataset,
-            num_readers=4,
-            common_queue_capacity=20 * BATCH_SIZE,
-            common_queue_min=10 * BATCH_SIZE)
-
-        [image, label] = provider.get(['image', 'label'])
-
-        # TODO: Adjust preprocessing of images
-        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-
-        images, labels = tf.train.batch(
-            [image, label],
-            batch_size=BATCH_SIZE,
-            num_threads=4,
-            capacity=5 * BATCH_SIZE)
-
-        labels = slim.one_hot_encoding(labels, NUM_CLASSES)
-        batch_queue = slim.prefetch_queue.prefetch_queue(
-            [images, labels], capacity=2)
-        images, labels = batch_queue.dequeue()
+        # # Creates a TF-Slim DataProvider which reads the dataset in the background
+        # # during both training and testing.
+        # provider = slim.dataset_data_provider.DatasetDataProvider(
+        #     dataset,
+        #     num_readers=4,
+        #     common_queue_capacity=20 * BATCH_SIZE,
+        #     common_queue_min=10 * BATCH_SIZE)
+        #
+        # [image, label] = provider.get(['image', 'label'])
+        #
+        # # TODO: Adjust preprocessing of images
+        # image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        #
+        # images, labels = tf.train.batch(
+        #     [image, label],
+        #     batch_size=BATCH_SIZE,
+        #     num_threads=4,
+        #     capacity=5 * BATCH_SIZE)
+        # labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
         predictions = Classifier(images, fine_tune)

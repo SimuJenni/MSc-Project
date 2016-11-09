@@ -6,6 +6,7 @@ from datasets import imagenet
 from model_edge_2dis_128_1 import DCGAN
 from ops import *
 from preprocess import preprocess_image
+from alexnet import alexnet_v2
 
 slim = tf.contrib.slim
 
@@ -78,7 +79,7 @@ fine_tune = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
-IM_SHAPE = [128, 128, 3]
+IM_SHAPE = [224, 224, 3]
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/ft1/'
 
@@ -98,19 +99,21 @@ if not tensorflow_model:
 else:
 
     def Classifier(inputs, fine_tune=False):
-        # if fine_tune:
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
-        with tf.variable_scope('generator') as scope:
-            net = model.generator(inputs)
-        with tf.variable_scope('fully_connected') as scope:
-            net = slim.flatten(net)
-            net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
-            net = slim.dropout(net)
-            net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
-            net = slim.dropout(net)
-            net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
-        return net
-
+        if fine_tune:
+            model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
+            with tf.variable_scope('generator') as scope:
+                net = model.generator(inputs)
+            with tf.variable_scope('fully_connected') as scope:
+                net = slim.flatten(net)
+                net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
+                net = slim.dropout(net)
+                net = slim.fully_connected(net, 2048, scope='fc2', activation_fn=tf.nn.relu)
+                net = slim.dropout(net)
+                net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax), model
+            return net
+        else:
+            net = alexnet_v2(inputs)
+            return net
 
     g = tf.Graph()
 

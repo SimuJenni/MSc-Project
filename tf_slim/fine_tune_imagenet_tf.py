@@ -4,7 +4,7 @@ from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
 from datasets import imagenet
-from model_edge_2dis_128 import DCGAN
+from model_edge_2dis_128_1 import DCGAN
 from preprocess import preprocess_image
 from ops import *
 

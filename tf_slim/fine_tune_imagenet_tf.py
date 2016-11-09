@@ -93,8 +93,8 @@ if not tensorflow_model:
     K.set_learning_phase(1)
     g = K.get_session().graph
 else:
-    def Classifier(inputs):
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=False)
+    def Classifier(inputs, is_train=False):
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=is_train)
         net = model.generator(inputs)
         net = slim.flatten(net)
         net = slim.fully_connected(net, 2048, scope='fc1', activation_fn=tf.nn.relu)
@@ -136,10 +136,7 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        if fine_tune:
-            predictions = Classifier(images)
-        else:
-            predictions = alexnet_v2(images)
+        predictions = Classifier(images, is_train=not fine_tune)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)

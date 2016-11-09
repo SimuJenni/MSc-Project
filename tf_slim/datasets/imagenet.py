@@ -112,8 +112,6 @@ def get_datafiles(split_name, dataset_dir):
     data_files = tf.gfile.Glob(tf_record_pattern)
     if not data_files:
         print('No files found for dataset at %s' % dataset_dir)
-    else:
-        print(data_files[:10])
     return data_files
 
 

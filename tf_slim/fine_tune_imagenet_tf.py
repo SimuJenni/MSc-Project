@@ -164,11 +164,11 @@ with sess.as_default():
         for variable in slim.get_model_variables():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
-        total_loss = slim.losses.get_total_loss()
+        total_loss = slim.losses.get_total_loss(add_regularization_losses=False)
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
         if fine_tune:
@@ -176,11 +176,7 @@ with sess.as_default():
         else:
             var2train = get_variables_to_train()
 
-        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train)
-
-        # See that moving average is also updated with g_optim.
-        with tf.control_dependencies([train_op]):
-            train_op = tf.group(tf.group(*batch_norm.assigners))
+        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train, global_step=global_step, summarize_gradients=True)
 
         init_fn = None
         if tensorflow_model and fine_tune:
@@ -190,5 +186,4 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
-                            log_every_n_steps=10)
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000)

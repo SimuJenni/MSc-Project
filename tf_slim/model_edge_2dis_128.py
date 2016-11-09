@@ -59,7 +59,7 @@ class DCGAN(object):
         self.g_s_bn3 = batch_norm(is_train, name='g_s_bn3')
         self.g_s_bn4 = batch_norm(is_train, convolutional=False, name='g_s_bn4')
 
-        self.build_model(is_train)
+        # self.build_model(is_train)
 
 
     def build_model(self, is_train):

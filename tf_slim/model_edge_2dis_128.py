@@ -283,13 +283,13 @@ class DCGAN(object):
             used_abstract = sketches_or_abstract_representations
             tf.get_variable_scope().reuse_variables()
         else:
-            self.s0 = lrelu(conv2d(sketches_or_abstract_representations, self.df_dim, name='g_conv_s0'))
+            self.s0 = lrelu(conv2d(sketches_or_abstract_representations, self.df_dim, name='g_s0_conv'))
             # c0 = self.s0
-            self.s1 = lrelu(self.g_s_bn1(conv2d(self.s0, self.df_dim * 2, name='g_conv_s1')))
+            self.s1 = lrelu(self.g_s_bn1(conv2d(self.s0, self.df_dim * 2, name='g_s1_conv')))
             # c1 = self.s1
-            self.s2 = lrelu(self.g_s_bn2(conv2d(self.s1, self.df_dim * 4, name='g_conv_s2')))
+            self.s2 = lrelu(self.g_s_bn2(conv2d(self.s1, self.df_dim * 4, name='g_s2_conv')))
             # c2 = self.s2
-            self.abstract_representation = lrelu(self.g_s_bn3(conv2d(self.s2, self.df_dim * 8, name='g_conv_s3')))
+            self.abstract_representation = lrelu(self.g_s_bn3(conv2d(self.s2, self.df_dim * 8, name='g_s3_conv')))
             # Size after 4 convolutions with stride 2.
             if self.z_dim:
                 z_slices = tf.mul(tf.ones([self.batch_size, self.abstract_size, self.abstract_size, self.z_dim]),

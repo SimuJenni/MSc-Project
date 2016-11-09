@@ -3,7 +3,6 @@ import time
 import tensorflow as tf
 
 from ops import *
-from utils import *
 from input_pipeline_rendered_data_vgg import get_chair_pipeline_training_from_dump
 
 class DCGAN(object):

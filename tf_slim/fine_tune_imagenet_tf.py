@@ -172,7 +172,7 @@ with sess.as_default():
 
         # See that moving average is also updated with g_optim.
         with tf.control_dependencies([train_op]):
-            train_op = tf.group(model.bn_assigners)
+            train_op = tf.group(tf.group(*batch_norm.assigners))
 
         init_fn = None
         if tensorflow_model and fine_tune:

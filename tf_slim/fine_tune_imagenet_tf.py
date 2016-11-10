@@ -108,12 +108,16 @@ else:
             with tf.variable_scope('generator') as scope:
                 net = model.generator(inputs)
             with tf.variable_scope('fully_connected') as scope:
-                net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
-                net = slim.dropout(net)
-                net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
-                net = slim.dropout(net)
-                net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=tf.nn.softmax)
+                with slim.arg_scope([slim.fully_connected],
+                                    activation_fn=tf.nn.relu,
+                                    weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
+                                    weights_regularizer=slim.l2_regularizer(0.0005)):
+                    net = slim.flatten(net)
+                    net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
+                    net = slim.dropout(net)
+                    net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
+                    net = slim.dropout(net)
+                    net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
         else:
             net = alexnet_v2(inputs)
@@ -165,7 +169,7 @@ with sess.as_default():
         for variable in slim.get_model_variables():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
-        total_loss = slim.losses.get_total_loss(add_regularization_losses=False)
+        total_loss = slim.losses.get_total_loss()
         tf.scalar_summary('losses/total loss', total_loss)
 
         # Define optimizer

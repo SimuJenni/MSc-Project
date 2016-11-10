@@ -29,7 +29,7 @@ def alexnet_v2(inputs,
     with tf.variable_scope('alexnet_v2') as sc:
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             activation_fn=tf.nn.relu,
-                            biases_initializer=tf.constant_initializer(0.1),
+                            weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
                             weights_regularizer=slim.l2_regularizer(0.0005)):
             with slim.arg_scope([slim.conv2d], padding='SAME'):
                 with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
@@ -46,7 +46,7 @@ def alexnet_v2(inputs,
                     net = slim.dropout(net, keep_prob=dropout_keep_prob)
                     net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
                     net = slim.dropout(net, keep_prob=dropout_keep_prob)
-                    net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=tf.nn.softmax)
+                    net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=None)
                     return net
 
 

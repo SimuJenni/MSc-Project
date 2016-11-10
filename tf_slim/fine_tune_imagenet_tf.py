@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 from tensorflow.python import pywrap_tensorflow
+from tensorflow.python.ops import control_flow_ops
+
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
@@ -175,7 +177,7 @@ with sess.as_default():
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
-            total_loss = tf.control_flow_ops.with_dependencies([updates], total_loss)
+            total_loss = control_flow_ops.with_dependencies([updates], total_loss)
 
         tf.scalar_summary('losses/total loss', total_loss)
 

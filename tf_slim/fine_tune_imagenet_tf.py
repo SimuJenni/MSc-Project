@@ -140,9 +140,9 @@ with sess.as_default():
         # during both training and testing.
         provider = slim.dataset_data_provider.DatasetDataProvider(
             dataset,
-            num_readers=8,
-            common_queue_capacity=20 * BATCH_SIZE,
-            common_queue_min=10 * BATCH_SIZE)
+            num_readers=16,
+            common_queue_capacity=16 * BATCH_SIZE,
+            common_queue_min=8 * BATCH_SIZE)
 
         [image, label] = provider.get(['image', 'label'])
 
@@ -152,8 +152,8 @@ with sess.as_default():
         images, labels = tf.train.batch(
             [image, label],
             batch_size=BATCH_SIZE,
-            num_threads=4,
-            capacity=5 * BATCH_SIZE)
+            num_threads=8,
+            capacity=8 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 

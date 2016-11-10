@@ -27,17 +27,16 @@ def alexnet_v2(inputs,
                scope='alexnet_v2'):
     with tf.variable_scope('alexnet_v2') as sc:
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
-                            padding='SAME',
                             activation_fn=tf.nn.relu,
                             weights_regularizer=slim.l2_regularizer(0.0005)):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
                 net = slim.conv2d(inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
                 net = slim.max_pool2d(net, [5, 5], 2, scope='pool1')
-                net = slim.conv2d(net, 256, [5, 5], scope='conv2')
+                net = slim.conv2d(net, 256, [5, 5], scope='conv2', padding='SAME')
                 net = slim.max_pool2d(net, [3, 3], 2, scope='pool2')
-                net = slim.conv2d(net, 384, [3, 3], scope='conv3')
-                net = slim.conv2d(net, 384, [3, 3], scope='conv4')
-                net = slim.conv2d(net, 256, [3, 3], scope='conv5')
+                net = slim.conv2d(net, 384, [3, 3], scope='conv3', padding='SAME')
+                net = slim.conv2d(net, 384, [3, 3], scope='conv4', padding='SAME')
+                net = slim.conv2d(net, 256, [3, 3], scope='conv5', padding='SAME')
                 net = slim.max_pool2d(net, [3, 3], 2, scope='pool5')
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')

@@ -110,7 +110,7 @@ else:
             with tf.variable_scope('fully_connected') as scope:
                 with slim.arg_scope([slim.fully_connected],
                                     activation_fn=tf.nn.relu,
-                                    weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
+                                    biases_initializer=tf.zeros_initializer,
                                     weights_regularizer=slim.l2_regularizer(0.0005)):
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
@@ -155,6 +155,7 @@ with sess.as_default():
             capacity=5 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
+        print(labels)
 
         # TODO: Create your model
         predictions = Classifier(images, fine_tune)

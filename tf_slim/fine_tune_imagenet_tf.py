@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
@@ -90,7 +92,7 @@ LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
 tensorflow_model = True
 
 sess = tf.Session()
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.logging.set_verbosity(tf.logging.INFO)
 
 if not tensorflow_model:
     from ToonNet import Classifier
@@ -155,7 +157,6 @@ with sess.as_default():
             capacity=5 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
-        print(labels)
 
         # TODO: Create your model
         predictions = Classifier(images, fine_tune)
@@ -179,6 +180,9 @@ with sess.as_default():
             with tf.name_scope('accuracy'):
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
             tf.scalar_summary('accuracy', accuracy)
+
+        with tf.name_scope('label'):
+            tf.scalar_summary('label', tf.argmax(predictions, 1))
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001)

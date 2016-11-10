@@ -121,7 +121,7 @@ else:
                     net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
         else:
-            net = alexnet_v2(inputs)
+            net = alexnet_v2(inputs, use_batch_norm=True)
             return net
 
 

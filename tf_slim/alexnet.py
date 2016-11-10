@@ -29,7 +29,6 @@ def alexnet_v2(inputs,
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             padding='SAME',
                             activation_fn=tf.nn.relu,
-                            biases_initializer=tf.zeros_initializer,
                             weights_regularizer=slim.l2_regularizer(0.0005)):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
                 net = slim.conv2d(inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
@@ -41,9 +40,9 @@ def alexnet_v2(inputs,
                 net = slim.conv2d(net, 256, [3, 3], scope='conv5')
                 net = slim.max_pool2d(net, [3, 3], 2, scope='pool5')
                 net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
+                net = slim.fully_connected(net, 4096, scope='fc1')
                 net = slim.dropout(net, keep_prob=dropout_keep_prob)
-                net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
+                net = slim.fully_connected(net, 4096, scope='fc2')
                 net = slim.dropout(net, keep_prob=dropout_keep_prob)
                 net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=None)
                 return net

@@ -77,16 +77,16 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = True
+fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
-IM_SHAPE = [128, 128, 3]
+#IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net/'
-LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
+#LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -112,12 +112,11 @@ else:
             with tf.variable_scope('fully_connected') as scope:
                 with slim.arg_scope([slim.fully_connected],
                                     activation_fn=tf.nn.relu,
-                                    biases_initializer=tf.zeros_initializer,
                                     weights_regularizer=slim.l2_regularizer(0.0005)):
                     net = slim.flatten(net)
-                    net = slim.fully_connected(net, 4096, scope='fc1', activation_fn=tf.nn.relu)
+                    net = slim.fully_connected(net, 4096, scope='fc1')
                     net = slim.dropout(net)
-                    net = slim.fully_connected(net, 4096, scope='fc2', activation_fn=tf.nn.relu)
+                    net = slim.fully_connected(net, 4096, scope='fc2')
                     net = slim.dropout(net)
                     net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
@@ -185,7 +184,7 @@ with sess.as_default():
             tf.scalar_summary('label', tf.argmax(predictions, 1))
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+        optimizer = tf.train.AdamOptimizer()
 
         # Create training operation
         if fine_tune:

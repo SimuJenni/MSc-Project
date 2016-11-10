@@ -152,8 +152,8 @@ with sess.as_default():
         images, labels = tf.train.batch(
             [image, label],
             batch_size=BATCH_SIZE,
-            num_threads=8,
-            capacity=8 * BATCH_SIZE)
+            num_threads=16,
+            capacity=16 * BATCH_SIZE)
 
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 

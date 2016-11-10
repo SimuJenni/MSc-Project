@@ -171,6 +171,12 @@ with sess.as_default():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         total_loss = slim.losses.get_total_loss()
+
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        if update_ops:
+            updates = tf.group(*update_ops)
+            total_loss = tf.control_flow_ops.with_dependencies([updates], total_loss)
+
         tf.scalar_summary('losses/total loss', total_loss)
 
         with tf.name_scope('accuracy'):

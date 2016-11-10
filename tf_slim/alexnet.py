@@ -24,11 +24,25 @@ slim = tf.contrib.slim
 def alexnet_v2(inputs,
                num_classes=1000,
                dropout_keep_prob=0.5,
-               scope='alexnet_v2'):
+               use_batch_norm=False):
+    batch_norm_params = {
+        # Decay for the moving averages.
+        'decay': 0.9997,
+        # epsilon to prevent 0s in variance.
+        'epsilon': 0.001,
+    }
+    if use_batch_norm:
+        normalizer_fn = slim.batch_norm
+        normalizer_params = batch_norm_params
+    else:
+        normalizer_fn = None
+        normalizer_params = {}
     with tf.variable_scope('alexnet_v2') as sc:
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             activation_fn=tf.nn.relu,
-                            weights_regularizer=slim.l2_regularizer(0.0005)):
+                            weights_regularizer=slim.l2_regularizer(0.0005),
+                            normalizer_fn=normalizer_fn,
+                            normalizer_params=normalizer_params):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
                 net = slim.conv2d(inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
                 net = slim.max_pool2d(net, [5, 5], 2, scope='pool1')

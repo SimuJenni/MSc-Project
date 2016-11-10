@@ -173,6 +173,13 @@ with sess.as_default():
         total_loss = slim.losses.get_total_loss()
         tf.scalar_summary('losses/total loss', total_loss)
 
+        with tf.name_scope('accuracy'):
+            with tf.name_scope('correct_prediction'):
+                correct_prediction = tf.equal(tf.argmax(predictions, 1), tf.argmax(labels, 1))
+            with tf.name_scope('accuracy'):
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            tf.scalar_summary('accuracy', accuracy)
+
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 

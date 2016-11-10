@@ -181,7 +181,8 @@ with sess.as_default():
             tf.scalar_summary('accuracy', accuracy)
 
         with tf.name_scope('label'):
-            tf.scalar_summary('label', tf.argmax(predictions, 1))
+            tf.histogram_summary('prediction', tf.argmax(predictions, 1))
+            tf.histogram_summary('logits', predictions)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer()

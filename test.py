@@ -44,13 +44,13 @@ from ToonNet import ToonGen, ToonDisc
 
 
 input_gen = Input(batch_shape=(64, 64, 64, 3))
-decoded, _ = ToonGen(input_gen, (64, 64, 3), num_layers=4, batch_size=64)
-p_out, d_out = ToonDisc(input_gen, num_layers=4)
+decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
 generator = Model(input_gen, decoded)
-discriminator = Model(input_gen, [p_out, d_out])
+#p_out, d_out = ToonDisc(input_gen, num_layers=4)
+#discriminator = Model(input_gen, [p_out, d_out])
 
 # Compile
 generator.compile(loss='mse', optimizer='adam')
 generator.summary()
-discriminator.compile(loss='mse', optimizer='adam')
-discriminator.summary()
+#discriminator.compile(loss='mse', optimizer='adam')
+#discriminator.summary()

@@ -15,15 +15,16 @@ F_DIMS = [64, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
-def ToonGen(x, in_shape, out_activation='tanh', activation='relu', num_layers=5, batch_size=128, ):
+def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
     f_dims = F_DIMS[:num_layers]
-    l_dims = compute_layer_shapes(in_shape, num_layers=num_layers)
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+    l_dims = [K.int_shape(x)[1]]
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+            l_dims += [K.int_shape(x)[1]]
 
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
     encoded = x
@@ -41,6 +42,7 @@ def ToonGen(x, in_shape, out_activation='tanh', activation='relu', num_layers=5,
     x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
+    print(l_dims)
     return decoded, encoded
 
 
@@ -71,7 +73,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGen(input_gen, in_shape=input_shape, num_layers=num_layers, batch_size=batch_size)
+    gen_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
     if train_disc:
@@ -115,7 +117,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
     # Build the model
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    decoded, _ = ToonGen(input_gen, in_shape=input_shape, num_layers=num_layers, batch_size=batch_size)
+    decoded, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers)
 
@@ -1040,7 +1042,6 @@ def compute_layer_shapes(input_shape, num_layers):
     dim = input_shape[0]
 
     layer_dims[0] = dim
-    layer_dims[1] = dim - 3
     for i in range(2, num_layers + 1):
         dim = (dim - 3) // 2 + 1
         layer_dims[i] = dim

@@ -29,28 +29,28 @@ from ToonNet import ToonGen, ToonDisc
 #
 # print(h.history['%s_loss' % gan.output_names[0]])
 
-data = CIFAR10_Toon()
-datagen = ImageDataGenerator(rotation_range=10,
-        width_shift_range=0.05,
-        height_shift_range=0.05,
-        shear_range=0.05,
-        zoom_range=[0.9, 1.0],
-        horizontal_flip=True,
-        fill_mode='nearest')
-
-test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
-montage(test_X[:, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
-montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
-
-
-# input_gen = Input(batch_shape=(128, 128, 128, 3))
-# decoded, _ = ToonGen(input_gen, (128, 128, 3), num_layers=4)
-# p_out, d_out = ToonDisc(input_gen, num_layers=4)
-# generator = Model(input_gen, decoded)
-# discriminator = Model(input_gen, [p_out, d_out])
+# data = CIFAR10_Toon()
+# datagen = ImageDataGenerator(rotation_range=10,
+#         width_shift_range=0.05,
+#         height_shift_range=0.05,
+#         shear_range=0.05,
+#         zoom_range=[0.9, 1.0],
+#         horizontal_flip=True,
+#         fill_mode='nearest')
 #
-# # Compile
-# generator.compile(loss='mse', optimizer='adam')
-# generator.summary()
-# discriminator.compile(loss='mse', optimizer='adam')
-# discriminator.summary()
+# test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
+# montage(test_X[:, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
+# montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
+
+
+input_gen = Input(batch_shape=(64, 64, 64, 3))
+decoded, _ = ToonGen(input_gen, (64, 64, 3), num_layers=4, batch_size=64)
+p_out, d_out = ToonDisc(input_gen, num_layers=4)
+generator = Model(input_gen, decoded)
+discriminator = Model(input_gen, [p_out, d_out])
+
+# Compile
+generator.compile(loss='mse', optimizer='adam')
+generator.summary()
+discriminator.compile(loss='mse', optimizer='adam')
+discriminator.summary()

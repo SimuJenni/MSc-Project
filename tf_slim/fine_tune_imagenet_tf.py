@@ -87,7 +87,7 @@ NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
 IM_SHAPE = [128, 128, 3]
 
-MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
+MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
 LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
 

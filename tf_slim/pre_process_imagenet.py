@@ -349,7 +349,7 @@ def _process_image(filename, coder, max_im_dim=256):
   height = image.shape[0]
   width = image.shape[1]
   assert image.shape[2] == 3
-  image_sketch = auto_canny(image_data, sigma=0.1)
+  image_sketch = auto_canny(image, sigma=0.1)
 
   return image, height, width, image_sketch
 

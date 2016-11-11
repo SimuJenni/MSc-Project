@@ -70,7 +70,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    gen_out, _ = ToonGen(input_gen, in_shape=input_shape, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
     if train_disc:

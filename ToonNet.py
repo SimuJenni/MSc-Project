@@ -19,6 +19,7 @@ def ToonGen(x, in_shape, out_activation='tanh', activation='relu', num_layers=5,
     f_dims = F_DIMS[:num_layers]
     l_dims = compute_layer_shapes(in_shape, num_layers=num_layers)
     x = add_noise_planes(x, 1)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
@@ -78,7 +79,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     # Build Discriminator
     input_disc = Input(shape=input_shape[:2] + (6,))
-    p_out, d_out = ToonDiscriminator(input_disc, num_layers=num_layers, activation='lrelu')
+    p_out, d_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
     discriminator = Model(input_disc, output=[p_out, d_out])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     if not train_disc:
@@ -94,8 +95,8 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     y_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(x_input)
 
-    dp_g_x, d_g_x, _ = discriminator(merge([g_x, x_input], mode='concat'))
-    dp_y, d_y, _ = discriminator(merge([y_input, x_input], mode='concat'))
+    dp_g_x, d_g_x = discriminator(merge([g_x, x_input], mode='concat'))
+    dp_y, d_y = discriminator(merge([y_input, x_input], mode='concat'))
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 

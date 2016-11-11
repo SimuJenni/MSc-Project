@@ -95,6 +95,7 @@ import threading
 
 import numpy as np
 import tensorflow as tf
+from cartooning import auto_canny
 
 tf.app.flags.DEFINE_string('train_directory', '/tmp/',
                            'Training data directory')
@@ -392,7 +393,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
       bbox = bboxes[i]
 
       image_buffer, height, width = _process_image(filename, coder)
-      image_sketch = sketch_algorithm(image_buffer)
+      image_sketch = auto_canny(image_buffer, sigma=0.1)
 
 
       example = _convert_to_example(filename, image_buffer, image_sketch, label,

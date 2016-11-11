@@ -331,11 +331,18 @@ def _process_image(filename, coder, max_im_dim=256):
     image_data = coder.cmyk_to_rgb(image_data)
 
   # Decode the RGB JPEG.
-  image = coder.decode_jpeg(image_data)
+  img = coder.decode_jpeg(image_data)
 
   # Resize the image
-  image_resized = tf.image.resize_image_with_crop_or_pad(image, target_height=max_im_dim, target_width=max_im_dim)
-  image = tf.Session().run(image_data)
+  h = np.size(img, 0)
+  w = np.size(img, 1)
+
+  if w > h:
+      pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
+      image = cv2.resize(pic, (max_im_dim, np.round(max_im_dim*w/h)), interpolation=cv2.INTER_CUBIC)
+  else:
+      pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
+      image = cv2.resize(pic, (np.round(max_im_dim * h / w), max_im_dim), interpolation=cv2.INTER_CUBIC)
 
   # Check that image converted to RGB
   assert len(image.shape) == 3

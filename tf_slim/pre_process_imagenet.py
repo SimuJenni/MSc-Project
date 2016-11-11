@@ -341,8 +341,9 @@ def _process_image(filename, coder, max_im_dim=256):
   height = image.shape[0]
   width = image.shape[1]
   assert image.shape[2] == 3
+  image_sketch = auto_canny(image, sigma=0.1)
 
-  return image_data, height, width
+  return image_data, height, width, image_sketch
 
 
 def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
@@ -393,9 +394,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
       human = humans[i]
       bbox = bboxes[i]
 
-      image_buffer, height, width = _process_image(filename, coder)
-      image_sketch = auto_canny(image_buffer, sigma=0.1)
-
+      image_buffer, height, width, image_sketch = _process_image(filename, coder)
 
       example = _convert_to_example(filename, image_buffer, image_sketch, label,
                                     synset, human, bbox,

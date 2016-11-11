@@ -26,8 +26,7 @@ def alexnet_v2(inputs,
                num_classes=1000,
                is_training=True,
                dropout_keep_prob=0.5,
-               use_batch_norm=False,
-               scope='alexnet_v2'):
+               use_batch_norm=False):
     """AlexNet version 2.
     Described in: http://arxiv.org/pdf/1404.5997v2.pdf
     Parameters from:
@@ -62,7 +61,7 @@ def alexnet_v2(inputs,
     else:
         normalizer_fn = None
         normalizer_params = {}
-    with tf.variable_scope(scope, 'alexnet_v2') as sc:
+    with tf.variable_scope('alexnet_v2') as sc:
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             activation_fn=tf.nn.relu,
                             biases_initializer=tf.constant_initializer(0.1),

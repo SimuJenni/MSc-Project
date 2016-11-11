@@ -6,7 +6,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
-from alexnet import alexnet_v2
+from alexnet import alexnet, alexnet_v2
 from datasets import imagenet
 from model_edge_advplus_128 import DCGAN
 from ops import *
@@ -79,17 +79,18 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = True
+fine_tune = False
 use_bn = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 64
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
-IM_SHAPE = [128, 128, 3]
+#IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
-LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
+#LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
+#LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -140,6 +141,7 @@ else:
                     net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
         else:
+            #net = alexnet(inputs, use_batch_norm=use_batch_norm)
             net = alexnet_v2(inputs, use_batch_norm=use_batch_norm)
             return net
 
@@ -213,7 +215,7 @@ with sess.as_default():
             tf.histogram_summary('logits', predictions)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-6)
 
         # Create training operation
         if fine_tune:

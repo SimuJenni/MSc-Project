@@ -95,7 +95,7 @@ import threading
 
 import numpy as np
 import tensorflow as tf
-from cartooning import auto_canny
+import cv2
 
 tf.app.flags.DEFINE_string('train_directory', '/tmp/',
                            'Training data directory')
@@ -707,6 +707,22 @@ def main(unused_argv):
   _process_dataset('train', FLAGS.train_directory, FLAGS.train_shards,
                    synset_to_human, image_to_bboxes)
 
+
+def auto_canny(image, sigma=0.33):
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    image = cv2.medianBlur(image, 3)
+
+    # compute the median of the single channel pixel intensities
+    v = np.median(image)
+    print(np.max(v))
+
+    # apply automatic Canny edge detection using the computed median
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    edged = cv2.Canny(image, lower, upper)
+
+    # return the edged image
+    return edged
 
 if __name__ == '__main__':
   tf.app.run()

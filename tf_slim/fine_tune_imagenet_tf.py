@@ -210,7 +210,7 @@ with sess.as_default():
             tf.histogram_summary('logits', predictions)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, epsilon=1e-7)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, epsilon=1e-6)
 
         # Create training operation
         if fine_tune:

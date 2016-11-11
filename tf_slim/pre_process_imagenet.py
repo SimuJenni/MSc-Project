@@ -82,11 +82,11 @@ for each example.
 
 Running this script using 16 threads may take around ~2.5 hours on a HP Z420.
 """
-import cv2
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import cv2
 
 from datetime import datetime
 import os

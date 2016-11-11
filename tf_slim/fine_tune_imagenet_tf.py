@@ -79,17 +79,17 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = False
+fine_tune = True
 use_bn = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 64
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
-#IM_SHAPE = [128, 128, 3]
+IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
-#LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_bn/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_bn/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -210,7 +210,7 @@ with sess.as_default():
             tf.histogram_summary('logits', predictions)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer()
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, epsilon=1e-7)
 
         # Create training operation
         if fine_tune:

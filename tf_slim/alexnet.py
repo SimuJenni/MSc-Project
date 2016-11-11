@@ -82,6 +82,7 @@ def alexnet_v2(inputs,
             with slim.arg_scope([slim.fully_connected],
                                 weights_initializer=trunc_normal(0.005),
                                 biases_initializer=tf.constant_initializer(0.1)):
+                net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc6')
                 net = slim.dropout(net, dropout_keep_prob, is_training=is_training,
                                    scope='dropout6')

@@ -62,14 +62,14 @@ def alexnet_v2(inputs,
     else:
         normalizer_fn = None
         normalizer_params = {}
-    with slim.arg_scope([slim.conv2d, slim.fully_connected],
-                        activation_fn=tf.nn.relu,
-                        biases_initializer=tf.constant_initializer(0.1),
-                        weights_regularizer=slim.l2_regularizer(0.0005),
-                        normalizer_fn=normalizer_fn,
-                        normalizer_params=normalizer_params
-                        ):
-        with tf.variable_scope(scope, 'alexnet_v2') as sc:
+    with tf.variable_scope(scope, 'alexnet_v2') as sc:
+        with slim.arg_scope([slim.conv2d, slim.fully_connected],
+                            activation_fn=tf.nn.relu,
+                            biases_initializer=tf.constant_initializer(0.1),
+                            weights_regularizer=slim.l2_regularizer(0.0005),
+                            normalizer_fn=normalizer_fn,
+                            normalizer_params=normalizer_params
+                            ):
             net = slim.conv2d(inputs, 64, [11, 11], 4, padding='VALID', scope='conv1')
             net = slim.max_pool2d(net, [3, 3], 2, scope='pool1', padding='VALID')
             net = slim.conv2d(net, 192, [5, 5], scope='conv2', padding='SAME')

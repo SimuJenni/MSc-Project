@@ -77,7 +77,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         make_trainable(generator, False)
 
     # Build Discriminator
-    input_disc = Input(shape=input_shape)
+    input_disc = Input(shape=input_shape[:2] + (6,))
     p_out, d_out = ToonDiscriminator(input_disc, num_layers=num_layers, activation='lrelu')
     discriminator = Model(input_disc, output=[p_out, d_out])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)

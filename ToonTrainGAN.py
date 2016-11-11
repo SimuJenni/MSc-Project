@@ -3,7 +3,6 @@ import os
 import sys
 import time
 
-import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
@@ -13,7 +12,7 @@ from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
     rotation_range=10,
     width_shift_range=0.05,

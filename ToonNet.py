@@ -21,7 +21,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
 
-    for l in range(0, num_layers):
+    for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
             l_dims += [K.int_shape(x)[1]]
@@ -32,7 +32,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
-    for l in range(0, num_layers):
+    for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
             x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
             x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
@@ -50,7 +50,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
 
-    for l in range(0, num_layers):
+    for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 

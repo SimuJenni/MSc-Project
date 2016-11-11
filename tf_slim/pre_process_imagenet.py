@@ -82,6 +82,8 @@ for each example.
 
 Running this script using 16 threads may take around ~2.5 hours on a HP Z420.
 """
+import cv2
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -95,7 +97,6 @@ import threading
 
 import numpy as np
 import tensorflow as tf
-import cv2
 
 tf.app.flags.DEFINE_string('train_directory', '/tmp/',
                            'Training data directory')

@@ -722,7 +722,6 @@ def auto_canny(image, sigma=0.33):
 
     # compute the median of the single channel pixel intensities
     v = np.median(image)
-    print(np.max(v))
 
     # apply automatic Canny edge detection using the computed median
     lower = int(max(0, (1.0 - sigma) * v))

@@ -330,8 +330,12 @@ def _process_image(filename, coder, max_im_dim=256):
     print('Converting CMYK to RGB for %s' % filename)
     image_data = coder.cmyk_to_rgb(image_data)
 
+  # Decode the RGB JPEG.
+  image = coder.decode_jpeg(image_data)
+
   # Resize the image
-  image = tf.image.resize_image_with_crop_or_pad(image_data, target_height=max_im_dim, target_width=max_im_dim)
+  image_resized = tf.image.resize_image_with_crop_or_pad(image, target_height=max_im_dim, target_width=max_im_dim)
+  image = tf.Session().run(image_data)
 
   # Check that image converted to RGB
   assert len(image.shape) == 3
@@ -340,7 +344,7 @@ def _process_image(filename, coder, max_im_dim=256):
   assert image.shape[2] == 3
   image_sketch = auto_canny(image_data, sigma=0.1)
 
-  return image_data, height, width, image_sketch
+  return image, height, width, image_sketch
 
 
 def _process_image_files_batch(coder, thread_index, ranges, name, filenames,

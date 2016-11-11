@@ -69,36 +69,33 @@ def alexnet_v2(inputs,
                         normalizer_fn=normalizer_fn,
                         normalizer_params=normalizer_params
                         ):
-        with slim.arg_scope([slim.conv2d], padding='SAME'):
-            with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
-                with tf.variable_scope(scope, 'alexnet_v2') as sc:
-                    net = slim.conv2d(inputs, 64, [11, 11], 4, padding='VALID',
-                                      scope='conv1')
-                    net = slim.max_pool2d(net, [3, 3], 2, scope='pool1')
-                    net = slim.conv2d(net, 192, [5, 5], scope='conv2')
-                    net = slim.max_pool2d(net, [3, 3], 2, scope='pool2')
-                    net = slim.conv2d(net, 384, [3, 3], scope='conv3')
-                    net = slim.conv2d(net, 384, [3, 3], scope='conv4')
-                    net = slim.conv2d(net, 256, [3, 3], scope='conv5')
-                    net = slim.max_pool2d(net, [3, 3], 2, scope='pool5')
+        with tf.variable_scope(scope, 'alexnet_v2') as sc:
+            net = slim.conv2d(inputs, 64, [11, 11], 4, padding='VALID', scope='conv1')
+            net = slim.max_pool2d(net, [3, 3], 2, scope='pool1', padding='VALID')
+            net = slim.conv2d(net, 192, [5, 5], scope='conv2', padding='SAME')
+            net = slim.max_pool2d(net, [3, 3], 2, scope='pool2', padding='VALID')
+            net = slim.conv2d(net, 384, [3, 3], scope='conv3', padding='SAME')
+            net = slim.conv2d(net, 384, [3, 3], scope='conv4', padding='SAME')
+            net = slim.conv2d(net, 256, [3, 3], scope='conv5', padding='SAME')
+            net = slim.max_pool2d(net, [3, 3], 2, scope='pool5', padding='VALID')
 
-                    # Use conv2d instead of fully_connected layers.
-                    with slim.arg_scope([slim.fully_connected],
-                                        weights_initializer=trunc_normal(0.005),
-                                        biases_initializer=tf.constant_initializer(0.1)):
-                        net = slim.fully_connected(net, 4096, scope='fc6')
-                        net = slim.dropout(net, dropout_keep_prob, is_training=is_training,
-                                           scope='dropout6')
-                        net = slim.fully_connected(net, 4096, scope='fc7')
-                        net = slim.dropout(net, dropout_keep_prob, is_training=is_training,
-                                           scope='dropout7')
-                        net = slim.fully_connected(net, num_classes,
-                                                   activation_fn=None,
-                                                   normalizer_fn=None,
-                                                   biases_initializer=tf.zeros_initializer,
-                                                   scope='fc8')
+            # Use conv2d instead of fully_connected layers.
+            with slim.arg_scope([slim.fully_connected],
+                                weights_initializer=trunc_normal(0.005),
+                                biases_initializer=tf.constant_initializer(0.1)):
+                net = slim.fully_connected(net, 4096, scope='fc6')
+                net = slim.dropout(net, dropout_keep_prob, is_training=is_training,
+                                   scope='dropout6')
+                net = slim.fully_connected(net, 4096, scope='fc7')
+                net = slim.dropout(net, dropout_keep_prob, is_training=is_training,
+                                   scope='dropout7')
+                net = slim.fully_connected(net, num_classes,
+                                           activation_fn=None,
+                                           normalizer_fn=None,
+                                           biases_initializer=tf.zeros_initializer,
+                                           scope='fc8')
 
-                    return net
+            return net
 
 
 def alexnet(inputs,

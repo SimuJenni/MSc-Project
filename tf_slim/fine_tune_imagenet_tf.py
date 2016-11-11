@@ -8,7 +8,7 @@ from tensorflow.python.training import saver as tf_saver
 
 from alexnet import alexnet_v2
 from datasets import imagenet
-from model_edge_2dis_128_1 import DCGAN
+from model_edge_advplus_128 import DCGAN
 from ops import *
 from preprocess import preprocess_image
 
@@ -89,7 +89,7 @@ IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
-LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_bn/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -111,7 +111,8 @@ else:
         if fine_tune:
             model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
             with tf.variable_scope('generator') as scope:
-                net = model.generator(inputs)
+                # net = model.generator(inputs)
+                net = model.discriminator(inputs)
 
             batch_norm_params = {
                 # Decay for the moving averages.
@@ -166,6 +167,8 @@ with sess.as_default():
 
         # TODO: Adjust preprocessing of images
         image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        if fine_tune:
+            image = tf.cast(image, tf.float32) * (2. / 255) - 1
 
         images, labels = tf.train.batch(
             [image, label],

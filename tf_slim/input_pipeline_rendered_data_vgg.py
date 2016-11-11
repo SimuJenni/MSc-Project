@@ -42,7 +42,7 @@ def get_sketch_files(folder, size_suffix='64x64'):
   return get_files_cached(folder, 'sketch', '.*r_\d{3}_sketch_' + size_suffix + '.png$')
 
 
-def preprocess(image_tensor, img_size,resize_size, whiten='default', color=False,
+def preprocess(image_tensor, img_size, resize_size, whiten='default', color=False,
                augment=True, augment_color=False, augment_translation=False):
   # Use same seed for flipping for every tensor, so they'll be flipped the same.
   seed = 42

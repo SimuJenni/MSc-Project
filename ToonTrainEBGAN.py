@@ -13,7 +13,7 @@ from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(
     rotation_range=10,
     width_shift_range=0.05,
@@ -129,7 +129,7 @@ for epoch in range(nb_epoch):
         # print('Loss: {} L_1: {} L_2: {} L_3: {} L_4: {}'.format(t_loss, l1, l2, l3, l4))
 
         # Generate montage of test-images
-        if not chunk % 50:
+        if not chunk % 25:
             generator.set_weights(g_gen.get_weights())
             decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,

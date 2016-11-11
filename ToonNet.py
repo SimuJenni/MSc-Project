@@ -4,20 +4,132 @@ import keras.backend as K
 import numpy as np
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, GlobalAveragePooling2D, \
-    Lambda, Flatten, Dropout, GaussianNoise
+    Lambda, Flatten, Dropout, GaussianNoise, Deconvolution2D
 from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Model, Sequential
+from keras.models import Model
 from keras.optimizers import Adam
 
 from constants import MODEL_DIR
 
-F_DIMS = [64, 96, 160, 256, 512]
-BF_DIMS = [64, 128, 256, 512, 1024, 2048]
+F_DIMS = [64, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
+def ToonGen(x, in_shape, out_activation='tanh', activation='relu', num_layers=5, batch_size=128, ):
+    f_dims = F_DIMS[:num_layers]
+    l_dims = compute_layer_shapes(in_shape, num_layers=num_layers)
+    x = add_noise_planes(x, 1)
+
+    for l in range(0, num_layers):
+        with tf.name_scope('conv_{}'.format(l + 1)):
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
+    encoded = x
+
+    x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
+
+    for l in range(0, num_layers):
+        with tf.name_scope('conv_transp_{}'.format(l + 1)):
+            x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
+            x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
+                               batch_size=batch_size, activation=activation)
+
+    x = add_noise_planes(x, NOISE_CHANNELS[0])
+    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    decoded = Activation(out_activation)(x)
+
+    return decoded, encoded
+
+
+def ToonDisc(x, activation='lrelu', num_layers=5):
+
+    f_dims = F_DIMS[:num_layers]
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
+
+    for l in range(0, num_layers):
+        with tf.name_scope('conv_{}'.format(l + 1)):
+            x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    encoded = x
+
+    p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
+    x = Flatten()(x)
+    x = Dense(2048, init='he_normal')(x)
+    x = Dropout(0.25)(x)
+    x = my_activation(x, type='relu')
+    x = BatchNormalization(axis=1)(x)
+    d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
+
+    return p_out, d_out, encoded
+
+
+def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
+
+    # Build Generator
+    input_gen = Input(batch_shape=(batch_size,) + input_shape)
+    gen_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    generator = Model(input_gen, gen_out)
+    generator.name = make_name('ToonGen', num_layers=num_layers)
+    if train_disc:
+        make_trainable(generator, False)
+
+    # Build Discriminator
+    input_disc = Input(shape=input_shape)
+    p_out, d_out = ToonDiscriminator(input_disc, num_layers=num_layers, activation='lrelu')
+    discriminator = Model(input_disc, output=[p_out, d_out])
+    discriminator.name = make_name('ToonDisc', num_layers=num_layers)
+    if not train_disc:
+        make_trainable(discriminator, False)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Build GAN
+    x_input = Input(batch_shape=(batch_size,) + input_shape)
+    y_input = Input(batch_shape=(batch_size,) + input_shape)
+    g_x = generator(x_input)
+
+    dp_g_x, d_g_x = discriminator(merge([g_x, x_input], mode='concat'))
+    dp_y, d_y = discriminator(merge([y_input, x_input], mode='concat'))
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+
+    if train_disc:
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, dp_y, d_g_x, d_y])
+        gan.compile(loss=[ld_0, ld_1, ld_0, ld_1], loss_weights=[1.0, 1.0, 1.0, 1.0], optimizer=optimizer)
+        gan.name = make_name('ToonGAN_d', num_layers=num_layers)
+    else:
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x])
+        gan.compile(loss=[ld_1, ld_1], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.name = make_name('ToonGAN_g', num_layers=num_layers)
+
+    return gan, generator, discriminator
+
+
+def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
+    # Build the model
+    input_gen = Input(batch_shape=(batch_size,) + input_shape)
+    decoded, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    generator = Model(input_gen, decoded)
+    generator.name = make_name('ToonGenerator', num_layers=num_layers)
+
+    # Load weights
+    if load_weights:
+        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
+
+    # Compile
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    generator.compile(loss='mse', optimizer=optimizer)
+    return generator
+
+
 def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu', num_layers=5):
-    f_dims = BF_DIMS[:num_layers]
+    f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
@@ -50,7 +162,7 @@ def ToonDiscriminator(x, num_res_layers=0, activation='lrelu', num_layers=5, noi
     if noise:
         x = GaussianNoise(sigma=K.get_value(noise))(x)
 
-    f_dims = BF_DIMS[:num_layers]
+    f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
@@ -109,7 +221,7 @@ def ToonGenerator_old(in_layer, out_activation='tanh', num_res_layers=8, big_f=T
         (net, encoded): The resulting Keras model (net) and the encoding layer
     """
     if big_f:
-        f_dims = BF_DIMS
+        f_dims = F_DIMS
     else:
         f_dims = F_DIMS
 
@@ -217,7 +329,7 @@ def ToonDiscriminator_old(in_layer, num_res_layers=8, big_f=False, p_wise_out=Fa
     """
 
     if big_f:
-        f_dims = BF_DIMS
+        f_dims = F_DIMS
     else:
         f_dims = F_DIMS
 
@@ -439,8 +551,8 @@ def l2_loss(y_true, y_pred):
     return K.mean(K.square(y_pred), axis=-1)
 
 
-def l2_mb(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.mean(K.maximum(2.0-K.square(y_pred), 0), axis=-1)
+def l2_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
+    return -K.maximum(K.mean(20.0-K.square(y_pred), axis=-1), 0)
 
 
 def l2_ms(y_true, y_pred):
@@ -570,17 +682,14 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
     d_y = discriminator(y_input)
     l1 = sub(d_g_x, g_x)
     l2 = sub(d_y, y_input)
-    # l3 = sub(g_x, y_input)
-    l3 = sub(d_g_x, d_y)
     if train_disc:
-        gan = Model(input=[x_input, y_input], output=[l1, l2, l3])
-        gan.compile(loss=[l2_ms, l2_loss, l2_ms], loss_weights=[-1.0, d_weight, -r_weight/2.0], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[l1, l2])
+        gan.compile(loss=[l2_margin, l2_loss, l2_ms], loss_weights=[-1.0, d_weight], optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
-        l4 = sub(g_x, y_input)
-        gan = Model(input=[x_input, y_input], output=[l1, l3, l4])
-        gan.compile(loss=[l2_loss, l2_loss, l2_loss], loss_weights=[1.0, r_weight, r_weight], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[l1])
+        gan.compile(loss=[l2_loss], loss_weights=[1.0], optimizer=optimizer)
         gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 
@@ -916,6 +1025,47 @@ def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
         l.trainable = val
+
+
+def compute_layer_shapes(input_shape, num_layers):
+    """Helper function computing the shapes of the output layers resulting from strided convolutions.
+    Args:
+        input_shape: Shape of the input (expecting square input images)
+        num_conv: Number of strided convolution layers (not counting res-layers)
+    Returns:
+        List of resulting layer-dimensions
+    """
+    layer_dims = [None] * (num_layers + 1)
+    dim = input_shape[0]
+
+    layer_dims[0] = dim
+    layer_dims[1] = dim - 3
+    for i in range(2, num_layers + 1):
+        dim = (dim - 3) // 2 + 1
+        layer_dims[i] = dim
+    return layer_dims
+
+
+def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, border='valid', activation='relu'):
+    """Wrapper for upconvolution layer including batchnormalization.
+    Args:
+        layer_in: Input to this layers
+        f_size: Size of the filers
+        f_channels: Number of output channels
+        out_dim: Dimension/shape of the output
+        batch_size:
+        stride: Used stride for the convolution
+        border: 'valid' or 'same'
+    Returns:
+        Result of upconvolution and batchnormalization
+    """
+    x = Deconvolution2D(f_channels, f_size, f_size,
+                        output_shape=(batch_size, out_dim, out_dim, f_channels),
+                        border_mode=border,
+                        subsample=(stride, stride),
+                        init='he_normal')(layer_in)
+    x = my_activation(x, type=activation)
+    return BatchNormalization(axis=3)(x)
 
 
 def disc_data(X, Y, Yd, p_wise=False, with_x=False):

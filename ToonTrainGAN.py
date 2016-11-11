@@ -7,7 +7,7 @@ import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import EBGAN3, Generator
+from ToonNet import ToonGAN, Gen
 from constants import MODEL_DIR, IMG_DIR
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
@@ -25,36 +25,25 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 3
-num_res = 0
-batch_size = 100
-chunk_size = 5 * batch_size
+num_layers = 4
+batch_size = 128
+chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 30
-r_weight = 10.0
-d_weight = 1.0
+nb_epoch = 20
 load_weights = False
-noise = K.variable(value=0.1, name='sigma')
-noise = None
-noise_lower_factor = 0.75
 
 # Load the models
-generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
-dGAN, d_gen, d_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=True,
-                            num_layers_d=num_layers,
-                            num_layers_g=num_layers,
-                            r_weight=r_weight,
-                            d_weight=d_weight,
-                            num_res=num_res,
-                            noise=noise)
-gGAN, g_gen, g_disc = EBGAN3(data.dims, batch_size=batch_size, load_weights=load_weights, train_disc=False,
-                            num_layers_d=num_layers,
-                            num_layers_g=num_layers,
-                            r_weight=r_weight,
-                            d_weight=d_weight,
-                            num_res=num_res,
-                            noise=noise)
-gGAN.summary()
+generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
+dGAN, d_gen, d_disc = ToonGAN(data.dims,
+                              batch_size=batch_size,
+                              num_layers=num_layers,
+                              load_weights=load_weights,
+                              train_disc=True)
+gGAN, g_gen, g_disc = ToonGAN(data.dims,
+                              batch_size=batch_size,
+                              num_layers=num_layers,
+                              load_weights=load_weights,
+                              train_disc=False)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name))
@@ -140,11 +129,6 @@ for epoch in range(nb_epoch):
             del X_train, Y_train, target, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
-
-    if noise:
-        new_sigma = K.get_value(noise) * noise_lower_factor
-        print('Lowering noise-level to {}'.format(new_sigma))
-        K.set_value(noise, new_sigma)
 
     # Save the weights
     g_disc.save_weights(disc_weights)

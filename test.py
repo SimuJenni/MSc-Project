@@ -1,9 +1,12 @@
 import numpy as np
 import os
+from keras.layers import Input
+from keras.models import Model
 
 from ToonDataGenerator import ImageDataGenerator
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage
+from ToonNet import ToonGen, ToonDisc
 
 # data = CIFAR10()
 # class_dirs = os.listdir(data.val_dir)
@@ -38,3 +41,16 @@ datagen = ImageDataGenerator(rotation_range=10,
 test_X, test_Y = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
 montage(test_X[:, :, :] * 0.5 + 0.5, 'Test-X.jpeg')
 montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
+
+
+# input_gen = Input(batch_shape=(128, 128, 128, 3))
+# decoded, _ = ToonGen(input_gen, (128, 128, 3), num_layers=4)
+# p_out, d_out = ToonDisc(input_gen, num_layers=4)
+# generator = Model(input_gen, decoded)
+# discriminator = Model(input_gen, [p_out, d_out])
+#
+# # Compile
+# generator.compile(loss='mse', optimizer='adam')
+# generator.summary()
+# discriminator.compile(loss='mse', optimizer='adam')
+# discriminator.summary()

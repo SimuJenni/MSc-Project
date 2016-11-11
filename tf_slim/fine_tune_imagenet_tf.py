@@ -79,16 +79,17 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = False
+fine_tune = True
+use_bn = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
-#IM_SHAPE = [128, 128, 3]
+IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_twodis_128/050/DCGAN.model-80100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
-#LOG_DIR = '/data/cvg/simon/data/logs/fine_tune/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_bn/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -106,15 +107,30 @@ if not tensorflow_model:
     g = K.get_session().graph
 else:
 
-    def Classifier(inputs, fine_tune=False):
+    def Classifier(inputs, fine_tune=False, use_batch_norm=False):
         if fine_tune:
             model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
             with tf.variable_scope('generator') as scope:
                 net = model.generator(inputs)
+
+            batch_norm_params = {
+                # Decay for the moving averages.
+                'decay': 0.9997,
+                # epsilon to prevent 0s in variance.
+                'epsilon': 0.001,
+            }
+            if use_batch_norm:
+                normalizer_fn = slim.batch_norm
+                normalizer_params = batch_norm_params
+            else:
+                normalizer_fn = None
+                normalizer_params = {}
             with tf.variable_scope('fully_connected') as scope:
                 with slim.arg_scope([slim.fully_connected],
                                     activation_fn=tf.nn.relu,
-                                    weights_regularizer=slim.l2_regularizer(0.0005)):
+                                    weights_regularizer=slim.l2_regularizer(0.0005),
+                                    normalizer_fn=normalizer_fn,
+                                    normalizer_params=normalizer_params):
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1')
                     net = slim.dropout(net)
@@ -123,7 +139,7 @@ else:
                     net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
         else:
-            net = alexnet_v2(inputs, use_batch_norm=True)
+            net = alexnet_v2(inputs, use_batch_norm=use_batch_norm)
             return net
 
 
@@ -160,7 +176,7 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        predictions = Classifier(images, fine_tune)
+        predictions = Classifier(images, fine_tune, use_batch_norm=use_bn)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)

@@ -71,7 +71,7 @@ def alexnet_v2(inputs,
                         ):
         with slim.arg_scope([slim.conv2d], padding='SAME'):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
-                with tf.variable_scope(scope, 'alexnet_v2', [inputs]) as sc:
+                with tf.variable_scope(scope, 'alexnet_v2') as sc:
                     net = slim.conv2d(inputs, 64, [11, 11], 4, padding='VALID',
                                       scope='conv1')
                     net = slim.max_pool2d(net, [3, 3], 2, scope='pool1')

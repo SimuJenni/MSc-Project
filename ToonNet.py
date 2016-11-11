@@ -114,7 +114,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
     # Build the model
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    decoded, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    decoded, _ = ToonGen(input_gen, in_shape=input_shape, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers)
 

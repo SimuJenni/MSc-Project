@@ -165,8 +165,8 @@ with sess.as_default():
         image = preprocess_fine_tune(image, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         sketch = preprocess_sketch(sketch, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
-        images, labels = tf.train.batch(
-            [image, label],
+        images, sketches, labels = tf.train.batch(
+            [image, sketch, label],
             batch_size=BATCH_SIZE,
             num_threads=8,
             capacity=8 * BATCH_SIZE)
@@ -174,7 +174,7 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # TODO: Create your model
-        predictions = Classifier(images, fine_tune, use_batch_norm=use_bn)
+        predictions = Classifier(images, sketches=sketch, fine_tune=fine_tune, use_batch_norm=use_bn)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)

@@ -162,6 +162,7 @@ if __name__ == '__main__':
     img_edge = auto_canny(img_rgb, sigma=0.01)
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
     img_edge = img_edge.astype(dtype=np.uint8)
+    print(img_edge[0])
 
     print(img_edge.shape)
 

@@ -257,8 +257,8 @@ class DCGAN(object):
         if reuse:
             tf.get_variable_scope().reuse_variables()
 
-        # concated = tf.concat(3, [image, sketches])
-        self.d_h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'))
+        concated = tf.concat(3, [image, sketches])
+        self.d_h0 = lrelu(conv2d(concated, self.df_dim, name='d_h0_conv'))
         h1 = lrelu(self.d_bn1(conv2d(self.d_h0, self.df_dim*2, name='d_h1_conv')))
         h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv')))
         h3 = lrelu(self.d_bn3(conv2d(h2, self.df_dim*8, name='d_h3_conv')))

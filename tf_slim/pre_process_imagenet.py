@@ -251,7 +251,7 @@ class ImageCoder(object):
     self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
 
     # Initializes function that encodes RGB JPEG data.
-    self._encode_image_data = tf.placeholder(dtype=tf.float32)
+    self._encode_image_data = tf.placeholder(dtype=tf.uint8)
     self._encode_jpeg = tf.image.encode_jpeg(self._encode_image_data)
 
   def png_to_jpeg(self, image_data):

@@ -159,6 +159,9 @@ if __name__ == '__main__':
 
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
     img_edge = auto_canny(img_rgb, sigma=0.01)
+    img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
+
+    print(img_edge.shape)
 
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(8, 5), sharex=True, sharey=True,
                        subplot_kw={'adjustable': 'box-forced'})

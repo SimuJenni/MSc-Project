@@ -250,6 +250,10 @@ class ImageCoder(object):
     self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
     self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
 
+    # Initializes function that encodes RGB JPEG data.
+    self._encode_image_data = tf.placeholder(dtype=tf.float32)
+    self._encode_jpeg = tf.image.encode_jpeg(self._encode_image_data)
+
   def png_to_jpeg(self, image_data):
     return self._sess.run(self._png_to_jpeg,
                           feed_dict={self._png_data: image_data})
@@ -263,6 +267,11 @@ class ImageCoder(object):
                            feed_dict={self._decode_jpeg_data: image_data})
     assert len(image.shape) == 3
     assert image.shape[2] == 3
+    return image
+
+  def encode_jpeg(self, image_data):
+    image = self._sess.run(self._encode_jpeg,
+                           feed_dict={self._encode_image_data: image_data})
     return image
 
 
@@ -350,6 +359,10 @@ def _process_image(filename, coder, max_im_dim=256):
   width = image.shape[1]
   assert image.shape[2] == 3
   image_sketch = auto_canny(image, sigma=0.1)
+  image_sketch = cv2.cvtColor(image_sketch, cv2.COLOR_GRAY2RGB)
+
+  image_sketch = coder.encode_jpeg(image_sketch)
+  image = coder.encode_jpeg(image)
 
   return image, height, width, image_sketch
 

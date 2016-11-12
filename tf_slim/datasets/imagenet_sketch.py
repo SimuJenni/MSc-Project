@@ -168,8 +168,8 @@ def get_split(split_name, dataset_dir, reader=None):
     }
 
     items_to_handlers = {
-        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
-        'sketch': slim.tfexample_decoder.Image('image/sketch', 'image/format'),
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format_n'),
+        'sketch': slim.tfexample_decoder.Image('image/sketch', 'image/format_n'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
         # 'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
         # 'object/bbox': slim.tfexample_decoder.BoundingBox(

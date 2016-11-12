@@ -284,6 +284,38 @@ def preprocess_for_eval(image, output_height, output_width, resize_side):
   return _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
 
 
+def preprocess_sketch(sketch, output_height, output_width, resize_side):
+  """Preprocesses the given image for evaluation.
+  Args:
+    image: A `Tensor` representing an image of arbitrary size.
+    output_height: The height of the image after preprocessing.
+    output_width: The width of the image after preprocessing.
+    resize_side: The smallest side of the image for aspect-preserving resizing.
+  Returns:
+    A preprocessed image.
+  """
+  sketch = _aspect_preserving_resize(sketch, resize_side)
+  sketch = _central_crop([sketch], output_height, output_width)[0]
+  sketch.set_shape([output_height, output_width, 1])
+  return tf.to_float(sketch)
+
+
+def preprocess_fine_tune(img, output_height, output_width, resize_side):
+  """Preprocesses the given image for evaluation.
+  Args:
+    image: A `Tensor` representing an image of arbitrary size.
+    output_height: The height of the image after preprocessing.
+    output_width: The width of the image after preprocessing.
+    resize_side: The smallest side of the image for aspect-preserving resizing.
+  Returns:
+    A preprocessed image.
+  """
+  img = _aspect_preserving_resize(img, resize_side)
+  img = _central_crop([img], output_height, output_width)[0]
+  img.set_shape([output_height, output_width, 3])
+  return tf.to_float(img) * (2. / 255.) - 1.
+
+
 def preprocess_image(image, output_height, output_width, is_training=False,
                      resize_side_min=_RESIZE_SIDE_MIN,
                      resize_side_max=_RESIZE_SIDE_MAX):

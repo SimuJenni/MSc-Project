@@ -7,10 +7,10 @@ from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
 from alexnet import alexnet, alexnet_v2
-from datasets import imagenet
+from datasets import imagenet_sketch
 from model_edge_advplus_128 import DCGAN
 from ops import *
-from preprocess import preprocess_image
+from preprocess import preprocess_fine_tune, preprocess_sketch
 
 slim = tf.contrib.slim
 
@@ -79,18 +79,15 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-fine_tune = False
+fine_tune = True
 use_bn = True
-DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
+DATA_DIR = '/data/cvg/simon/data/imagenet_tf_sketch/'
 BATCH_SIZE = 64
 NUM_CLASSES = 1000
-IM_SHAPE = [224, 224, 3]
-#IM_SHAPE = [128, 128, 3]
+IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
-#LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
-#LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True
@@ -137,7 +134,9 @@ else:
                 net = slim.dropout(net)
                 net = slim.fully_connected(net, 4096, scope='fc2')
                 net = slim.dropout(net)
-                net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
+                net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None,
+                                           normalizer_fn=None,
+                                           biases_initializer=tf.zeros_initializer,)
         return net
 
 
@@ -151,7 +150,7 @@ with sess.as_default():
         # data_files = imagenet.get_datafiles('train', DATA_DIR)
         # images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
 
-        dataset = imagenet.get_split('train', DATA_DIR)
+        dataset = imagenet_sketch.get_split('train', DATA_DIR)
         # Creates a TF-Slim DataProvider which reads the dataset in the background
         # during both training and testing.
         provider = slim.dataset_data_provider.DatasetDataProvider(
@@ -160,12 +159,11 @@ with sess.as_default():
             common_queue_capacity=32 * BATCH_SIZE,
             common_queue_min=8 * BATCH_SIZE)
 
-        [image, label] = provider.get(['image', 'label'])
+        [image, sketch, label] = provider.get(['image', 'sketch', 'label'])
 
-        # TODO: Adjust preprocessing of images
-        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        if fine_tune:
-            image = tf.cast(image, tf.float32) * (2. / 255) - 1
+        # TODO: Using non random preprocessing!
+        image = preprocess_fine_tune(image, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        sketch = preprocess_sketch(sketch, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
         images, labels = tf.train.batch(
             [image, label],
@@ -210,7 +208,7 @@ with sess.as_default():
             tf.histogram_summary('logits', predictions)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005, epsilon=1e-6)
 
         # Create training operation
         if fine_tune:

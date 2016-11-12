@@ -107,7 +107,7 @@ else:
 
     def Classifier(inputs, sketches, fine_tune=False, use_batch_norm=False):
         model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
-        with tf.variable_scope('generator') as scope:
+        with tf.variable_scope('discriminator') as scope:
             # net = model.generator(inputs)
             net = model.discriminator(inputs, sketches=sketches)
 

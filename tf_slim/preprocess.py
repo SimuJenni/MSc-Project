@@ -284,7 +284,7 @@ def preprocess_for_eval(image, output_height, output_width, resize_side):
   return _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
 
 
-def preprocess_sketch(sketch, output_height, output_width, resize_side):
+def preprocess_sketch(sketch, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
   """Preprocesses the given image for evaluation.
   Args:
     image: A `Tensor` representing an image of arbitrary size.
@@ -300,7 +300,7 @@ def preprocess_sketch(sketch, output_height, output_width, resize_side):
   return tf.to_float(sketch)
 
 
-def preprocess_fine_tune(img, output_height, output_width, resize_side):
+def preprocess_fine_tune(img, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
   """Preprocesses the given image for evaluation.
   Args:
     image: A `Tensor` representing an image of arbitrary size.

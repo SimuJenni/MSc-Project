@@ -271,7 +271,7 @@ class ImageCoder(object):
 
   def encode_jpeg(self, image_data):
     image = self._sess.run(self._encode_jpeg,
-                           feed_dict={self._encode_image_data: image_data})
+                           feed_dict={self._encode_image_data: image_data.astype(dtype=np.uint8)})
     return image
 
 

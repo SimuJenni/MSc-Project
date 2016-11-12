@@ -79,51 +79,6 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         make_trainable(generator, False)
 
     # Build Discriminator
-    input_disc = Input(shape=input_shape[:2] + (6,))
-    p_out, d_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
-    discriminator = Model(input_disc, output=[p_out, d_out])
-    discriminator.name = make_name('ToonDisc', num_layers=num_layers)
-    if not train_disc:
-        make_trainable(discriminator, False)
-
-    # Load weights
-    if load_weights:
-        generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
-        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
-
-    # Build GAN
-    x_input = Input(batch_shape=(batch_size,) + input_shape)
-    y_input = Input(batch_shape=(batch_size,) + input_shape)
-    g_x = generator(x_input)
-    dp, d = discriminator(merge([g_x, y_input], mode='concat'))
-
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-
-    if train_disc:
-        gan = Model(input=[x_input, y_input], output=[dp, d])
-        gan.compile(loss=[ld_1, ld_1], loss_weights=[1.0, 1.0], optimizer=optimizer)
-        gan.name = make_name('ToonGAN_d', num_layers=num_layers)
-    else:
-        l1 = sub(g_x, y_input)
-        gan = Model(input=[x_input, y_input], output=[dp, d, l1])
-        gan.compile(loss=[ld_0, ld_0, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
-        gan.name = make_name('ToonGAN_g', num_layers=num_layers)
-
-    return gan, generator, discriminator
-
-
-
-def ToonGANv1(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
-
-    # Build Generator
-    input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGen', num_layers=num_layers)
-    if train_disc:
-        make_trainable(generator, False)
-
-    # Build Discriminator
     input_disc = Input(shape=input_shape)
     p_out, d_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
     discriminator = Model(input_disc, output=[p_out, d_out])
@@ -144,7 +99,7 @@ def ToonGANv1(input_shape, batch_size=128, num_layers=4, train_disc=True, load_w
     dp_g_x, d_g_x = discriminator(g_x)
     dp_y, d_y = discriminator(y_input)
 
-    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
         gan = Model(input=[x_input, y_input], output=[dp_g_x, dp_y, d_g_x, d_y])

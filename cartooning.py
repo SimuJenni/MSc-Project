@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from skimage.restoration import denoise_tv_chambolle
 import matplotlib.pyplot as plt
+from skimage import img_as_int
 
 
 def cartoonify_tv1(im, num_donw_samp=2, weight=0.1):
@@ -160,6 +161,7 @@ if __name__ == '__main__':
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
     img_edge = auto_canny(img_rgb, sigma=0.01)
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
+    img_edge = img_edge.astype(dtype=np.uint8)
 
     print(img_edge.shape)
 

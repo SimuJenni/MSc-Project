@@ -296,7 +296,7 @@ def preprocess_sketch(sketch, output_height, output_width, resize_side=_RESIZE_S
   """
   sketch = _aspect_preserving_resize(sketch, resize_side)
   sketch = _central_crop([sketch], output_height, output_width)[0]
-  sketch.set_shape([output_height, output_width, 1])
+  sketch.set_shape([output_height, output_width, 3])
   return tf.to_float(sketch)
 
 

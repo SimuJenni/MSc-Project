@@ -223,8 +223,10 @@ def _convert_to_example(filename, image_buffer, sketch, label, synset, human, bb
       'image/object/bbox/label': _int64_feature([label] * len(xmin)),
       'image/format': _bytes_feature(image_format),
       'image/filename': _bytes_feature(os.path.basename(filename)),
-      'image/encoded': _bytes_feature(image_buffer.tostring()),
-      'image/sketch': _bytes_feature(sketch.tostring())}))
+      'image/encoded': _bytes_feature(image_buffer),
+      'sketch/encoded': _bytes_feature(sketch),
+      'sketch/format': _bytes_feature(image_format)})
+  )
 
   return example
 

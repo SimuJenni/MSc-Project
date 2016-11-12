@@ -28,7 +28,7 @@ num_layers = 3
 batch_size = 100
 chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 20
+nb_epoch = 50
 load_weights = False
 
 # Load the models
@@ -86,7 +86,7 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = dGAN.fit(x=[X_train, Y_train], y=[target, target, np.zeros((len(X_train), 1)), np.zeros((len(X_train), 1))], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[X_train, Y_train], y=[target, np.zeros((len(X_train), 1))], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 

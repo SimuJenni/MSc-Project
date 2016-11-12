@@ -89,7 +89,7 @@ IM_SHAPE = [224, 224, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
+#LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
 #LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
@@ -141,8 +141,8 @@ else:
                     net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None)
             return net
         else:
-            net = alexnet(inputs, use_batch_norm=use_batch_norm)
-            #net = alexnet_v2(inputs, use_batch_norm=use_batch_norm)
+            #net = alexnet(inputs, use_batch_norm=use_batch_norm)
+            net = alexnet_v2(inputs, use_batch_norm=use_batch_norm)
             return net
 
 

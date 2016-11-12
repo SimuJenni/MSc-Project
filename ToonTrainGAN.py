@@ -47,8 +47,8 @@ gGAN, g_gen, g_disc = ToonGAN(data.dims,
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name))
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
-g_disc.load_weights(disc_weights)
-g_gen.load_weights(gen_weights)
+# g_disc.load_weights(disc_weights)
+# g_gen.load_weights(gen_weights)
 
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()

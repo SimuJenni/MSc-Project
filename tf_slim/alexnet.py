@@ -135,7 +135,7 @@ def alexnet(inputs,
                 net = slim.dropout(net, keep_prob=dropout_keep_prob, is_training=is_training)
                 net = slim.fully_connected(net, 4096, scope='fc2')
                 net = slim.dropout(net, keep_prob=dropout_keep_prob, is_training=is_training)
-                net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=None)
+                net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=None, normalizer_fn=None)
                 return net
 
 

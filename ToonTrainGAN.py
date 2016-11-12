@@ -26,7 +26,7 @@ datagen = ImageDataGenerator(
 # Training parameters
 num_layers = 3
 batch_size = 100
-chunk_size = 5 * batch_size
+chunk_size = 10 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 20
 load_weights = False
@@ -65,8 +65,8 @@ for epoch in range(nb_epoch):
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
         datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
-        max_q_size=16,
-        nb_worker=4)
+        max_q_size=32,
+        nb_worker=8)
 
     for chunk in range(num_chunks):
 

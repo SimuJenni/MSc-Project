@@ -54,18 +54,22 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers-1], stride=1, border='valid', activation=activation)
     encoded = x
 
-    p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
+    p_out = Convolution2D(f_dims[num_layers-1], 1, 1, subsample=(1, 1), init='he_normal', activation=activation)(x)
+    p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(p_out)
     x = Flatten()(x)
-    x = Dense(2048, init='he_normal')(x)
-    x = Dropout(0.25)(x)
+    x = Dense(1024, init='he_normal')(x)
     x = my_activation(x, type='relu')
     x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
     return p_out, d_out, encoded
+
+
+def cosine_sim(y_true, y_pred):
+    return -K.mean(y_pred, axis=-1)
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
@@ -80,8 +84,8 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    p_out, d_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
-    discriminator = Model(input_disc, output=[p_out, d_out])
+    p_out, d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
+    discriminator = Model(input_disc, output=[p_out, d_out, d_enc])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     if not train_disc:
         make_trainable(discriminator, False)
@@ -96,8 +100,12 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     y_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(x_input)
 
-    dp_g_x, d_g_x = discriminator(g_x)
-    dp_y, d_y = discriminator(y_input)
+    dp_g_x, d_g_x, de_g_x = discriminator(g_x)
+    dp_y, d_y, de_y = discriminator(y_input)
+
+    de_g_x_norm = K.l2_normalize(de_g_x, axis=-1)
+    de_y_norm = K.l2_normalize(de_y, axis=-1)
+    cos_sim = de_g_x_norm * de_y_norm
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
@@ -107,8 +115,8 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l1 = sub(g_x, y_input)
-        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1])
-        gan.compile(loss=[ld_1, ld_1, l2_loss], loss_weights=[1.0, 1.0, 0.1], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, cos_sim])
+        gan.compile(loss=[ld_1, ld_1, l2_loss, cosine_sim], loss_weights=[1.0, 1.0, 0.1], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator

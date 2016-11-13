@@ -27,8 +27,8 @@ class Dataset:
 
                 self.process_dataset()
             # Paths to data-files with randomized train and test images
-            self.val_files = glob.glob('%s/X/%s*' % (self.val_dir, 'val'))
-            self.train_files = glob.glob('%s/X/%s*' % (self.train_dir, 'train'))
+            self.val_files = glob.glob('%s/image/%s*' % (self.val_dir, 'val'))
+            self.train_files = glob.glob('%s/image/%s*' % (self.train_dir, 'train'))
             if num_train:
                 self.train_files = self.train_files[:num_train]
             else:

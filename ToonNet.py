@@ -61,10 +61,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
     return d_out, encoded
@@ -479,7 +479,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -1092,7 +1092,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def disc_data(X, Y, Yd, p_wise=False, with_x=False):
@@ -1110,5 +1110,5 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
 
 
 def gen_data(im, edge):
-    X = np.concatenate((im, edge))
+    X = np.concatenate((im, edge), axis=3)
     return X

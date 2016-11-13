@@ -70,7 +70,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
 
 
 def cosine_sim(y_true, y_pred):
-    return y_pred
+    return -y_pred
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
@@ -106,7 +106,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     de_g_x_norm = K.l2_normalize(de_g_x, axis=-1)
     de_y_norm = K.l2_normalize(de_y, axis=-1)
-    cos_sim = -K.mean(de_g_x_norm * de_y_norm, axis=-1)
+    cos_sim = K.mean(de_g_x_norm * de_y_norm, axis=-1)
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 

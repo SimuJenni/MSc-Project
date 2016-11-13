@@ -57,9 +57,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers-1], stride=1, border='valid', activation=activation)
     encoded = x
 
-    p_out = Convolution2D(f_dims[num_layers-1], 1, 1, subsample=(1, 1), init='he_normal')(x)
-    p_out = my_activation(p_out, type=activation)
-    p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(p_out)
+    p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
     x = Flatten()(x)
     x = Dense(1024, init='he_normal')(x)
     x = my_activation(x, type='relu')
@@ -118,18 +116,18 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     dp_g_x, d_g_x, de_g_x = discriminator(g_x)
     dp_y, d_y, de_y = discriminator(y_input)
+    l_feat = sub(de_g_x, de_y)
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
-        gan = Model(input=[x_input, y_input], output=[dp_g_x, dp_y, d_g_x, d_y])
-        gan.compile(loss=[ld_0, ld_1, ld_0, ld_1], loss_weights=[1.0, 1.0, 1.0, 1.0], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, dp_y, d_g_x, d_y, l_feat])
+        gan.compile(loss=[ld_0, ld_1, ld_0, ld_1], loss_weights=[1.0, 1.0, 1.0, -0.01], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l1 = sub(g_x, y_input)
-        cos_de_g_x_de_y = cos_sim(de_g_x, de_y)
-        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, cos_de_g_x_de_y])
-        gan.compile(loss=[ld_1, ld_1, l2_loss, max_val], loss_weights=[1.0, 1.0, 1.0, 0.1], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, l_feat])
+        gan.compile(loss=[ld_1, ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0, 0.01], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator

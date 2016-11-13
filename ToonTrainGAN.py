@@ -107,7 +107,7 @@ for epoch in range(nb_epoch):
         # Train generator
 
         # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = gGAN.fit(x=[X_train, Y_train], y=[target, np.zeros((len(X_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[X_train, Y_train], y=[target, np.zeros((len(X_train), 1)), target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 

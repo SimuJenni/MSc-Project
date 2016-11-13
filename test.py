@@ -64,7 +64,7 @@ def cos_sim(x, y):
     def cos(x):
         y_true = K.l2_normalize(x[0], axis=-1)
         y_pred = K.l2_normalize(x[1], axis=-1)
-        return y_true * y_pred
+        return K.batch_dot(y_true, y_pred, axes=3)
 
     def cos_output_shape(input_shape):
         shape = list(input_shape)

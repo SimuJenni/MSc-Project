@@ -85,7 +85,7 @@ NUM_CLASSES = 1000
 IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc/'
+LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc2/'
 
 # TODO: Indicate whether to use Keras or tensorflow model
 tensorflow_model = True

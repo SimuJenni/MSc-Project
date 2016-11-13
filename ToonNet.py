@@ -104,6 +104,9 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     dp_g_x, d_g_x, de_g_x = discriminator(g_x)
     dp_y, d_y, de_y = discriminator(y_input)
 
+    de_g_x = Flatten()(de_g_x)
+    de_y = Flatten()(de_y)
+
     cos = merge([de_g_x, de_y], mode='cos')
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)

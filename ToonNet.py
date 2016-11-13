@@ -127,9 +127,9 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l1 = sub(g_x, y_input)
-        cos_de_g_x_de_y = cos_sim(de_g_x, de_y)
-        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, cos_de_g_x_de_y])
-        gan.compile(loss=[ld_1, ld_1, l2_loss, max_val], loss_weights=[1.0, 1.0, 1.0, 0.1], optimizer=optimizer)
+        l2 = sub(de_g_x, de_y)
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, l2])
+        gan.compile(loss=[ld_1, ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0, 0.01], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator

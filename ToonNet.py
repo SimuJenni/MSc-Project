@@ -69,8 +69,23 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     return p_out, d_out, encoded
 
 
-def cosine_sim(y_true, y_pred):
+def min_val(y_true, y_pred):
     return -y_pred
+
+
+def cos_sim(x, y):
+    def cos(x):
+        y_true = K.l2_normalize(x[0], axis=-1)
+        y_pred = K.l2_normalize(x[1], axis=-1)
+        return y_true * y_pred
+
+    def cos_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[-1] = 1
+        return tuple(shape)
+
+    x = Lambda(cos, output_shape=cos_output_shape)([x, y])
+    return x
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
@@ -104,7 +119,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     dp_g_x, d_g_x, de_g_x = discriminator(g_x)
     dp_y, d_y, de_y = discriminator(y_input)
 
-    cos = merge([de_g_x, de_y], mode='cos', dot_axes=3)
+    cos_de_g_x_de_y = cos_sim(de_g_x, de_y)
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
@@ -114,8 +129,8 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l1 = sub(g_x, y_input)
-        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, cos])
-        gan.compile(loss=[ld_1, ld_1, l2_loss, cosine_sim], loss_weights=[1.0, 1.0, 0.1, 1e-8], optimizer=optimizer)
+        gan = Model(input=[x_input, y_input], output=[dp_g_x, d_g_x, l1, cos_de_g_x_de_y])
+        gan.compile(loss=[ld_1, ld_1, l2_loss, min_val], loss_weights=[1.0, 1.0, 0.1, 1e-8], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator

@@ -55,9 +55,24 @@ from ToonNet import ToonGen, ToonDisc
 # discriminator.compile(loss='mse', optimizer='adam')
 # discriminator.summary()
 
-from keras.layers import Input, merge
+from keras.layers import Input, merge, Lambda
 from keras.models import Model
 import numpy as np
+import keras.backend as K
+
+def cos_sim(x, y):
+    def cos(x):
+        y_true = K.l2_normalize(x[0], axis=-1)
+        y_pred = K.l2_normalize(x[1], axis=-1)
+        return y_true * y_pred
+
+    def cos_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[-1] = 1
+        return tuple(shape)
+
+    x = Lambda(cos, output_shape=cos_output_shape)([x,y])
+    return x
 
 input_a = np.ones((4, 2, 3, 1))
 input_b = np.ones((4, 2, 3, 1))
@@ -67,7 +82,7 @@ b = Input(batch_shape=(4, 2, 3, 1))
 
 concat = merge([a, b], mode='concat', concat_axis=-1)
 dot = merge([a, b], mode='dot', dot_axes=3)
-cos = merge([a, b], mode='cos', dot_axes=3)
+cos = cos_sim(a,b)
 
 model_concat = Model(input=[a, b], output=concat)
 model_dot = Model(input=[a, b], output=dot)

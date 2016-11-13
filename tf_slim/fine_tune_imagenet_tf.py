@@ -88,7 +88,7 @@ IM_SHAPE = [224, 224, 3]
 #IM_SHAPE = [128, 128, 3]
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_2/'
 #LOG_DIR = '/data/cvg/simon/data/logs/alex_net_bn/'
 #LOG_DIR = '/data/cvg/simon/data/logs/fine_tune_disc_bn/'
 
@@ -214,8 +214,17 @@ with sess.as_default():
             tf.histogram_summary('prediction', tf.argmax(predictions, 1))
             tf.histogram_summary('logits', predictions)
 
+        decay_steps = int(imagenet._SPLITS_TO_SIZES['train'] / BATCH_SIZE *
+                          2.0)
+        learning_rate = tf.train.exponential_decay(0.01,
+                                                   global_step,
+                                                   decay_steps,
+                                                   0.94,
+                                                   staircase=True,
+                                                   name='exponential_decay_learning_rate')
+
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005, epsilon=1e-6)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
 
         # Create training operation
         if fine_tune:

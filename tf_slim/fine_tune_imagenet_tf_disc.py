@@ -231,7 +231,7 @@ with sess.as_default():
             # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
                 exclude=[v.op.name for v in var2train] + ["fully_connected/fc1/BatchNorm/beta/RMSProp_1",
-                                                          ])
+                                                          "fully_connected/fc1/BatchNorm/beta/RMSProp"])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.

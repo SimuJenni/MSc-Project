@@ -208,7 +208,7 @@ with sess.as_default():
             tf.histogram_summary('logits', predictions)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0005, epsilon=1e-6)
+        optimizer = tf.train.RMSPropOptimizer(epsilon=1.0, momentum=0.9, decay=0.9)
 
         # Create training operation
         if fine_tune:

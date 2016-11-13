@@ -61,10 +61,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1)(x)
+    x = BatchNormalization(axis=1, mode=2)(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1)(x)
+    x = BatchNormalization(axis=1, mode=2)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
     return d_out, encoded
@@ -479,7 +479,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -918,7 +918,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
             enc_weight=1.0, layers=[5], learning_rate=0.0002, w_outter=False, p_wise_out=False, activation='relu'):
     # Build Generator
     input_gen = Input(shape=input_shape)
-    gen_out, gen_layers = ToonGenerator(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+    gen_out, gen_layers = ToonGenerator_old(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
                                         activation=activation)
     generator = Model(input_gen, gen_out)
     gen_enc_out = [gen_layers[l - 1] for l in layers]
@@ -932,7 +932,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
         input_disc = Input(shape=input_shape[:2] + (input_shape[2] * 2,))
     else:
         input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
+    dis_out, _ = ToonDiscriminator_old(input_disc, big_f=big_f, num_res_layers=num_res_d, p_wise_out=p_wise_out)
     discriminator = Model(input_disc, output=dis_out)
     make_trainable(discriminator, False)
     discriminator.name = make_name('ToonDiscriminator', with_x=withx, big_f=big_f, num_res=num_res_d,
@@ -940,7 +940,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
 
     # Build Encoder
     input_encoder = Input(shape=input_shape)
-    _, enc_layers = ToonGenerator(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
+    _, enc_layers = ToonGenerator_old(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
                                   activation=activation)
     enc_out = [enc_layers[l - 1] for l in layers]
     enc_on_gan = Model(input_encoder, output=enc_out)
@@ -1092,7 +1092,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def disc_data(X, Y, Yd, p_wise=False, with_x=False):

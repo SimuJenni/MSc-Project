@@ -70,7 +70,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
 
 
 def cosine_sim(y_true, y_pred):
-    return -K.mean(y_pred, axis=-1)
+    return -y_pred
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):

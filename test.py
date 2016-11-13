@@ -43,14 +43,36 @@ from ToonNet import ToonGen, ToonDisc
 # montage(test_Y[:, :, :] * 0.5 + 0.5, 'Test-Y.jpeg')
 
 
-input_gen = Input(batch_shape=(64, 32, 32, 3))
-decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
-generator = Model(input_gen, decoded)
-p_out, d_out, _ = ToonDisc(input_gen, num_layers=3)
-discriminator = Model(input_gen, [p_out, d_out])
+# input_gen = Input(batch_shape=(64, 32, 32, 3))
+# decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
+# generator = Model(input_gen, decoded)
+# p_out, d_out, _ = ToonDisc(input_gen, num_layers=3)
+# discriminator = Model(input_gen, [p_out, d_out])
+#
+# # Compile
+# generator.compile(loss='mse', optimizer='adam')
+# generator.summary()
+# discriminator.compile(loss='mse', optimizer='adam')
+# discriminator.summary()
 
-# Compile
-generator.compile(loss='mse', optimizer='adam')
-generator.summary()
-discriminator.compile(loss='mse', optimizer='adam')
-discriminator.summary()
+from keras.layers import Input, merge
+from keras.models import Model
+import numpy as np
+
+input_a = np.ones((4, 2, 3, 1))
+input_b = np.ones((4, 2, 3, 1))
+
+a = Input(batch_shape=(4, 2, 3, 1))
+b = Input(batch_shape=(4, 2, 3, 1))
+
+concat = merge([a, b], mode='concat', concat_axis=-1)
+dot = merge([a, b], mode='dot', dot_axes=3)
+cos = merge([a, b], mode='cos', dot_axes=3)
+
+model_concat = Model(input=[a, b], output=concat)
+model_dot = Model(input=[a, b], output=dot)
+model_cos = Model(input=[a, b], output=cos)
+
+print(model_concat.predict([input_a, input_b]))
+print(model_dot.predict([input_a, input_b]))
+print(model_cos.predict([input_a, input_b]))

@@ -8,7 +8,7 @@ import numpy as np
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import ToonGAN, Gen, gen_data
 from constants import MODEL_DIR, IMG_DIR
-from datasets import TinyImagenetToon, CIFAR10_Toon
+from datasets import CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
@@ -51,10 +51,11 @@ disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
 # g_gen.load_weights(gen_weights)
 
 # Create test data
-toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
-montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-X.jpeg'.format(gGAN.name, data.name)))
-montage(np.squeeze(edge_test[:, :, :]), 'Test-Edge.jpeg', gray=True)
-montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-Y.jpeg'.format(gGAN.name, data.name)))
+toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
+                                                            target_size=data.target_size).next()
+montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon.jpeg'.format(gGAN.name, data.name)))
+montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.format(gGAN.name, data.name)))
+montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(gGAN.name, data.name)))
 
 # Training
 print('EBGAN training: {}'.format(gGAN.name))
@@ -87,7 +88,8 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target],
+                     nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -108,7 +110,8 @@ for epoch in range(nb_epoch):
         # Train generator
 
         # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train],
+                     y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -122,7 +125,8 @@ for epoch in range(nb_epoch):
         # Generate montage of test-images
         if not chunk % 25:
             generator.set_weights(g_gen.get_weights())
-            decoded_imgs = generator.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]) , batch_size=batch_size)
+            decoded_imgs = generator.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]),
+                                             batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights

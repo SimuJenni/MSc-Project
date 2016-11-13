@@ -113,6 +113,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Build GAN
+    print((batch_size,) + input_shape[:2] + (4,))
     gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
     img_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(gen_input)

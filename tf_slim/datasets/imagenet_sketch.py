@@ -147,14 +147,16 @@ def get_split(split_name, dataset_dir, reader=None):
     keys_to_features = {
         'image/encoded': tf.FixedLenFeature(
             (), tf.string, default_value=''),
-        'image/format_n': tf.FixedLenFeature(
-            (), tf.string, default_value='raw'),
+        'image/format': tf.FixedLenFeature(
+            (), tf.string, default_value='jpeg'),
         'image/class/label': tf.FixedLenFeature(
             [], dtype=tf.int64, default_value=-1),
         'image/class/text': tf.FixedLenFeature(
             [], dtype=tf.string, default_value=''),
-        'image/sketch': tf.FixedLenFeature(
+        'sketch/encoded': tf.FixedLenFeature(
             (), tf.string, default_value=''),
+        'sketch/format': tf.FixedLenFeature(
+            (), tf.string, default_value='jpeg'),
         # 'image/object/bbox/xmin': tf.VarLenFeature(
         #     dtype=tf.float32),
         # 'image/object/bbox/ymin': tf.VarLenFeature(
@@ -168,8 +170,8 @@ def get_split(split_name, dataset_dir, reader=None):
     }
 
     items_to_handlers = {
-        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format_n'),
-        'sketch': slim.tfexample_decoder.Image('image/sketch', 'image/format_n'),
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
+        'sketch': slim.tfexample_decoder.Image('sketch/encoded', 'sketch/format'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
         # 'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
         # 'object/bbox': slim.tfexample_decoder.BoundingBox(

@@ -113,11 +113,9 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Build GAN
-    toon_input = Input(batch_shape=(batch_size,) + input_shape)
-    edge_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (1,))
+    gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
     img_input = Input(batch_shape=(batch_size,) + input_shape)
-    gen_in = merge([toon_input, edge_input], mode='concat')
-    g_x = generator(gen_in)
+    g_x = generator(gen_input)
 
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(img_input)
@@ -126,12 +124,12 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
-        gan = Model(input=[toon_input, edge_input, img_input], output=[d_g_x, d_y, l_feat])
+        gan = Model(input=[gen_input, img_input], output=[d_g_x, d_y, l_feat])
         gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l_rec = sub(g_x, img_input)
-        gan = Model(input=[toon_input, edge_input, img_input], output=[d_g_x, l_rec, l_feat])
+        gan = Model(input=[gen_input, img_input], output=[d_g_x, l_rec, l_feat])
         gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
@@ -140,12 +138,10 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
 def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
     # Build the model
-    input_toon = Input(batch_shape=(batch_size,) + input_shape)
-    input_edge = Input(batch_shape=(batch_size,) + input_shape[:2] + (1,))
-    gen_in = merge([input_toon, input_edge], mode='concat')
+    input_gen = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
 
-    decoded, _ = ToonGen(gen_in, num_layers=num_layers, batch_size=batch_size)
-    generator = Model(gen_in, decoded)
+    decoded, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    generator = Model(input_gen, decoded)
     generator.name = make_name('ToonGenerator', num_layers=num_layers)
 
     # Load weights
@@ -1109,3 +1105,8 @@ def disc_data(X, Y, Yd, p_wise=False, with_x=False):
         yd = np.zeros((len(Y) + len(Yd), 1))
         yd[:len(Y)] = 1
     return Xd, yd
+
+
+def gen_data(im, edge):
+    X = np.concatenate((im, edge))
+    return X

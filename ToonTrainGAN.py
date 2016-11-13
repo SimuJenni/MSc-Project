@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import ToonGAN, Gen
+from ToonNet import ToonGAN, Gen, gen_data
 from constants import MODEL_DIR, IMG_DIR
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
@@ -87,7 +87,7 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = dGAN.fit(x=[toon_train, edge_train, img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -108,7 +108,7 @@ for epoch in range(nb_epoch):
         # Train generator
 
         # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = gGAN.fit(x=[toon_train, edge_train, img_train], y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -122,7 +122,7 @@ for epoch in range(nb_epoch):
         # Generate montage of test-images
         if not chunk % 25:
             generator.set_weights(g_gen.get_weights())
-            decoded_imgs = generator.predict([toon_test[:batch_size], edge_test[:batch_size]] , batch_size=batch_size)
+            decoded_imgs = generator.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]) , batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights

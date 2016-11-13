@@ -6,7 +6,7 @@ from keras.models import Model
 from ToonDataGenerator import ImageDataGenerator
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage
-from ToonNet import ToonGen, ToonDisc
+from ToonNet import ToonGen, ToonDisc, Gen
 
 # data = CIFAR10()
 # class_dirs = os.listdir(data.val_dir)
@@ -29,29 +29,31 @@ from ToonNet import ToonGen, ToonDisc
 #
 # print(h.history['%s_loss' % gan.output_names[0]])
 
-data = CIFAR10_Toon()
-datagen = ImageDataGenerator(rotation_range=10,
-        width_shift_range=0.05,
-        height_shift_range=0.05,
-        shear_range=0.05,
-        zoom_range=[0.9, 1.0],
-        horizontal_flip=True,
-        fill_mode='nearest')
-
-test_toon, test_edges, test_img = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
-montage(test_toon[:, :, :] * 0.5 + 0.5, 'Test-Toon.jpeg')
-montage(np.squeeze(test_edges[:, :, :]), 'Test-Edge.jpeg', gray=True)
-montage(test_img[:, :, :] * 0.5 + 0.5, 'Test-Image.jpeg')
-
-
-# input_gen = Input(batch_shape=(64, 32, 32, 3))
-# decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
-# generator = Model(input_gen, decoded)
-# p_out, d_out, _ = ToonDisc(input_gen, num_layers=3)
-# discriminator = Model(input_gen, [p_out, d_out])
+# data = CIFAR10_Toon()
+# datagen = ImageDataGenerator(rotation_range=10,
+#         width_shift_range=0.05,
+#         height_shift_range=0.05,
+#         shear_range=0.05,
+#         zoom_range=[0.9, 1.0],
+#         horizontal_flip=True,
+#         fill_mode='nearest')
 #
-# # Compile
-# generator.compile(loss='mse', optimizer='adam')
-# generator.summary()
-# discriminator.compile(loss='mse', optimizer='adam')
-# discriminator.summary()
+# test_toon, test_edges, test_img = datagen.flow_from_directory(data.train_dir, batch_size=64, target_size=data.dims[:2]).next()
+# montage(test_toon[:, :, :] * 0.5 + 0.5, 'Test-Toon.jpeg')
+# montage(np.squeeze(test_edges[:, :, :]), 'Test-Edge.jpeg', gray=True)
+# montage(test_img[:, :, :] * 0.5 + 0.5, 'Test-Image.jpeg')
+
+
+input_gen = Input(batch_shape=(64, 32, 32, 3))
+decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
+generator = Model(input_gen, decoded)
+p_out, d_out = ToonDisc(input_gen, num_layers=3)
+discriminator = Model(input_gen, [p_out, d_out])
+
+# Compile
+generator.compile(loss='mse', optimizer='adam')
+generator.summary()
+discriminator.compile(loss='mse', optimizer='adam')
+discriminator.summary()
+
+generator = Gen(input_shape=(32, 32, 4), num_layers=3, batch_size=128)

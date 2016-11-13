@@ -91,10 +91,12 @@ def cos_sim(x, y):
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
 
+    gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
+
     # Build Generator
-    input_gen = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
-    gen_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    generator = Model(input_gen, gen_out)
+    input_gen = Input(batch_shape=gen_in_shape)
+    g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
     if train_disc:
         make_trainable(generator, False)
@@ -113,10 +115,9 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
     # Build GAN
-    print((batch_size,) + input_shape[:2] + (4,))
-    gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
-    img_input = Input(batch_shape=(batch_size,) + input_shape)
-    g_x = generator(gen_input)
+    g_input = Input(batch_shape=gen_in_shape)
+    img_input = Input(shape=input_shape)
+    g_x = generator(g_input)
 
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(img_input)
@@ -125,12 +126,12 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
-        gan = Model(input=[gen_input, img_input], output=[d_g_x, d_y, l_feat])
+        gan = Model(input=[g_input, img_input], output=[d_g_x, d_y, l_feat])
         gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l_rec = sub(g_x, img_input)
-        gan = Model(input=[gen_input, img_input], output=[d_g_x, l_rec, l_feat])
+        gan = Model(input=[g_input, img_input], output=[d_g_x, l_rec, l_feat])
         gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 

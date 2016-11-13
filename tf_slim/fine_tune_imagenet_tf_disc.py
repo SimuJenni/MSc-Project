@@ -2,11 +2,9 @@ from __future__ import print_function
 
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.ops import control_flow_ops
-
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
-from alexnet import alexnet, alexnet_v2
 from datasets import imagenet_sketch
 from model_edge_advplus_128 import DCGAN
 from ops import *
@@ -136,7 +134,7 @@ else:
                 net = slim.dropout(net)
                 net = slim.fully_connected(net, NUM_CLASSES, scope='fc3', activation_fn=None,
                                            normalizer_fn=None,
-                                           biases_initializer=tf.zeros_initializer,)
+                                           biases_initializer=tf.zeros_initializer, )
         return net
 
 
@@ -149,8 +147,8 @@ with sess.as_default():
         # # Selects the 'validation' dataset.
         # data_files = imagenet.get_datafiles('train', DATA_DIR)
         # images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
-
         dataset = imagenet_sketch.get_split('train', DATA_DIR)
+
         # Creates a TF-Slim DataProvider which reads the dataset in the background
         # during both training and testing.
         provider = slim.dataset_data_provider.DatasetDataProvider(
@@ -177,7 +175,7 @@ with sess.as_default():
         predictions = Classifier(images, sketches=sketches, fine_tune=fine_tune, use_batch_norm=use_bn)
 
         # Define the loss
-        slim.losses.softmax_cross_entropy(predictions, labels)
+        slim.losses.softmax_cross_entropy(predictions, labels, weight=1.0)
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -207,8 +205,17 @@ with sess.as_default():
             tf.histogram_summary('prediction', tf.argmax(predictions, 1))
             tf.histogram_summary('logits', predictions)
 
+        decay_steps = int(imagenet_sketch._SPLITS_TO_SIZES['train'] / BATCH_SIZE *
+                          2.0)
+        learning_rate = tf.train.exponential_decay(0.01,
+                                                   global_step,
+                                                   decay_steps,
+                                                   0.94,
+                                                   staircase=True,
+                                                   name='exponential_decay_learning_rate')
+
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(epsilon=1.0, momentum=0.9, decay=0.9)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
 
         # Create training operation
         if fine_tune:

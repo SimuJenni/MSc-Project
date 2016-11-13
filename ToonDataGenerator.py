@@ -88,7 +88,7 @@ def random_channel_shift(x, intensity, channel_index=0):
     channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x)
                       for x_channel in x]
     x = np.stack(channel_images, axis=0)
-    x = np.rollaxis(x, 0, channel_index+1)
+    x = np.rollaxis(x, 0, channel_index + 1)
     return x
 
 
@@ -106,9 +106,10 @@ def apply_transform(x, transform_matrix, channel_index=0, fill_mode='nearest', c
     final_affine_matrix = transform_matrix[:2, :2]
     final_offset = transform_matrix[:2, 2]
     channel_images = [ndi.interpolation.affine_transform(x_channel, final_affine_matrix,
-                      final_offset, order=0, mode=fill_mode, cval=cval) for x_channel in x]
+                                                         final_offset, order=0, mode=fill_mode, cval=cval) for x_channel
+                      in x]
     x = np.stack(channel_images, axis=0)
-    x = np.rollaxis(x, 0, channel_index+1)
+    x = np.rollaxis(x, 0, channel_index + 1)
     return x
 
 
@@ -140,6 +141,16 @@ def array_to_img(x, scale=True):
 def img_to_array(img):
     # image has dim_ordering (height, width, channel)
     x = (np.asarray(img, dtype='float32') / 255. - 0.5) * 2.0
+    if len(x.shape) == 2:
+        x = x.reshape((x.shape[0], x.shape[1], 1))
+    return x
+
+
+def edges_to_array(img):
+    x = np.asarray(img, dtype='float32')/255.
+    x[x > 0.5] = 1.0
+    x[x < 0.5] = 0.0
+
     if len(x.shape) == 2:
         x = x.reshape((x.shape[0], x.shape[1], 1))
     return x
@@ -237,7 +248,7 @@ class ImageDataGenerator(object):
             batch_size=batch_size, shuffle=shuffle, seed=seed,
             save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format, xy_fun=xy_fun)
 
-    def random_transform(self, x, y):
+    def random_transform(self, toon, edge, img):
 
         # x is a single image, so it doesn't have image number at index 0
         img_row_index = self.row_index - 1
@@ -253,12 +264,12 @@ class ImageDataGenerator(object):
                                     [np.sin(theta), np.cos(theta), 0],
                                     [0, 0, 1]])
         if self.height_shift_range:
-            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * x.shape[img_row_index]
+            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * toon.shape[img_row_index]
         else:
             tx = 0
 
         if self.width_shift_range:
-            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * x.shape[img_col_index]
+            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * toon.shape[img_col_index]
         else:
             ty = 0
 
@@ -283,19 +294,22 @@ class ImageDataGenerator(object):
 
         transform_matrix = np.dot(np.dot(np.dot(rotation_matrix, translation_matrix), shear_matrix), zoom_matrix)
 
-        h, w = x.shape[img_row_index], x.shape[img_col_index]
+        h, w = toon.shape[img_row_index], toon.shape[img_col_index]
         transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
-        x = apply_transform(x, transform_matrix, img_channel_index,
-                            fill_mode=self.fill_mode, cval=self.cval)
-        y = apply_transform(y, transform_matrix, img_channel_index,
-                            fill_mode=self.fill_mode, cval=self.cval)
+        toon = apply_transform(toon, transform_matrix, img_channel_index,
+                               fill_mode=self.fill_mode, cval=self.cval)
+        edge = apply_transform(edge, transform_matrix, img_channel_index,
+                               fill_mode=self.fill_mode, cval=0)
+        img = apply_transform(img, transform_matrix, img_channel_index,
+                              fill_mode=self.fill_mode, cval=self.cval)
 
         if self.horizontal_flip:
             if np.random.random() < 0.5:
-                x = flip_axis(x, img_col_index)
-                y = flip_axis(y, img_col_index)
+                toon = flip_axis(toon, img_col_index)
+                edge = flip_axis(edge, img_col_index)
+                img = flip_axis(img, img_col_index)
 
-        return x, y
+        return toon, edge, img
 
 
 class Iterator(object):
@@ -396,8 +410,9 @@ class DirectoryIterator(Iterator):
                  target_size=(192, 192), color_mode='rgb',
                  batch_size=32, shuffle=True, seed=None,
                  save_to_dir=None, save_prefix='', save_format='jpeg', xy_fun=X2X_Y2Y):
-        self.X_dir = os.path.join(directory, 'X/')
-        self.Y_dir = os.path.join(directory, 'Y/')
+        self.toon_dir = os.path.join(directory, 'cartoon/')
+        self.edge_dir = os.path.join(directory, 'edge/')
+        self.img_dir = os.path.join(directory, 'image/')
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
         if color_mode not in {'rgb', 'grayscale'}:
@@ -417,17 +432,23 @@ class DirectoryIterator(Iterator):
         self.filenames = []
 
         white_list_formats = {'png', 'jpg', 'jpeg', 'bmp'}
-        for fname_x, fname_y in zip(sorted(os.listdir(self.X_dir)), sorted(os.listdir(self.Y_dir))):
-            if not fname_x == fname_y:
-                raise Exception("{} and {} are not of the same underlying image!".format(fname_x, fname_y))
+        for fname_toon, fname_edge, fname_img in zip(sorted(os.listdir(self.toon_dir)),
+                                                     sorted(os.listdir(self.edge_dir)),
+                                                     sorted(os.listdir(self.img_dir))):
+            if not (fname_toon == fname_img and fname_edge == fname_img):
+                raise Exception(
+                    "{}, {} and {} are not of the same underlying image!".format(fname_toon, fname_edge, fname_img))
 
             is_valid = False
             for extension in white_list_formats:
-                if fname_x.lower().endswith('.' + extension) and fname_y.lower().endswith('.' + extension):
+                if fname_toon.lower().endswith('.' + extension) and fname_img.lower().endswith(
+                                '.' + extension) and fname_edge.lower().endswith('.' + extension):
                     is_valid = True
                     break
             if is_valid:
-                self.filenames.append((os.path.join(self.X_dir, fname_x), os.path.join(self.Y_dir, fname_y)))
+                self.filenames.append((os.path.join(self.toon_dir, fname_toon),
+                                       os.path.join(self.edge_dir, fname_edge),
+                                       os.path.join(self.img_dir, fname_img)))
                 self.nb_sample += 1
 
         super(DirectoryIterator, self).__init__(self.nb_sample, batch_size, shuffle, seed)
@@ -436,27 +457,31 @@ class DirectoryIterator(Iterator):
         with self.lock:
             index_array, current_index, current_batch_size = next(self.index_generator)
         # The transformation of images is not under thread lock so it can be done in parallel
-        batch_x = np.zeros((current_batch_size,) + self.image_shape)
-        batch_y = np.zeros((current_batch_size,) + self.image_shape)
+        batch_toon = np.zeros((current_batch_size,) + self.image_shape)
+        batch_edge = np.zeros((current_batch_size,) + self.image_shape[:2] + (1,))
+        batch_img = np.zeros((current_batch_size,) + self.image_shape)
         grayscale = self.color_mode == 'grayscale'
         # build batch of image data
         for i, j in enumerate(index_array):
-            fname_x, fname_y = self.filenames[j]
-            img_x = load_img(os.path.join(self.X_dir, fname_x), grayscale=grayscale, target_size=self.target_size)
-            x = img_to_array(img_x)
-            img_y = load_img(os.path.join(self.Y_dir, fname_y), grayscale=grayscale, target_size=self.target_size)
-            y = img_to_array(img_y)
-            x, y = self.image_data_generator.random_transform(x, y)
-            x, y = self.xy_fun(x, y)
-            batch_x[i] = x
-            batch_y[i] = y
+            fname_toon, fname_edge, fname_img = self.filenames[j]
+            cartoon = load_img(os.path.join(self.toon_dir, fname_toon), grayscale=grayscale, target_size=self.target_size)
+            cartoon = img_to_array(cartoon)
+            edge = load_img(os.path.join(self.edge_dir, fname_edge), grayscale=True, target_size=self.target_size)
+            edge = edges_to_array(edge)
+            img = load_img(os.path.join(self.img_dir, fname_img), grayscale=grayscale, target_size=self.target_size)
+            img = img_to_array(img)
+            cartoon, edge, img = self.image_data_generator.random_transform(cartoon, edge, img)
+            # cartoon, img = self.xy_fun(cartoon, img)
+            batch_toon[i] = cartoon
+            batch_edge[i] = edge
+            batch_img[i] = img
         # optionally save augmented images to disk for debugging purposes
         if self.save_to_dir:
             for i in range(current_batch_size):
-                img = array_to_img(batch_x[i], scale=True)
+                img = array_to_img(batch_toon[i], scale=True)
                 fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
                                                                   index=current_index + i,
                                                                   hash=np.random.randint(1e4),
                                                                   format=self.save_format)
                 img.save(os.path.join(self.save_to_dir, fname))
-        return batch_x, batch_y
+        return batch_toon, batch_edge, batch_img

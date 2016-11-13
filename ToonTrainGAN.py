@@ -51,9 +51,10 @@ disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
 # g_gen.load_weights(gen_weights)
 
 # Create test data
-X_test, Y_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
-montage(X_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-X.jpeg'.format(gGAN.name, data.name)))
-montage(Y_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-Y.jpeg'.format(gGAN.name, data.name)))
+toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size, target_size=data.target_size).next()
+montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-X.jpeg'.format(gGAN.name, data.name)))
+montage(np.squeeze(edge_test[:, :, :]), 'Test-Edge.jpeg', gray=True)
+montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-Y.jpeg'.format(gGAN.name, data.name)))
 
 # Training
 print('EBGAN training: {}'.format(gGAN.name))
@@ -73,12 +74,12 @@ for epoch in range(nb_epoch):
         # Get next chunk of training data from queue
         while not _stop.is_set():
             if not data_gen_queue.empty():
-                X_train, Y_train = data_gen_queue.get()
+                toon_train, edge_train, img_train = data_gen_queue.get()
                 break
             else:
                 time.sleep(0.05)
 
-        target = np.zeros_like(Y_train)
+        target = np.zeros_like(img_train)
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         # Update the weights
         d_disc.set_weights(g_disc.get_weights())
@@ -86,7 +87,7 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = dGAN.fit(x=[X_train, Y_train], y=[np.zeros((len(X_train), 1))]*2 + [target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=[toon_train, edge_train, img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -107,7 +108,7 @@ for epoch in range(nb_epoch):
         # Train generator
 
         # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = gGAN.fit(x=[X_train, Y_train], y=[np.zeros((len(X_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[toon_train, edge_train, img_train], y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))
 
@@ -121,13 +122,13 @@ for epoch in range(nb_epoch):
         # Generate montage of test-images
         if not chunk % 25:
             generator.set_weights(g_gen.get_weights())
-            decoded_imgs = generator.predict(X_test[:batch_size], batch_size=batch_size)
+            decoded_imgs = generator.predict([toon_test[:batch_size], edge_test[:batch_size]] , batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights
             g_disc.save_weights(disc_weights)
             g_gen.save_weights(gen_weights)
-            del X_train, Y_train, target, h, decoded_imgs
+            del toon_train, img_train, target, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
 

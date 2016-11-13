@@ -12,7 +12,7 @@ from datetime import datetime
 import numpy as np
 from scipy import misc
 
-from cartooning import cartoonify_bilateral
+from cartooning import cartoonify, auto_canny
 from constants import NUM_THREADS
 from utils import imcrop_tosquare
 
@@ -31,8 +31,9 @@ def process_image(filename, im_dim):
     image_data = misc.imread(filename, mode='RGB')
     image_data = imcrop_tosquare(image_data)
     image_data = misc.imresize(image_data, im_dim)
-    image_cartoon = cartoonify_bilateral(image_data)
-    return (image_cartoon, image_data)
+    image_cartoon = cartoonify(image_data)
+    image_edge = auto_canny(image_data)
+    return image_cartoon, image_edge, image_data
 
 
 def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, im_dim):
@@ -53,12 +54,14 @@ def process_image_files_batch(thread_index, ranges, name, out_dir, filenames, im
     files_in_batch = np.arange(ranges[thread_index][0], ranges[thread_index][1], dtype=int)
     for i in files_in_batch:
         filename = filenames[i]
-        x_im, y_im = process_image(filename, im_dim)
+        toon_im, edge_im, real_im = process_image(filename, im_dim)
         output_filename = '%s-%s' % (name, os.path.basename(filename))
-        x_path = os.path.join(out_dir, 'X', output_filename)
-        y_path = os.path.join(out_dir, 'Y', output_filename)
-        misc.imsave(x_path, x_im, format='JPEG')
-        misc.imsave(y_path, y_im, format='JPEG')
+        toon_path = os.path.join(out_dir, 'cartoon/', output_filename)
+        edge_path = os.path.join(out_dir, 'edge/', output_filename)
+        img_path = os.path.join(out_dir, 'image/', output_filename)
+        misc.imsave(toon_path, toon_im, format='JPEG')
+        misc.imsave(edge_path, edge_im, format='JPEG')
+        misc.imsave(img_path, real_im, format='JPEG')
         if not counter % 500:
             print('[thread %d]: Processed %d of %d images in thread batch.' %
                   (thread_index, counter, num_files_in_thread))

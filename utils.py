@@ -50,7 +50,7 @@ def slice_montage(montage, img_h, img_w, n_imgs):
     return np.array(sliced_ds)
 
 
-def montage(images, saveto='montage.png'):
+def montage(images, saveto='montage.png', gray=False):
     """Draw all images as a montage separated by 1 pixel borders.
 
     Also saves the file to the destination specified by `saveto`.
@@ -62,6 +62,8 @@ def montage(images, saveto='montage.png'):
     Returns:
         m (np.ndarray): Montage image.
     """
+    from PIL import Image
+
     if isinstance(images, list):
         images = np.array(images)
     img_h = images.shape[1]
@@ -82,7 +84,11 @@ def montage(images, saveto='montage.png'):
                 this_img = images[this_filter]
                 m[1 + i + i * img_h:1 + i + (i + 1) * img_h,
                 1 + j + j * img_w:1 + j + (j + 1) * img_w] = this_img
-    plt.imsave(arr=m, fname=saveto)
+    if gray:
+        m = Image.fromarray((m*255).astype(dtype=np.uint8))
+        m.save(saveto)
+    else:
+        plt.imsave(arr=m, fname=saveto)
     return m
 
 

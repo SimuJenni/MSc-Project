@@ -60,7 +60,7 @@ def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
     return im
 
 
-def cartoonify(img_rgb, num_donw_samp=1, num_filter=100):
+def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
     """Cartoonify an image with bilateral filtering
 
     Args:
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     img_rgb = cv2.resize(img_rgb, (4*256, 4*256))
 
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
-    img_edge = auto_canny(img_rgb, sigma=0.01)
+    img_edge = auto_canny(img_rgb, sigma=0.33)
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
     img_edge = img_edge.astype(dtype=np.uint8)
     print(img_edge[0])
@@ -183,6 +183,7 @@ if __name__ == '__main__':
                         top=0.9, bottom=0.05, left=0, right=1)
     plt.show()
 
-    cv2.imwrite('test_edge.jpg', img_edge)
-    cv2.imwrite('test_toon.jpg', cartoon)
+    plt.imsave('test_edge.jpg', img_edge)
+    plt.imsave('test_toon.jpg', cartoon)
+
 

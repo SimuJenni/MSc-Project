@@ -1,5 +1,7 @@
 import glob
+
 from scipy import misc
+
 from constants import *
 
 
@@ -39,6 +41,14 @@ class Dataset:
         # To be implemented by sub-classes
         pass
 
+    def prepare_dirs_toon(self):
+        os.mkdir(os.path.join(self.train_dir, 'cartoon/'))
+        os.mkdir(os.path.join(self.train_dir, 'edge/'))
+        os.mkdir(os.path.join(self.train_dir, 'image/'))
+        os.mkdir(os.path.join(self.val_dir, 'cartoon/'))
+        os.mkdir(os.path.join(self.val_dir, 'edge/'))
+        os.mkdir(os.path.join(self.val_dir, 'image/'))
+
 
 class ImagenetToon(Dataset):
     def __init__(self, num_train=None, target_size=None):
@@ -47,10 +57,7 @@ class ImagenetToon(Dataset):
 
     def process_dataset(self):
         from prepare_data_jpeg import process_dataset
-        os.mkdir(os.path.join(self.train_dir, 'X/'))
-        os.mkdir(os.path.join(self.train_dir, 'Y/'))
-        os.mkdir(os.path.join(self.val_dir, 'X/'))
-        os.mkdir(os.path.join(self.val_dir, 'Y/'))
+        self.prepare_dirs_toon()
         val_dir = os.path.join(self.src_data_dir, 'ILSVRC2012_img_val/')
         train_dir = os.path.join(self.src_data_dir, 'ILSVRC2012_img_train/')
         print('Preparing images in: {}'.format(val_dir))
@@ -78,10 +85,7 @@ class TinyImagenetToon(Dataset):
 
     def process_dataset(self):
         from prepare_data_jpeg import process_dataset
-        os.mkdir(os.path.join(self.train_dir, 'X/'))
-        os.mkdir(os.path.join(self.train_dir, 'Y/'))
-        os.mkdir(os.path.join(self.val_dir, 'X/'))
-        os.mkdir(os.path.join(self.val_dir, 'Y/'))
+        self.prepare_dirs_toon()
         val_dir = os.path.join(self.src_data_dir, 'val/images/')
         train_dir = os.path.join(self.src_data_dir, 'train/')
         print('Preparing images in: {}'.format(val_dir))
@@ -102,39 +106,43 @@ class TinyImagenet(Dataset):
 
 
 class CIFAR10_Toon(Dataset):
-    def __init__(self, src_dir=None, data_dir=CIFAR10_TOON_DATADIR, im_size=(32, 32), name='CIFAR10Toon', num_train=None,
+    def __init__(self, src_dir=None, data_dir=CIFAR10_TOON_DATADIR, im_size=(32, 32), name='CIFAR10Toon',
+                 num_train=None,
                  target_size=None):
         Dataset.__init__(self, src_dir, data_dir, im_size, name, num_train, target_size)
 
     def process_dataset(self):
-        os.mkdir(os.path.join(self.train_dir, 'X/'))
-        os.mkdir(os.path.join(self.train_dir, 'Y/'))
-        os.mkdir(os.path.join(self.val_dir, 'X/'))
-        os.mkdir(os.path.join(self.val_dir, 'Y/'))
+        self.prepare_dirs_toon()
         # Otherwise get the data set and process it
-        from cartooning import process_data
+        from cartooning import cartoonify, auto_canny
         from keras.datasets import cifar10
-        (Y_train, _), (Y_val, _) = cifar10.load_data()
-        X_train = process_data(Y_train, num_downsample=1)
-        X_val = process_data(Y_val, num_downsample=1)
+        (img_train, _), (img_val, _) = cifar10.load_data()
 
-        for i in range(len(X_train)):
+        for i in range(len(img_train)):
             filename = 'train_{}'.format(i + 1)
-            x_path = os.path.join(self.train_dir, 'X/{}.JPEG'.format(filename))
-            y_path = os.path.join(self.train_dir, 'Y/{}.JPEG'.format(filename))
-            misc.imsave(x_path, X_train[i], format='JPEG')
-            misc.imsave(y_path, Y_train[i], format='JPEG')
+            toon_path = os.path.join(self.train_dir, 'cartoon/{}.JPEG'.format(filename))
+            edge_path = os.path.join(self.train_dir, 'edge/{}.JPEG'.format(filename))
+            img_path = os.path.join(self.train_dir, 'image/{}.JPEG'.format(filename))
+            image_cartoon = cartoonify(img_train[i], num_donw_samp=1)
+            image_edge = auto_canny(img_train[i])
+            misc.imsave(toon_path, image_cartoon, format='JPEG')
+            misc.imsave(edge_path, image_edge, format='JPEG')
+            misc.imsave(img_path, img_train[i], format='JPEG')
             if not i % 500:
-                print('Processed %d of %d train-images.' % (i, len(X_train)))
+                print('Processed %d of %d train-images.' % (i, len(img_train)))
 
-        for i in range(len(X_val)):
+        for i in range(len(img_val)):
             filename = 'val_{}'.format(i + 1)
-            x_path = os.path.join(self.val_dir, 'X/{}.JPEG'.format(filename))
-            y_path = os.path.join(self.val_dir, 'Y/{}.JPEG'.format(filename))
-            misc.imsave(x_path, X_val[i], format='JPEG')
-            misc.imsave(y_path, Y_val[i], format='JPEG')
+            toon_path = os.path.join(self.val_dir, 'cartoon/{}.JPEG'.format(filename))
+            edge_path = os.path.join(self.val_dir, 'edge/{}.JPEG'.format(filename))
+            img_path = os.path.join(self.val_dir, 'image/{}.JPEG'.format(filename))
+            image_cartoon = cartoonify(img_val[i], num_donw_samp=1)
+            image_edge = auto_canny(img_val[i])
+            misc.imsave(toon_path, image_cartoon, format='JPEG')
+            misc.imsave(edge_path, image_edge, format='JPEG')
+            misc.imsave(img_path, img_val[i], format='JPEG')
             if not i % 500:
-                print('Processed %d of %d test-images.' % (i, len(X_val)))
+                print('Processed %d of %d val-images.' % (i, len(img_val)))
 
 
 class CIFAR10(Dataset):

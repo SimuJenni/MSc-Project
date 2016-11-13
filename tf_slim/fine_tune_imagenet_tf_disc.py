@@ -230,7 +230,7 @@ with sess.as_default():
         if tensorflow_model and fine_tune:
             # TODO: Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                exclude=var2train)
+                exclude=[v.op.name for v in var2train])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.

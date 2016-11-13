@@ -3,7 +3,6 @@ from threading import Thread
 import cv2
 import numpy as np
 from skimage.restoration import denoise_tv_chambolle
-import matplotlib.pyplot as plt
 from skimage import img_as_int
 
 
@@ -155,6 +154,8 @@ def process_data(X, num_threads=10, num_downsample=2):
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     img_rgb = plt.imread("test.jpg")
     img_rgb = cv2.resize(img_rgb, (4*256, 4*256))
 

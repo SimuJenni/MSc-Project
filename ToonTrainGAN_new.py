@@ -30,7 +30,7 @@ chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 load_weights = False
-noise_lvl = 1.0
+noise_lvl = 2.0
 noise_decay_rate = 0.9
 
 # Load the models
@@ -79,7 +79,6 @@ for epoch in range(nb_epoch):
 
         # Update the weights
         generator.set_weights(gen_gan.get_weights())
-        discriminator.set_weights(disc_gan.get_weights())
 
         # Train discriminator
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
@@ -95,7 +94,6 @@ for epoch in range(nb_epoch):
 
         # Update the weights
         disc_gan.set_weights(discriminator.get_weights())
-        gen_gan.set_weights(generator.get_weights())
 
         # Train generator
         h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],

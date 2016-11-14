@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import Disc, Gen, disc_data
+from ToonNet import Disc, Gen, disc_data, gen_data
 from constants import MODEL_DIR
 from datasets import CIFAR10_Toon
 
@@ -43,13 +43,13 @@ print('Training network: {}'.format(net_name))
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size).next()
-Y_pred = generator.predict([toon_test, edge_test], batch_size=batch_size)
+Y_pred = generator.predict(gen_data(toon_test, edge_test), batch_size=batch_size)
 Xd_test, yd_test = disc_data(toon_test, im_test, Y_pred, p_wise=False, with_x=False)
 
 for toon_train, edge_train, im_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
                                                         target_size=data.target_size):
     # Prepare training data
-    Y_pred = generator.predict([toon_train, edge_train], batch_size=batch_size)
+    Y_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
     Xd_train, yd_train = disc_data(toon_train, im_train, Y_pred, p_wise=False, with_x=False)
 
     # Train discriminator

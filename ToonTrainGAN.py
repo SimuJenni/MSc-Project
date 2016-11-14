@@ -108,13 +108,13 @@ for epoch in range(nb_epoch):
         g_disc.set_weights(d_disc.get_weights())
         g_gen.set_weights(d_gen.get_weights())
 
-        # # Train generator
-        #
-        # # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        # h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-        #              y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
-        # for key, value in h.history.iteritems():
-        #     print('{}: {}'.format(key, value))
+        # Train generator
+
+        # h = gGAN.fit(x=[X_train, Y_train], y=[target]*len(gGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train],
+                     y=[np.zeros((len(toon_train), 1)), target, target], nb_epoch=1, batch_size=batch_size, verbose=0)
+        for key, value in h.history.iteritems():
+            print('{}: {}'.format(key, value))
 
         # t_loss = h.history['loss'][0]
         # l2 = h.history['{}_loss'.format(gGAN.output_names[0])][0]

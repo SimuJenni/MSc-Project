@@ -33,8 +33,8 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 
 # Load the models
-generator = Gen(data.dims, load_weights=False, num_layers=3)
-discriminator = Disc(data.dims, load_weights=False)
+generator = Gen(data.dims, load_weights=False, num_layers=num_layers)
+discriminator = Disc(data.dims, load_weights=False, num_layers=num_layers)
 discriminator.summary()
 
 # Name used for saving of model and outputs

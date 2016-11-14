@@ -129,7 +129,7 @@ for epoch in range(nb_epoch):
             decoded_imgs = generator.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]),
                                              batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
-                    os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}-small_m_bigF.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
+                    os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights
             g_disc.save_weights(disc_weights)
             g_gen.save_weights(gen_weights)

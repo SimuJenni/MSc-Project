@@ -5,31 +5,36 @@ import sys
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import Discriminator, Generator, disc_data
+from ToonNet import Disc, Gen, disc_data
 from constants import MODEL_DIR
-from datasets import ImagenetToon
+from datasets import CIFAR10_Toon
 
 
 def compute_accuracy(y_hat, y):
     return 1.0 - np.mean(np.abs(np.round(y_hat) - y))
 
+# Get the data-set object
+data = CIFAR10_Toon()
+datagen = ImageDataGenerator(
+    rotation_range=10,
+    width_shift_range=0.05,
+    height_shift_range=0.05,
+    shear_range=0.05,
+    zoom_range=[0.9, 1.0],
+    fill_mode='nearest',
+    horizontal_flip=True
+)
 
 # Training parameters
-batch_size = 64
-chunk_size = 32 * batch_size
-num_train = 200000
-num_res_g = 16
-disc_with_x = False
-p_wise = False
-
-# Get the data-set object
-data = ImagenetToon(num_train=num_train, target_size=(128, 128))
-datagen = ImageDataGenerator()
+num_layers = 3
+batch_size = 100
+chunk_size = 4 * batch_size
+num_chunks = data.num_train // chunk_size
+nb_epoch = 100
 
 # Load the models
-generator = Generator(data.dims, load_weights=True, w_outter=False, num_res=num_res_g)
-discriminator = Discriminator(data.dims, load_weights=False, train=True, withx=disc_with_x, p_wise_out=p_wise,
-                              num_res=0, big_f=True)
+generator = Gen(data.dims, load_weights=False, num_layers=3)
+discriminator = Disc(data.dims, load_weights=False)
 discriminator.summary()
 
 # Name used for saving of model and outputs
@@ -39,13 +44,13 @@ print('Training network: {}'.format(net_name))
 # Create test data
 X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size).next()
 Y_pred = generator.predict(X_test, batch_size=batch_size)
-Xd_test, yd_test = disc_data(X_test, Y_test, Y_pred, p_wise=p_wise, with_x=disc_with_x)
+Xd_test, yd_test = disc_data(X_test, Y_test, Y_pred, p_wise=False, with_x=False)
 
 for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
                                                     target_size=data.target_size):
     # Prepare training data
     Y_pred = generator.predict(X_train, batch_size=batch_size)
-    Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=p_wise, with_x=disc_with_x)
+    Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=False, with_x=False)
 
     # Train discriminator
     discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)

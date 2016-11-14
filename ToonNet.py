@@ -167,6 +167,24 @@ def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
     return generator
 
 
+def Disc(input_shape, load_weights=False, num_layers=4):
+    # Build the model
+    input_gen = Input(shape=input_shape)
+
+    d_out, _ = ToonDisc(input_gen, num_layers=num_layers, activation='relu')
+    discriminator = Model(input_gen, d_out)
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
+
+    # Load weights
+    if load_weights:
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Compile
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return discriminator
+
+
 def ToonGenerator(x, out_activation='tanh', num_res_layers=0, activation='relu', num_layers=5):
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)

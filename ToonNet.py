@@ -52,7 +52,11 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     return decoded, encoded
 
 
-def ToonDisc(x, activation='lrelu', num_layers=5):
+def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
+
+    if noise:
+        x = GaussianNoise(sigma=K.get_value(noise))(x)
+
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
 
@@ -99,7 +103,7 @@ def cos_sim(x, y):
     return x
 
 
-def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, ):
+def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=None):
     gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
 
     # Build Generator
@@ -111,7 +115,7 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, ):
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu')
+    d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_disc, output=[d_out, d_enc])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     make_trainable(discriminator, False)
@@ -206,11 +210,11 @@ def Gen(input_shape, load_weights=False, num_layers=4, batch_size=128):
     return generator
 
 
-def Disc(input_shape, load_weights=False, num_layers=4):
+def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
     # Build the model
     input_gen = Input(shape=input_shape)
 
-    d_out, _ = ToonDisc(input_gen, num_layers=num_layers, activation='relu')
+    d_out, _ = ToonDisc(input_gen, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_gen, d_out)
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
 

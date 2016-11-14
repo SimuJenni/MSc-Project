@@ -25,11 +25,13 @@ datagen = ImageDataGenerator(
 
 # Training parameters
 num_layers = 3
-batch_size = 100
+batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 load_weights = False
+noise_lvl = 1.0
+noise_decay_rate = 0.9
 
 # Load the models
 generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
@@ -81,6 +83,8 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
+        img_train += np.random.normal(scale=noise_lvl, size=img_train.shape)
+        im_pred += np.random.normal(scale=noise_lvl, size=img_train.shape)
         Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
 
         h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
@@ -117,6 +121,9 @@ for epoch in range(nb_epoch):
     # Save the weights
     disc_gan.save_weights(disc_weights)
     gen_gan.save_weights(gen_weights)
+
+    # Update noise lvl
+    noise_lvl *= noise_decay_rate
 
     _stop.set()
     del data_gen_queue, threads

@@ -12,7 +12,7 @@ from datasets import CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = CIFAR10_Toon(target_size=(64, 64))
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
     rotation_range=10,
     width_shift_range=0.05,
@@ -24,7 +24,7 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 4
+num_layers = 3
 batch_size = 100
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size

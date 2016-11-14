@@ -34,9 +34,12 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
-            x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
-            x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
-                               batch_size=batch_size, activation=activation)
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
+                                     noise_ch=NOISE_CHANNELS[num_layers - l])
+
+            # x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
+            # x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
+            #                    batch_size=batch_size, activation=activation)
 
     x = add_noise_planes(x, NOISE_CHANNELS[0])
     x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
@@ -46,7 +49,6 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
 
 
 def ToonDisc(x, activation='lrelu', num_layers=5):
-
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
 
@@ -54,10 +56,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers-1], stride=1, border='valid', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
     encoded = x
 
-    #p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
+    # p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
@@ -89,8 +91,7 @@ def cos_sim(x, y):
     return x
 
 
-def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False,):
-
+def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False, ):
     gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
 
     # Build Generator
@@ -438,7 +439,6 @@ def up_conv_act(layer_in, f_size, f_channels, activation='relu'):
         return tuple(shape)
 
     x = Lambda(resize, output_shape=resize_output_shape)(layer_in)
-    # x = UpSampling2D()(layer_in)
     x = conv_act(x, f_size=f_size, f_channels=f_channels, stride=1, border='same', activation=activation)
     return x
 
@@ -580,11 +580,11 @@ def l2_loss(y_true, y_pred):
 
 
 def l2_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.maximum(1.0-K.mean(K.square(y_pred), axis=-1), 0)
+    return -K.maximum(1.0 - K.mean(K.square(y_pred), axis=-1), 0)
 
 
 def l2_ms(y_true, y_pred):
-    return -K.mean(K.maximum(0.5-K.square(y_pred), 0), axis=-1)
+    return -K.mean(K.maximum(0.5 - K.square(y_pred), 0), axis=-1)
 
 
 def ld_0(y_true, y_pred):
@@ -596,7 +596,7 @@ def ld_1(y_true, y_pred):
 
 
 def disc_loss_g(y_true, y_pred):
-    return K.mean(K.maximum(-K.log(1-y_pred) + K.log(0.5), 0.0), axis=-1)
+    return K.mean(K.maximum(-K.log(1 - y_pred) + K.log(0.5), 0.0), axis=-1)
 
 
 def disc_loss_d0(y_true, y_pred):
@@ -604,7 +604,7 @@ def disc_loss_d0(y_true, y_pred):
 
 
 def disc_loss_d1(y_true, y_pred):
-    return K.mean(-K.log(1.0-y_pred + 1e-3), axis=-1)
+    return K.mean(-K.log(1.0 - y_pred + 1e-3), axis=-1)
 
 
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,
@@ -725,8 +725,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
 
 
 def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=20.0, d_weight=1.0, num_res=0):
-
+           r_weight=20.0, d_weight=1.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
     gen_out, gen_enc = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
@@ -737,7 +736,8 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='relu')
+    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res,
+                                          activation='relu')
     discriminator = Model(input_disc, output=[dis_out, disc_enc])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:
@@ -767,14 +767,16 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
     l2 = sub(d_y, y_input)
     if train_disc:
         gan = Model(input=[x_input, y_input], output=[l2, de_g_x, de_y])
-        gan.compile(loss=[l2_loss, disc_loss_d0, disc_loss_d1], loss_weights=[r_weight, d_weight, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, disc_loss_d0, disc_loss_d1], loss_weights=[r_weight, d_weight, d_weight],
+                    optimizer=optimizer)
         gan.name = make_name('dGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
     else:
         l3 = sub(g_x, y_input)
         make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, l3, de_g_x])
-        gan.compile(loss=[l2_loss, l2_loss, disc_loss_d1], loss_weights=[r_weight, r_weight/2.0, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_loss, disc_loss_d1], loss_weights=[r_weight, r_weight / 2.0, d_weight],
+                    optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 
@@ -782,8 +784,7 @@ def EBGAN2(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
 
 def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=20.0, d_weight=1.0, num_res=0):
-
+           r_weight=20.0, d_weight=1.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
     gen_out, gen_enc = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
@@ -794,7 +795,8 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res, activation='lrelu')
+    dis_out, disc_enc = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res,
+                                          activation='lrelu')
     discriminator = Model(input_disc, output=[dis_out, disc_enc])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:
@@ -835,7 +837,8 @@ def EBGAN3(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_
         l3 = sub(g_x, y_input)
         make_trainable(class_net, False)
         gan = Model(input=[x_input, y_input], output=[l1, l3, de_g_x])
-        gan.compile(loss=[l2_loss, l2_loss, ld_1], loss_weights=[r_weight, r_weight/2.0, d_weight], optimizer=optimizer)
+        gan.compile(loss=[l2_loss, l2_loss, ld_1], loss_weights=[r_weight, r_weight / 2.0, d_weight],
+                    optimizer=optimizer)
         gan.name = make_name('gGAN2', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
                              d_weight=d_weight)
 
@@ -919,7 +922,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     # Build Generator
     input_gen = Input(shape=input_shape)
     gen_out, gen_layers = ToonGenerator_old(input_gen, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
-                                        activation=activation)
+                                            activation=activation)
     generator = Model(input_gen, gen_out)
     gen_enc_out = [gen_layers[l - 1] for l in layers]
     gen_enc = Model(input_gen, gen_enc_out)
@@ -941,7 +944,7 @@ def GANwGen(input_shape, load_weights=False, big_f=False, recon_weight=5.0, with
     # Build Encoder
     input_encoder = Input(shape=input_shape)
     _, enc_layers = ToonGenerator_old(input_encoder, big_f=big_f, num_res_layers=num_res_g, outter=w_outter,
-                                  activation=activation)
+                                      activation=activation)
     enc_out = [enc_layers[l - 1] for l in layers]
     enc_on_gan = Model(input_encoder, output=enc_out)
     make_trainable(enc_on_gan, False)

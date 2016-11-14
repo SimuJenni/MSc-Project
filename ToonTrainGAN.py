@@ -45,8 +45,8 @@ gGAN, g_gen, g_disc = ToonGAN(data.dims,
                               train_disc=False)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(gGAN.name))
-disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(dGAN.name))
+gen_weights = os.path.join(MODEL_DIR, '{}_resize.hdf5'.format(gGAN.name))
+disc_weights = os.path.join(MODEL_DIR, '{}_resize.hdf5'.format(dGAN.name))
 # g_disc.load_weights(disc_weights)
 # g_gen.load_weights(gen_weights)
 

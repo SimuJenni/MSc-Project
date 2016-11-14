@@ -44,8 +44,8 @@ from ToonNet import ToonGen, ToonDisc, ToonGAN
 # montage(test_img[:, :, :] * 0.5 + 0.5, 'Test-Image.jpeg')
 
 
-im_dim = 64
-num_l = 4
+im_dim = 32
+num_l = 3
 input_gen = Input(batch_shape=(64, im_dim, im_dim, 3))
 decoded, _ = ToonGen(input_gen, num_layers=num_l, batch_size=64)
 generator = Model(input_gen, decoded)

@@ -12,12 +12,13 @@ from keras.optimizers import Adam
 from constants import MODEL_DIR
 
 F_DIMS = [64, 128, 256, 512, 1024, 2048]
+F_G_DIMS = [64, 96, 160, 256, 416, 672, 1088]
+
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
 def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
-    f_dims = F_DIMS[:num_layers]
-    in_dim = K.int_shape(x)[1]
+    f_dims = F_G_DIMS[:num_layers+1]
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
@@ -28,30 +29,24 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
             # x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
-    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     #x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
-    x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], out_dim=l_dims[num_layers - 1],
+    x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers-1], out_dim=l_dims[num_layers - 1],
                        batch_size=batch_size, activation=activation, border='same')
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
             # x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
             #                          noise_ch=NOISE_CHANNELS[num_layers - l])
-
             x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
             x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
                                batch_size=batch_size, activation=activation)
 
     x = add_noise_planes(x, NOISE_CHANNELS[0])
-    #x = Convolution2D(3, 4, 4, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = Deconvolution2D(3, 4, 4,
-                        output_shape=(batch_size, in_dim, in_dim, 3),
-                        border_mode='same',
-                        subsample=(1, 1),
-                        init='he_normal')(x)
+    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
     return decoded, encoded
@@ -63,10 +58,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
-            x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
+    p_out = x
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
-    encoded = x
 
     # p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
     x = Flatten()(x)
@@ -78,11 +73,15 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
     x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
-    return d_out, encoded
+    return d_out, p_out
 
 
 def max_val(y_true, y_pred):
     return -y_pred
+
+
+def min_val_margin(y_true, y_pred):
+    return K.maximum(-y_pred, 0.5)
 
 
 def cos_sim(x, y):
@@ -131,18 +130,21 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(img_input)
-    l_feat = sub(de_g_x, de_y)
+    l_feat = cos_sim(de_g_x, de_y)
+    # l_feat = sub(de_g_x, de_y)
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
         gan = Model(input=[g_input, img_input], output=[d_g_x, d_y, l_feat])
-        gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
+        #gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
+        gan.compile(loss=[ld_0, ld_1, min_val_margin], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l_rec = sub(g_x, img_input)
         gan = Model(input=[g_input, img_input], output=[d_g_x, l_rec, l_feat])
-        gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
+        #gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=[ld_1, l2_loss, max_val], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator

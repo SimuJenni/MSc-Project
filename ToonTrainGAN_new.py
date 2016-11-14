@@ -31,7 +31,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 load_weights = False
 noise_lvl = 2.0
-noise_decay_rate = 0.9
+noise_decay_rate = 0.95
 
 # Load the models
 generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)

@@ -43,18 +43,19 @@ from ToonNet import ToonGen, ToonDisc, ToonGAN
 # montage(np.squeeze(test_edges[:, :, :]), 'Test-Edge.jpeg', gray=True)
 # montage(test_img[:, :, :] * 0.5 + 0.5, 'Test-Image.jpeg')
 
+#
+# input_gen = Input(batch_shape=(64, 32, 32, 3))
+# decoded, _ = ToonGen(input_gen, num_layers=3, batch_size=64)
+# generator = Model(input_gen, decoded)
+# p_out, d_out = ToonDisc(input_gen, num_layers=3)
+# discriminator = Model(input_gen, [p_out, d_out])
+#
+# # Compile
+# generator.compile(loss='mse', optimizer='adam')
+# generator.summary()
+# discriminator.compile(loss='mse', optimizer='adam')
+# discriminator.summary()
 
-im_dim = 32
-num_l = 3
-input_gen = Input(batch_shape=(64, im_dim, im_dim, 3))
-decoded, _ = ToonGen(input_gen, num_layers=num_l, batch_size=64)
-generator = Model(input_gen, decoded)
-p_out, d_out = ToonDisc(input_gen, num_layers=num_l)
-discriminator = Model(input_gen, [p_out, d_out])
+gan, generator, discriminator = ToonGAN(input_shape=(32, 32, 3), num_layers=3, batch_size=128, train_disc=True)
 
-# Compile
-generator.compile(loss='mse', optimizer='adam')
-generator.summary()
-discriminator.compile(loss='mse', optimizer='adam')
-discriminator.summary()
 

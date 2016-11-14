@@ -43,7 +43,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
             #                    batch_size=batch_size, activation=activation)
 
     x = add_noise_planes(x, NOISE_CHANNELS[0])
-    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    x = Convolution2D(3, 4, 4, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
     return decoded, encoded

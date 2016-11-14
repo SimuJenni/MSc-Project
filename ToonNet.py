@@ -19,7 +19,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     f_dims = F_DIMS[:num_layers]
     in_dim = K.int_shape(x)[1]
     x = add_noise_planes(x, 1)
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
 
     for l in range(1, num_layers):
@@ -28,13 +28,13 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
             # x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
     #x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
-    x = conv_transp_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], out_dim=l_dims[num_layers - 1],
-                       batch_size=batch_size, activation=activation)
+    x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], out_dim=l_dims[num_layers - 1],
+                       batch_size=batch_size, activation=activation, border='same')
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
@@ -47,9 +47,9 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
 
     x = add_noise_planes(x, NOISE_CHANNELS[0])
     #x = Convolution2D(3, 4, 4, border_mode='same', subsample=(1, 1), init='he_normal')(x)
-    x = Deconvolution2D(3, 4, 5,
+    x = Deconvolution2D(3, 4, 4,
                         output_shape=(batch_size, in_dim, in_dim, 3),
-                        border_mode='valid',
+                        border_mode='same',
                         subsample=(1, 1),
                         init='he_normal')(x)
     decoded = Activation(out_activation)(x)

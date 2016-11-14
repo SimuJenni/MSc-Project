@@ -89,7 +89,7 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         # h = dGAN.fit(x=[X_train, Y_train], y=[target]*len(dGAN.output_names), nb_epoch=1, batch_size=batch_size, verbose=0)
-        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2 + [target],
+        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2,
                      nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))

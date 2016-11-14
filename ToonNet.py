@@ -60,8 +60,8 @@ def ToonDisc(x, activation='lrelu', num_layers=5):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
-    p_out = x
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    p_out = x
 
     # p_out = Convolution2D(1, 1, 1, subsample=(1, 1), init='he_normal', activation='sigmoid')(x)
     x = Flatten()(x)
@@ -136,8 +136,8 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
-        gan = Model(input=[g_input, img_input], output=[d_g_x, d_y, l_feat])
-        gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
+        gan = Model(input=[g_input, img_input], output=[d_g_x, d_y])
+        gan.compile(loss=[ld_0, ld_1], loss_weights=[1.0, 1.0], optimizer=optimizer)
         #gan.compile(loss=[ld_0, ld_1, min_val_margin], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:

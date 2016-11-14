@@ -137,7 +137,7 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     if train_disc:
         gan = Model(input=[g_input, img_input], output=[d_g_x, d_y])
-        gan.compile(loss=[ld_0, ld_1], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=[ld_0, ld_1], loss_weights=[1.0, 10.0], optimizer=optimizer)
         #gan.compile(loss=[ld_0, ld_1, min_val_margin], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:

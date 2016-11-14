@@ -23,7 +23,8 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
-            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+            # x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)

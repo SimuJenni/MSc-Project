@@ -130,21 +130,21 @@ def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_wei
 
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(img_input)
-    l_feat = cos_sim(de_g_x, de_y)
-    # l_feat = sub(de_g_x, de_y)
+    # l_feat = cos_sim(de_g_x, de_y)
+    l_feat = sub(de_g_x, de_y)
 
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
         gan = Model(input=[g_input, img_input], output=[d_g_x, d_y, l_feat])
-        #gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
-        gan.compile(loss=[ld_0, ld_1, min_val_margin], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=[ld_0, ld_1, l2_margin], loss_weights=[1.0, 1.0, -1.0], optimizer=optimizer)
+        #gan.compile(loss=[ld_0, ld_1, min_val_margin], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_d', num_layers=num_layers)
     else:
         l_rec = sub(g_x, img_input)
         gan = Model(input=[g_input, img_input], output=[d_g_x, l_rec, l_feat])
-        #gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
-        gan.compile(loss=[ld_1, l2_loss, max_val], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=[ld_1, l2_loss, l2_loss], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
+        #gan.compile(loss=[ld_1, l2_loss, max_val], loss_weights=[1.0, 1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGAN_g', num_layers=num_layers)
 
     return gan, generator, discriminator
@@ -591,7 +591,7 @@ def l2_loss(y_true, y_pred):
 
 
 def l2_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.maximum(1.0 - K.mean(K.square(y_pred), axis=-1), 0)
+    return -K.maximum(2.0 - K.mean(K.square(y_pred), axis=-1), 0)
 
 
 def l2_ms(y_true, y_pred):

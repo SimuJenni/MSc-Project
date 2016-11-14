@@ -94,7 +94,8 @@ for epoch in range(nb_epoch):
         gen_gan.set_weights(generator.get_weights())
 
         # Train generator
-        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.ones((len(toon_train), 1)), img_train],
+        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
+                    y=[np.ones((len(toon_train), 1)), img_train, target],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))

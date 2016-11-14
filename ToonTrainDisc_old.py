@@ -42,15 +42,15 @@ net_name = '{}-{}'.format(discriminator.name, data.name)
 print('Training network: {}'.format(net_name))
 
 # Create test data
-X_test, Y_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size).next()
-Y_pred = generator.predict(X_test, batch_size=batch_size)
-Xd_test, yd_test = disc_data(X_test, Y_test, Y_pred, p_wise=False, with_x=False)
+toon_test, edge_test, im_test = datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size).next()
+Y_pred = generator.predict([toon_test, edge_test], batch_size=batch_size)
+Xd_test, yd_test = disc_data(toon_test, im_test, Y_pred, p_wise=False, with_x=False)
 
-for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
-                                                    target_size=data.target_size):
+for toon_train, edge_train, im_train in datagen.flow_from_directory(data.train_dir, batch_size=chunk_size,
+                                                        target_size=data.target_size):
     # Prepare training data
-    Y_pred = generator.predict(X_train, batch_size=batch_size)
-    Xd_train, yd_train = disc_data(X_train, Y_train, Y_pred, p_wise=False, with_x=False)
+    Y_pred = generator.predict([toon_train, edge_train], batch_size=batch_size)
+    Xd_train, yd_train = disc_data(toon_train, im_train, Y_pred, p_wise=False, with_x=False)
 
     # Train discriminator
     discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
@@ -71,7 +71,7 @@ for X_train, Y_train in datagen.flow_from_directory(data.train_dir, batch_size=c
         training_done = True
         break
 
-    del Y_pred, X_train, Y_train, Xd_train, yd_train
+    del Y_pred, toon_train, edge_train, im_train, Xd_train, yd_train
     gc.collect()
 
 discriminator.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(net_name)))

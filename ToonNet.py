@@ -599,7 +599,7 @@ def l1_loss(y_true, y_pred):
 
 
 def l1_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.maximum(2.0 - K.mean(K.abs(y_pred), axis=-1), 0)
+    return -K.maximum(0.0 - K.mean(K.abs(y_pred), axis=-1), 0)
 
 
 def l2_ms(y_true, y_pred):

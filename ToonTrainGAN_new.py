@@ -31,7 +31,7 @@ chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 load_weights = False
-noise = K.variable(value=1.0, name='sigma')
+noise = K.variable(value=0.5, name='sigma')
 noise_decay_rate = 0.95
 
 # Load the models
@@ -46,6 +46,7 @@ GAN, gen_gan, disc_gan = GAN(data.dims,
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}_gan.hdf5'.format(gen_gan.name))
 disc_weights = os.path.join(MODEL_DIR, '{}_gan.hdf5'.format(disc_gan.name))
+disc_gan.set_weights(discriminator.get_weights())
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
@@ -77,27 +78,30 @@ for epoch in range(nb_epoch):
                 time.sleep(0.05)
 
         target = np.zeros_like(img_train)
-        print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
         # Update the weights
         generator.set_weights(gen_gan.get_weights())
 
-        # Train discriminator
+        # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+        d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
+        if(np.mean(d_out)>0.1):
+            # Train discriminator
+            print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
+            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
 
-        h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
-        for key, value in h.history.iteritems():
-            print('{}: {}'.format(key, value))
+            h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+            d_loss = h.history['loss']
+            print('D-Loss: {}'.format(d_loss))
+
+            # Update the weights
+            disc_gan.set_weights(discriminator.get_weights())
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
-        # Update the weights
-        disc_gan.set_weights(discriminator.get_weights())
-
         # Train generator
         h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                    y=[np.ones((len(toon_train), 1)), img_train, target],
+                    y=[np.ones((len(toon_train), 1)), img_train, dp_out],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
             print('{}: {}'.format(key, value))

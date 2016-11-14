@@ -18,7 +18,7 @@ NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
 def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
-    f_dims = F_G_DIMS[:num_layers+1]
+    f_dims = F_DIMS[:num_layers+1]
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]

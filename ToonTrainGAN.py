@@ -24,7 +24,7 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 4
+num_layers = 3
 batch_size = 100
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
@@ -48,8 +48,8 @@ gGAN, g_gen, g_disc = ToonGAN(data.dims,
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}_resize.hdf5'.format(gGAN.name))
 disc_weights = os.path.join(MODEL_DIR, '{}_resize.hdf5'.format(dGAN.name))
-g_disc.load_weights(disc_weights)
-g_gen.load_weights(gen_weights)
+#g_disc.load_weights(disc_weights)
+#g_gen.load_weights(gen_weights)
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,

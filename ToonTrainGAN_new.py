@@ -82,9 +82,9 @@ for epoch in range(nb_epoch):
 
         # Train discriminator
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        img_train += np.random.normal(scale=noise_lvl, size=img_train.shape)
+        img_noisy = img_train + np.random.normal(scale=noise_lvl, size=img_train.shape)
         im_pred += np.random.normal(scale=noise_lvl, size=img_train.shape)
-        Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+        Xd_train, yd_train = disc_data(toon_train, img_noisy, im_pred)
 
         h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
         for key, value in h.history.iteritems():
@@ -112,7 +112,7 @@ for epoch in range(nb_epoch):
             # Save the weights
             disc_gan.save_weights(disc_weights)
             gen_gan.save_weights(gen_weights)
-            del toon_train, img_train, target, h, decoded_imgs
+            del toon_train, img_train, target, h, decoded_imgs, img_noisy, im_pred
             gc.collect()
         sys.stdout.flush()
 

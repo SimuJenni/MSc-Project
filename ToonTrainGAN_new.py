@@ -60,6 +60,7 @@ print('GAN training: {}'.format(GAN.name))
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
+    train_disc = True
 
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
@@ -85,7 +86,7 @@ for epoch in range(nb_epoch):
         # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        if np.mean(d_out > 0.25) > 0.125:
+        if np.mean(d_out) > 0.25 or train_disc:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -96,6 +97,7 @@ for epoch in range(nb_epoch):
 
             # Update the weights
             disc_gan.set_weights(discriminator.get_weights())
+            train_disc = False
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 

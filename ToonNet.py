@@ -288,6 +288,27 @@ def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
     return discriminator
 
 
+def Disc2(input_shape, load_weights=False, num_layers=4, noise=None):
+    # Build the model
+    input_disc1 = Input(shape=input_shape)
+    input_disc2 = Input(shape=input_shape)
+
+    d_out1, _ = ToonDisc(input_disc1, num_layers=num_layers, activation='relu', noise=noise)
+    d_out2, _ = ToonDisc(input_disc2, num_layers=num_layers, activation='relu', noise=noise)
+
+    discriminator = Model([input_disc1, input_disc2], [d_out1, d_out2])
+    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
+
+    # Load weights
+    if load_weights:
+        discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
+
+    # Compile
+    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    discriminator.compile(loss=['binary_crossentropy', 'binary_crossentropy'], optimizer=optimizer)
+    return discriminator
+
+
 def DiscAE(input_shape, load_weights=False, num_layers=4, noise=None):
     # Build the model
     input_gen = Input(shape=input_shape)

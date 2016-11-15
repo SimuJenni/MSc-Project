@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import GAN2, gen_data
+from ToonNet import Disc2
 from constants import MODEL_DIR
 from datasets import CIFAR10_Toon
 from utils import generator_queue
@@ -32,21 +32,17 @@ nb_epoch = 100
 load_weights = False
 
 # Load the models
-dGAN, d_gen, d_disc = GAN2(data.dims,
-                           batch_size=batch_size,
-                           num_layers=num_layers,
-                           load_weights=load_weights,
-                           train_disc=True)
+disc = Disc2(data.dims, num_layers=num_layers)
 
 # Paths for storing the weights
-disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(d_disc.name))
+disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(disc.name))
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
                                                             target_size=data.target_size).next()
 
 # Training
-print('Discriminaotor training: {}'.format(d_disc.name))
+print('Discriminaotor training: {}'.format(disc.name))
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -73,13 +69,14 @@ for epoch in range(nb_epoch):
         # Train discriminator
         yd = np.zeros((len(img_train) + len(img_train), 1))
         yd[:len(img_train)] = 1
-        h = dGAN.train_on_batch(x=[gen_data(toon_train, edge_train), img_train], y=yd)
+        h = disc.fit(x=[toon_train, img_train], y=[np.zeros((len(img_train), 1)), np.ones((len(img_train), 1))],
+                     batch_size=batch_size, verbose=0, nb_epoch=1)
         print(h)
 
         sys.stdout.flush()
 
     # Save the weights
-    d_disc.save_weights(disc_weights)
+    disc.save_weights(disc_weights)
 
     _stop.set()
     del data_gen_queue, threads

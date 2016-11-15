@@ -86,8 +86,7 @@ for epoch in range(nb_epoch):
         # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        print(np.mean(d_out))
-        if np.mean(d_out) > 0.25 or train_disc:
+        if train_disc or l1<1.0:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -107,10 +106,11 @@ for epoch in range(nb_epoch):
                     y=[np.ones((len(toon_train), 1)), img_train, dp_out],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
 
-        loss_str = ''
-        for key, value in sorted(h.history.iteritems()):
-            loss_str = '{}{}: {} '.format(loss_str, key, value)
-        print(loss_str)
+        t_loss = h.history['loss'][0]
+        l1 = h.history['{}_loss'.format(GAN.output_names[0])][0]
+        l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
+        l3 = h.history['{}_loss'.format(GAN.output_names[2])][0]
+        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
 
         # Generate montage of test-images
         if not chunk % 25:

@@ -177,7 +177,7 @@ def _process_image(filename, coder, max_im_dim=256):
     assert image.shape[2] == 3
 
     # Make edge-maps
-    im_edges = auto_canny(image, sigma=0.1)
+    im_edges = auto_canny(image, sigma=0.1)[:, :, None]
 
     # Make cartooned images
     im_toon = cartoonify(image)

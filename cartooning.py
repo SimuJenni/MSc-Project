@@ -90,7 +90,7 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
     return img_color
 
 
-def auto_canny(image, sigma=0.33):
+def auto_canny(image, sigma=0.1):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     image = cv2.medianBlur(image, 3)
 

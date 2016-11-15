@@ -35,8 +35,7 @@ load_weights = False
 dGAN, d_gen, d_disc = GAN(data.dims,
                               batch_size=batch_size,
                               num_layers=num_layers,
-                              load_weights=load_weights,
-                              train_disc=True)
+                              load_weights=load_weights)
 
 # Paths for storing the weights
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(d_disc.name))

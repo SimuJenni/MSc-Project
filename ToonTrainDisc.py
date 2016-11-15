@@ -71,7 +71,7 @@ for epoch in range(nb_epoch):
         yd[:len(img_train)] = 1
         h = disc.fit(x=[toon_train, img_train], y=[np.zeros((len(img_train), 1)), np.ones((len(img_train), 1))],
                      batch_size=batch_size, verbose=0, nb_epoch=1)
-        print(h)
+        print(h.history)
 
         sys.stdout.flush()
 

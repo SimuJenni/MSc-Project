@@ -69,7 +69,7 @@ for epoch in range(nb_epoch):
         # Train discriminator
         yd = np.zeros((len(img_train) + len(img_train), 1))
         yd[:len(img_train)] = 1
-        h = disc.fit(x=[toon_train, img_train], y=[np.zeros((len(img_train), 1)), np.ones((len(img_train), 1))],
+        h = disc.fit(x=[np.zeros_like(toon_train), img_train], y=[np.zeros((len(img_train), 1)), np.ones((len(img_train), 1))],
                      batch_size=batch_size, verbose=0, nb_epoch=1)
         print(h.history)
 

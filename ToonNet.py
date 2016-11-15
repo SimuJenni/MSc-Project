@@ -179,13 +179,13 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
     return d_out, p_out
 
 
-def GANAE(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=None):
+def GANAE(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=None, train_disc=True):
     gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
 
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
     g_out, ge_out = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    generator = Model(input_gen, [g_out, ge_out)
+    generator = Model(input_gen, [g_out, ge_out])
     generator.name = make_name('ToonGen', num_layers=num_layers)
 
     # Build Discriminator

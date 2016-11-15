@@ -437,7 +437,7 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
     if train_disc:
         disc_pred = merge([d_g_x, d_y], mode='concat', concat_axis=0)
         gan = Model(input=[g_input, img_input], output=[disc_pred])
-        gan.compile(loss=ld_merged, loss_weights=1.0, optimizer=optimizer)
+        gan.compile(loss=ld_merged, optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=num_layers)
     else:
         l1 = sub(g_x, img_input)

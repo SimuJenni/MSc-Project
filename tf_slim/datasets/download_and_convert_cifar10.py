@@ -90,7 +90,7 @@ def _add_to_tfrecord(filename, tfrecord_writer, offset=0):
                 # Get image, edge-map and cartooned image
                 image = np.squeeze(images[j]).transpose((1, 2, 0))
                 edges = auto_canny(image)
-                cartoon = cartoonify(image)
+                cartoon = cartoonify(image, num_donw_samp=1)
                 label = labels[j]
 
                 # Encode the images

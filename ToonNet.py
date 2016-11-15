@@ -99,10 +99,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     x = Dense(2048, init='he_normal')(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
     return d_out, p_out
@@ -248,7 +248,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', regularizer=None):
@@ -270,7 +270,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -435,8 +435,9 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
     d_y, de_y = discriminator(img_input)
 
     if train_disc:
-        gan = Model(input=[g_input, img_input], output=[d_g_x, d_y])
-        gan.compile(loss=[ld0, ld1], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        disc_pred = merge([d_g_x, d_y], mode='concat', concat_axis=0)
+        gan = Model(input=[g_input, img_input], output=[disc_pred])
+        gan.compile(loss=ld_merged, loss_weights=1.0, optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=num_layers)
     else:
         l1 = sub(g_x, img_input)
@@ -445,6 +446,13 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
         gan.name = make_name('gGAN', num_layers=num_layers)
 
     return gan, generator, discriminator
+
+
+def ld_merged(y_true, y_pred):
+    t_shape = K.int_shape(y_pred)
+    t_shape[0] /= 2
+    target = K.concatenate([K.zeros(shape=t_shape), K.ones(shape=t_shape)], axis=0)
+    return K.mean(K.binary_crossentropy(y_pred, target), axis=-1)
 
 
 def ld0(y_true, y_pred):

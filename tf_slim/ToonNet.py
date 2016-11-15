@@ -27,8 +27,7 @@ def ToonGenerator(inputs, num_res=16):
         net = slim.conv2d(net, num_outputs=f_dims[3], scope='conv_5', stride=1)
         net = slim.conv2d(net, num_outputs=f_dims[4], scope='conv_5', stride=2)
 
-        # Res-Layers
-        net = slim.repeat(net, num_res, res_layer_bottleneck, f_dims[4], f_dims[1], scope='res')
+
 
         # UpConv1
         net = up_conv2d(net, depth=f_dims[3], scope='upconv_1')
@@ -53,31 +52,29 @@ def ToonGenerator(inputs, num_res=16):
         return net
 
 
-def ToonDiscriminator(inputs, num_res=8):
+def ToonDiscriminator(inputs, num_layers=5):
     f_dims = F_DIMS
     with toon_net_argscope(activation=lrelu):
         # Conv1
         net = slim.conv2d(inputs, num_outputs=32, scope='conv_1', stride=1)
-        l1 = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_1', stride=2)
+        net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_1', stride=2)
 
         # Conv2
-        net = slim.conv2d(l1, num_outputs=f_dims[0], scope='conv_2', stride=1)
-        l2 = slim.conv2d(net, num_outputs=f_dims[1], scope='conv_2', stride=2)
+        net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_2', stride=1)
+        net = slim.conv2d(net, num_outputs=f_dims[1], scope='conv_2', stride=2)
 
         # Conv3
-        net = slim.conv2d(l2, num_outputs=f_dims[1], scope='conv_3', stride=1)
-        l3 = slim.conv2d(net, num_outputs=f_dims[2], scope='conv_3', stride=2)
+        net = slim.conv2d(net, num_outputs=f_dims[1], scope='conv_3', stride=1)
+        net = slim.conv2d(net, num_outputs=f_dims[2], scope='conv_3', stride=2)
 
         # Conv4
-        net = slim.conv2d(l3, num_outputs=f_dims[2], scope='conv_4', stride=1)
-        l4 = slim.conv2d(net, num_outputs=f_dims[3], scope='conv_4', stride=2)
+        net = slim.conv2d(net, num_outputs=f_dims[2], scope='conv_4', stride=1)
+        net = slim.conv2d(net, num_outputs=f_dims[3], scope='conv_4', stride=2)
 
         # Conv5
-        net = slim.conv2d(l4, num_outputs=f_dims[3], scope='conv_5', stride=1)
-        l5 = slim.conv2d(net, num_outputs=f_dims[4], scope='conv_5', stride=2)
+        net = slim.conv2d(net, num_outputs=f_dims[3], scope='conv_5', stride=1)
+        net = slim.conv2d(net, num_outputs=f_dims[4], scope='conv_5', stride=2)
 
-        # Res-Layers
-        net = slim.repeat(l5, num_res, res_layer_bottleneck, f_dims[4], f_dims[1], scope='res')
 
         # Fully connected
         net = slim.fully_connected(net, 2048, scope='fc1')
@@ -97,7 +94,8 @@ def res_layer_bottleneck(inputs, depth, depth_bottleneck, scope=None):
 
 def up_conv2d(net, depth, scope, factor=2):
     in_shape = net.get_shape()
-    net = tf.image.resize_images(net, factor * in_shape[1], factor * in_shape[2])  # TODO: Maybe use nearest neighbor?
+    net = tf.image.resize_images(net, factor * in_shape[1], factor * in_shape[2],
+                                 tf.image.ResizeMethod.NEAREST_NEIGHBOR)
     net = slim.conv2d(net, num_outputs=depth, scope=scope, stride=1)
     return net
 
@@ -114,10 +112,9 @@ def toon_net_argscope(activation=tf.nn.relu):
         'updates_collections': tf.GraphKeys.UPDATE_OPS,
     }
     with slim.arg_scope([slim.conv2d],
-                        kernel_size=[3, 3],
+                        kernel_size=[4, 4],
                         activation_fn=activation,
                         padding='SAME',
-                        weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
                         weights_regularizer=slim.l2_regularizer(0.0001),
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params):

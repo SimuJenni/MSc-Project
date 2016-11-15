@@ -49,7 +49,7 @@ def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, bat
 
 
 def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
-    f_dims = F_DIMS[:num_layers + 1]
+    f_dims = F_DIMS[:num_layers]
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
@@ -59,6 +59,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers-1], stride=1, border='same', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
@@ -137,7 +138,7 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     gan = Model(input=[g_input, img_input], output=[d_g_x, g_x, de_g_x])
-    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[0.5, 10.0, 1.0],
+    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[0.5, 20.0, 1.0],
                 optimizer=optimizer)
     gan.name = make_name('ToonGAN', num_layers=num_layers)
 

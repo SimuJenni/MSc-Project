@@ -6,7 +6,7 @@ from keras.models import Model
 from ToonDataGenerator import ImageDataGenerator
 from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage
-from ToonNet import ToonGen, ToonDisc, ToonGAN
+from ToonNet import ToonGen, ToonDisc
 
 # data = CIFAR10()
 # class_dirs = os.listdir(data.val_dir)

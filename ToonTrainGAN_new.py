@@ -86,8 +86,8 @@ for epoch in range(nb_epoch):
         # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        print(-np.mean(np.log(d_out)))
-        if -np.mean(np.log(d_out)) < 1.0 or train_disc:
+        print(-np.mean(np.log(1.0-d_out)))
+        if -np.mean(np.log(1.0-d_out)) < 1.0 or train_disc:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)

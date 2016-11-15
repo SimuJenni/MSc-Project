@@ -413,7 +413,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
           r_weight=20.0, d_weight=1.0, num_res=0):
     # Build Generator
     input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGenerator(input_gen, num_layers=num_layers_g, num_res_layers=num_res)
+    gen_out, _ = ToonGen(input_gen, num_layers=num_layers_g, batch_size=batch_size)
     generator = Model(input_gen, gen_out)
     generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
     if train_disc:
@@ -421,7 +421,7 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDiscriminator(input_disc, num_layers=num_layers_d, noise=noise, num_res_layers=num_res)
+    dis_out, _ = ToonDisc(input_disc, num_layers=num_layers_d, noise=noise, activation='relu')
     discriminator = Model(input_disc, output=dis_out)
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
     if not train_disc:

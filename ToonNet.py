@@ -168,8 +168,8 @@ def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
     # Build the model
     input_gen = Input(shape=input_shape)
 
-    d_out, _ = ToonDisc(input_gen, num_layers=num_layers, activation='relu', noise=noise)
-    discriminator = Model(input_gen, d_out)
+    d_out, dp_out = ToonDisc(input_gen, num_layers=num_layers, activation='relu', noise=noise)
+    discriminator = Model(input_gen, [d_out, dp_out])
     discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers)
 
     # Load weights
@@ -178,7 +178,7 @@ def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
+    discriminator.compile(loss=['binary_crossentropy', l1_margin], loss_weights=[1.0, -1.0], optimizer=optimizer)
     return discriminator
 
 
@@ -370,8 +370,8 @@ def l2_margin(y_true, y_pred):  # Idea: could pass in margin during training (si
     return -K.maximum(2 - K.mean(K.square(y_pred), axis=-1), 0)
 
 
-def l1_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.maximum(0.0 - K.mean(K.abs(y_pred), axis=-1), 0)
+def l1_margin(y_true, y_pred):
+    return -K.maximum(1.0 - K.mean(K.abs(y_pred-y_true), axis=-1), 0)
 
 
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,
@@ -489,18 +489,15 @@ def make_trainable(net, val):
         l.trainable = val
 
 
-def disc_data(X, Y, Yd, p_wise=False, with_x=False):
+def disc_data(X, Y, Yd, dp_pred, with_x=False):
     if with_x:
         Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
     else:
         Xd = np.concatenate((Y, Yd))
 
-    if p_wise:
-        yd = np.concatenate((np.ones((len(Y), 4, 4, 1)), np.zeros((len(Y), 4, 4, 1))), axis=0)
-    else:
-        yd = np.zeros((len(Y) + len(Yd), 1))
-        yd[:len(Y)] = 1
-    return Xd, yd
+    yd = np.zeros((len(Y) + len(Yd), 1))
+    yd[:len(Y)] = 1
+    return Xd, [yd, dp_pred]
 
 
 def gen_data(im, edge):

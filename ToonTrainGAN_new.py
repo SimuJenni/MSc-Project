@@ -78,19 +78,16 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        target = np.zeros_like(img_train)
-
         # Update the weights
         generator.set_weights(gen_gan.get_weights())
 
         # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        print(-np.mean(np.log(1.0-d_out)))
+        d_out, dp_out = discriminator.predict(im_pred, batch_size=batch_size)
         if -np.mean(np.log(1.0-d_out)) < 1.0 or train_disc:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred, dp_out)
 
             h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
             d_loss = h.history['loss']
@@ -122,7 +119,7 @@ for epoch in range(nb_epoch):
             # Save the weights
             disc_gan.save_weights(disc_weights)
             gen_gan.save_weights(gen_weights)
-            del toon_train, img_train, target, h, decoded_imgs, im_pred
+            del toon_train, img_train, h, decoded_imgs, im_pred
             gc.collect()
         sys.stdout.flush()
 

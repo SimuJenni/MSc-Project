@@ -32,7 +32,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 30
 load_weights = False
 noise = K.variable(value=0.25, name='sigma')
-noise_decay_rate = 0.9
+noise_decay_rate = 0.95
 
 # Load the models
 discriminator = Disc(data.dims, load_weights=False, num_layers=num_layers, noise=noise)

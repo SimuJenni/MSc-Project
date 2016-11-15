@@ -31,8 +31,8 @@ chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 30
 load_weights = False
-noise = K.variable(value=0.5, name='sigma')
-noise_decay_rate = 0.95
+noise = K.variable(value=0.2, name='sigma')
+noise_decay_rate = 0.9
 
 # Load the models
 generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
@@ -85,7 +85,7 @@ for epoch in range(nb_epoch):
         # Prepare training data
         im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        if np.mean(d_out > 0.33) > 0.1:
+        if np.mean(d_out > 0.25) > 0.125:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)

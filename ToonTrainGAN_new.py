@@ -82,7 +82,7 @@ for epoch in range(nb_epoch):
         # Prepare training data
         im_pred = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        if train_disc or l1 < 1.0:
+        if train_disc or l1 < 1.1:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)

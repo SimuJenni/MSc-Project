@@ -366,14 +366,6 @@ def sub(a, b):
     return merge([a, b], mode=lambda x: x[0] - x[1], output_shape=lambda x: x[0])
 
 
-def l2_margin(y_true, y_pred):  # Idea: could pass in margin during training (similar to noise thingie)
-    return -K.maximum(2 - K.mean(K.square(y_pred), axis=-1), 0)
-
-
-def l1_margin(y_true, y_pred):
-    return -K.maximum(1.0 - K.mean(K.abs(y_pred-y_true), axis=-1), 0)
-
-
 def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes=1000, net_load_name=None,
                compile_model=True, use_gen=False):
     # Build encoder
@@ -409,21 +401,22 @@ def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes
     return classifier
 
 
-def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_layers_d=4, noise=None, train_disc=True,
-          r_weight=20.0, d_weight=1.0, num_res=0):
+def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=None, train_disc=True):
+    gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
+
     # Build Generator
-    input_gen = Input(batch_shape=(batch_size,) + input_shape)
-    gen_out, _ = ToonGen(input_gen, num_layers=num_layers_g, batch_size=batch_size)
-    generator = Model(input_gen, gen_out)
-    generator.name = make_name('ToonGenerator', num_layers=num_layers_g, num_res=num_res)
+    input_gen = Input(batch_shape=gen_in_shape)
+    g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    generator = Model(input_gen, g_out)
+    generator.name = make_name('ToonGen', num_layers=num_layers)
     if train_disc:
         make_trainable(generator, False)
 
     # Build Discriminator
     input_disc = Input(shape=input_shape)
-    dis_out, _ = ToonDisc(input_disc, num_layers=num_layers_d, noise=noise, activation='relu')
-    discriminator = Model(input_disc, output=dis_out)
-    discriminator.name = make_name('ToonDiscriminator', num_layers=num_layers_d, num_res=num_res)
+    d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
+    discriminator = Model(input_disc, output=[d_out, d_enc])
+    discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     if not train_disc:
         make_trainable(discriminator, False)
 
@@ -432,28 +425,46 @@ def EBGAN(input_shape, batch_size=128, load_weights=False, num_layers_g=4, num_l
         generator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(generator.name)))
         discriminator.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(discriminator.name)))
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     # Build GAN
-    x_input = Input(batch_shape=(batch_size,) + input_shape)
-    y_input = Input(shape=input_shape)
-    g_x = generator(x_input)
-    d_g_x = discriminator(g_x)
-    d_y = discriminator(y_input)
-    l1 = sub(d_g_x, g_x)
-    l2 = sub(d_y, y_input)
+    g_input = Input(batch_shape=gen_in_shape)
+    img_input = Input(shape=input_shape)
+    g_x = generator(g_input)
+    d_g_x, de_g_x = discriminator(g_x)
+    d_y, de_y = discriminator(img_input)
+
     if train_disc:
-        gan = Model(input=[x_input, y_input], output=[l1, l2])
-        gan.compile(loss=[l2_margin, l2_loss, l2_ms], loss_weights=[-1.0, d_weight], optimizer=optimizer)
-        gan.name = make_name('dGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
-                             d_weight=d_weight)
+        gan = Model(input=[g_input, img_input], output=[d_g_x, d_y])
+        gan.compile(loss=[ld0, ld1], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.name = make_name('dGAN', num_layers=num_layers)
     else:
-        gan = Model(input=[x_input, y_input], output=[l1])
-        gan.compile(loss=[l2_loss], loss_weights=[1.0], optimizer=optimizer)
-        gan.name = make_name('gGAN', num_layers=[num_layers_d, num_layers_g], num_res=num_res, r_weight=r_weight,
-                             d_weight=d_weight)
+        l1 = sub(g_x, img_input)
+        gan = Model(input=[g_input, img_input], output=[d_g_x, l1])
+        gan.compile(loss=[ld1, l2], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.name = make_name('gGAN', num_layers=num_layers)
 
     return gan, generator, discriminator
+
+
+def ld0(y_true, y_pred):
+    return K.mean(K.binary_crossentropy(y_pred, K.zeros_like(y_pred)), axis=-1)
+
+
+def ld1(y_true, y_pred):
+    return K.mean(K.binary_crossentropy(y_pred, K.ones_like(y_pred)), axis=-1)
+
+
+def l2_margin(y_true, y_pred):
+    return -K.maximum(1.0 - K.mean(K.square(y_pred), axis=-1), 0)
+
+
+def l2(y_true, y_pred):
+    return K.mean(K.square(y_pred), axis=-1)
+
+
+def l1_margin(y_true, y_pred):
+    return -K.maximum(1.0 - K.mean(K.abs(y_pred-y_true), axis=-1), 0)
 
 
 def make_name(net_name, w_outter=None, layer=None, with_x=None, big_f=None, num_res=None, p_wise_out=None,

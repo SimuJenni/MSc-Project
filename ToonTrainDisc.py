@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import GAN, gen_data
+from ToonNet import GAN2, gen_data
 from constants import MODEL_DIR
 from datasets import CIFAR10_Toon
 from utils import generator_queue
@@ -32,10 +32,11 @@ nb_epoch = 100
 load_weights = False
 
 # Load the models
-dGAN, d_gen, d_disc = GAN(data.dims,
-                          batch_size=batch_size,
-                          num_layers=num_layers,
-                          load_weights=load_weights)
+dGAN, d_gen, d_disc = GAN2(data.dims,
+                           batch_size=batch_size,
+                           num_layers=num_layers,
+                           load_weights=load_weights,
+                           train_disc=True)
 
 # Paths for storing the weights
 disc_weights = os.path.join(MODEL_DIR, '{}.hdf5'.format(d_disc.name))

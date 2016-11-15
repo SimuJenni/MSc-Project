@@ -29,7 +29,7 @@ num_layers = 3
 batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 30
+nb_epoch = 100
 load_weights = False
 noise = K.variable(value=0.25, name='sigma')
 noise_decay_rate = 0.95

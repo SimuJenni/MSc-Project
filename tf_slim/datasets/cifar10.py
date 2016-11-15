@@ -36,6 +36,8 @@ _NUM_CLASSES = 10
 _ITEMS_TO_DESCRIPTIONS = {
     'image': 'A [32 x 32 x 3] color image.',
     'label': 'A single integer between 0 and 9',
+    'cartoon': 'A [32 x 32 x 3] cartooned image.',
+    'edges': 'A [32 x 32 x 1] edge map.'
 }
 
 
@@ -69,11 +71,17 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
         'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
         'image/class/label': tf.FixedLenFeature(
             [], tf.int64, default_value=tf.zeros([], dtype=tf.int64)),
+        'edges/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+        'edges/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
+        'cartoon/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+        'cartoon/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
     }
 
     items_to_handlers = {
         'image': slim.tfexample_decoder.Image(shape=[32, 32, 3]),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
+        'edges': slim.tfexample_decoder.Image(shape=[32, 32, 3]),
+        'cartoon': slim.tfexample_decoder.Image(shape=[32, 32, 3]),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(

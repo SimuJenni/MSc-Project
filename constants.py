@@ -12,8 +12,10 @@ LOG_DIR = os.path.join(DATA_DIR, 'logs/')
 # Directories for cartooned datasets
 CIFAR10_TOON_DATADIR = os.path.join(DATA_DIR, 'cifar-10-cartoon-new/')
 CIFAR10_DATADIR = os.path.join(DATA_DIR, 'cifar-10/')
+CIFAR10_TF_DATADIR = os.path.join(DATA_DIR, 'cifar-10-TFRecords/')
 TINYIMAGENET_TOON_DATADIR = os.path.join(DATA_DIR, 'tiny-imagenet-toon-strong/')
 IMAGENET_TOON_DATADIR = os.path.join(DATA_DIR, 'imagenet-toon-strong/')
+IMAGENET_TF_DATADIR = os.path.join(DATA_DIR, 'imagenet-TFRecords/')
 
 # Source directories for datasets
 TINYIMAGENET_SRC_DIR = os.path.join(DATA_DIR, 'tiny-imagenet-200-prepped/')

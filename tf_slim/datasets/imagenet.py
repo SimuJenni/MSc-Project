@@ -45,10 +45,10 @@ _SPLITS_TO_SIZES = {
 
 _ITEMS_TO_DESCRIPTIONS = {
     'image': 'A color image of varying height and width.',
+    'edges': 'An edge map of the same size as the image.',
+    'cartoon': 'An cartooned version of the image.',
     'label': 'The label id of the image, integer between 0 and 999',
     'label_text': 'The text of the label.',
-    'object/bbox': 'A list of bounding boxes.',
-    'object/label': 'A list of labels, one per each object.',
 }
 
 _NUM_CLASSES = 1001
@@ -144,44 +144,26 @@ def get_split(split_name, dataset_dir, reader=None):
         reader = tf.TFRecordReader
 
     keys_to_features = {
-        'image/encoded': tf.FixedLenFeature(
-            (), tf.string, default_value=''),
-        'image/format': tf.FixedLenFeature(
-            (), tf.string, default_value='jpeg'),
-        'image/class/label': tf.FixedLenFeature(
-            [], dtype=tf.int64, default_value=-1),
-        'image/class/text': tf.FixedLenFeature(
-            [], dtype=tf.string, default_value=''),
-        # 'image/object/bbox/xmin': tf.VarLenFeature(
-        #     dtype=tf.float32),
-        # 'image/object/bbox/ymin': tf.VarLenFeature(
-        #     dtype=tf.float32),
-        # 'image/object/bbox/xmax': tf.VarLenFeature(
-        #     dtype=tf.float32),
-        # 'image/object/bbox/ymax': tf.VarLenFeature(
-        #     dtype=tf.float32),
-        # 'image/object/class/label': tf.VarLenFeature(
-        #     dtype=tf.int64),
+        'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+        'image/format': tf.FixedLenFeature((), tf.string, default_value='jpeg'),
+        'image/class/label': tf.FixedLenFeature([], dtype=tf.int64, default_value=-1),
+        'image/class/text': tf.FixedLenFeature([], dtype=tf.string, default_value=''),
+        'edges/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+        'edges/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
+        'cartoon/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+        'cartoon/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
     }
 
     items_to_handlers = {
         'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
-        # 'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
-        # 'object/bbox': slim.tfexample_decoder.BoundingBox(
-        #     ['ymin', 'xmin', 'ymax', 'xmax'], 'image/object/bbox/'),
-        # 'object/label': slim.tfexample_decoder.Tensor('image/object/class/label'),
+        'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
+        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format'),
+        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format'),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(
         keys_to_features, items_to_handlers)
-
-    # labels_to_names = None
-    # if dataset_utils.has_labels(dataset_dir):
-    #     labels_to_names = dataset_utils.read_label_file(dataset_dir)
-    # else:
-    #     labels_to_names = create_readable_names_for_imagenet_labels()
-    #     dataset_utils.write_label_file(labels_to_names, dataset_dir)
 
     return slim.dataset.Dataset(
         data_sources=data_files,
@@ -189,6 +171,4 @@ def get_split(split_name, dataset_dir, reader=None):
         decoder=decoder,
         num_samples=_SPLITS_TO_SIZES[split_name],
         items_to_descriptions=_ITEMS_TO_DESCRIPTIONS,
-        # num_classes=_NUM_CLASSES,
-        # labels_to_names=labels_to_names
     )

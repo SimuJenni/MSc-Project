@@ -17,16 +17,8 @@ tensorflow_model = False
 
 sess = tf.Session()
 
-if not tensorflow_model:
-    from ToonNet import Classifier
-    import keras.backend as K
-    K.set_session(sess)
-    myModel = Classifier((32, 32, 3), num_classes=NUM_CLASSES, num_layers=3, fine_tune=True)
-    K.set_learning_phase(1)
-    g = K.get_session().graph
-else:
-    model_path = '/path/to/pre_trained_model.checkpoint'
-    g = tf.Graph()
+model_path = '/path/to/pre_trained_model.checkpoint'
+g = tf.Graph()
 
 with sess.as_default():
     with g.as_default():

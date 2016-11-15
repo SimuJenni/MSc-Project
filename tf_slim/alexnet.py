@@ -22,7 +22,7 @@ import tensorflow as tf
 slim = tf.contrib.slim
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
 
-def alexnet_v2(inputs,
+def alexnet(inputs,
                num_classes=1000,
                is_training=True,
                dropout_keep_prob=0.5,
@@ -96,47 +96,5 @@ def alexnet_v2(inputs,
                                            scope='fc8')
 
             return net
-
-
-def alexnet(inputs,
-            num_classes=1000,
-            is_training=True,
-            dropout_keep_prob=0.5,
-            use_batch_norm=False):
-    batch_norm_params = {
-        # Decay for the moving averages.
-        'decay': 0.9997,
-        # epsilon to prevent 0s in variance.
-        'epsilon': 0.001,
-    }
-    if use_batch_norm:
-        normalizer_fn = slim.batch_norm
-        normalizer_params = batch_norm_params
-    else:
-        normalizer_fn = None
-        normalizer_params = {}
-    with tf.variable_scope('alexnet_v2') as sc:
-        with slim.arg_scope([slim.conv2d, slim.fully_connected],
-                            activation_fn=tf.nn.relu,
-                            weights_regularizer=slim.l2_regularizer(0.00004),
-                            normalizer_fn=normalizer_fn,
-                            normalizer_params=normalizer_params):
-            with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
-                net = slim.conv2d(inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
-                net = slim.max_pool2d(net, [5, 5], 2, scope='pool1')
-                net = slim.conv2d(net, 256, [5, 5], scope='conv2', padding='SAME')
-                net = slim.max_pool2d(net, [3, 3], 2, scope='pool2')
-                net = slim.conv2d(net, 384, [3, 3], scope='conv3', padding='SAME')
-                net = slim.conv2d(net, 384, [3, 3], scope='conv4', padding='SAME')
-                net = slim.conv2d(net, 256, [3, 3], scope='conv5', padding='SAME')
-                net = slim.max_pool2d(net, [3, 3], 2, scope='pool5')
-                net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1')
-                net = slim.dropout(net, keep_prob=dropout_keep_prob, is_training=is_training)
-                net = slim.fully_connected(net, 4096, scope='fc2')
-                net = slim.dropout(net, keep_prob=dropout_keep_prob, is_training=is_training)
-                net = slim.fully_connected(net, num_classes, scope='fc3', activation_fn=None)
-                return net
-
 
 alexnet.default_image_size = 224

@@ -28,6 +28,8 @@ import os
 import sys
 import tarfile
 
+import cv2
+from cartooning import auto_canny, cartoonify
 import numpy as np
 import tensorflow as tf
 from six.moves import urllib
@@ -77,8 +79,7 @@ def _add_to_tfrecord(filename, tfrecord_writer, offset=0):
     labels = data['labels']
 
     with tf.Graph().as_default():
-        image_placeholder = tf.placeholder(dtype=tf.uint8)
-        encoded_image = tf.image.encode_png(image_placeholder)
+        coder = dataset_utils.ImageCoder()
 
         with tf.Session('') as sess:
             for j in range(num_images):
@@ -86,14 +87,20 @@ def _add_to_tfrecord(filename, tfrecord_writer, offset=0):
                     filename, offset + j + 1, offset + num_images))
                 sys.stdout.flush()
 
+                # Get image, edge-map and cartooned image
                 image = np.squeeze(images[j]).transpose((1, 2, 0))
+                edges = auto_canny(image)
+                cartoon = cartoonify(image)
                 label = labels[j]
 
-                png_string = sess.run(encoded_image,
-                                      feed_dict={image_placeholder: image})
+                # Encode the images
+                image_str = coder.encode_jpeg(image)
+                cartoon_str = coder.encode_jpeg(cartoon)
+                edge_str = coder.encode_jpeg(edges)
 
-                example = dataset_utils.image_to_tfexample(
-                    png_string, 'png', _IMAGE_SIZE, _IMAGE_SIZE, label)
+                # Buil example
+                example = dataset_utils.cifar10_example(
+                    image_str, cartoon_str, edge_str, 'jpg', _IMAGE_SIZE, _IMAGE_SIZE, label)
                 tfrecord_writer.write(example.SerializeToString())
 
     return offset + num_images

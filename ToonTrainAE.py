@@ -1,9 +1,9 @@
 import os
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import Generator
+from ToonNet import Gen
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon, TinyImagenetToon
+from datasets import CIFAR10_Toon
 from utils import montage
 
 
@@ -11,14 +11,21 @@ from utils import montage
 batch_size = 200
 nb_epoch = 5
 num_layers = 4
-num_res = 0
 
 # Get the data-set object
-data = TinyImagenetToon()
-datagen = ImageDataGenerator()
+data = CIFAR10_Toon()
+datagen = ImageDataGenerator(
+    rotation_range=10,
+    width_shift_range=0.05,
+    height_shift_range=0.05,
+    shear_range=0.05,
+    zoom_range=[0.9, 1.0],
+    fill_mode='nearest',
+    horizontal_flip=True
+)
 
 # Load the net
-generator = Generator(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size, num_res=num_res)
+generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
 generator.summary()
 
 # Name used for saving of model and outputs

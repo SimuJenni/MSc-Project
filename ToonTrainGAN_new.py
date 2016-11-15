@@ -112,6 +112,7 @@ for epoch in range(nb_epoch):
         l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
         l3 = h.history['{}_loss_2'.format(GAN.output_names[2])][0]
         print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        print(h.history)
 
         # Generate montage of test-images
         if not chunk % 25:

@@ -26,21 +26,17 @@ def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, bat
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
-            # x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
-    # x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
     x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - 1], out_dim=l_dims[num_layers - 1],
                        batch_size=batch_size, activation=activation, border='same')
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
-            # x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
-            #                          noise_ch=NOISE_CHANNELS[num_layers - l])
             x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
             x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
                                batch_size=batch_size, activation=activation)
@@ -61,7 +57,6 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     for l in range(0, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
-            # x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
     encoded = x

@@ -489,7 +489,7 @@ def make_trainable(net, val):
         l.trainable = val
 
 
-def disc_data(X, Y, Yd, dp_pred, with_x=False):
+def disc_data(X, Y, Yd, with_x=False):
     if with_x:
         Xd = np.concatenate((np.concatenate((X, Y), axis=3), np.concatenate((X, Yd), axis=3)))
     else:
@@ -497,7 +497,7 @@ def disc_data(X, Y, Yd, dp_pred, with_x=False):
 
     yd = np.zeros((len(Y) + len(Yd), 1))
     yd[:len(Y)] = 1
-    return Xd, [yd, dp_pred]
+    return Xd, yd
 
 
 def gen_data(im, edge):

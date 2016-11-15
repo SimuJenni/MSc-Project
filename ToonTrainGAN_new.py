@@ -88,9 +88,9 @@ for epoch in range(nb_epoch):
         if -np.mean(np.log(d_out)) < 1.0 or train_disc:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred, dp_out)
+            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
 
-            h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+            h = discriminator.fit(Xd_train, [yd_train, dp_out], nb_epoch=1, batch_size=batch_size, verbose=0)
             d_loss = h.history['loss']
             print('D-Loss: {}'.format(d_loss))
 

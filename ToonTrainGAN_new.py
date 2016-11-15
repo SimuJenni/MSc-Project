@@ -35,7 +35,6 @@ noise = K.variable(value=0.25, name='sigma')
 noise_decay_rate = 0.9
 
 # Load the models
-generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)
 discriminator = Disc(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
 GAN, gen_gan, disc_gan = GAN(data.dims,
                              batch_size=batch_size,
@@ -80,11 +79,8 @@ for epoch in range(nb_epoch):
 
         target = np.zeros_like(img_train)
 
-        # Update the weights
-        generator.set_weights(gen_gan.get_weights())
-
         # Prepare training data
-        im_pred = generator.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
+        im_pred = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
         d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
         if train_disc or l1 < 1.0:
             # Train discriminator
@@ -114,8 +110,7 @@ for epoch in range(nb_epoch):
 
         # Generate montage of test-images
         if not chunk % 25:
-            generator.set_weights(gen_gan.get_weights())
-            decoded_imgs = generator.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]),
+            decoded_imgs = gen_gan.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]),
                                              batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR, '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(GAN.name, data.name, epoch, chunk)))

@@ -77,11 +77,9 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        target = np.zeros_like(img_train)
-
         # Prepare training data
         im_pred = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
+        d_out, _ = disc_gan.predict(im_pred, batch_size=batch_size)
         if train_disc or l1 < 1.1:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
@@ -98,7 +96,8 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Train generator
-        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
+        _, dp_out = disc_gan.predict(img_train, batch_size=batch_size)
+        h = GAN.fit(x=gen_data(toon_train, edge_train),
                     y=[np.ones((len(toon_train), 1)), img_train, dp_out],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
 
@@ -117,7 +116,7 @@ for epoch in range(nb_epoch):
             # Save the weights
             disc_gan.save_weights(disc_weights)
             gen_gan.save_weights(gen_weights)
-            del toon_train, img_train, target, h, decoded_imgs, im_pred
+            del toon_train, img_train, h, decoded_imgs, im_pred
             gc.collect()
         sys.stdout.flush()
 

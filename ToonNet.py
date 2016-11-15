@@ -239,14 +239,12 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
 
     # Build GAN
     g_input = Input(batch_shape=gen_in_shape)
-    img_input = Input(shape=input_shape)
     g_x = generator(g_input)
     d_g_x, de_g_x = discriminator(g_x)
-    _, de_y = discriminator(img_input)
 
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
-    gan = Model(input=[g_input, img_input], output=[d_g_x, g_x, de_g_x])
+    gan = Model(input=g_input, output=[d_g_x, g_x, de_g_x])
     gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[0.5, 20.0, 1.0],
                 optimizer=optimizer)
     gan.name = make_name('ToonGAN', num_layers=num_layers)

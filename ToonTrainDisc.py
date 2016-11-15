@@ -71,10 +71,10 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
         # Train discriminator
-        h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=[np.zeros((len(toon_train), 1))] * 2,
-                     nb_epoch=1, batch_size=batch_size, verbose=0)
-        for key, value in h.history.iteritems():
-            print('{}: {}'.format(key, value))
+        yd = np.zeros((len(img_train) + len(img_train), 1))
+        yd[:len(img_train)] = 1
+        h = dGAN.train_on_batch(x=[gen_data(toon_train, edge_train), img_train], y=yd)
+        print(h)
 
         sys.stdout.flush()
 

@@ -33,6 +33,7 @@ nb_epoch = 30
 load_weights = False
 noise = K.variable(value=0.2, name='sigma')
 noise_decay_rate = 0.9
+noise = None
 
 # Load the models
 generator = Gen(input_shape=data.dims, num_layers=num_layers, batch_size=batch_size)

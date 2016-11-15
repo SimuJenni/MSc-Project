@@ -139,7 +139,7 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     gan = Model(input=[g_input, img_input], output=[d_g_x, g_x, de_g_x])
-    gan.compile(loss=['binary_crossentropy', 'mse', 'mae'], loss_weights=[1.0, 20.0, 1.0],
+    gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[0.1, 10.0, 1.0],
                 optimizer=optimizer)
     gan.name = make_name('ToonGAN', num_layers=num_layers)
 
@@ -413,7 +413,7 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
         make_trainable(generator, False)
 
     # Build Discriminator
-    input_disc = Input(shape=input_shape)
+    input_disc = Input(batch_shape=(batch_size,) + input_shape)
     d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_disc, output=[d_out, d_enc])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
@@ -429,7 +429,7 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
 
     # Build GAN
     g_input = Input(batch_shape=gen_in_shape)
-    img_input = Input(shape=input_shape)
+    img_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(g_input)
     d_g_x, de_g_x = discriminator(g_x)
     d_y, de_y = discriminator(img_input)
@@ -437,7 +437,7 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
     if train_disc:
         disc_pred = merge([d_g_x, d_y], mode='concat', concat_axis=0)
         gan = Model(input=[g_input, img_input], output=[disc_pred])
-        gan.compile(loss=ld_merged, optimizer=optimizer)
+        gan.compile(loss='binary_crossentropy', optimizer=optimizer)
         gan.name = make_name('dGAN', num_layers=num_layers)
     else:
         l1 = sub(g_x, img_input)
@@ -446,13 +446,6 @@ def GAN2(input_shape, batch_size=128, num_layers=5, load_weights=False, noise=No
         gan.name = make_name('gGAN', num_layers=num_layers)
 
     return gan, generator, discriminator
-
-
-def ld_merged(y_true, y_pred):
-    t_shape = K.int_shape(y_pred)
-    t_shape[0] /= 2
-    target = K.concatenate([K.zeros(shape=t_shape), K.ones(shape=t_shape)], axis=0)
-    return K.mean(K.binary_crossentropy(y_pred, target), axis=-1)
 
 
 def ld0(y_true, y_pred):

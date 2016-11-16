@@ -79,7 +79,7 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        if train_disc or l1 < 1.1 or count_skip > 10:
+        if train_disc or l1 < 1.2 or count_skip > 24:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)

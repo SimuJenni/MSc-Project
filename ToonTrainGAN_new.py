@@ -86,7 +86,7 @@ for epoch in range(nb_epoch):
         X = np.concatenate((im_pred, img_train), axis=3)
         X[y_ind, :] = np.concatenate((img_train[y_ind, :], im_pred[y_ind, :]), axis=3)
         d_out = disc_gan.predict(X, batch_size=batch_size)
-        if train_disc or l1 < 1.2 or count_skip > 10:
+        if train_disc or l1 < 1.1 or count_skip > 20:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)

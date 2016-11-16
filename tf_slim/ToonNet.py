@@ -1,12 +1,14 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-F_DIMS = [64, 96, 160, 256, 512]
+F_DIMS = [64, 128, 256, 512, 1024, 2048]
 
 
-def ToonGenerator(inputs, num_res=16):
+def ToonGenerator(inputs, num_layers=5):
     f_dims = F_DIMS
     with toon_net_argscope():
+
+
         # Conv1
         net = slim.conv2d(inputs, num_outputs=32, scope='conv_1', stride=1)
         net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_1', stride=2)

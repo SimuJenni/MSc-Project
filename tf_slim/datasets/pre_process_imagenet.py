@@ -258,7 +258,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
     sys.stdout.flush()
 
 
-def _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads):
+def _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory):
     """Process and save list of images as TFRecord of Example protos.
 
     Args:
@@ -295,7 +295,7 @@ def _process_image_files(name, filenames, synsets, labels, humans, num_shards, n
     threads = []
     for thread_index in xrange(len(ranges)):
         args = (coder, thread_index, ranges, name, filenames,
-                synsets, labels, humans, num_shards)
+                synsets, labels, humans, num_shards, output_directory)
         t = threading.Thread(target=_process_image_files_batch, args=args)
         t.start()
         threads.append(t)
@@ -400,7 +400,7 @@ def _find_human_readable_labels(synsets, synset_to_human):
     return humans
 
 
-def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, num_threads):
+def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, num_threads, output_directory):
     """Process a complete data set and save it as a TFRecord.
 
     Args:
@@ -412,7 +412,7 @@ def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, 
     """
     filenames, synsets, labels = _find_image_files(directory, labels_file)
     humans = _find_human_readable_labels(synsets, synset_to_human)
-    _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads)
+    _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory)
 
 
 def _build_synset_lookup(imagenet_metadata_file):
@@ -461,6 +461,6 @@ def run(train_directory, validation_directory, output_directory, train_shards=10
 
     # Run it!
     _process_dataset('validation', validation_directory,
-                     validation_shards, synset_to_human, labels_file, num_threads)
+                     validation_shards, synset_to_human, labels_file, num_threads, output_directory)
     _process_dataset('train', train_directory, train_shards,
-                     synset_to_human, labels_file, num_threads)
+                     synset_to_human, labels_file, num_threads, output_directory)

@@ -79,7 +79,7 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        if train_disc or l1 < 1.1 or count_skip > 20:
+        if train_disc or l1 < 1.1 or count_skip > 10:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -109,10 +109,12 @@ for epoch in range(nb_epoch):
         h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
                     y=[np.ones((len(toon_train), 1)), np.ones((len(toon_train), 4, 4, 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(GAN.output_names[0])][0]
-        l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
-        print('Loss: {} L_1: {} L_2: {}'.format(t_loss, l1, l2))
+        l2 = h.history['{}_loss_1'.format(GAN.output_names[1])][0]
+        l3 = h.history['{}_loss_2'.format(GAN.output_names[1])][0]
+        print('Loss: {} L_1: {} L_2: {} l3: {}'.format(t_loss, l1, l2, l3))
 
         # Generate montage of test-images
         if not chunk % 25:

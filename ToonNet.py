@@ -281,11 +281,13 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
+        make_trainable(generator, False)
         gan = Model(input=[g_input, im_input], output=d_out)
         gan.compile(loss='binary_crossentropy', optimizer=optimizer)
         gan.name = make_name('ToonGANd', num_layers=num_layers)
 
     else:
+        make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, g_x])
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0],
                     optimizer=optimizer)

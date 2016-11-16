@@ -96,7 +96,7 @@ for epoch in range(nb_epoch):
 
             # Update the weights
             disc_gan.set_weights(discriminator.get_weights())
-            train_disc = True
+            train_disc = False
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 

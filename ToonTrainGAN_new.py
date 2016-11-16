@@ -101,7 +101,7 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Train generator
-        h = GAN.fit(x=gen_data(toon_train, edge_train),
+        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
                     y=[np.ones((len(toon_train), 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
 

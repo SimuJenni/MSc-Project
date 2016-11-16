@@ -63,13 +63,16 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        target = np.zeros_like(img_train)
+        target = toon_train
+        print(len(img_train))
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
         # Train discriminator
-        yd = np.zeros((len(img_train) + len(img_train), 1))
-        yd[:len(img_train)] = 1
-        h = disc.fit(x=[np.zeros_like(toon_train), img_train], y=[np.zeros((len(img_train), 1)), np.ones((len(img_train), 1))],
+        y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
+        y_ind = np.where(y > 0.5)[0]
+        X = np.concatenate((target, img_train), axis=3)
+        X[y_ind, :] = np.concatenate((img_train[y_ind, :], target[y_ind, :]), axis=3)
+        h = disc.fit(x=X, y=y,
                      batch_size=batch_size, verbose=0, nb_epoch=1)
         print(h.history)
 

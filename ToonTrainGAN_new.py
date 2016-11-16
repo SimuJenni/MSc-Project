@@ -15,11 +15,11 @@ import keras.backend as K
 # Get the data-set object
 data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
-    rotation_range=10,
-    width_shift_range=0.05,
-    height_shift_range=0.05,
-    shear_range=0.05,
-    zoom_range=[0.9, 1.0],
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    shear_range=0.1,
+    zoom_range=[0.75, 1.0],
     fill_mode='nearest',
     horizontal_flip=True
 )

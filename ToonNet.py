@@ -12,7 +12,7 @@ from keras.optimizers import Adam
 from constants import MODEL_DIR
 
 F_DIMS = [64, 128, 256, 512, 1024, 2048]
-F_G_DIMS = [64, 96, 160, 256, 416, 672, 1088]
+F_G_DIMS = [96, 160, 256, 416, 672, 1088]
 
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
@@ -49,12 +49,13 @@ def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, bat
 
 
 def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
-    f_dims = F_DIMS[:num_layers]
+    num_layers += 1
+    f_dims = F_G_DIMS[:num_layers]
     x = add_noise_planes(x, 1)
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+    x = conv_act_bn(x, f_size=5, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
 
-    for l in range(0, num_layers):
+    for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
@@ -65,13 +66,13 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers+1])
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
-    for l in range(0, num_layers):
+    for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
             x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
                                      noise_ch=NOISE_CHANNELS[num_layers - l])
 
     x = add_noise_planes(x, NOISE_CHANNELS[0])
-    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    x = Convolution2D(3, 5, 5, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
     return decoded, encoded
@@ -282,13 +283,13 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     if train_disc:
         make_trainable(generator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy'], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy'], loss_weights=[1.0, 0.5], optimizer=optimizer)
         gan.name = make_name('ToonGANd', num_layers=num_layers)
 
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0, 20.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.5, 10.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 

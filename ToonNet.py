@@ -62,7 +62,7 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers-1], stride=1, border='same', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
-    x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
+    x = add_noise_planes(x, NOISE_CHANNELS[num_layers+1])
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='same', activation=activation)
 
     for l in range(0, num_layers):
@@ -169,11 +169,11 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type=activation)
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
     return d_out, p_out
@@ -255,12 +255,11 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
     g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    #g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
 
     # Build Discriminator
-    input_disc = Input(shape=input_shape)
+    input_disc = Input(shape=input_shape[:2] + (6,))
     d_out, d_enc = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_disc, output=[d_out, d_enc])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
@@ -273,25 +272,24 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
 
     # Build GAN
     g_input = Input(batch_shape=gen_in_shape)
-    im_input = Input(shape=input_shape)
+    im_input = Input(batch_shape=(batch_size,) + input_shape)
 
     g_x = generator(g_input)
-    d_g_x, de_g_x = discriminator(g_x)
-    d_y, de_y = discriminator(im_input)
+    d_in = merge([g_x, im_input],  mode='concat')
+    d_out, de_out = discriminator(d_in)
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
-        gan = Model(input=[g_input, im_input], output=[d_g_x, d_y], name='dGAN')
-        gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[1.0, 10.0, 1.0],
-                    optimizer=optimizer)
-        gan.name = make_name('ToonGAN', num_layers=num_layers)
+        gan = Model(input=[g_input, im_input], output=d_out)
+        gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+        gan.name = make_name('ToonGANd', num_layers=num_layers)
 
     else:
-        gan = Model(input=[g_input, im_input], output=[d_g_x, g_x, de_g_x])
-        gan.compile(loss=['binary_crossentropy', 'mse', 'mse'], loss_weights=[1.0, 10.0, 1.0],
+        gan = Model(input=[g_input, im_input], output=[d_out, g_x])
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0],
                     optimizer=optimizer)
-        gan.name = make_name('ToonGAN', num_layers=num_layers)
+        gan.name = make_name('ToonGANg', num_layers=num_layers)
 
     return gan, generator, discriminator
 
@@ -746,7 +744,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', regularizer=None):
@@ -768,7 +766,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):

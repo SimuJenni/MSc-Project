@@ -289,7 +289,7 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0],
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 

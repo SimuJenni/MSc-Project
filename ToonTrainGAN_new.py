@@ -79,19 +79,20 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        # Prepare training data
-        im_pred = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
-        y_ind = np.where(y > 0.5)[0]
-        X = np.concatenate((im_pred, img_train), axis=3)
-        X[y_ind, :] = np.concatenate((img_train[y_ind, :], im_pred[y_ind, :]), axis=3)
-        d_out = disc_gan.predict(X, batch_size=batch_size)
         if train_disc or l1 < 1.1 or count_skip > 20:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+            # Prepare training data
+            im_pred = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
+            y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
+            y_ind = np.where(y > 0.5)[0]
+            y2 = np.zeros((len(img_train), 4, 4, 1))
+            y2[y_ind, :] = 1.0
+            X = np.concatenate((im_pred, img_train), axis=3)
+            X[y_ind, :] = np.concatenate((img_train[y_ind, :], im_pred[y_ind, :]), axis=3)
 
-            h = discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+            h = discriminator.fit(X, [y, y2], nb_epoch=1, batch_size=batch_size, verbose=0)
             d_loss = h.history['loss']
             print('D-Loss: {}'.format(d_loss))
 
@@ -106,7 +107,7 @@ for epoch in range(nb_epoch):
 
         # Train generator
         h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                    y=[np.ones((len(toon_train), 1)), img_train],
+                    y=[np.ones((len(toon_train), 1)), np.ones((len(toon_train), 4, 4, 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss'.format(GAN.output_names[0])][0]

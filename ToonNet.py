@@ -254,14 +254,15 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
 
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
-    g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    # g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
 
     # Build Discriminator
     input_disc = Input(shape=input_shape[:2] + (6,))
-    d_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
-    discriminator = Model(input_disc, output=d_out)
+    d_out, de_out = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
+    discriminator = Model(input_disc, output=[d_out, de_out])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     make_trainable(discriminator, False)
 
@@ -275,20 +276,20 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     im_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(g_input)
     d_in = merge([g_x, im_input],  mode='concat')
-    d_out = discriminator(d_in)
+    d_out, de_out = discriminator(d_in)
 
-    optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
+    optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     if train_disc:
         make_trainable(generator, False)
-        gan = Model(input=[g_input, im_input], output=[d_out])
-        gan.compile(loss=['binary_crossentropy'], optimizer=optimizer)
+        gan = Model(input=[g_input, im_input], output=[d_out, de_out])
+        gan.compile(loss=['binary_crossentropy'] * 2, load_weights=[1.0, 0.5], optimizer=optimizer)
         gan.name = make_name('ToonGANd', num_layers=num_layers)
 
     else:
         make_trainable(discriminator, False)
-        gan = Model(input=[g_input, im_input], output=[d_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0],
+        gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.5, 30.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 
@@ -384,8 +385,8 @@ def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
 def Disc2(input_shape, load_weights=False, num_layers=4, noise=None):
     # Build the model
     input_d = Input(shape=input_shape[:2] + (6,))
-    d_out, _ = ToonDisc(input_d, num_layers=num_layers, activation='relu', noise=noise)
-    discriminator = Model(input_d, d_out)
+    d_out, de_out = ToonDisc(input_d, num_layers=num_layers, activation='relu', noise=noise)
+    discriminator = Model(input_d, [d_out, de_out])
 
     # Load weights
     if load_weights:
@@ -393,7 +394,7 @@ def Disc2(input_shape, load_weights=False, num_layers=4, noise=None):
 
     # Compile
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
-    discriminator.compile(loss=['binary_crossentropy'], optimizer=optimizer)
+    discriminator.compile(loss=['binary_crossentropy']*2, load_weights=[1.0, 0.5], optimizer=optimizer)
     return discriminator
 
 

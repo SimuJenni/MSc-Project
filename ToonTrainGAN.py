@@ -106,7 +106,7 @@ for epoch in range(nb_epoch):
                                             batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
-                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(GAN.name, data.name, epoch, chunk)))
+                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             # Save the weights
             disc_dgan.save_weights(disc_weights)
             gen_ggan.save_weights(gen_weights)

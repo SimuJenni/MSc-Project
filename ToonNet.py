@@ -52,13 +52,13 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
     num_layers += 1
     f_dims = F_G_DIMS[:num_layers+1]
     x = add_noise_planes(x, NOISE_CHANNELS[0])
-    x = conv_act_bn(x, f_size=5, f_channels=f_dims[0], stride=1, border='same', activation=activation)
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = add_noise_planes(x, NOISE_CHANNELS[l])
-            x = conv_act_bn(x, f_size=3, f_channels=f_dims[l], stride=2, border='same', activation=activation)
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='same', activation=activation)
             l_dims += [K.int_shape(x)[1]]
 
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
@@ -69,10 +69,10 @@ def ToonGen(x, out_activation='tanh', activation='relu', num_layers=5, batch_siz
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
-            x = up_conv_act_bn_noise(x, f_size=3, f_channels=f_dims[num_layers - l - 1], activation=activation,
+            x = up_conv_act_bn_noise(x, f_size=4, f_channels=f_dims[num_layers - l - 1], activation=activation,
                                      noise_ch=None)
 
-    x = Convolution2D(3, 5, 5, border_mode='same', subsample=(1, 1), init='he_normal')(x)
+    x = Convolution2D(3, 3, 3, border_mode='same', subsample=(1, 1), init='he_normal')(x)
     decoded = Activation(out_activation)(x)
 
     return decoded, encoded
@@ -289,7 +289,7 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.5, 10.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.5, 5.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 

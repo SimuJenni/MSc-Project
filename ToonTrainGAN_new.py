@@ -79,7 +79,7 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        if train_disc or l1 < 1.2 or count_skip > 24:
+        if train_disc or l1 < 1.2 or count_skip > 19:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -124,7 +124,7 @@ for epoch in range(nb_epoch):
             # Save the weights
             disc_gan.save_weights(disc_weights)
             gen_gan.save_weights(gen_weights)
-            del toon_train, img_train, h, decoded_imgs, im_pred
+            del toon_train, img_train, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
 

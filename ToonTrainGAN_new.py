@@ -109,7 +109,6 @@ for epoch in range(nb_epoch):
         h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
                     y=[np.ones((len(toon_train), 1)), np.ones((len(toon_train), 4, 4, 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
-        print(h.history)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss_1'.format(GAN.output_names[0])][0]
         l2 = h.history['{}_loss_2'.format(GAN.output_names[1])][0]

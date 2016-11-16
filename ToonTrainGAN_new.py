@@ -85,7 +85,7 @@ for epoch in range(nb_epoch):
         X = np.concatenate((im_pred, img_train), axis=3)
         X[y_ind, :] = np.concatenate((img_train[y_ind, :], im_pred[y_ind, :]), axis=3)
         d_out = disc_gan.predict(X, batch_size=batch_size)
-        if train_disc: # or l1 < 1.1:
+        if train_disc or l1 < 1.1:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -105,11 +105,10 @@ for epoch in range(nb_epoch):
                     y=[np.ones((len(toon_train), 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
-        # t_loss = h.history['loss'][0]
-        # l1 = h.history['{}_loss_1'.format(GAN.output_names[0])][0]
-        # l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
-        # l3 = h.history['{}_loss_2'.format(GAN.output_names[2])][0]
-        # print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        t_loss = h.history['loss'][0]
+        l1 = h.history['{}_loss'.format(GAN.output_names[0])][0]
+        l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
+        print('Loss: {} L_1: {} L_2: {}'.format(t_loss, l1, l2))
 
         # Generate montage of test-images
         if not chunk % 25:

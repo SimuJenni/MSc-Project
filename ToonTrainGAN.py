@@ -85,7 +85,8 @@ for epoch in range(nb_epoch):
         # Train discriminator
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
         h = dGAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                     y=np.ones((len(toon_train), 1)),
+                     y=[np.ones((len(toon_train), 1)),
+                        np.zeros((len(toon_train), 4, 4, 1))],
                      nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
@@ -96,7 +97,9 @@ for epoch in range(nb_epoch):
 
         # Train generator
         h = gGAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                     y=[np.zeros((len(toon_train), 1)), img_train],
+                     y=[np.zeros((len(toon_train), 1)),
+                        np.zeros((len(toon_train), 4, 4, 1)),
+                        img_train],
                      nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 

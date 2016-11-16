@@ -163,7 +163,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
-    p_out = x
+    p_out = conv_act(x, f_size=1, f_channels=1, stride=1, border='valid', activation='sigmoid')
 
     x = Flatten()(x)
     x = Dense(2048, init='he_normal')(x)
@@ -273,7 +273,6 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     # Build GAN
     g_input = Input(batch_shape=gen_in_shape)
     im_input = Input(batch_shape=(batch_size,) + input_shape)
-
     g_x = generator(g_input)
     d_in = merge([g_x, im_input],  mode='concat')
     d_out, de_out = discriminator(d_in)
@@ -282,14 +281,14 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
 
     if train_disc:
         make_trainable(generator, False)
-        gan = Model(input=[g_input, im_input], output=d_out)
-        gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+        gan = Model(input=[g_input, im_input], output=[d_out, de_out])
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy'], loss_weights=[1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('ToonGANd', num_layers=num_layers)
 
     else:
         make_trainable(discriminator, False)
-        gan = Model(input=[g_input, im_input], output=[d_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 30.0],
+        gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0, 20.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 
@@ -852,12 +851,10 @@ def res_layer(in_layer, out_dim, activation='relu', noise_ch=None):
 
 
 def my_activation(x, type='relu', alpha=0.2):
-    if type == 'relu':
-        return Activation(type)(x)
-    elif type == 'lrelu':
+    if type == 'lrelu':
         return LeakyReLU(alpha=alpha)(x)
     else:
-        raise ValueError('Activation type {} not supported'.format(type))
+        return Activation(type)(x)
 
 
 def sub(a, b):

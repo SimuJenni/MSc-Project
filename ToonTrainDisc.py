@@ -64,7 +64,6 @@ for epoch in range(nb_epoch):
                 time.sleep(0.05)
 
         target = toon_train
-        print(len(img_train))
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
         # Train discriminator

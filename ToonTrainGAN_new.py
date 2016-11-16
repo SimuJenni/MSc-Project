@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import GAN, Gen, Disc, gen_data, disc_data
+from ToonNet import GAN, Disc2, gen_data, disc_data
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon
 from utils import montage, generator_queue
@@ -35,12 +35,13 @@ noise = K.variable(value=0.25, name='sigma')
 noise_decay_rate = 0.95
 
 # Load the models
-discriminator = Disc(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
+discriminator = Disc2(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
 GAN, gen_gan, disc_gan = GAN(data.dims,
                              batch_size=batch_size,
                              num_layers=num_layers,
                              load_weights=load_weights,
-                             noise=noise)
+                             noise=noise,
+                             train_disc=False)
 
 # Paths for storing the weights
 gen_weights = os.path.join(MODEL_DIR, '{}_gan.hdf5'.format(gen_gan.name))
@@ -83,9 +84,14 @@ for epoch in range(nb_epoch):
         if train_disc or l1 < 1.1:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+            # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
 
-            h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
+            y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
+            y_ind = np.where(y > 0.5)[0]
+            X = np.concatenate((im_pred, img_train), axis=3)
+            X[y_ind, :] = np.concatenate((img_train[y_ind, :], im_pred[y_ind, :]), axis=3)
+
+            h = discriminator.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
             d_loss = h.history['loss']
             print('D-Loss: {}'.format(d_loss))
 
@@ -96,9 +102,8 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Train generator
-        _, dp_out = disc_gan.predict(img_train, batch_size=batch_size)
         h = GAN.fit(x=gen_data(toon_train, edge_train),
-                    y=[np.ones((len(toon_train), 1)), img_train, dp_out],
+                    y=[np.ones((len(toon_train), 1)), img_train],
                     nb_epoch=1, batch_size=batch_size, verbose=0)
 
         t_loss = h.history['loss'][0]

@@ -28,7 +28,7 @@ num_layers = 3
 batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 20
+nb_epoch = 10
 
 use_gan = True
 use_gen = True
@@ -112,6 +112,6 @@ for chunk in range(num_chunks):
         X = np.concatenate((imgs, imgs), axis=3)
     pred = classifier.predict(X, batch_size=batch_size)
     y_pred = np.argmax(pred, axis=1)
-    correct_preds.append(np.equal(labels, y_pred))
+    correct_preds.append(np.equal(np.argmax(labels, axis=1), y_pred))
 
 print(np.mean(correct_preds))

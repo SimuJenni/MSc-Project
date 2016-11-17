@@ -287,8 +287,8 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
 
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
-    # g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
+    g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    # g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
 

@@ -18,7 +18,7 @@ NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
 def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128, outter=False):
-    f_dims = F_G_DIMS[:num_layers+1]
+    f_dims = F_DIMS[:num_layers+1]
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
@@ -29,7 +29,7 @@ def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, bat
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
             l_dims += [K.int_shape(x)[1]]
             if outter:
-                ol[l] = outter_connection(x, f_dims[l])
+                ol[l] = outter_connection(x, f_dims[l-l])
 
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
     encoded = x
@@ -328,7 +328,7 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1, 50.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1, 20.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg_outter', num_layers=num_layers)
 

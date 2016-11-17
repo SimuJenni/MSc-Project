@@ -46,8 +46,8 @@ GAN, gen_gan, disc_gan = GAN(data.dims,
                              train_disc=False)
 
 # Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, '{}_{}.hdf5'.format(gen_gan.name, data.name))
-disc_weights = os.path.join(MODEL_DIR, '{}_{}.hdf5'.format(disc_gan.name, data.name))
+gen_weights = os.path.join(MODEL_DIR, '{}_{}_out.hdf5'.format(gen_gan.name, data.name))
+disc_weights = os.path.join(MODEL_DIR, '{}_{}_out.hdf5'.format(disc_gan.name, data.name))
 disc_gan.set_weights(discriminator.get_weights())
 
 # Create test data

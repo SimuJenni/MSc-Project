@@ -293,7 +293,7 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
     # g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size, outter=True)
+    g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size, outter=False)
     generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
 
@@ -328,7 +328,7 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1, 10.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1, 50.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg_outter', num_layers=num_layers)
 

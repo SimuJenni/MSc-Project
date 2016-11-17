@@ -41,7 +41,7 @@ if use_gan:
     net_load_name = '{}_gan'.format(net_load_name)
 
 # Load the net
-classifier = Classifier(input_shape=data.dims, num_layers=num_layers, num_res=num_res, num_classes=data.num_classes,
+classifier = Classifier(input_shape=data.dims, num_layers=num_layers, num_classes=data.num_classes,
                         net_load_name=net_load_name, use_gen=use_gen, batch_size=batch_size)
 classifier.summary()
 
@@ -87,13 +87,28 @@ for epoch in range(nb_epoch):
     del data_gen_queue, threads
     gc.collect()
 
-class_dirs = os.listdir(data.val_dir)
-y_true = []
-for i, c in enumerate(class_dirs):
-    y_true += [i]*len(os.listdir(os.path.join(data.val_dir, c)))
 
-pred = classifier.predict_generator(generator=datagen.flow_from_directory(data.val_dir, target_size=data.target_size,
-                                                                          batch_size=batch_size, shuffle=False),
-                                    val_samples=data.num_val)
-y_pred = np.argmax(pred, axis=1)
-print(np.mean(np.equal(y_true, y_pred)))
+# Testing
+num_chunks = data.num_val // chunk_size
+
+# Create queue for training data
+data_gen_queue, _stop, threads = generator_queue(
+    datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
+    max_q_size=32,
+    nb_worker=8)
+
+correct_preds = []
+for chunk in range(num_chunks):
+    # Get next chunk of training data from queue
+    while not _stop.is_set():
+        if not data_gen_queue.empty():
+            imgs, labels = data_gen_queue.get()
+            break
+        else:
+            time.sleep(0.05)
+
+    pred = classifier.predict(imgs, batch_size=batch_size)
+    y_pred = np.argmax(pred, axis=1)
+    correct_preds.append(np.equal(labels, y_pred))
+
+print(np.mean(correct_preds))

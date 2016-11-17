@@ -92,16 +92,16 @@ for epoch in range(nb_epoch):
 
         # # Train generator
         # if chunk % 2 == 0:
-        #     y = [np.ones((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
+        #     y = [np.ones((len(toon_train), 1)), img_train]
         # else:
-        #     y = [np.zeros((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
+        #     y = [np.zeros((len(toon_train), 1)), img_train]
         #
         # h = gGAN.fit(x=X, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         # print(h.history)
 
         # Generate montage of test-images
         if not chunk % 25:
-            _, decoded_imgs, _ = gGAN.predict(X_test, batch_size=batch_size)
+            _, decoded_imgs = gGAN.predict(X_test, batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
                                  '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))

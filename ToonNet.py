@@ -948,10 +948,11 @@ def disc_loss_d1(y_true, y_pred):
 def Classifier(input_shape, batch_size=128, num_layers=4, num_classes=1000, net_load_name=None,
                compile_model=True, use_gen=False):
     # Build encoder
-    input_im = Input(batch_shape=(batch_size,) + input_shape)
     if use_gen:
+        input_im = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
         decoded, encoded = ToonGen(input_im, num_layers=num_layers, batch_size=batch_size)
     else:
+        input_im = Input(batch_shape=(batch_size,) + input_shape[:2] + (6,))
         decoded, _, encoded = ToonDisc(input_im, num_layers=num_layers)
     encoder = Model(input_im, encoded)
     discriminator = Model(input_im, decoded)

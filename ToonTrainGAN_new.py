@@ -100,7 +100,7 @@ for epoch in range(nb_epoch):
 
             # Update the weights
             disc_gan.set_weights(discriminator.get_weights())
-            train_disc = False
+            # train_disc = False # TODO: remove?
             count_skip = 0
         else:
             count_skip += 1

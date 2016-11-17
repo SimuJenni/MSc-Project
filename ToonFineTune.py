@@ -15,26 +15,24 @@ d_weight = 1.0
 use_gan = True
 use_gen = True
 if use_gen:
-    if use_gan:
-        net_load_name = make_name('gGAN2', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)
-    else:
-        net_load_name = make_name('ToonGenerator', num_res=num_res, num_layers=num_layers)
+    net_load_name = make_name('ToonGen', num_layers=num_layers)
 else:
-    if use_gan:
-        net_load_name = make_name('dGAN2', num_res=num_res, num_layers=[num_layers, num_layers], r_weight=r_weight, d_weight=d_weight)
-    else:
-        net_load_name = make_name('ToonDiscriminator', num_res=num_res, num_layers=num_layers)
-# net_load_name = None
+    net_load_name = make_name('ToonDisc', num_layers=num_layers)
+
+if use_gan:
+    net_load_name = '{}_gan'.format(net_load_name)
 
 # Get the data-set object
 data = CIFAR10()
-datagen = ImageDataGenerator(rotation_range=10,
-                             width_shift_range=0.05,
-                             height_shift_range=0.05,
-                             shear_range=0.05,
-                             zoom_range=[0.9, 1.0],
-                             horizontal_flip=True,
-                             fill_mode='nearest')
+datagen = ImageDataGenerator(
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    shear_range=0.1,
+    zoom_range=[0.75, 1.0],
+    fill_mode='nearest',
+    horizontal_flip=True
+)
 
 # Load the net
 classifier = Classifier(input_shape=data.dims, num_layers=num_layers, num_res=num_res, num_classes=data.num_classes,

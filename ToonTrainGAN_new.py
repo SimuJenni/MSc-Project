@@ -8,12 +8,12 @@ import numpy as np
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import GAN, Disc2, gen_data, disc_data
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon
+from datasets import CIFAR10_Toon, TinyImagenetToon
 from utils import montage, generator_queue
 import keras.backend as K
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(
     rotation_range=15,
     width_shift_range=0.1,
@@ -25,11 +25,11 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 3
+num_layers = 4
 batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
-nb_epoch = 100
+nb_epoch = 30
 load_weights = False
 noise = K.variable(value=0.5, name='sigma')
 noise_decay_rate = 0.95

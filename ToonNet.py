@@ -287,8 +287,8 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
 
     # Build Generator
     input_gen = Input(batch_shape=gen_in_shape)
-    g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
-    # g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
+    # g_out, _ = ToonGen(input_gen, num_layers=num_layers, batch_size=batch_size)
+    g_out, _ = ToonGenTransp(input_gen, num_layers=num_layers, batch_size=batch_size)
     generator = Model(input_gen, g_out)
     generator.name = make_name('ToonGen', num_layers=num_layers)
 
@@ -323,7 +323,7 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.05, 35.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.05, 30.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 
@@ -950,9 +950,9 @@ def Classifier(input_shape, batch_size=128, num_layers=4, num_res=0, num_classes
     # Build encoder
     input_im = Input(batch_shape=(batch_size,) + input_shape)
     if use_gen:
-        decoded, encoded = ToonGenerator(input_im, num_layers=num_layers, num_res_layers=num_res)
+        decoded, encoded = ToonGen(input_im, num_layers=num_layers, batch_size=batch_size)
     else:
-        decoded, encoded = ToonDiscriminator(input_im, num_layers=num_layers, num_res_layers=num_res)
+        decoded, encoded = ToonDisc(input_im, num_layers=num_layers)
     encoder = Model(input_im, encoded)
     discriminator = Model(input_im, decoded)
     if net_load_name:

@@ -33,10 +33,12 @@ nb_epoch = 100
 load_weights = False
 noise = K.variable(value=0.25, name='sigma')
 noise_decay_rate = 0.95
+merge_order = K.variable(value=0, name='merge_order', dtype='uint8')
 
 # Load the models
 discriminator = Disc2(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
 GAN, gen_gan, disc_gan = GAN(data.dims,
+                             order=merge_order,
                              batch_size=batch_size,
                              num_layers=num_layers,
                              load_weights=load_weights,
@@ -106,8 +108,12 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Train generator
-        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                    y=[np.ones((len(toon_train), 1)), np.ones((len(toon_train), 4, 4, 1)), img_train],
+        if chunk % 2 == 0:
+            y = [np.ones((len(toon_train), 1)), np.ones((len(toon_train), 4, 4, 1)), img_train]
+        else:
+            y = [np.zeros((len(toon_train), 1)), np.zeros((len(toon_train), 4, 4, 1)), img_train]
+
+        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train], y=y,
                     nb_epoch=1, batch_size=batch_size, verbose=0)
         t_loss = h.history['loss'][0]
         l1 = h.history['{}_loss_1'.format(GAN.output_names[0])][0]
@@ -127,6 +133,7 @@ for epoch in range(nb_epoch):
             del toon_train, img_train, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
+        K.set_value(merge_order, chunk % 2)
 
     # Save the weights
     disc_gan.save_weights(disc_weights)

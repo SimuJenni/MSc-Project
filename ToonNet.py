@@ -249,7 +249,7 @@ def cos_sim(x, y):
     return x
 
 
-def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=None, train_disc=True):
+def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, noise=None, train_disc=True):
     gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
 
     # Build Generator
@@ -275,7 +275,8 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     g_input = Input(batch_shape=gen_in_shape)
     im_input = Input(batch_shape=(batch_size,) + input_shape)
     g_x = generator(g_input)
-    d_in = merge([g_x, im_input],  mode='concat')
+
+    d_in = my_merge(g_x, im_input, order)
     d_out, de_out = discriminator(d_in)
 
     optimizer = Adam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
@@ -289,11 +290,28 @@ def GAN(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=Non
     else:
         make_trainable(discriminator, False)
         gan = Model(input=[g_input, im_input], output=[d_out, de_out, g_x])
-        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.1, 50.0],
+        gan.compile(loss=['binary_crossentropy', 'binary_crossentropy', 'mse'], loss_weights=[1.0, 0.01, 50.0],
                     optimizer=optimizer)
         gan.name = make_name('ToonGANg', num_layers=num_layers)
 
     return gan, generator, discriminator
+
+
+def my_merge(a, b, order):
+    def _my_merge(x, y, order):
+        merged = K.switch(K.get_value(order) == 0,
+                        merge([x, y], mode='concat'),
+                        merge([y, x], mode='concat'))
+        return merged
+
+    def _my_merge_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[-1] *= 2
+        return tuple(shape)
+
+    x = merge([a, b], mode=lambda x: _my_merge(x[0], x[1], order=order), output_shape=lambda x: _my_merge_output_shape(x[0]))
+
+    return x
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False, ):

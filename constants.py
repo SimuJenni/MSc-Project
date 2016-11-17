@@ -3,8 +3,8 @@ import os
 NUM_THREADS = 16
 
 # Directories for data, images and models
-#DATA_DIR = '/Users/simujenni/MSc-Project/data/'
-DATA_DIR = '/data/cvg/simon/data/'
+DATA_DIR = '/Users/simujenni/MSc-Project/data/'
+#DATA_DIR = '/data/cvg/simon/data/'
 MODEL_DIR = os.path.join(DATA_DIR, 'models/')
 IMG_DIR = os.path.join(DATA_DIR, 'img/')
 LOG_DIR = os.path.join(DATA_DIR, 'logs/')

@@ -7,7 +7,7 @@ import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import GANAE, DiscAE, gen_data, disc_data
+from ToonNet import GANAE, gen_data
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon
 from utils import montage, generator_queue
@@ -15,11 +15,11 @@ from utils import montage, generator_queue
 # Get the data-set object
 data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
-    rotation_range=10,
-    width_shift_range=0.05,
-    height_shift_range=0.05,
-    shear_range=0.05,
-    zoom_range=[0.9, 1.0],
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    shear_range=0.1,
+    zoom_range=[0.75, 1.0],
     fill_mode='nearest',
     horizontal_flip=True
 )
@@ -31,35 +31,29 @@ chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 30
 load_weights = False
-noise = K.variable(value=0.25, name='sigma')
+noise = K.variable(value=0.5, name='sigma')
 noise_decay_rate = 0.95
+merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 
 # Load the models
-discriminator = DiscAE(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
-GAN, gen_gan, disc_gan = GANAE(data.dims,
-                               batch_size=batch_size,
-                               num_layers=num_layers,
-                               load_weights=load_weights,
-                               noise=noise)
-
-# Paths for storing the weights
-gen_weights = os.path.join(MODEL_DIR, '{}_gan.hdf5'.format(gen_gan.name))
-disc_weights = os.path.join(MODEL_DIR, '{}_gan.hdf5'.format(disc_gan.name))
-disc_gan.set_weights(discriminator.get_weights())
+gGAN = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=False)
+dGAN = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=True)
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
                                                             target_size=data.target_size).next()
-montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon.jpeg'.format(GAN.name, data.name)))
-montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.format(GAN.name, data.name)), gray=True)
-montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(GAN.name, data.name)))
+X_test = [gen_data(toon_test, edge_test), im_test]
+montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon.jpeg'.format(gGAN.name, data.name)))
+montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.format(gGAN.name, data.name)), gray=True)
+montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(gGAN.name, data.name)))
 
 # Training
-print('GAN training: {}'.format(GAN.name))
+print('GAN training: {}'.format(gGAN.name))
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
     train_disc = True
+    count_skip = 0
 
     # Create queue for training data
     data_gen_queue, _stop, threads = generator_queue(
@@ -77,61 +71,44 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        target = np.zeros_like(img_train)
+        X = [gen_data(toon_train, edge_train), img_train]
 
-        # Prepare training data
-        im_pred, _ = gen_gan.predict(gen_data(toon_train, edge_train), batch_size=batch_size)
-        d_out, dp_out = disc_gan.predict(im_pred, batch_size=batch_size)
-        if train_disc or l1 < 1.1:
-            # Train discriminator
-            print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
+        print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
-            h = discriminator.fit(Xd_train, yd_train, nb_epoch=1, batch_size=batch_size, verbose=0)
-            d_loss = h.history['loss']
-            print('D-Loss: {}'.format(d_loss))
+        # Train generator
+        if chunk % 2 == 0:
+            y = [np.zeros((len(toon_train), 1)), img_train]
+        else:
+            y = [np.ones((len(toon_train), 1)), img_train]
 
-            # Update the weights
-            disc_gan.set_weights(discriminator.get_weights())
-            train_disc = False
+        h = dGAN.fit(x=X, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
 
         # Train generator
-        _, dp_out = disc_gan.predict(img_train, batch_size=batch_size)
-        h = GAN.fit(x=[gen_data(toon_train, edge_train), img_train],
-                    y=[np.ones((len(toon_train), 1)), img_train, dp_out],
-                    nb_epoch=1, batch_size=batch_size, verbose=0)
+        if chunk % 2 == 0:
+            y = [np.ones((len(toon_train), 1)), img_train]
+        else:
+            y = [np.zeros((len(toon_train), 1)), img_train]
 
-        t_loss = h.history['loss'][0]
-        l1 = h.history['{}_loss_1'.format(GAN.output_names[0])][0]
-        l2 = h.history['{}_loss'.format(GAN.output_names[1])][0]
-        l3 = h.history['{}_loss_2'.format(GAN.output_names[2])][0]
-        print('Loss: {} L_1: {} L_2: {} L_3: {}'.format(t_loss, l1, l2, l3))
+        h = gGAN.fit(x=X, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
 
         # Generate montage of test-images
         if not chunk % 25:
-            decoded_imgs = gen_gan.predict(gen_data(toon_test[:batch_size], edge_test[:batch_size]),
-                                           batch_size=batch_size)
+            _, decoded_imgs = gGAN.predict(X_test, batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
-                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(GAN.name, data.name, epoch, chunk)))
-            # Save the weights
-            disc_gan.save_weights(disc_weights)
-            gen_gan.save_weights(gen_weights)
-            del toon_train, img_train, target, h, decoded_imgs, im_pred
+                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
+            _, decoded_imgs = dGAN.predict(X_test, batch_size=batch_size)
+            montage(decoded_imgs[:100] * 0.5 + 0.5,
+                    os.path.join(IMG_DIR,
+                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
+            del toon_train, img_train, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
-
-    # Save the weights
-    disc_gan.save_weights(disc_weights)
-    gen_gan.save_weights(gen_weights)
-
-    # Update noise lvl
-    if noise:
-        new_sigma = K.get_value(noise) * noise_decay_rate
-        print('Lowering noise-level to {}'.format(new_sigma))
-        K.set_value(noise, new_sigma)
+        K.set_value(merge_order, np.int16(chunk % 2))
 
     _stop.set()
     del data_gen_queue, threads

@@ -696,7 +696,7 @@ def ToonDiscriminator_old(in_layer, num_res_layers=8, big_f=False, p_wise_out=Fa
 def add_noise_planes(x, n_chan):
     def add_noise(x):
         layer_shape = K.int_shape(x)
-        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
+        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=2.0)
         return merge([x, noise], mode='concat')
 
     def add_noise_output_shape(input_shape):

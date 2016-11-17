@@ -179,6 +179,37 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
     return d_out, p_out
 
 
+def Disc_shared(in_1, in2_, in_shape, activation='lrelu', num_layers=5, noise=None):
+
+
+
+    if noise:
+        x = GaussianNoise(sigma=K.get_value(noise))(x)
+
+    f_dims = F_DIMS[:num_layers]
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
+
+    for l in range(1, num_layers):
+        with tf.name_scope('conv_{}'.format(l + 1)):
+            x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
+
+    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    p_out = conv_act(x, f_size=1, f_channels=1, stride=1, border='valid', activation='sigmoid')
+
+    x = Flatten()(x)
+    x = Dense(2048, init='he_normal')(x)
+    x = Dropout(0.5)(x)
+    x = my_activation(x, type=activation)
+    x = BatchNormalization(axis=1)(x)
+    x = Dense(2048, init='he_normal')(x)
+    x = Dropout(0.5)(x)
+    x = my_activation(x, type=activation)
+    x = BatchNormalization(axis=1)(x)
+    d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
+
+    return d_out, p_out
+
+
 def GANAE(input_shape, batch_size=128, num_layers=4, load_weights=False, noise=None, train_disc=True):
     gen_in_shape = (batch_size,) + input_shape[:2] + (4,)
 

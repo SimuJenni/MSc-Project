@@ -33,7 +33,7 @@ nb_epoch = 100
 load_weights = False
 noise = K.variable(value=0.25, name='sigma')
 noise_decay_rate = 0.95
-merge_order = K.variable(value=0, name='merge_order', dtype='uint8')
+merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 
 # Load the models
 discriminator = Disc2(data.dims, load_weights=False, num_layers=num_layers, noise=noise)
@@ -133,7 +133,7 @@ for epoch in range(nb_epoch):
             del toon_train, img_train, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()
-        K.set_value(merge_order, chunk % 2)
+        K.set_value(merge_order, np.int16(chunk % 2))
 
     # Save the weights
     disc_gan.save_weights(disc_weights)

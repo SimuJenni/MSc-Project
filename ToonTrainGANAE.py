@@ -90,14 +90,14 @@ for epoch in range(nb_epoch):
         gde.set_weights(dde.get_weights())
         gd.set_weights(dd.get_weights())
 
-        # Train generator
-        if chunk % 2 == 0:
-            y = [np.ones((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
-        else:
-            y = [np.zeros((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
-
-        h = gGAN.fit(x=X, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
-        print(h.history)
+        # # Train generator
+        # if chunk % 2 == 0:
+        #     y = [np.ones((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
+        # else:
+        #     y = [np.zeros((len(toon_train), 1)), img_train, np.zeros_like(img_train)]
+        #
+        # h = gGAN.fit(x=X, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        # print(h.history)
 
         # Generate montage of test-images
         if not chunk % 25:

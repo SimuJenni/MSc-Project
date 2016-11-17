@@ -215,14 +215,13 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
     if train_disc:
         dec_y = decoder(d_y)
         gan = Model(input=[gen_input, im_input], output=[d_out, dec_y])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0], optimizer=optimizer)
         gan.name = make_name('GANAEd', num_layers=num_layers)
 
     else:
         dec_x = decoder(g_x)
-        l1 = sub(g_x, d_y)
-        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x, l1])
-        gan.compile(loss=['binary_crossentropy', 'mse', l2_loss], loss_weights=[1.0, 5.0, 0.5], optimizer=optimizer)
+        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x])
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
     return gan, generator, encoder, decoder, discriminator

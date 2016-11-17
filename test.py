@@ -47,7 +47,7 @@ from ToonNet import ToonGenTransp, ToonDisc
 
 
 input_gen = Input(batch_shape=(64, 32, 32, 3))
-decoded, _ = ToonGenTransp(input_gen, num_layers=3, batch_size=64)
+decoded, _ = ToonGenTransp(input_gen, num_layers=3, batch_size=64, outter=True)
 generator = Model(input_gen, decoded)
 p_out, d_out, _ = ToonDisc(input_gen, num_layers=3)
 discriminator = Model(input_gen, [p_out, d_out])

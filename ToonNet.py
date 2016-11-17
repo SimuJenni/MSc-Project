@@ -17,16 +17,19 @@ F_G_DIMS = [96, 160, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
-def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
+def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128, outter=False):
     f_dims = F_G_DIMS[:num_layers+1]
     x = add_noise_planes(x, 1)
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='same', activation=activation)
     l_dims = [K.int_shape(x)[1]]
+    ol = [None] * num_layers
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
             l_dims += [K.int_shape(x)[1]]
+            if outter:
+                ol[l] = outter_connection(x, f_dims[l])
 
     x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
     encoded = x
@@ -37,6 +40,8 @@ def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, bat
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_transp_{}'.format(l + 1)):
+            if outter:
+                x = merge([x, ol[num_layers-l]], mode='concat')
             x = add_noise_planes(x, NOISE_CHANNELS[num_layers - l])
             x = conv_transp_bn(x, f_size=4, f_channels=f_dims[num_layers - l - 1], out_dim=l_dims[num_layers - l - 1],
                                batch_size=batch_size, activation=activation)
@@ -846,7 +851,7 @@ def outter_connection(layer_in, f_channels):
     """
     l = Convolution2D(f_channels, 1, 1, border_mode='valid', subsample=(1, 1), init='he_normal')(layer_in)
     l = Activation('relu')(l)
-    return BatchNormalization(axis=3)(l)
+    return l
 
 
 def res_layer_bottleneck(in_layer, out_dim, bn_dim, activation='relu', lightweight=False):

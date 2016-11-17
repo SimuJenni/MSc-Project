@@ -36,8 +36,8 @@ noise_decay_rate = 0.95
 merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 
 # Load the models
-gGAN = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=False)
-dGAN = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=True)
+gGAN, gg, ge, gde, gd = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=False)
+dGAN, dg, de, dde, dd = GANAE(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=True)
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
@@ -74,7 +74,7 @@ for epoch in range(nb_epoch):
         X = [gen_data(toon_train, edge_train), img_train]
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-        dGAN.set_weights(gGAN.get_weights())
+        dg.set_weights(gg.get_weights())
 
         # Train generator
         if chunk % 2 == 0:
@@ -86,7 +86,9 @@ for epoch in range(nb_epoch):
         print(h.history)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        gGAN.set_weights(dGAN.get_weights())
+        ge.set_weights(de.get_weights())
+        gde.set_weights(dde.get_weights())
+        gd.set_weights(dd.get_weights())
 
         # Train generator
         if chunk % 2 == 0:

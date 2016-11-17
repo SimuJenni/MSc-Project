@@ -221,7 +221,7 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
-    return gan
+    return gan, generator, encoder, decoder, discriminator
 
 
 

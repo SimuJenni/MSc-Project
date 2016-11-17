@@ -31,7 +31,7 @@ num_chunks = data.num_train // chunk_size
 nb_epoch = 10
 
 use_gan = True
-use_gen = True
+use_gen = False
 if use_gen:
     net_load_name = make_name('ToonGen', num_layers=num_layers)
 else:

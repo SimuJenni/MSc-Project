@@ -104,11 +104,11 @@ for epoch in range(nb_epoch):
             _, decoded_imgs = gGAN.predict(X_test, batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
-                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
+                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
             _, decoded_imgs = dGAN.predict(X_test, batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
-                                 '{}-{}-Epoch:{}-Chunk:{}-big_m_bigF.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
+                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
             del toon_train, img_train, h, decoded_imgs
             gc.collect()
         sys.stdout.flush()

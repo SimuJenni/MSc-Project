@@ -14,7 +14,7 @@ from constants import MODEL_DIR
 F_DIMS = [64, 128, 256, 512, 1024, 2048]
 F_G_DIMS = [96, 160, 256, 512, 1024, 2048]
 
-NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
+NOISE_CHANNELS = [2, 8, 16, 32, 64, 96, 128]
 
 
 def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
@@ -220,8 +220,9 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
 
     else:
         dec_x = decoder(g_x)
-        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
+        l1 = sub(g_x, d_y)
+        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x, l1])
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0, 0.5], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
     return gan, generator, encoder, decoder, discriminator

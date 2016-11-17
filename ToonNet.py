@@ -154,14 +154,14 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
 
     # if noise:
     #     x = GaussianNoise(sigma=K.get_value(noise))(x)
-    x = SpatialDropout2D(p=K.get_value(noise))(x)
+    x = SpatialDropout2D(p=0.5)(x)
 
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
-            x = SpatialDropout2D(p=K.get_value(noise))(x)
+            x = SpatialDropout2D(p=0.5)(x)
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
     encoded = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)

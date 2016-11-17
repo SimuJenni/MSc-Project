@@ -4,7 +4,7 @@ import keras.backend as K
 import numpy as np
 import tensorflow as tf
 from keras.layers import Input, Convolution2D, BatchNormalization, Activation, merge, Dense, GlobalAveragePooling2D, \
-    Lambda, Flatten, Dropout, GaussianNoise, Deconvolution2D
+    Lambda, Flatten, Dropout, GaussianNoise, Deconvolution2D, SpatialDropout2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 from keras.optimizers import Adam
@@ -152,14 +152,16 @@ def ToonDiscAE(x, activation='lrelu', num_layers=5, noise=None):
 
 def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
 
-    if noise:
-        x = GaussianNoise(sigma=K.get_value(noise))(x)
+    # if noise:
+    #     x = GaussianNoise(sigma=K.get_value(noise))(x)
+    x = SpatialDropout2D(p=K.get_value(noise))(x)
 
     f_dims = F_DIMS[:num_layers]
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[0], stride=1, border='valid', activation=activation)
 
     for l in range(1, num_layers):
         with tf.name_scope('conv_{}'.format(l + 1)):
+            x = SpatialDropout2D(p=K.get_value(noise))(x)
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
     x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)

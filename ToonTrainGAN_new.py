@@ -31,7 +31,7 @@ chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
 nb_epoch = 100
 load_weights = False
-noise = K.variable(value=0.25, name='sigma')
+noise = K.variable(value=0.5, name='sigma')
 noise_decay_rate = 0.95
 merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 

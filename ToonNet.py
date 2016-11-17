@@ -196,6 +196,13 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
     discriminator = Model(input_disc, d_out)
 
     # Build GAN
+    if train_disc:
+        generator = make_trainable(generator, False)
+    else:
+        discriminator = make_trainable(discriminator, False)
+        encoder = make_trainable(encoder, False)
+        decoder = make_trainable(decoder, False)
+
     gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
     im_input = Input(batch_shape=(batch_size,) + input_shape)
     d_y = encoder(im_input)
@@ -207,18 +214,14 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
 
     if train_disc:
         dec_y = decoder(d_y)
-        make_trainable(generator, False)
         gan = Model(input=[gen_input, im_input], output=[d_out, dec_y])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEd', num_layers=num_layers)
 
     else:
         dec_x = decoder(g_x)
-        make_trainable(discriminator, False)
-        make_trainable(encoder, False)
-        make_trainable(decoder, False)
         gan = Model(input=[gen_input, im_input], output=[d_out, dec_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
     return gan, generator, encoder, decoder, discriminator
@@ -1375,6 +1378,7 @@ def make_trainable(net, val):
     net.trainable = val
     for l in net.layers:
         l.trainable = val
+    return net
 
 
 def compute_layer_shapes(input_shape, num_layers):

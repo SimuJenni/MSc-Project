@@ -164,10 +164,10 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
             x = SpatialDropout2D(p=K.get_value(noise))(x)
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation=activation)
 
-    x = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
-    p_out = conv_act(x, f_size=1, f_channels=1, stride=1, border='valid', activation='sigmoid')
+    encoded = conv_act_bn(x, f_size=3, f_channels=f_dims[num_layers - 1], stride=1, border='valid', activation=activation)
+    p_out = conv_act(encoded, f_size=1, f_channels=1, stride=1, border='valid', activation='sigmoid')
 
-    x = Flatten()(x)
+    x = Flatten()(encoded)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type=activation)
@@ -178,7 +178,7 @@ def ToonDisc(x, activation='lrelu', num_layers=5, noise=None):
     x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
 
-    return d_out, p_out
+    return d_out, p_out, encoded
 
 
 def Disc_shared(in_1, in2_, in_shape, activation='lrelu', num_layers=5, noise=None):
@@ -294,7 +294,7 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
 
     # Build Discriminator
     input_disc = Input(shape=input_shape[:2] + (6,))
-    d_out, de_out = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
+    d_out, de_out, _ = ToonDisc(input_disc, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_disc, output=[d_out, de_out])
     discriminator.name = make_name('ToonDisc', num_layers=num_layers)
     make_trainable(discriminator, False)
@@ -436,7 +436,7 @@ def Disc(input_shape, load_weights=False, num_layers=4, noise=None):
 def Disc2(input_shape, load_weights=False, num_layers=4, noise=None):
     # Build the model
     input_d = Input(shape=input_shape[:2] + (6,))
-    d_out, de_out = ToonDisc(input_d, num_layers=num_layers, activation='relu', noise=noise)
+    d_out, de_out, _ = ToonDisc(input_d, num_layers=num_layers, activation='relu', noise=noise)
     discriminator = Model(input_d, [d_out, de_out])
 
     # Load weights
@@ -952,7 +952,7 @@ def Classifier(input_shape, batch_size=128, num_layers=4, num_classes=1000, net_
     if use_gen:
         decoded, encoded = ToonGen(input_im, num_layers=num_layers, batch_size=batch_size)
     else:
-        decoded, encoded = ToonDisc(input_im, num_layers=num_layers)
+        decoded, _, encoded = ToonDisc(input_im, num_layers=num_layers)
     encoder = Model(input_im, encoded)
     discriminator = Model(input_im, decoded)
     if net_load_name:

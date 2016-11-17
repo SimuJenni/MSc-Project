@@ -13,7 +13,7 @@ from utils import montage, generator_queue
 import keras.backend as K
 
 # Get the data-set object
-data = TinyImagenetToon()
+data = CIFAR10_Toon()
 datagen = ImageDataGenerator(
     rotation_range=15,
     width_shift_range=0.1,
@@ -25,7 +25,7 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 4
+num_layers = 3
 batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size

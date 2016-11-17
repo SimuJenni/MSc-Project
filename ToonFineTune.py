@@ -73,7 +73,7 @@ for epoch in range(nb_epoch):
                 time.sleep(0.05)
 
         if use_gen:
-            X = gen_data(img_train, np.random.normal(size=(chunk_size,)+data.dims[:2]+(1,)))
+            X = gen_data(img_train, np.random.normal(size=(len(img_train),)+data.dims[:2]+(1,)))
         else:
             X = np.concatenate((img_train, img_train), axis=3)
 

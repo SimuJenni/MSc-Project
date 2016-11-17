@@ -81,7 +81,7 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        if train_disc or l1 < 1.2 or count_skip > 4:
+        if train_disc or l1 < 1.2 or d_loss>l1 or count_skip > 1:
             # Train discriminator
             print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
             # Xd_train, yd_train = disc_data(toon_train, img_train, im_pred)
@@ -139,11 +139,11 @@ for epoch in range(nb_epoch):
     disc_gan.save_weights(disc_weights)
     gen_gan.save_weights(gen_weights)
 
-    # Update noise lvl
-    if noise:
-        new_sigma = K.get_value(noise) * noise_decay_rate
-        print('Lowering noise-level to {}'.format(new_sigma))
-        K.set_value(noise, new_sigma)
+    # # Update noise lvl
+    # if noise:
+    #     new_sigma = K.get_value(noise) * noise_decay_rate
+    #     print('Lowering noise-level to {}'.format(new_sigma))
+    #     K.set_value(noise, new_sigma)
 
     _stop.set()
     del data_gen_queue, threads

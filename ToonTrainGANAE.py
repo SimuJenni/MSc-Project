@@ -74,6 +74,7 @@ for epoch in range(nb_epoch):
         X = [gen_data(toon_train, edge_train), img_train]
 
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
+        dGAN.set_weights(gGAN.get_weights())
 
         # Train generator
         if chunk % 2 == 0:
@@ -85,6 +86,7 @@ for epoch in range(nb_epoch):
         print(h.history)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
+        gGAN.set_weights(dGAN.get_weights())
 
         # Train generator
         if chunk % 2 == 0:

@@ -68,7 +68,7 @@ def ToonGenAE(inputs, num_layers=5):
 
 def ToonEncoder(inputs, num_layers=5):
     f_dims = F_DIMS
-    with tf.variable_scope('generator'):
+    with tf.variable_scope('encoder'):
         with toon_net_argscope(padding='VALID'):
             net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0')
 

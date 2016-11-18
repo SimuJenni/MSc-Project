@@ -171,7 +171,8 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
     e_out, _ = ToonEncAE(input_enc, num_layers=num_layers)
     encoder = Model(input_enc, output=e_out)
     encoder.name = make_name('ToonEncAE', num_layers=num_layers)
-    # make_trainable(encoder, False)  # TODO: Best results? :O
+    encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
+    make_trainable(encoder, False)  # TODO: Best results? :O
 
     # Build decoder
     dec_in_shape = (batch_size, l_dims[-1], l_dims[-1], F_DIMS[num_layers])

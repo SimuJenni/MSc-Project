@@ -101,7 +101,7 @@ for epoch in range(nb_epoch):
 
         # Generate montage of test-images
         if not chunk % 100:
-            _, decoded_imgs = gGAN.predict(X_test, batch_size=batch_size)
+            _, decoded_imgs = gGAN.predict(X_test + [d_enc], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
                                  '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))

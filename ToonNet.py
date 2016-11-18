@@ -231,6 +231,28 @@ def discAE(input_disc):
     return d_out
 
 
+def AE(input_shape, num_layers=5, batch_size=128):
+    # Build Encoder
+    input_enc = Input(shape=input_shape)
+    e_out, l_dims = ToonEncAE(input_enc, num_layers=num_layers)
+    encoder = Model(input_enc, output=e_out)
+    encoder.name = make_name('ToonEncAE', num_layers=num_layers)
+
+    # Build decoder
+    dec_in_shape = (batch_size, l_dims[-1], l_dims[-1], F_DIMS[num_layers])
+    input_dec = Input(batch_shape=dec_in_shape)
+    dec_out = ToonDecoder(input_dec, num_layers, l_dims, batch_size=batch_size)
+    decoder = Model(input_dec, output=dec_out)
+    decoder.name = make_name('ToonDecAE', num_layers=num_layers)
+
+    input_im = Input(shape=input_shape)
+    enc = encoder(input_im)
+    rec = decoder(enc)
+    AE = Model(input_im, rec)
+    AE.compile('adam', 'mse')
+    return AE, encoder, decoder
+
+
 def max_val(y_true, y_pred):
     return -y_pred
 

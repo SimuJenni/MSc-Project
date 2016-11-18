@@ -1,6 +1,7 @@
 import os
 import time
 import gc
+import sys
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import AE
 from constants import MODEL_DIR, IMG_DIR
@@ -58,6 +59,7 @@ for epoch in range(nb_epoch):
         # Train ae
         h = ae.fit(x=img_train, y=img_train, batch_size=batch_size, verbose=0, nb_epoch=1)
         print(h.history)
+        sys.stdout.flush()
 
     _stop.set()
     del data_gen_queue, threads

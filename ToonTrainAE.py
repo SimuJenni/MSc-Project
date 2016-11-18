@@ -9,7 +9,7 @@ from utils import montage
 
 # Training parameters
 batch_size = 200
-nb_epoch = 5
+nb_epoch = 20
 num_layers = 3
 num_res = 0
 
@@ -37,8 +37,8 @@ history = ae.fit_generator(
     nb_epoch=nb_epoch,
     validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
     nb_val_samples=data.num_val,
-    nb_worker=2,
-    max_q_size=16)
+    nb_worker=8,
+    max_q_size=32)
 
 # Save the model
 encoder.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))

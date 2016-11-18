@@ -80,7 +80,7 @@ for epoch in range(nb_epoch):
         g_enc = gen.predict(X_gen, batch_size=batch_size)
         X_GAN = [img_train, g_enc]
 
-        h = dGAN.fit(x=X_GAN, y=[y, img_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
         print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
@@ -96,7 +96,7 @@ for epoch in range(nb_epoch):
         d_enc = enc.predict(img_train, batch_size=batch_size)
         X_GAN = [X_gen, img_train, d_enc]
 
-        h = dGAN.fit(x=X_GAN, y=[y, img_train], nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
         # Generate montage of test-images

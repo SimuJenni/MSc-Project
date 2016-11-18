@@ -96,7 +96,7 @@ for epoch in range(nb_epoch):
         d_enc = enc.predict(img_train, batch_size=batch_size)
         X_GAN = [X_gen, img_train, d_enc]
 
-        h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
         # Generate montage of test-images

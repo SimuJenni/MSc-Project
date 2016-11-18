@@ -389,9 +389,10 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
 
 def my_merge(a, b, order):
     def _my_merge(x, y, order):
-        merged = K.switch(K.get_value(order) == 0,
-                        merge([x, y], mode='concat'),
-                        merge([y, x], mode='concat'))
+        merged = tf.select(tf.python.math_ops.greater(x, 0), merge([x, y], mode='concat'), merge([y, x], mode='concat'))
+        # merged = K.switch(K.get_value(order) > 0,
+        #                 merge([x, y], mode='concat'),
+        #                 merge([y, x], mode='concat'))
         return merged
 
     def _my_merge_output_shape(input_shape):

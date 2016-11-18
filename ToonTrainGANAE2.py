@@ -74,10 +74,10 @@ for epoch in range(nb_epoch):
         g_enc = gen.predict(X_gen, batch_size=batch_size)
         if chunk % 2 == 0:
             y = [np.ones((len(toon_train), 1)), img_train]
-            order = np.concatenate((np.ones_like(g_enc), np.zeros_like(g_enc)), axis=3)
+            order = np.concatenate((np.ones_like(g_enc), np.ones_like(g_enc)), axis=3)
         else:
             y = [np.zeros((len(toon_train), 1)), img_train]
-            order = np.concatenate((np.zeros_like(g_enc), np.ones_like(g_enc)), axis=3)
+            order = np.concatenate((np.zeros_like(g_enc), np.zeros_like(g_enc)), axis=3)
         X_GAN = [img_train, g_enc, order]
 
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)

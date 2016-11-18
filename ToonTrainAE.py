@@ -1,17 +1,12 @@
 import os
-
+import time
+import gc
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import AE
 from constants import MODEL_DIR, IMG_DIR
 from datasets import CIFAR10_Toon, TinyImagenetToon
-from utils import montage
+from utils import montage, generator_queue
 
-
-# Training parameters
-batch_size = 200
-nb_epoch = 20
-num_layers = 3
-num_res = 0
 
 # Get the data-set object
 data = CIFAR10_Toon()
@@ -25,20 +20,48 @@ datagen = ImageDataGenerator(
     horizontal_flip=True
 )
 
+# Training parameters
+batch_size = 200
+nb_epoch = 20
+chunk_size = 4 * batch_size
+num_chunks = data.num_train // chunk_size
+num_layers = 3
+num_res = 0
+
 ae, encoder, decoder = AE(data.dims, num_layers=num_layers, batch_size=batch_size)
 
 # Name used for saving of model and outputs
 print('Training network: {}'.format(encoder.name))
 
-# Training
-history = ae.fit_generator(
-    datagen.flow_from_directory(data.train_dir, batch_size=batch_size, target_size=data.target_size),
-    samples_per_epoch=data.num_train,
-    nb_epoch=nb_epoch,
-    validation_data=datagen.flow_from_directory(data.val_dir, batch_size=batch_size, target_size=data.target_size),
-    nb_val_samples=data.num_val,
-    nb_worker=8,
-    max_q_size=32)
+for epoch in range(nb_epoch):
+    print('Epoch: {}/{}'.format(epoch, nb_epoch))
+
+    # Create queue for training data
+    data_gen_queue, _stop, threads = generator_queue(
+        datagen.flow_from_directory(data.train_dir, batch_size=chunk_size, target_size=data.target_size),
+        max_q_size=32,
+        nb_worker=8)
+
+    for chunk in range(num_chunks):
+
+        # Get next chunk of training data from queue
+        while not _stop.is_set():
+            if not data_gen_queue.empty():
+                toon_train, edge_train, img_train = data_gen_queue.get()
+                break
+            else:
+                time.sleep(0.05)
+
+        target = toon_train
+        print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
+
+        # Train ae
+        h = ae.fit(x=img_train, y=img_train, batch_size=batch_size, verbose=0, nb_epoch=1)
+        print(h.history)
+
+    _stop.set()
+    del data_gen_queue, threads
+    gc.collect()
 
 # Save the model
 encoder.save_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))

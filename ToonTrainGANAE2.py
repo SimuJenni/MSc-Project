@@ -84,10 +84,12 @@ for epoch in range(nb_epoch):
         print('Epoch {}/{} Chunk {}: Training AE...'.format(epoch, nb_epoch, chunk))
         d_disc.set_weights(disc.get_weights())
 
-        if chunk % 2 == 0:
-            y = [np.ones((len(toon_train), 1)), img_train]
-        else:
-            y = [np.zeros((len(toon_train), 1)), img_train]
+        # if chunk % 2 == 0:
+        #     y = [np.ones((len(toon_train), 1)), img_train]
+        # else:
+        #     y = [np.zeros((len(toon_train), 1)), img_train]
+        y = [np.zeros((len(toon_train), 1)), img_train]
+
         X_GAN = [img_train, g_enc]
 
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
@@ -98,10 +100,12 @@ for epoch in range(nb_epoch):
         g_disc.set_weights(disc.get_weights())
 
         # Train generator
-        if chunk % 2 == 0:
-            y = [np.zeros((len(toon_train), 1)), img_train]
-        else:
-            y = [np.ones((len(toon_train), 1)), img_train]
+
+        # if chunk % 2 == 0:
+        #     y = [np.zeros((len(toon_train), 1)), img_train]
+        # else:
+        #     y = [np.ones((len(toon_train), 1)), img_train]
+        y = [np.ones((len(toon_train), 1)), img_train]
 
         d_enc = enc.predict(img_train, batch_size=batch_size)
         X_GAN = [X_gen, img_train, d_enc]

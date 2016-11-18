@@ -90,7 +90,7 @@ def ToonGenAE(x, activation='relu', num_layers=5):
             l_dims += [K.int_shape(x)[1]]
 
     x = add_noise_planes(x, NOISE_CHANNELS[num_layers])
-    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
+    x = conv_act(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation=activation)
     encoded = x
     l_dims += [K.int_shape(x)[1]]
 
@@ -107,7 +107,7 @@ def ToonEncAE(x, num_layers=5):
             x = conv_act_bn(x, f_size=4, f_channels=f_dims[l], stride=2, border='valid', activation='relu')
             l_dims += [K.int_shape(x)[1]]
 
-    x = conv_act_bn(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation='relu')
+    x = conv_act(x, f_size=4, f_channels=f_dims[num_layers], stride=1, border='valid', activation='relu')
     encoded = x
     l_dims += [K.int_shape(x)[1]]
 
@@ -302,10 +302,6 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
 def discAE(input_disc):
     x = SpatialDropout2D(p=0.5)(input_disc)
     x = Flatten()(x)
-    x = Dense(2048, init='he_normal')(x)
-    x = Dropout(0.5)(x)
-    x = my_activation(x, type='lrelu')
-    x = BatchNormalization(axis=1)(x)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type='lrelu')

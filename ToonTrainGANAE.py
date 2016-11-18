@@ -13,7 +13,7 @@ from datasets import TinyImagenetToon, CIFAR10_Toon
 from utils import montage, generator_queue
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(
     rotation_range=15,
     width_shift_range=0.1,
@@ -25,7 +25,7 @@ datagen = ImageDataGenerator(
 )
 
 # Training parameters
-num_layers = 3
+num_layers = 4
 batch_size = 200
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
@@ -43,9 +43,9 @@ dGAN, dg, de, dde, dd = GANAE(data.dims, order=merge_order, batch_size=batch_siz
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
                                                             target_size=data.target_size).next()
 X_test = [gen_data(toon_test, edge_test), im_test]
-montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon.jpeg'.format(gGAN.name, data.name)))
-montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.format(gGAN.name, data.name)), gray=True)
-montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(gGAN.name, data.name)))
+montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon_50.jpeg'.format(gGAN.name, data.name)))
+montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge_50.jpeg'.format(gGAN.name, data.name)), gray=True)
+montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images_50.jpeg'.format(gGAN.name, data.name)))
 
 # Training
 print('GAN training: {}'.format(gGAN.name))

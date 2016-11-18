@@ -49,6 +49,51 @@ def ToonDiscriminator(inputs, num_layers=5, is_training=True):
             return net
 
 
+def ToonGenAE(inputs, num_layers=5):
+    f_dims = F_DIMS
+    with tf.variable_scope('genAE'):
+        with toon_net_argscope(padding='VALID'):
+            net = add_noise_plane(inputs, NOISE_CHANNELS[0])
+            net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_0')
+
+            for l in range(1, num_layers):
+                net = add_noise_plane(net, NOISE_CHANNELS[l])
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+
+            net = add_noise_plane(net, NOISE_CHANNELS[num_layers + 1])
+            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
+
+            return net
+
+
+def ToonEncoder(inputs, num_layers=5):
+    f_dims = F_DIMS
+    with tf.variable_scope('genAE'):
+        with toon_net_argscope(padding='VALID'):
+            net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0')
+
+            for l in range(1, num_layers):
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+
+            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
+            return net
+
+
+def ToonDecode(inputs, num_layers=5):
+    f_dims = F_DIMS
+    with tf.variable_scope('genAE'):
+        with toon_net_argscope(padding='VALID'):
+            net = slim.convolution2d_transpose(inputs, f_dims[num_layers - 1], padding='SAME', scope='deconv_0')
+
+            for l in range(1, num_layers):
+                net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], padding='SAME',
+                                                   scope='deconv_{}'.format(l))
+
+            net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
+                              activation_fn=tf.nn.tanh)
+            return net
+
+
 def add_noise_plane(net, noise_channels):
     noise_shape = net.get_shape().as_list()
     noise_shape[-1] = noise_channels
@@ -74,12 +119,13 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME')
         'scale': True,
         'updates_collections': tf.GraphKeys.UPDATE_OPS,
     }
-    with slim.arg_scope([slim.conv2d, slim.fully_connected],
+    with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
                         weights_regularizer=slim.l2_regularizer(0.0001),
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params):
         with slim.arg_scope([slim.conv2d],
+                            stride=2,
                             kernel_size=kernel_size,
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:

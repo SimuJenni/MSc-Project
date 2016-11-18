@@ -33,8 +33,8 @@ nb_epoch = 30
 merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 
 # Load the models
-GAN, gen, dec, disc = GANAE2(data.dims, order=merge_order, batch_size=batch_size, num_layers=num_layers,
-                             train_disc=False)
+GAN, gen, g_dec, g_disc = GANAE2(data.dims, batch_size=batch_size, num_layers=num_layers, train_disc=False)
+discriminator, AE, decoder = GANAE2(data.dims, batch_size=batch_size, num_layers=num_layers, train_disc=True)
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
@@ -45,7 +45,7 @@ montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.for
 montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(GAN.name, data.name)))
 
 # Training
-print('GAN training: {}'.format(gGAN.name))
+print('GAN training: {}'.format(GAN.name))
 
 for epoch in range(nb_epoch):
     print('Epoch: {}/{}'.format(epoch, nb_epoch))
@@ -67,6 +67,7 @@ for epoch in range(nb_epoch):
                 break
             else:
                 time.sleep(0.05)
+
 
         X = [gen_data(toon_train, edge_train), img_train]
 

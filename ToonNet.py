@@ -204,7 +204,7 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         if train_disc:
             dec_y = decoder(d_y)
             gan = Model(input=[gen_input, im_input], output=[d_out, dec_y])
-            gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0], optimizer=optimizer)
+            gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 50.0], optimizer=optimizer)
             gan.name = make_name('GANAEd', num_layers=num_layers)
 
         else:

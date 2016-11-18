@@ -226,7 +226,7 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
     return gan, generator, encoder, decoder, discriminator
 
 
-def GANAE2(input_shape, batch_size=128, num_layers=4, train_disc=True):
+def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
 
     optimizer = Adam(lr=0.0002, beta_1=0.5, beta_2=0.999, epsilon=1e-08)
 
@@ -244,20 +244,24 @@ def GANAE2(input_shape, batch_size=128, num_layers=4, train_disc=True):
         decoder = Model(input_dec, output=dec_out)
         decoder.name = make_name('ToonDecAE', num_layers=num_layers)
 
-        # Build AE
-        im_input = Input(batch_shape=(batch_size,) + input_shape)
-        enc_im = encoder(im_input)
-        dec_im = decoder(enc_im)
-        AE = Model(im_input, dec_im)
-        AE.compile(loss='mse', optimizer=optimizer)
-
         # Build Discriminator
-        input_disc = Input(shape=dec_in_shape[1:3] + (F_DIMS[num_layers],))
+        input_disc = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
         d_out = discAE(input_disc)
         discriminator = Model(input_disc, d_out)
-        discriminator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        return discriminator, AE, decoder
+        # Build GAN
+        im_input = Input(batch_shape=(batch_size,) + input_shape)
+        g_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
+        enc_im = encoder(im_input)
+        d_in = my_merge(g_enc_input, enc_im, order)
+        d_out = discriminator(d_in)
+        dec_im = decoder(enc_im)
+
+        gan = Model([im_input, g_enc_input], [d_out, dec_im])
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0], optimizer=optimizer)
+        gan.name = make_name('GANAEd', num_layers=num_layers)
+
+        return gan, encoder, discriminator, decoder
 
     else:
         # Build Generator
@@ -274,7 +278,7 @@ def GANAE2(input_shape, batch_size=128, num_layers=4, train_disc=True):
         decoder.name = make_name('ToonDecAE', num_layers=num_layers)
 
         # Build Discriminator
-        input_disc = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
+        input_disc = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
         d_out = discAE(input_disc)
         discriminator = Model(input_disc, d_out)
 
@@ -284,11 +288,14 @@ def GANAE2(input_shape, batch_size=128, num_layers=4, train_disc=True):
 
         gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
         im_input = Input(batch_shape=(batch_size,) + input_shape)
+        d_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
+
         g_x = generator(gen_input)
-        d_out = discriminator(g_x)
+        d_in = my_merge(g_x, d_enc_input, order)
+        d_out = discriminator(d_in)
         dec_x = decoder(g_x)
 
-        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x])
+        gan = Model(input=[gen_input, im_input, d_enc_input], output=[d_out, dec_x])
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 1.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 

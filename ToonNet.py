@@ -252,12 +252,13 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         # Build GAN
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         g_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
+        order_in = Input(batch_shape=(batch_size, 1))
         enc_im = encoder(im_input)
-        d_in = my_merge(g_enc_input, enc_im, order)
+        d_in = my_merge2(g_enc_input, enc_im, order_in)
         d_out = discriminator(d_in)
         dec_im = decoder(enc_im)
 
-        gan = Model([im_input, g_enc_input], [d_out, dec_im])
+        gan = Model([im_input, g_enc_input, order_in], [d_out, dec_im])
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0], optimizer=optimizer)
         gan.name = make_name('GANAEd', num_layers=num_layers)
 
@@ -289,13 +290,14 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         d_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
+        order_in = Input(batch_shape=(batch_size, 1))
 
         g_x = generator(gen_input)
-        d_in = my_merge(g_x, d_enc_input, order)
+        d_in = my_merge2(g_x, d_enc_input, order_in)
         d_out = discriminator(d_in)
         dec_x = decoder(g_x)
 
-        gan = Model(input=[gen_input, im_input, d_enc_input], output=[d_out, dec_x])
+        gan = Model(input=[gen_input, im_input, d_enc_input, order_in], output=[d_out, dec_x])
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
@@ -389,10 +391,9 @@ def GAN(input_shape, order, batch_size=128, num_layers=4, load_weights=False, no
 
 def my_merge(a, b, order):
     def _my_merge(x, y, order):
-        merged = tf.select(tf.python.math_ops.greater(order, 0), merge([x, y], mode='concat'), merge([y, x], mode='concat'))
-        # merged = K.switch(K.get_value(order) > 0,
-        #                 merge([x, y], mode='concat'),
-        #                 merge([y, x], mode='concat'))
+        merged = K.switch(K.get_value(order) > 0,
+                        merge([x, y], mode='concat'),
+                        merge([y, x], mode='concat'))
         return merged
 
     def _my_merge_output_shape(input_shape):
@@ -403,6 +404,24 @@ def my_merge(a, b, order):
     x = merge([a, b], mode=lambda x: _my_merge(x[0], x[1], order=order), output_shape=lambda x: _my_merge_output_shape(x[0]))
 
     return x
+
+
+def my_merge2(a, b, order):
+    def _my_merge(x, y, order):
+        merged = tf.select(tf.python.math_ops.greater(order, 0),
+                           merge([x, y], mode='concat'),
+                           merge([y, x], mode='concat'))
+        return merged
+
+    def _my_merge_output_shape(input_shape):
+        shape = list(input_shape)
+        shape[-1] *= 2
+        return tuple(shape)
+
+    x = merge([a, b], mode=lambda x: _my_merge(x[0], x[1], order=order), output_shape=lambda x: _my_merge_output_shape(x[0]))
+
+    return x
+
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False, ):

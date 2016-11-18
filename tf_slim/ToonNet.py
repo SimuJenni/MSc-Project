@@ -51,7 +51,7 @@ def ToonDiscriminator(inputs, num_layers=5, is_training=True):
 
 def ToonGenAE(inputs, num_layers=5):
     f_dims = F_DIMS
-    with tf.variable_scope('genAE'):
+    with tf.variable_scope('generator'):
         with toon_net_argscope(padding='VALID'):
             net = add_noise_plane(inputs, NOISE_CHANNELS[0])
             net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_0')
@@ -68,7 +68,7 @@ def ToonGenAE(inputs, num_layers=5):
 
 def ToonEncoder(inputs, num_layers=5):
     f_dims = F_DIMS
-    with tf.variable_scope('genAE'):
+    with tf.variable_scope('generator'):
         with toon_net_argscope(padding='VALID'):
             net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0')
 
@@ -79,9 +79,9 @@ def ToonEncoder(inputs, num_layers=5):
             return net
 
 
-def ToonDecode(inputs, num_layers=5):
+def ToonDecoder(inputs, num_layers=5):
     f_dims = F_DIMS
-    with tf.variable_scope('genAE'):
+    with tf.variable_scope('decoder'):
         with toon_net_argscope(padding='VALID'):
             net = slim.convolution2d_transpose(inputs, f_dims[num_layers - 1], padding='SAME', scope='deconv_0')
 
@@ -92,6 +92,36 @@ def ToonDecode(inputs, num_layers=5):
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh)
             return net
+
+
+def ToonDiscAE(inputs):
+    with tf.variable_scope('discriminator'):
+        with toon_net_argscope(activation=lrelu):
+            # Fully connected layers
+            net = slim.flatten(inputs)
+            net = slim.fully_connected(net, 2048)
+            net = slim.dropout(net, 0.5)
+            net = slim.fully_connected(net, 2048)
+            net = slim.dropout(net, 0.5)
+            net = slim.fully_connected(net, 1,
+                                       activation_fn=None,
+                                       normalizer_fn=None)
+            return net
+
+
+def GANAE(img, cartoon, edges, order, num_layers=5):
+    gen_in = merge(cartoon, edges)
+    gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
+    enc_im = ToonEncoder(img, num_layers=num_layers)
+    disc_in = tf.select(tf.python.math_ops.greater(order, 0), merge(gen_enc, enc_im), merge(enc_im, gen_enc))
+    disc_out = ToonDiscAE(disc_in)
+    dec_im = ToonDecoder(enc_im, num_layers=num_layers)
+    dec_gen = ToonDecoder(gen_enc, num_layers=num_layers)
+    return dec_im, dec_gen, disc_out
+
+
+def merge(a, b):
+    return tf.concat(concat_dim=3, values=[a, b])
 
 
 def add_noise_plane(net, noise_channels):

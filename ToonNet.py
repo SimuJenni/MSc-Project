@@ -254,8 +254,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         g_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
         enc_im = encoder(im_input)
-        # d_in = my_merge(enc_im, g_enc_input, order)
-        d_in = merge([enc_im, g_enc_input], mode='concat')
+        d_in = my_merge(enc_im, g_enc_input, order)
         d_out = disc_AE(d_in)
         dec_im = decoder(enc_im)
 
@@ -299,8 +298,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         d_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
 
         g_x = generator(gen_input)
-        # d_in = my_merge(d_enc_input, g_x, order)
-        d_in = merge([d_enc_input, g_x], mode='concat')
+        d_in = my_merge(d_enc_input, g_x, order)
         d_out = disc_AE(d_in)
         dec_x = decoder(g_x)
 

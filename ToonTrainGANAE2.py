@@ -78,6 +78,7 @@ for epoch in range(nb_epoch):
         X = np.concatenate((g_enc, d_enc), axis=3)
         X[y_ind, :] = np.concatenate((d_enc[y_ind, :], g_enc[y_ind, :]), axis=3)
         h = disc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
 
         # Train AE
         print('Epoch {}/{} Chunk {}: Training AE...'.format(epoch, nb_epoch, chunk))

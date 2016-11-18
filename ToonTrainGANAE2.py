@@ -109,10 +109,10 @@ for epoch in range(nb_epoch):
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
                                  '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
-            decoded_imgs = ae.predict([im_test, g_enc], batch_size=batch_size)
+            decoded_imgs = ae.predict(im_test, batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
-                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
+                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(ae.name, data.name, epoch, chunk)))
             del toon_train, img_train, h, decoded_imgs
             gc.collect()
 

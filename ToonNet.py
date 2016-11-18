@@ -172,7 +172,7 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
     encoder = Model(input_enc, output=e_out)
     encoder.name = make_name('ToonEncAE', num_layers=num_layers)
     encoder.load_weights(os.path.join(MODEL_DIR, '{}.hdf5'.format(encoder.name)))
-    make_trainable(encoder, False)  # TODO: Best results? :O
+    encoder = make_trainable(encoder, False)  # TODO: Best results? :O
 
     # Build decoder
     dec_in_shape = (batch_size, l_dims[-1], l_dims[-1], F_DIMS[num_layers])
@@ -191,7 +191,6 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         generator = make_trainable(generator, False)
     else:
         discriminator = make_trainable(discriminator, False)
-        encoder = make_trainable(encoder, False)
         decoder = make_trainable(decoder, False)
 
     gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
@@ -211,8 +210,9 @@ def GANAE(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
 
     else:
         dec_x = decoder(g_x)
-        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
+        l1 = sub(g_x, d_y)
+        gan = Model(input=[gen_input, im_input], output=[d_out, dec_x, l1])
+        gan.compile(loss=['binary_crossentropy', 'mse', l2_loss], loss_weights=[1.0, 5.0, 1.0], optimizer=optimizer)
         gan.name = make_name('GANAEg_5', num_layers=num_layers)
 
     return gan, generator, encoder, decoder, discriminator

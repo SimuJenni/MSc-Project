@@ -247,22 +247,28 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         # Build Discriminator
         input_disc = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
         d_out = discAE(input_disc)
-        discriminator = Model(input_disc, d_out)
+        disc_AE = Model(input_disc, d_out)
 
-        # Build GAN
+        # Build AE
+        disc_AE = make_trainable(disc_AE, False)
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         g_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
-        order_in = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
         enc_im = encoder(im_input)
-        d_in = my_merge2(g_enc_input, enc_im, order_in)
-        d_out = discriminator(d_in)
+        d_in = my_merge(enc_im, g_enc_input, order)
+        d_out = disc_AE(d_in)
         dec_im = decoder(enc_im)
 
-        gan = Model([im_input, g_enc_input, order_in], [d_out, dec_im])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0], optimizer=optimizer)
+        gan = Model([im_input, g_enc_input], [d_out, dec_im])
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEd', num_layers=num_layers)
 
-        return gan, encoder, discriminator, decoder
+        # Build compiled Discriminator
+        disc_input = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
+        disc_out = discAE(disc_input)
+        discriminator = Model(disc_input, disc_out)
+        discriminator.compile(optimizer,'binary_crossentropy')
+
+        return gan, encoder, disc_AE, decoder, discriminator
 
     else:
         # Build Generator
@@ -281,27 +287,26 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         # Build Discriminator
         input_disc = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
         d_out = discAE(input_disc)
-        discriminator = Model(input_disc, d_out)
+        disc_AE = Model(input_disc, d_out)
 
         # Build GAN
-        discriminator = make_trainable(discriminator, False)
+        disc_AE = make_trainable(disc_AE, False)
         decoder = make_trainable(decoder, False)
 
         gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         d_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
-        order_in = Input(batch_shape=dec_in_shape[:3] + (2*F_DIMS[num_layers],))
 
         g_x = generator(gen_input)
-        d_in = my_merge2(g_x, d_enc_input, order_in)
-        d_out = discriminator(d_in)
+        d_in = my_merge(d_enc_input, g_x, order)
+        d_out = disc_AE(d_in)
         dec_x = decoder(g_x)
 
-        gan = Model(input=[gen_input, im_input, d_enc_input, order_in], output=[d_out, dec_x])
+        gan = Model(input=[gen_input, im_input, d_enc_input], output=[d_out, dec_x])
         gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
-        return gan, generator, decoder, discriminator
+        return gan, generator, disc_AE, decoder
 
 
 def discAE(input_disc):
@@ -309,11 +314,11 @@ def discAE(input_disc):
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type='relu')
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
     x = my_activation(x, type='relu')
-    x = BatchNormalization(axis=1, mode=2)(x)
+    x = BatchNormalization(axis=1)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
     return d_out
 
@@ -404,24 +409,6 @@ def my_merge(a, b, order):
     x = merge([a, b], mode=lambda x: _my_merge(x[0], x[1], order=order), output_shape=lambda x: _my_merge_output_shape(x[0]))
 
     return x
-
-
-def my_merge2(a, b, order):
-    def _my_merge(x, y, order):
-        merged = tf.select(tf.python.math_ops.greater(order, 0.5),
-                           merge([x, y], mode='concat'),
-                           merge([y, x], mode='concat'))
-        return merged
-
-    def _my_merge_output_shape(input_shape):
-        shape = list(input_shape)
-        shape[-1] *= 2
-        return tuple(shape)
-
-    x = merge([a, b], mode=lambda x: _my_merge(x[0], x[1], order=order), output_shape=lambda x: _my_merge_output_shape(x[0]))
-
-    return x
-
 
 
 def ToonGAN(input_shape, batch_size=128, num_layers=4, train_disc=True, load_weights=False, ):
@@ -866,7 +853,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', regularizer=None):
@@ -888,7 +875,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3, mode=2)(x)
+    return BatchNormalization(axis=3)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):

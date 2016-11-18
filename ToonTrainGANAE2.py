@@ -33,8 +33,8 @@ nb_epoch = 30
 merge_order = K.variable(value=np.int16(0), name='merge_order', dtype='int16')
 
 # Load the models
-gGAN, gen, g_dec, g_disc = GANAE2(data.dims, merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=False)
-dGAN, enc, d_disc, dec = GANAE2(data.dims, merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=True)
+gGAN, gen, g_disc, g_dec = GANAE2(data.dims, merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=False)
+dGAN, enc, d_disc, dec, disc = GANAE2(data.dims, merge_order, batch_size=batch_size, num_layers=num_layers, train_disc=True)
 
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
@@ -67,50 +67,59 @@ for epoch in range(nb_epoch):
             else:
                 time.sleep(0.05)
 
-        # Train discriminator
+        # Train Discriminator
         print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
 
         X_gen = gen_data(toon_train, edge_train)
         g_enc = gen.predict(X_gen, batch_size=batch_size)
+        d_enc = enc.predict(img_train, batch_size=batch_size)
+        y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
+        y_ind = np.where(y > 0.5)[0]
+        X = np.concatenate((g_enc, d_enc), axis=3)
+        X[y_ind, :] = np.concatenate((d_enc[y_ind, :], g_enc[y_ind, :]), axis=3)
+        h = disc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+
+        # Train AE
+        print('Epoch {}/{} Chunk {}: Training AE...'.format(epoch, nb_epoch, chunk))
+        d_disc.set_weights(disc.get_weights())
+
         if chunk % 2 == 0:
             y = [np.ones((len(toon_train), 1)), img_train]
-            order = np.concatenate((np.ones_like(g_enc), np.ones_like(g_enc)), axis=3)
         else:
             y = [np.zeros((len(toon_train), 1)), img_train]
-            order = np.concatenate((np.zeros_like(g_enc), np.zeros_like(g_enc)), axis=3)
-        X_GAN = [img_train, g_enc, order]
+        X_GAN = [img_train, g_enc]
 
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
-        # print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        # g_dec.set_weights(dec.get_weights())
-        # g_disc.set_weights(d_disc.get_weights())
-        #
-        # # Train generator
-        # if chunk % 2 == 0:
-        #     y = [np.zeros((len(toon_train), 1)), img_train]
-        # else:
-        #     y = [np.ones((len(toon_train), 1)), img_train]
-        #
-        # d_enc = enc.predict(img_train, batch_size=batch_size)
-        # X_GAN = [X_gen, img_train, d_enc]
-        #
-        # h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
-        # print(h.history)
-        #
-        # # Generate montage of test-images
-        # if not chunk % 100:
-        #     _, decoded_imgs = gGAN.predict([gen_data(toon_test, edge_test), im_test, d_enc], batch_size=batch_size)
-        #     montage(decoded_imgs[:100] * 0.5 + 0.5,
-        #             os.path.join(IMG_DIR,
-        #                          '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
-        #     _, decoded_imgs = dGAN.predict([im_test, g_enc], batch_size=batch_size)
-        #     montage(decoded_imgs[:100] * 0.5 + 0.5,
-        #             os.path.join(IMG_DIR,
-        #                          '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
-        #     del toon_train, img_train, h, decoded_imgs
-        #     gc.collect()
+        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
+        g_dec.set_weights(dec.get_weights())
+        g_disc.set_weights(disc.get_weights())
+
+        # Train generator
+        if chunk % 2 == 0:
+            y = [np.zeros((len(toon_train), 1)), img_train]
+        else:
+            y = [np.ones((len(toon_train), 1)), img_train]
+
+        d_enc = enc.predict(img_train, batch_size=batch_size)
+        X_GAN = [X_gen, img_train, d_enc]
+
+        h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        print(h.history)
+
+        # Generate montage of test-images
+        if not chunk % 100:
+            _, decoded_imgs = gGAN.predict([gen_data(toon_test, edge_test), im_test, d_enc], batch_size=batch_size)
+            montage(decoded_imgs[:100] * 0.5 + 0.5,
+                    os.path.join(IMG_DIR,
+                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
+            _, decoded_imgs = dGAN.predict([im_test, g_enc], batch_size=batch_size)
+            montage(decoded_imgs[:100] * 0.5 + 0.5,
+                    os.path.join(IMG_DIR,
+                                 '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(dGAN.name, data.name, epoch, chunk)))
+            del toon_train, img_train, h, decoded_imgs
+            gc.collect()
 
         sys.stdout.flush()
         K.set_value(merge_order, np.int16(chunk % 2))

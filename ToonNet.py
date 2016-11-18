@@ -258,7 +258,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         dec_im = decoder(enc_im)
 
         gan = Model([im_input, g_enc_input], [d_out, dec_im])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 50.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 20.0], optimizer=optimizer)
         gan.name = make_name('GANAEd', num_layers=num_layers)
 
         return gan, encoder, discriminator, decoder
@@ -296,7 +296,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         dec_x = decoder(g_x)
 
         gan = Model(input=[gen_input, im_input, d_enc_input], output=[d_out, dec_x])
-        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 10.0], optimizer=optimizer)
+        gan.compile(loss=['binary_crossentropy', 'mse'], loss_weights=[1.0, 5.0], optimizer=optimizer)
         gan.name = make_name('GANAEg', num_layers=num_layers)
 
         return gan, generator, decoder, discriminator

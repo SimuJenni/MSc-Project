@@ -82,21 +82,21 @@ for epoch in range(nb_epoch):
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
 
-        print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
-        g_dec.set_weights(dec.get_weights())
-        g_disc.set_weights(d_disc.get_weights())
-
-        # Train generator
-        if chunk % 2 == 0:
-            y = [np.zeros((len(toon_train), 1)), img_train]
-        else:
-            y = [np.ones((len(toon_train), 1)), img_train]
-
-        d_enc = enc.predict(img_train, batch_size=batch_size)
-        X_GAN = [X_gen, img_train, d_enc]
-
-        h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
-        print(h.history)
+        # print('Epoch {}/{} Chunk {}: Training Generator...'.format(epoch, nb_epoch, chunk))
+        # g_dec.set_weights(dec.get_weights())
+        # g_disc.set_weights(d_disc.get_weights())
+        #
+        # # Train generator
+        # if chunk % 2 == 0:
+        #     y = [np.zeros((len(toon_train), 1)), img_train]
+        # else:
+        #     y = [np.ones((len(toon_train), 1)), img_train]
+        #
+        # d_enc = enc.predict(img_train, batch_size=batch_size)
+        # X_GAN = [X_gen, img_train, d_enc]
+        #
+        # h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
+        # print(h.history)
 
         # Generate montage of test-images
         if not chunk % 100:

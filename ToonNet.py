@@ -252,7 +252,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         # Build GAN
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         g_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
-        order_in = Input(batch_shape=(batch_size,))
+        order_in = Input(batch_shape=(batch_size, 1))
         enc_im = encoder(im_input)
         d_in = my_merge2(g_enc_input, enc_im, order_in)
         d_out = discriminator(d_in)
@@ -290,7 +290,7 @@ def GANAE2(input_shape, order, batch_size=128, num_layers=4, train_disc=True):
         gen_input = Input(batch_shape=(batch_size,) + input_shape[:2] + (4,))
         im_input = Input(batch_shape=(batch_size,) + input_shape)
         d_enc_input = Input(batch_shape=dec_in_shape[:3] + (F_DIMS[num_layers],))
-        order_in = Input(batch_shape=(batch_size,))
+        order_in = Input(batch_shape=(batch_size, 1))
 
         g_x = generator(gen_input)
         d_in = my_merge2(g_x, d_enc_input, order_in)

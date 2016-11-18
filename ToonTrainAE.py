@@ -10,7 +10,7 @@ from utils import montage, generator_queue
 
 
 # Get the data-set object
-data = CIFAR10_Toon()
+data = TinyImagenetToon()
 datagen = ImageDataGenerator(
     rotation_range=15,
     width_shift_range=0.1,
@@ -23,10 +23,10 @@ datagen = ImageDataGenerator(
 
 # Training parameters
 batch_size = 200
-nb_epoch = 20
+nb_epoch = 10
 chunk_size = 4 * batch_size
 num_chunks = data.num_train // chunk_size
-num_layers = 3
+num_layers = 4
 num_res = 0
 
 ae, encoder, decoder = AE(data.dims, num_layers=num_layers, batch_size=batch_size)

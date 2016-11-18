@@ -14,7 +14,7 @@ from constants import MODEL_DIR
 F_DIMS = [64, 128, 256, 512, 1024, 2048]
 F_G_DIMS = [96, 160, 256, 512, 1024, 2048]
 
-NOISE_CHANNELS = [2, 8, 16, 32, 64, 96, 128]
+NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
 def ToonGenTransp(x, out_activation='tanh', activation='relu', num_layers=5, batch_size=128):
@@ -777,7 +777,7 @@ def ToonDiscriminator_old(in_layer, num_res_layers=8, big_f=False, p_wise_out=Fa
 def add_noise_planes(x, n_chan):
     def add_noise(x):
         layer_shape = K.int_shape(x)
-        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=2.0)
+        noise = K.random_normal(shape=layer_shape[:3] + (n_chan,), mean=0., std=1.0)
         return merge([x, noise], mode='concat')
 
     def add_noise_output_shape(input_shape):

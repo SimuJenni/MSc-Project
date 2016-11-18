@@ -69,18 +69,6 @@ for epoch in range(nb_epoch):
 
         X_gen = gen_data(toon_train, edge_train)
 
-        if not chunk % 5:
-            # Train Discriminator
-            print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
-            g_enc = gen.predict(X_gen, batch_size=batch_size)
-            d_enc = enc.predict(img_train, batch_size=batch_size)
-            y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
-            y_ind = np.where(y > 0.5)[0]
-            X = np.concatenate((g_enc, d_enc), axis=3)
-            X[y_ind, :] = np.concatenate((d_enc[y_ind, :], g_enc[y_ind, :]), axis=3)
-            h = disc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
-            print(h.history)
-
         # Train AE
         print('Epoch {}/{} Chunk {}: Training AE...'.format(epoch, nb_epoch, chunk))
 
@@ -102,6 +90,17 @@ for epoch in range(nb_epoch):
 
         h = gGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)
+
+        if not chunk % 5:
+            # Train Discriminator
+            print('Epoch {}/{} Chunk {}: Training Discriminator...'.format(epoch, nb_epoch, chunk))
+            g_enc = gen.predict(X_gen, batch_size=batch_size)
+            y = np.random.choice([0.0, 1.0], size=(len(img_train), 1))
+            y_ind = np.where(y > 0.5)[0]
+            X = np.concatenate((g_enc, d_enc), axis=3)
+            X[y_ind, :] = np.concatenate((d_enc[y_ind, :], g_enc[y_ind, :]), axis=3)
+            h = disc.fit(X, y, nb_epoch=1, batch_size=batch_size, verbose=0)
+            print(h.history)
 
         # Generate montage of test-images
         if not chunk % 100:

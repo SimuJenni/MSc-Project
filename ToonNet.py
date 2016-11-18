@@ -308,12 +308,12 @@ def discAE(input_disc):
     x = Flatten()(input_disc)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
-    x = my_activation(x, type='lrelu')
-    x = BatchNormalization(axis=1)(x)
+    x = my_activation(x, type='relu')
+    x = BatchNormalization(axis=1, mode=2)(x)
     x = Dense(2048, init='he_normal')(x)
     x = Dropout(0.5)(x)
-    x = my_activation(x, type='lrelu')
-    x = BatchNormalization(axis=1)(x)
+    x = my_activation(x, type='relu')
+    x = BatchNormalization(axis=1, mode=2)(x)
     d_out = Dense(1, init='he_normal', activation='sigmoid')(x)
     return d_out
 
@@ -408,7 +408,7 @@ def my_merge(a, b, order):
 
 def my_merge2(a, b, order):
     def _my_merge(x, y, order):
-        merged = tf.select(tf.python.math_ops.greater(order, 0),
+        merged = tf.select(tf.python.math_ops.greater(order, 0.5),
                            merge([x, y], mode='concat'),
                            merge([y, x], mode='concat'))
         return merged
@@ -866,7 +866,7 @@ def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, 
                         subsample=(stride, stride),
                         init='he_normal')(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation='relu', regularizer=None):
@@ -888,7 +888,7 @@ def conv_act_bn(layer_in, f_size, f_channels, stride, border='valid', activation
                       init='he_normal',
                       W_regularizer=regularizer)(layer_in)
     x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3)(x)
+    return BatchNormalization(axis=3, mode=2)(x)
 
 
 def conv_act(layer_in, f_size, f_channels, stride, border='valid', activation='relu'):
@@ -1506,27 +1506,6 @@ def compute_layer_shapes(input_shape, num_layers):
         layer_dims[i] = dim
     return layer_dims
 
-
-def conv_transp_bn(layer_in, f_size, f_channels, out_dim, batch_size, stride=2, border='valid', activation='relu'):
-    """Wrapper for upconvolution layer including batchnormalization.
-    Args:
-        layer_in: Input to this layers
-        f_size: Size of the filers
-        f_channels: Number of output channels
-        out_dim: Dimension/shape of the output
-        batch_size:
-        stride: Used stride for the convolution
-        border: 'valid' or 'same'
-    Returns:
-        Result of upconvolution and batchnormalization
-    """
-    x = Deconvolution2D(f_channels, f_size, f_size,
-                        output_shape=(batch_size, out_dim, out_dim, f_channels),
-                        border_mode=border,
-                        subsample=(stride, stride),
-                        init='he_normal')(layer_in)
-    x = my_activation(x, type=activation)
-    return BatchNormalization(axis=3)(x)
 
 
 def disc_data(X, Y, Yd, p_wise=False, with_x=False):

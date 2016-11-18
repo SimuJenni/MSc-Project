@@ -77,7 +77,7 @@ for epoch in range(nb_epoch):
 
         X_gen = gen_data(toon_train, edge_train)
         g_enc = gen.predict(X_gen, batch_size=batch_size)
-        X_GAN = [img_train, g_enc, y]
+        X_GAN = [img_train, g_enc, y[0]]
 
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)

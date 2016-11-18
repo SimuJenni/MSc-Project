@@ -72,12 +72,14 @@ for epoch in range(nb_epoch):
 
         if chunk % 2 == 0:
             y = [np.ones((len(toon_train), 1)), img_train]
+            order = [1]*len(toon_train)
         else:
             y = [np.zeros((len(toon_train), 1)), img_train]
+            order = [0]*len(toon_train)
 
         X_gen = gen_data(toon_train, edge_train)
         g_enc = gen.predict(X_gen, batch_size=batch_size)
-        X_GAN = [img_train, g_enc, y[0]]
+        X_GAN = [img_train, g_enc, order]
 
         h = dGAN.fit(x=X_GAN, y=y, nb_epoch=1, batch_size=batch_size, verbose=0)
         print(h.history)

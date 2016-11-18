@@ -39,7 +39,6 @@ dGAN, enc, d_disc, dec = GANAE2(data.dims, merge_order, batch_size=batch_size, n
 # Create test data
 toon_test, edge_test, im_test = datagen.flow_from_directory(data.val_dir, batch_size=chunk_size,
                                                             target_size=data.target_size).next()
-X_test = [gen_data(toon_test, edge_test), im_test]
 montage(toon_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-toon.jpeg'.format(gGAN.name, data.name)))
 montage(np.squeeze(edge_test[:100]), os.path.join(IMG_DIR, '{}-{}-edge.jpeg'.format(gGAN.name, data.name)), gray=True)
 montage(im_test[:100] * 0.5 + 0.5, os.path.join(IMG_DIR, '{}-{}-images.jpeg'.format(gGAN.name, data.name)))
@@ -101,11 +100,11 @@ for epoch in range(nb_epoch):
 
         # Generate montage of test-images
         if not chunk % 100:
-            _, decoded_imgs = gGAN.predict(X_test + [d_enc], batch_size=batch_size)
+            _, decoded_imgs = gGAN.predict([gen_data(toon_test, edge_test), im_test, d_enc], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
                                  '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(gGAN.name, data.name, epoch, chunk)))
-            _, decoded_imgs = dGAN.predict(X_test, batch_size=batch_size)
+            _, decoded_imgs = dGAN.predict([im_test, g_enc], batch_size=batch_size)
             montage(decoded_imgs[:100] * 0.5 + 0.5,
                     os.path.join(IMG_DIR,
                                  '{}-{}-Epoch:{}-Chunk:{}.jpeg'.format(dGAN.name, data.name, epoch, chunk)))

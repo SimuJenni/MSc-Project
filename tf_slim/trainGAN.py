@@ -94,8 +94,6 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 gen', l2_gen)
         tf.scalar_summary('losses/l2feat gen', l2feat_gen)
         tf.scalar_summary('losses/l2 disc', l2_ae)
-        tf.scalar_summary('label1_disc', labels_disc[0])
-        tf.scalar_summary('label1_gen', labels_gen[0])
         tf.image_summary('images/generator', gen_rec)
         tf.image_summary('images/ae', img_rec)
         tf.image_summary('images/real', images)

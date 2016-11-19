@@ -42,7 +42,8 @@ with sess.as_default():
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
-        order = tf.placeholder(tf.int32, shape=(BATCH_SIZE,))
+        order = tf.random_shuffle(tf.constant([0]*(BATCH_SIZE/2) + [1]*(BATCH_SIZE/2)))
+
 
         # Create the model
         img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
@@ -80,6 +81,7 @@ with sess.as_default():
 
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/generator loss', gen_loss)
+        tf.image_summary('images/generator', gen_rec * 0.5 + 0.5, max_images=9)
 
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,

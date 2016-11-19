@@ -79,10 +79,10 @@ def get_split(split_name, dataset_dir=CIFAR10_TF_DATADIR, file_pattern=None, rea
     }
 
     items_to_handlers = {
-        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format', shape=[32, 32, 3], channels=3),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
-        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format'),
-        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format'),
+        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format', shape=[32, 32, 1], channels=1),
+        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format', shape=[32, 32, 3], channels=3),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(

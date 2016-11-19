@@ -42,7 +42,7 @@ with sess.as_default():
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
-        order = tf.round(tf.random_uniform(shape=(BATCH_SIZE,), minval=0.0, maxval=1.0))
+        order = tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,), minval=0.0, maxval=1.0)), dtype=tf.int32)
 
         # Create the model
         img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)

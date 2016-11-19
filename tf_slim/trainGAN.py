@@ -9,7 +9,7 @@ from tf_slim.utils import get_variables_to_train
 
 slim = tf.contrib.slim
 
-NUM_LAYERS = 3
+NUM_LAYERS = 4
 BATCH_SIZE = 64
 IM_SHAPE = [32, 32, 3]
 data = cifar10
@@ -32,17 +32,17 @@ with sess.as_default():
 
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
-        image = preprocess_image(image,
-                                 is_training=True,
-                                 output_height=IM_SHAPE[0],
-                                 output_width=IM_SHAPE[1])
+        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        edge = preprocess_image(edge, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        cartoon = preprocess_image(cartoon, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+
 
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],
                                                  batch_size=BATCH_SIZE,
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
-        order = tf.placeholder(tf.int16, shape=(BATCH_SIZE,))
+        order = tf.placeholder(tf.int32, shape=(BATCH_SIZE,))
 
         # Create the model
         img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
@@ -93,12 +93,12 @@ with sess.as_default():
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
 
         # Create training operations
-        scopes_gen = ['generator']
+        scopes_gen = 'generator'
         vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=True)
 
-        scopes_disc = ['encoder', 'decoder', 'discriminator']
+        scopes_disc = 'encoder, decoder, discriminator'
         vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)
         train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
                                                       global_step=global_step, summarize_gradients=True)

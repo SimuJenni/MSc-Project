@@ -1,4 +1,4 @@
-import tensorflow
+import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver

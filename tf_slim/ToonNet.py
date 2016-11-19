@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-F_DIMS = [64, 128, 256, 512, 1024, 2048]
+F_DIMS = [32, 64, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
@@ -30,7 +30,7 @@ def ToonGenerator(inputs, num_layers=5):
 def ToonDiscriminator(inputs, num_layers=5, is_training=True):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator'):
-        with toon_net_argscope(activation=lrelu, padding='VALID', kernel_size=(3, 3)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID', kernel_size=(3, 3))):
             net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0', stride=2)
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l), stride=2)
@@ -52,9 +52,9 @@ def ToonDiscriminator(inputs, num_layers=5, is_training=True):
 def ToonGenAE(inputs, num_layers=5):
     f_dims = F_DIMS
     with tf.variable_scope('generator'):
-        with toon_net_argscope(padding='VALID'):
+        with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = add_noise_plane(inputs, NOISE_CHANNELS[0])
-            net = slim.conv2d(net, num_outputs=f_dims[0], scope='conv_0')
+            net = slim.conv2d(net, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
@@ -69,8 +69,8 @@ def ToonGenAE(inputs, num_layers=5):
 def ToonEncoder(inputs, num_layers=5):
     f_dims = F_DIMS
     with tf.variable_scope('encoder'):
-        with toon_net_argscope(padding='VALID'):
-            net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0')
+        with slim.arg_scope(toon_net_argscope(padding='SAME')):
+            net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
@@ -79,31 +79,30 @@ def ToonEncoder(inputs, num_layers=5):
             return net
 
 
-def ToonDecoder(inputs, num_layers=5):
+def ToonDecoder(inputs, num_layers=5, reuse=None):
     f_dims = F_DIMS
-    with tf.variable_scope('decoder'):
-        with toon_net_argscope(padding='VALID'):
-            net = slim.convolution2d_transpose(inputs, f_dims[num_layers - 1], padding='SAME', scope='deconv_0')
+    with tf.variable_scope('decoder', reuse=reuse):
+        with slim.arg_scope(toon_net_argscope(padding='SAME')):
+            net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_0')
 
             for l in range(1, num_layers):
-                net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], padding='SAME',
-                                                   scope='deconv_{}'.format(l))
+                net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
-                              activation_fn=tf.nn.tanh)
+                              activation_fn=tf.nn.tanh, padding='SAME')
             return net
 
 
 def ToonDiscAE(inputs):
     with tf.variable_scope('discriminator'):
-        with toon_net_argscope(activation=lrelu):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 1,
+            net = slim.fully_connected(net, 2,
                                        activation_fn=None,
                                        normalizer_fn=None)
             return net
@@ -116,7 +115,7 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     disc_in = tf.select(tf.python.math_ops.greater(order, 0), merge(gen_enc, enc_im), merge(enc_im, gen_enc))
     disc_out = ToonDiscAE(disc_in)
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
-    dec_gen = ToonDecoder(gen_enc, num_layers=num_layers)
+    dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
     return dec_im, dec_gen, disc_out
 
 
@@ -154,7 +153,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME')
                         weights_regularizer=slim.l2_regularizer(0.0001),
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params):
-        with slim.arg_scope([slim.conv2d],
+        with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             stride=2,
                             kernel_size=kernel_size,
                             padding=padding):

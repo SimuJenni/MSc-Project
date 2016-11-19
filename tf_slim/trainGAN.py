@@ -4,7 +4,7 @@ from tensorflow.python.ops import math_ops
 
 from ToonNet import GANAE
 from datasets import cifar10
-from preprocess import preprocess_image
+from preprocess import preprocess_sketch
 from tf_slim.utils import get_variables_to_train
 
 slim = tf.contrib.slim
@@ -32,9 +32,9 @@ with sess.as_default():
 
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
-        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        edge = preprocess_image(edge, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        cartoon = preprocess_image(cartoon, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        image = preprocess_sketch(image, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        edge = preprocess_sketch(edge, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        cartoon = preprocess_sketch(cartoon, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
 
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],

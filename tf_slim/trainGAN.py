@@ -28,7 +28,8 @@ with sess.as_default():
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,
-                                                                  common_queue_min=8 * BATCH_SIZE)
+                                                                  common_queue_min=8 * BATCH_SIZE,
+                                                                  num_epochs=30)
 
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
@@ -63,7 +64,7 @@ with sess.as_default():
         l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
-        gen_loss = math_ops.add_n(losses_disc, name='gen_total_loss')
+        gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))

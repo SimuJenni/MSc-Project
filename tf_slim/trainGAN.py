@@ -28,8 +28,7 @@ with sess.as_default():
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,
-                                                                  common_queue_min=8 * BATCH_SIZE,
-                                                                  num_epochs=30)
+                                                                  common_queue_min=8 * BATCH_SIZE)
 
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 

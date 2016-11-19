@@ -22,16 +22,17 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from constants import CIFAR10_TF_DATADIR
 
 import tensorflow as tf
 
 slim = tf.contrib.slim
 
-_FILE_PATTERN = 'cifar10_%s.tfrecord'
-
 SPLITS_TO_SIZES = {'train': 50000, 'test': 10000}
 
-_NUM_CLASSES = 10
+NUM_CLASSES = 10
+
+_FILE_PATTERN = 'cifar10_%s.tfrecord'
 
 _ITEMS_TO_DESCRIPTIONS = {
     'image': 'A [32 x 32 x 3] color image.',
@@ -41,7 +42,7 @@ _ITEMS_TO_DESCRIPTIONS = {
 }
 
 
-def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
+def get_split(split_name, dataset_dir=CIFAR10_TF_DATADIR, file_pattern=None, reader=None):
     """Gets a dataset tuple with instructions for reading cifar10.
     Args:
       split_name: A train/test split name.

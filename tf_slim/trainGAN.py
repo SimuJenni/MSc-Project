@@ -3,20 +3,18 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
 from ToonNet import GANAE
-from datasets import imagenet
+from datasets import cifar10
 from preprocess import preprocess_image
 from tf_slim.utils import get_variables_to_train
 
 slim = tf.contrib.slim
 
 NUM_LAYERS = 3
-DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 64
-NUM_CLASSES = 1000
-IM_SHAPE = [224, 224, 3]
+IM_SHAPE = [32, 32, 3]
+data = cifar10
 
-MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_2/'
+LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -26,7 +24,7 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        dataset = imagenet.get_split('train', DATA_DIR)
+        dataset = data.get_split('train')
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,
@@ -83,7 +81,7 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/generator loss', gen_loss)
 
-        decay_steps = int(imagenet._SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
+        decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
                                                    decay_steps,

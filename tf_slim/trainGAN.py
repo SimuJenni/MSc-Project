@@ -36,31 +36,37 @@ with sess.as_default():
         edge = preprocess_fine_tune(edge, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         cartoon = preprocess_fine_tune(cartoon, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
-
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],
                                                  batch_size=BATCH_SIZE,
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
         order = tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,), minval=0.0, maxval=1.0)), dtype=tf.int32)
+        labels_disc = slim.one_hot_encoding(order, 2)
+        labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
 
         # Create the model
         img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
 
-        # Define the losses for discriminator training
+        # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        labels_disc = slim.one_hot_encoding(order, 2)
         dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope)
-        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=50.0)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
+        # Define the losses for AE training
+        ae_loss_scope = 'ae_loss'
+        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=ae_loss_scope)
+        l2_ae = slim.losses.sum_of_squares(img_rec, images, scope=ae_loss_scope, weight=20.0)
+        losses_ae = slim.losses.get_losses(ae_loss_scope)
+        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
+
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
         dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=50.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=20.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -76,14 +82,16 @@ with sess.as_default():
         if update_ops:
             updates = tf.group(*update_ops)
             gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
+            ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
-        tf.scalar_summary('losses/discriminator loss', disc_loss)
+        tf.scalar_summary('losses/auto-encoder loss', ae_loss)
         tf.scalar_summary('losses/generator loss', gen_loss)
+        tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/d-loss gen', dL_gen)
-        tf.scalar_summary('losses/d-loss disc', dL_disc)
+        tf.scalar_summary('losses/d-loss disc', dL_ae)
         tf.scalar_summary('losses/l2 gen', l2_gen)
-        tf.scalar_summary('losses/l2 disc', l2_disc)
+        tf.scalar_summary('losses/l2 disc', l2_ae)
         tf.histogram_summary('labels_disc', labels_disc)
         tf.histogram_summary('labels_gen', labels_gen)
         tf.image_summary('images/generator', gen_rec)
@@ -110,11 +118,19 @@ with sess.as_default():
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=True)
 
-        scopes_disc = 'encoder, decoder, discriminator'
+        scopes_ae = 'encoder, decoder'
+        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
+        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
+                                                      global_step=global_step, summarize_gradients=True)
+
+        scopes_disc = 'discriminator'
         vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)
         train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
                                                       global_step=global_step, summarize_gradients=True)
 
         # Start training.
-        slim.learning.train(train_op_disc + train_op_gen, LOG_DIR, save_summaries_secs=120, save_interval_secs=3000,
+        slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
+                            LOG_DIR,
+                            save_summaries_secs=120,
+                            save_interval_secs=3000,
                             log_every_n_steps=100)

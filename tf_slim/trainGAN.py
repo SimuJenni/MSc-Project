@@ -51,7 +51,7 @@ with sess.as_default():
         disc_loss_scope = 'disc_loss'
         labels_disc = slim.one_hot_encoding(order, 2)
         dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope)
-        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=10.0)
+        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=50.0)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
@@ -60,7 +60,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
         dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=50.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

@@ -4,6 +4,11 @@ from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
 
 
+def montage(imgs, num_h, num_w):
+    imgs_shape = tf.shape(imgs)
+    return tf.reshape(imgs[:num_h*num_w], shape=(-1, num_h*imgs_shape[1], num_w*imgs_shape[2], imgs_shape[3]))
+
+
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
     """Returns a function that assigns specific variables from a checkpoint.

@@ -6,6 +6,7 @@ from ToonNet import GANAE
 from datasets import cifar10
 from preprocess import preprocess_fine_tune
 from tf_slim.utils import get_variables_to_train
+from utils import montage
 
 slim = tf.contrib.slim
 
@@ -59,7 +60,7 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=ae_loss_scope)
-        l2_ae = slim.losses.sum_of_squares(img_rec, images, scope=ae_loss_scope, weight=20.0)
+        l2_ae = slim.losses.sum_of_squares(img_rec, images, scope=ae_loss_scope, weight=10.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
@@ -67,7 +68,7 @@ with sess.as_default():
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=20.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
         l2feat_gen = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=5.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
@@ -91,15 +92,15 @@ with sess.as_default():
         tf.scalar_summary('losses/generator loss', gen_loss)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/d-loss gen', dL_gen)
-        tf.scalar_summary('losses/d-loss disc', dL_ae)
+        tf.scalar_summary('losses/d-loss ae', dL_ae)
         tf.scalar_summary('losses/l2 gen', l2_gen)
         tf.scalar_summary('losses/l2feat gen', l2feat_gen)
-        tf.scalar_summary('losses/l2 disc', l2_ae)
-        tf.image_summary('images/generator', gen_rec, max_images=1)
-        tf.image_summary('images/ae', img_rec, max_images=1)
-        tf.image_summary('images/real', images, max_images=1)
-        tf.image_summary('images/cartoon', cartoons, max_images=1)
-        tf.image_summary('images/edges', edges, max_images=1)
+        tf.scalar_summary('losses/l2 ae', l2_ae)
+        tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
+        tf.image_summary('images/real', montage(images, 8, 8), max_images=1)
+        tf.image_summary('images/cartoon', montage(cartoons, 8, 8), max_images=1)
+        tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
 
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,

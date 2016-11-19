@@ -5,8 +5,12 @@ from tensorflow.python.training import saver as tf_saver
 
 
 def montage(imgs, num_h, num_w):
-    imgs_shape = tf.shape(imgs)
-    return tf.reshape(imgs[:num_h*num_w], shape=(-1, num_h*imgs_shape[1], num_w*imgs_shape[2], imgs_shape[3]))
+    imgs = tf.unpack(imgs, num=num_w*num_h)
+    img_rows = [None]*num_h
+    for r in range(num_h):
+        img_rows[r] = tf.concat(1,imgs[r*num_w:(r+1)*num_w])
+    montage = tf.concat(0, img_rows)
+    return montage
 
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,

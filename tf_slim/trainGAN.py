@@ -51,17 +51,17 @@ with sess.as_default():
         # Define the losses for discriminator training
         disc_loss_scope = 'disc_loss'
         labels_disc = slim.one_hot_encoding(order, 2)
-        slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope)
-        slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope)
+        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope)
+        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=10.0)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
-        # Define the losses for discriminator training
+        # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
-        slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
-        slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope)
+        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_disc, name='gen_total_loss')
@@ -81,7 +81,13 @@ with sess.as_default():
 
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/generator loss', gen_loss)
-        tf.image_summary('images/generator', gen_rec * 0.5 + 0.5, max_images=9)
+        tf.scalar_summary('losses/d-loss gen', dL_gen)
+        tf.scalar_summary('losses/d-loss disc', dL_disc)
+        tf.scalar_summary('losses/l2 gen', l2_gen)
+        tf.scalar_summary('losses/l2 disc', l2_disc)
+        tf.histogram_summary('order', order)
+        tf.image_summary('images/generator', gen_rec * 0.5 + 0.5, max_images=3)
+        tf.image_summary('images/ae', img_rec * 0.5 + 0.5, max_images=3)
 
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,

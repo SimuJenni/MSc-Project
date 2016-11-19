@@ -15,7 +15,7 @@ BATCH_SIZE = 256
 IM_SHAPE = [32, 32, 3]
 data = cifar10
 
-LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan2/'
+LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan1/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 

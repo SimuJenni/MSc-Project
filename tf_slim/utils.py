@@ -10,7 +10,7 @@ def montage(imgs, num_h, num_w):
     for r in range(num_h):
         img_rows[r] = tf.concat(1,imgs[r*num_w:(r+1)*num_w])
     montage = tf.concat(0, img_rows)
-    return montage
+    return tf.expand_dims(montage, 0)
 
 
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,

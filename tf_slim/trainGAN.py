@@ -10,7 +10,7 @@ from tf_slim.utils import get_variables_to_train
 slim = tf.contrib.slim
 
 NUM_LAYERS = 4
-BATCH_SIZE = 64
+BATCH_SIZE = 256
 IM_SHAPE = [32, 32, 3]
 data = cifar10
 
@@ -42,8 +42,7 @@ with sess.as_default():
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
-        order = tf.random_shuffle(tf.constant([0]*(BATCH_SIZE/2) + [1]*(BATCH_SIZE/2)))
-
+        order = tf.round(tf.random_uniform(shape=(BATCH_SIZE,), minval=0.0, maxval=1.0))
 
         # Create the model
         img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
@@ -52,7 +51,7 @@ with sess.as_default():
         disc_loss_scope = 'disc_loss'
         labels_disc = slim.one_hot_encoding(order, 2)
         dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope)
-        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=10.0)
+        l2_disc = slim.losses.sum_of_squares(img_rec, images, scope=disc_loss_scope, weight=0.01)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
@@ -61,7 +60,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
         dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=0.01)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_disc, name='gen_total_loss')
@@ -85,9 +84,14 @@ with sess.as_default():
         tf.scalar_summary('losses/d-loss disc', dL_disc)
         tf.scalar_summary('losses/l2 gen', l2_gen)
         tf.scalar_summary('losses/l2 disc', l2_disc)
-        tf.histogram_summary('order', order)
-        tf.image_summary('images/generator', gen_rec * 0.5 + 0.5, max_images=3)
-        tf.image_summary('images/ae', img_rec * 0.5 + 0.5, max_images=3)
+        tf.histogram_summary('labels_disc', labels_disc)
+        tf.histogram_summary('labels_gen', labels_gen)
+        tf.image_summary('images/generator', gen_rec)
+        tf.image_summary('images/ae', img_rec)
+        tf.image_summary('images/real', images)
+        tf.image_summary('images/cartoon', cartoons)
+        tf.image_summary('images/edges', edges)
+
 
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
@@ -112,5 +116,5 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=True)
 
         # Start training.
-        slim.learning.train(train_op_disc + train_op_gen, LOG_DIR, save_summaries_secs=300, save_interval_secs=3000,
+        slim.learning.train(train_op_disc + train_op_gen, LOG_DIR, save_summaries_secs=120, save_interval_secs=3000,
                             log_every_n_steps=100)

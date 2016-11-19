@@ -122,7 +122,7 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     tf.histogram_summary('gen_enc', gen_enc)
     tf.histogram_summary('enc_im', enc_im)
 
-    return dec_im, dec_gen, disc_out
+    return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
 
 def merge(a, b):

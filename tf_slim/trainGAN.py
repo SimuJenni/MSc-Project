@@ -46,7 +46,7 @@ with sess.as_default():
         labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -67,6 +67,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope)
         l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=20.0)
+        l2feat_gen = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=5.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -91,9 +92,10 @@ with sess.as_default():
         tf.scalar_summary('losses/d-loss gen', dL_gen)
         tf.scalar_summary('losses/d-loss disc', dL_ae)
         tf.scalar_summary('losses/l2 gen', l2_gen)
+        tf.scalar_summary('losses/l2feat gen', l2feat_gen)
         tf.scalar_summary('losses/l2 disc', l2_ae)
-        tf.histogram_summary('labels_disc', labels_disc)
-        tf.histogram_summary('labels_gen', labels_gen)
+        tf.scalar_summary('label1_disc', labels_disc[0])
+        tf.scalar_summary('label1_gen', labels_gen[0])
         tf.image_summary('images/generator', gen_rec)
         tf.image_summary('images/ae', img_rec)
         tf.image_summary('images/real', images)

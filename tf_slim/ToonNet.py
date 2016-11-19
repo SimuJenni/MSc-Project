@@ -117,6 +117,10 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     disc_out = ToonDiscAE(disc_in)
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
     dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
+
+    tf.histogram_summary('gen_enc', gen_enc)
+    tf.histogram_summary('enc_im', enc_im)
+
     return dec_im, dec_gen, disc_out
 
 

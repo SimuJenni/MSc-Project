@@ -309,9 +309,9 @@ def preprocess_fine_tune(img, output_height, output_width, resize_side=_RESIZE_S
     Returns:
       A preprocessed image.
     """
-    img = _aspect_preserving_resize(img, resize_side)
-    img = _central_crop([img], output_height, output_width)[0]
-    img.set_shape([output_height, output_width, 3])
+    # img = _aspect_preserving_resize(img, resize_side)
+    # img = _central_crop([img], output_height, output_width)[0]
+    # img.set_shape([output_height, output_width, 3])
     return tf.to_float(img) * (2. / 255.) - 1.
 
 

@@ -98,7 +98,7 @@ def ToonDiscAE(inputs):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
-                                       stddev=2.0*tf.pow(0.9999, tf.to_float(slim.get_global_step())))
+                                       stddev=3.0*tf.pow(0.99999, tf.to_float(slim.get_global_step())))
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -114,7 +114,8 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     gen_in = merge(cartoon, edges)
     gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
     enc_im = ToonEncoder(img, num_layers=num_layers)
-    disc_in = tf.select(tf.python.math_ops.greater(order, 0), merge(gen_enc, enc_im), merge(enc_im, gen_enc))
+    #disc_in = tf.select(tf.python.math_ops.greater(order, 0), merge(gen_enc, enc_im), merge(enc_im, gen_enc))
+    disc_in = merge(enc_im, gen_enc, dim=0)
     disc_out = ToonDiscAE(disc_in)
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
     dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
@@ -125,8 +126,8 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
 
-def merge(a, b):
-    return tf.concat(concat_dim=3, values=[a, b])
+def merge(a, b, dim=3):
+    return tf.concat(concat_dim=dim, values=[a, b])
 
 
 def add_noise_plane(net, noise_channels):

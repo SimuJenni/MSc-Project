@@ -41,12 +41,13 @@ with sess.as_default():
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
-        order = tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,), minval=0.0, maxval=1.0)), dtype=tf.int32)
-        labels_disc = slim.one_hot_encoding(order, 2)
-        labels_gen = slim.one_hot_encoding(tf.ones_like(order) - order, 2)
+        labels = tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE,), dtype=tf.int32),
+                                                 tf.ones(shape=(BATCH_SIZE,), dtype=tf.int32)])
+        labels_disc = slim.one_hot_encoding(labels, 2)
+        labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, order, num_layers=NUM_LAYERS)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, labels, num_layers=NUM_LAYERS)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -94,12 +95,11 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 gen', l2_gen)
         tf.scalar_summary('losses/l2feat gen', l2feat_gen)
         tf.scalar_summary('losses/l2 disc', l2_ae)
-        tf.image_summary('images/generator', gen_rec)
-        tf.image_summary('images/ae', img_rec)
-        tf.image_summary('images/real', images)
-        tf.image_summary('images/cartoon', cartoons)
-        tf.image_summary('images/edges', edges)
-
+        tf.image_summary('images/generator', gen_rec, max_images=1)
+        tf.image_summary('images/ae', img_rec, max_images=1)
+        tf.image_summary('images/real', images, max_images=1)
+        tf.image_summary('images/cartoon', cartoons, max_images=1)
+        tf.image_summary('images/edges', edges, max_images=1)
 
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
@@ -121,7 +121,7 @@ with sess.as_default():
         scopes_ae = 'encoder, decoder'
         vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
         train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
-                                                      global_step=global_step, summarize_gradients=True)
+                                                    global_step=global_step, summarize_gradients=True)
 
         scopes_disc = 'discriminator'
         vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)

@@ -38,7 +38,7 @@ slim = tf.contrib.slim
 # TODO(nsilberman): Add tfrecord file type once the script is updated.
 _FILE_PATTERN = '%s-*'
 
-_SPLITS_TO_SIZES = {
+SPLITS_TO_SIZES = {
     'train': 1281167,
     'validation': 50000,
 }
@@ -169,6 +169,6 @@ def get_split(split_name, dataset_dir, reader=None):
         data_sources=data_files,
         reader=reader,
         decoder=decoder,
-        num_samples=_SPLITS_TO_SIZES[split_name],
+        num_samples=SPLITS_TO_SIZES[split_name],
         items_to_descriptions=_ITEMS_TO_DESCRIPTIONS,
     )

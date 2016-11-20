@@ -3,7 +3,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
 from ToonNet import GANAE
-from datasets import cifar10
+from datasets import cifar10, imagenet
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
@@ -11,12 +11,12 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-NUM_LAYERS = 4
+NUM_LAYERS = 6
 BATCH_SIZE = 256
-IM_SHAPE = [32, 32, 3]
+IM_SHAPE = [128, 128, 3]
 NUM_EPOCHS = 50
-data = cifar10
-LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan_adam/'
+data = imagenet
+LOG_DIR = '/data/cvg/simon/data/logs/imagenet_gan/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 

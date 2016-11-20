@@ -217,7 +217,7 @@ def _smallest_size_at_least(height, width, smallest_side):
     return new_height, new_width
 
 
-def _aspect_preserving_resize(image, smallest_side):
+def _aspect_preserving_resize(image, smallest_side, num_channels=3):
     """Resize images preserving the original aspect ratio.
     Args:
       image: A 3-D image `Tensor`.
@@ -239,7 +239,7 @@ def _aspect_preserving_resize(image, smallest_side):
     resized_image = tf.cond(tf.rank(resized_image) < 3,
                             fn1=lambda: tf.expand_dims(resized_image, 2),
                             fn2=lambda: resized_image)
-    resized_image.set_shape([None, None, None])
+    resized_image.set_shape([None, None, num_channels])
     return resized_image
 
 
@@ -316,7 +316,7 @@ def preprocess_images_toon(image, edge, cartoon,
 
     # Resize/zoom
     image = _aspect_preserving_resize(image, resize_side)
-    edge = _aspect_preserving_resize(edge, resize_side)
+    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
     cartoon = _aspect_preserving_resize(cartoon, resize_side)
 
     # Select random crops

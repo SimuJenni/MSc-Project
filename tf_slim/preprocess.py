@@ -237,7 +237,9 @@ def _aspect_preserving_resize(image, smallest_side):
     resized_image = tf.image.resize_bilinear(image, [new_height, new_width],
                                              align_corners=False)
     resized_image = tf.squeeze(resized_image)
-    tf.cond(tf.rank(resized_image) < 3, fn1=lambda: tf.expand_dims(resized_image, 2), fn2=lambda: resized_image)
+    resized_image = tf.cond(tf.rank(resized_image) < 3,
+                            fn1=lambda: tf.expand_dims(resized_image, 2),
+                            fn2=lambda: resized_image)
     resized_image.set_shape([None, None, channels])
     return resized_image
 

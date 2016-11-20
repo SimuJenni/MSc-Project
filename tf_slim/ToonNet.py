@@ -100,8 +100,11 @@ def ToonDiscAE(inputs):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
                                        stddev=5.0*tf.pow(0.975, tf.to_float(slim.get_global_step()/1000)))
-            net = slim.flatten(inputs)
-            net = slim.fully_connected(net, 4096)
+            net = spatial_dropout(inputs, 0.5)
+            net = slim.flatten(net)
+            net = slim.fully_connected(net, 2048)
+            net = slim.dropout(net, 0.5)
+            net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 2,
                                        activation_fn=None,
@@ -109,7 +112,7 @@ def ToonDiscAE(inputs):
             return net
 
 
-def GANAE(img, cartoon, edges, order, num_layers=5):
+def GANAE(img, cartoon, edges, num_layers=5):
     gen_in = merge(cartoon, edges)
     gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
     enc_im = ToonEncoder(img, num_layers=num_layers)
@@ -117,11 +120,13 @@ def GANAE(img, cartoon, edges, order, num_layers=5):
     disc_out = ToonDiscAE(disc_in)
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
     dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
-
-    tf.histogram_summary('gen_enc', gen_enc)
-    tf.histogram_summary('enc_im', enc_im)
-
     return dec_im, dec_gen, disc_out, enc_im, gen_enc
+
+
+def spatial_dropout(net, p):
+    input_shape = net.get_shape().as_list()
+    noise_shape = (input_shape[0], 1, 1, input_shape[3])
+    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
 
 
 def merge(a, b, dim=3):

@@ -4,7 +4,7 @@ from tensorflow.python.ops import math_ops
 
 from ToonNet import GANAE
 from datasets import cifar10
-from preprocess import preprocess_fine_tune
+from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
 
@@ -34,11 +34,11 @@ with sess.as_default():
                                                                   common_queue_min=8 * BATCH_SIZE)
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
-        # TODO: Fix preprocessing!
         # Preprocess training data
-        image = preprocess_fine_tune(image, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        edge = preprocess_fine_tune(edge, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        cartoon = preprocess_fine_tune(cartoon, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+        image, edge, cartoon = preprocess_images_toon(image, edge, cartoon,
+                                                      output_height=IM_SHAPE[0], output_width=IM_SHAPE[1],
+                                                      resize_side_min=min(IM_SHAPE[:1]),
+                                                      resize_side_max=int(min(IM_SHAPE[:1]) * 1.25))
 
         # Make batches
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],
@@ -53,7 +53,7 @@ with sess.as_default():
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, labels, num_layers=NUM_LAYERS)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, num_layers=NUM_LAYERS)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -86,6 +86,7 @@ with sess.as_default():
         for variable in slim.get_model_variables():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
+        # Handle depedencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
@@ -95,7 +96,7 @@ with sess.as_default():
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
-        learning_rate = tf.train.exponential_decay(0.01,
+        learning_rate = tf.train.exponential_decay(0.005,
                                                    global_step,
                                                    decay_steps,
                                                    0.94,

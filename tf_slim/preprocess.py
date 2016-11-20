@@ -15,6 +15,10 @@ _RESIZE_SIDE_MIN = 256
 _RESIZE_SIDE_MAX = 512
 
 
+def _flip_lr(image, p):
+    return tf.cond(p > 0.5, fn1=lambda: image, fn2=lambda: tf.image.flip_left_right(image))
+
+
 def _crop(image, offset_height, offset_width, crop_height, crop_width):
     """Crops the given image using the provided offsets and sizes.
     Note that the method doesn't assume we know the input image size but it does
@@ -299,20 +303,39 @@ def preprocess_sketch(sketch, output_height, output_width, resize_side=_RESIZE_S
     return tf.to_float(sketch)
 
 
-def preprocess_fine_tune(img, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
-    """Preprocesses the given image for evaluation.
-    Args:
-      image: A `Tensor` representing an image of arbitrary size.
-      output_height: The height of the image after preprocessing.
-      output_width: The width of the image after preprocessing.
-      resize_side: The smallest side of the image for aspect-preserving resizing.
-    Returns:
-      A preprocessed image.
-    """
-    # img = _aspect_preserving_resize(img, resize_side)
-    # img = _central_crop([img], output_height, output_width)[0]
-    # img.set_shape([output_height, output_width, 3])
-    return tf.to_float(img) * (2. / 255.) - 1.
+def preprocess_images_toon(image, edge, cartoon,
+                         output_height,
+                         output_width,
+                         resize_side_min=_RESIZE_SIDE_MIN,
+                         resize_side_max=_RESIZE_SIDE_MAX):
+    # Compute zoom side-size
+    resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
+
+    # Resize/zoom
+    image = _aspect_preserving_resize(image, resize_side)
+    edge = _aspect_preserving_resize(edge, resize_side)
+    cartoon = _aspect_preserving_resize(cartoon, resize_side)
+
+    # Select random crops
+    [image, edge, cartoon] = _random_crop([image, edge, cartoon], output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
+    cartoon.set_shape([output_height, output_width, 3])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) * (2. / 255.) - 1.
+    cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
+
+    # Flip left-right
+    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+    image = _flip_lr(image, p)
+    edge = _flip_lr(edge, p)
+    cartoon = _flip_lr(cartoon, p)
+
+    return image, edge, cartoon
 
 
 def preprocess_image(image, output_height, output_width, is_training=False,

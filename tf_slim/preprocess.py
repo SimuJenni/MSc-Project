@@ -85,7 +85,7 @@ def _random_crop(image_list, crop_height, crop_width):
     for i in range(len(image_list)):
         image_rank = tf.rank(image_list[i])
         rank_assert = tf.Assert(
-            tf.logical_or(tf.equal(image_rank, 3), tf.equal(image_rank, 0)),
+            tf.equal(image_rank, 3),
             ['Wrong rank for tensor  %s [expected] [actual]',
              image_list[i].name, 3, image_rank])
         rank_assertions.append(rank_assert)
@@ -231,12 +231,13 @@ def _aspect_preserving_resize(image, smallest_side):
     shape = tf.shape(image)
     height = shape[0]
     width = shape[1]
+    channels = image.get_shape().as_list()[2]
     new_height, new_width = _smallest_size_at_least(height, width, smallest_side)
     image = tf.expand_dims(image, 0)
     resized_image = tf.image.resize_bilinear(image, [new_height, new_width],
                                              align_corners=False)
     resized_image = tf.squeeze(resized_image)
-    resized_image.set_shape([None, None, 3])
+    resized_image.set_shape([None, None, channels])
     return resized_image
 
 

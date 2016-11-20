@@ -32,6 +32,7 @@ import os
 
 import tensorflow as tf
 from six.moves import urllib
+from constants import IMAGENET_TF_DATADIR
 
 slim = tf.contrib.slim
 
@@ -115,7 +116,7 @@ def get_datafiles(split_name, dataset_dir):
     return data_files
 
 
-def get_split(split_name, dataset_dir, reader=None):
+def get_split(split_name, dataset_dir=IMAGENET_TF_DATADIR, reader=None):
     """Gets a dataset tuple with instructions for reading ImageNet.
     Args:
       split_name: A train/test split name.
@@ -129,7 +130,7 @@ def get_split(split_name, dataset_dir, reader=None):
     Raises:
       ValueError: if `split_name` is not a valid train/test split.
     """
-    if split_name not in _SPLITS_TO_SIZES:
+    if split_name not in SPLITS_TO_SIZES:
         raise ValueError('split name %s was not recognized.' % split_name)
 
     tf_record_pattern = os.path.join(dataset_dir, '%s-*' % split_name)

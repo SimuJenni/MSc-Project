@@ -10,12 +10,13 @@ from utils import montage
 
 slim = tf.contrib.slim
 
+# Setup training parameters
 NUM_LAYERS = 4
 BATCH_SIZE = 256
 IM_SHAPE = [32, 32, 3]
+NUM_EPOCHS = 15
 data = cifar10
-
-LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan1/'
+LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan_adam/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -25,23 +26,27 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
+        # Get the dataset
         dataset = data.get_split('train')
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,
                                                                   common_queue_min=8 * BATCH_SIZE)
-
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
+        # TODO: Fix preprocessing!
+        # Preprocess training data
         image = preprocess_fine_tune(image, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         edge = preprocess_fine_tune(edge, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         cartoon = preprocess_fine_tune(cartoon, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
+        # Make batches
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],
                                                  batch_size=BATCH_SIZE,
                                                  num_threads=8,
                                                  capacity=8 * BATCH_SIZE)
 
+        # Make labels for discriminator training
         labels = tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE,), dtype=tf.int32),
                                                  tf.ones(shape=(BATCH_SIZE,), dtype=tf.int32)])
         labels_disc = slim.one_hot_encoding(labels, 2)
@@ -52,22 +57,22 @@ with sess.as_default():
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.01)
+        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.1)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=ae_loss_scope, weight=0.02)
-        l2_ae = slim.losses.sum_of_squares(img_rec, images, scope=ae_loss_scope, weight=10.0)
+        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=ae_loss_scope, weight=0.1)
+        l2_ae = slim.losses.sum_of_squares(img_rec, images, scope=ae_loss_scope, weight=20.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=0.02)
+        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=0.1)
         l2_gen = slim.losses.sum_of_squares(gen_rec, images, scope=gen_loss_scope, weight=10.0)
         l2feat_gen = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=1.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
@@ -88,20 +93,7 @@ with sess.as_default():
             ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
-        tf.scalar_summary('losses/auto-encoder loss', ae_loss)
-        tf.scalar_summary('losses/generator loss', gen_loss)
-        tf.scalar_summary('losses/discriminator loss', disc_loss)
-        tf.scalar_summary('losses/d-loss gen', dL_gen)
-        tf.scalar_summary('losses/d-loss ae', dL_ae)
-        tf.scalar_summary('losses/l2 gen', l2_gen)
-        tf.scalar_summary('losses/l2feat gen', l2feat_gen)
-        tf.scalar_summary('losses/l2 ae', l2_ae)
-        tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
-        tf.image_summary('images/real', montage(images, 8, 8), max_images=1)
-        tf.image_summary('images/cartoon', montage(cartoons, 8, 8), max_images=1)
-        tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
-
+        # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
@@ -110,28 +102,46 @@ with sess.as_default():
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
-        # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
+        # Handle sumaries
+        tf.scalar_summary('losses/discriminator loss', disc_loss)
+        tf.scalar_summary('losses/disc-loss generator', dL_gen)
+        tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
+        tf.scalar_summary('losses/l2 generator', l2_gen)
+        tf.scalar_summary('losses/l2feat generator', l2feat_gen)
+        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+        tf.scalar_summary('learning rate', learning_rate)
+        tf.image_summary('images/generator', montage(gen_rec, 6, 6), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec, 6, 6), max_images=1)
+        tf.image_summary('images/ground-truth', montage(images, 6, 6), max_images=1)
+        tf.image_summary('images/cartoons', montage(cartoons, 6, 6), max_images=1)
+        tf.image_summary('images/edges', montage(edges, 6, 6), max_images=1)
 
-        # Create training operations
+        # Define optimizer
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+
+        # Generator training operation
         scopes_gen = 'generator'
         vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
-                                                     global_step=global_step, summarize_gradients=True)
+                                                     global_step=global_step, summarize_gradients=False)
 
+        # Auto-encoder training operation
         scopes_ae = 'encoder, decoder'
         vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
         train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
-                                                    global_step=global_step, summarize_gradients=True)
+                                                    global_step=global_step, summarize_gradients=False)
 
+        # Discriminator training operation
         scopes_disc = 'discriminator'
         vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)
         train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
-                                                      global_step=global_step, summarize_gradients=True)
+                                                      global_step=global_step, summarize_gradients=False)
 
-        # Start training.
+        # Start training
+        num_train_steps = data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             LOG_DIR,
                             save_summaries_secs=120,
                             save_interval_secs=3000,
-                            log_every_n_steps=100)
+                            log_every_n_steps=100,
+                            number_of_steps=num_train_steps)

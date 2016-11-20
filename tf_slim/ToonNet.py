@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-F_DIMS = [32, 64, 128, 256, 512, 1024, 2048]
+F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
@@ -19,7 +19,7 @@ def ToonGenerator(inputs, num_layers=5):
 
             for l in range(0, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[num_layers - l])
-                net = up_conv2d(net, depth=f_dims[num_layers - l - 1], scope='upconv_{}'.format(l + 1))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='upconv_{}'.format(l + 1))
 
             net = add_noise_plane(net, NOISE_CHANNELS[0])
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
@@ -86,7 +86,8 @@ def ToonDecoder(inputs, num_layers=5, reuse=None):
             net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_0')
 
             for l in range(1, num_layers):
-                net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                # net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
@@ -133,11 +134,11 @@ def add_noise_plane(net, noise_channels):
     return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
 
 
-def up_conv2d(net, depth, scope, factor=2):
-    in_shape = net.get_shape()
+def up_conv2d(net, num_outputs, scope, factor=2):
+    in_shape = net.get_shape().as_list()
     net = tf.image.resize_images(net, factor * in_shape[1], factor * in_shape[2],
                                  tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    net = slim.conv2d(net, num_outputs=depth, scope=scope, stride=1)
+    net = slim.conv2d(net, num_outputs=num_outputs, scope=scope, stride=1)
     return net
 
 

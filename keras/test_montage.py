@@ -1,9 +1,11 @@
-from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
-from ToonNet import Encoder
-from datasets import ImagenetToon
-from utils import montage
 import os
+
+from ToonDataGenerator import ImageDataGenerator, Y2X_Y2Y
+
 from constants import MODEL_DIR
+from keras.ToonNet import Encoder
+from keras.datasets import ImagenetToon
+from utils import montage
 
 batch_size = 32
 

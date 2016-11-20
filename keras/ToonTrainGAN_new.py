@@ -3,14 +3,14 @@ import os
 import sys
 import time
 
+import keras.backend as K
 import numpy as np
 
 from ToonDataGenerator import ImageDataGenerator
-from ToonNet import GAN, Disc2, gen_data, disc_data
+from ToonNet import GAN, Disc2, gen_data
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon, TinyImagenetToon
+from keras.datasets import TinyImagenetToon
 from utils import montage, generator_queue
-import keras.backend as K
 
 # Get the data-set object
 data = TinyImagenetToon()

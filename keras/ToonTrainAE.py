@@ -1,13 +1,13 @@
-import os
-import time
 import gc
+import os
 import sys
+import time
+
 from ToonDataGenerator import ImageDataGenerator
 from ToonNet import AE
 from constants import MODEL_DIR, IMG_DIR
-from datasets import CIFAR10_Toon, TinyImagenetToon
+from keras.datasets import TinyImagenetToon
 from utils import montage, generator_queue
-
 
 # Get the data-set object
 data = TinyImagenetToon()

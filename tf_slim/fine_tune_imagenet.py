@@ -1,122 +1,44 @@
 from __future__ import print_function
 
-from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.ops import control_flow_ops
-
-from tensorflow.python.platform import tf_logging as logging
-from tensorflow.python.training import saver as tf_saver
 
 from alexnet import alexnet
 from datasets import imagenet
-from model_edge_advplus_128 import DCGAN
-from ops import *
 from preprocess import preprocess_image
+from tf_slim.qhu_code.model_edge_advplus_128 import DCGAN
+from tf_slim.qhu_code.ops import *
+from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
-
-def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
-                              reshape_variables=False):
-    """Returns a function that assigns specific variables from a checkpoint.
-    Args:
-      model_path: The full path to the model checkpoint. To get latest checkpoint
-          use `model_path = tf.train.latest_checkpoint(checkpoint_dir)`
-      var_list: A list of `Variable` objects or a dictionary mapping names in the
-          checkpoint to the correspoing variables to initialize. If empty or None,
-          it would return  no_op(), None.
-      ignore_missing_vars: Boolean, if True it would ignore variables missing in
-          the checkpoint with a warning instead of failing.
-      reshape_variables: Boolean, if True it would automatically reshape variables
-          which are of different shape then the ones stored in the checkpoint but
-          which have the same number of elements.
-    Returns:
-      A function that takes a single argument, a `tf.Session`, that applies the
-      assignment operation.
-    Raises:
-      ValueError: If the checkpoint specified at `model_path` is missing one of
-        the variables in `var_list`.
-    """
-    if ignore_missing_vars:
-        reader = pywrap_tensorflow.NewCheckpointReader(model_path)
-        if isinstance(var_list, dict):
-            var_dict = var_list
-        else:
-            var_dict = {var.op.name: var for var in var_list}
-        available_vars = {}
-        for var in var_dict:
-
-            if reader.has_tensor(var):
-                available_vars[var] = var_dict[var]
-            else:
-                logging.warning(
-                    'Variable %s missing in checkpoint %s', var, model_path)
-        var_list = available_vars
-    saver = tf_saver.Saver(var_list, reshape=reshape_variables)
-
-    def callback(session):
-        saver.restore(session, model_path)
-
-    return callback
-
-
-def get_variables_to_train(trainable_scopes=None):
-    """Returns a list of variables to train.
-    Returns:
-      A list of variables to train by the optimizer.
-    """
-    if trainable_scopes is None:
-        variables_to_train = tf.trainable_variables()
-    else:
-        scopes = [scope.strip() for scope in trainable_scopes.split(',')]
-
-        variables_to_train = []
-        for scope in scopes:
-            variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
-            variables_to_train.extend(variables)
-
-    print('Variables to train: {}'.format([v.op.name for v in variables_to_train]))
-
-    return variables_to_train
-
-
 fine_tune = False
-use_bn = True
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 64
 NUM_CLASSES = 1000
 IM_SHAPE = [224, 224, 3]
+PRE_TRAINED_SCOPE = 'generator'
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_2/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
-def Classifier(inputs, fine_tune=False, use_batch_norm=False):
+def Classifier(inputs, fine_tune=False):
     if fine_tune:
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=not fine_tune, image_shape=IM_SHAPE)
-        with tf.variable_scope('generator'):
+        # Specify model to fine-tune here
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=True, image_shape=IM_SHAPE)
+        with tf.variable_scope(PRE_TRAINED_SCOPE):
             net = model.discriminator(inputs)
 
-        batch_norm_params = {
-            # Decay for the moving averages.
-            'decay': 0.9997,
-            # epsilon to prevent 0s in variance.
-            'epsilon': 0.001,
-        }
-        if use_batch_norm:
-            normalizer_fn = slim.batch_norm
-            normalizer_params = batch_norm_params
-        else:
-            normalizer_fn = None
-            normalizer_params = {}
+        batch_norm_params = {'decay': 0.9997, 'epsilon': 0.001}
         with tf.variable_scope('fully_connected'):
             with slim.arg_scope([slim.fully_connected],
                                 activation_fn=tf.nn.relu,
                                 weights_regularizer=slim.l2_regularizer(0.0005),
-                                normalizer_fn=normalizer_fn,
-                                normalizer_params=normalizer_params):
+                                normalizer_fn=slim.batch_norm,
+                                normalizer_params=batch_norm_params):
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')
                 net = slim.dropout(net)
@@ -125,11 +47,12 @@ def Classifier(inputs, fine_tune=False, use_batch_norm=False):
                 net = slim.fully_connected(net, NUM_CLASSES, scope='fc3',
                                            activation_fn=None,
                                            normalizer_fn=None,
-                                           biases_initializer=tf.zeros_initializer,)
+                                           biases_initializer=tf.zeros_initializer, )
         return net
     else:
-        net = alexnet(inputs, use_batch_norm=use_batch_norm)
+        net = alexnet(inputs, use_batch_norm=True)
         return net
+
 
 g = tf.Graph()
 
@@ -137,13 +60,7 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # # Selects the 'validation' dataset.
-        # data_files = imagenet.get_datafiles('train', DATA_DIR)
-        # images, labels = batch_inputs(data_files=data_files, batch_size=BATCH_SIZE, train=True, num_preprocess_threads=4)
-
         dataset = imagenet.get_split('train', DATA_DIR)
-        # Creates a TF-Slim DataProvider which reads the dataset in the background
-        # during both training and testing.
         provider = slim.dataset_data_provider.DatasetDataProvider(
             dataset,
             num_readers=8,
@@ -152,7 +69,6 @@ with sess.as_default():
 
         [image, label] = provider.get(['image', 'label'])
 
-        # TODO: Adjust preprocessing of images
         image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
         if fine_tune:
             image = tf.cast(image, tf.float32) * (2. / 255) - 1
@@ -166,7 +82,7 @@ with sess.as_default():
         labels = slim.one_hot_encoding(labels, NUM_CLASSES)
 
         # Create the model
-        predictions = Classifier(images, fine_tune, use_batch_norm=use_bn)
+        predictions = Classifier(images, fine_tune)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
@@ -194,7 +110,7 @@ with sess.as_default():
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
             tf.scalar_summary('accuracy', accuracy)
 
-        decay_steps = int(imagenet._SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
+        decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
                                                    decay_steps,
@@ -218,7 +134,7 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                exclude=['fc1', 'fc2', 'fc3', 'beta1_power', 'beta2_power'])
+                exclude=['fc1', 'fc2', 'fc3'])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.

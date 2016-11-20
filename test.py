@@ -1,12 +1,7 @@
-import numpy as np
-import os
 from keras.layers import Input
 from keras.models import Model
 
-from ToonDataGenerator import ImageDataGenerator
-from datasets import TinyImagenetToon, CIFAR10_Toon
-from utils import montage
-from ToonNet import ToonGenTransp, ToonDisc
+from keras.ToonNet import ToonGenTransp, ToonDisc
 
 # data = CIFAR10()
 # class_dirs = os.listdir(data.val_dir)

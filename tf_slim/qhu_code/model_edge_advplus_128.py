@@ -1,9 +1,9 @@
 import os
 import time
-import tensorflow as tf
 
-from ops import *
-from input_pipeline_rendered_data_vgg import get_chair_pipeline_training_from_dump
+from tf_slim.qhu_code.input_pipeline_rendered_data_vgg import get_chair_pipeline_training_from_dump
+from tf_slim.qhu_code.ops import *
+
 
 class DCGAN(object):
     def __init__(self, sess,

@@ -2,8 +2,8 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import GANAE
-from datasets import cifar10, imagenet
+from ToonNet import AEGAN
+from datasets import cifar10
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
@@ -11,13 +11,13 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-NUM_LAYERS = 6
+NUM_LAYERS = 4
 BATCH_SIZE = 256
-TARGET_SHAPE = [128, 128, 3]
-IM_SIZE = 256
+TARGET_SHAPE = [32, 32, 3]
+IM_SIZE = 32
 NUM_EPOCHS = 50
-data = imagenet
-LOG_DIR = '/data/cvg/simon/data/logs/imagenet_gan/'
+data = cifar10
+LOG_DIR = '/data/cvg/simon/data/logs/cifar_gan/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -35,7 +35,7 @@ with sess.as_default():
                                                                   common_queue_min=8 * BATCH_SIZE)
         [image, edge, cartoon] = provider.get(['image', 'edges', 'cartoon'])
 
-        # Preprocess training data
+        # Pre-process training data
         image, edge, cartoon = preprocess_images_toon(image, edge, cartoon,
                                                       output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
                                                       resize_side_min=min(TARGET_SHAPE[:1]),
@@ -54,7 +54,7 @@ with sess.as_default():
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = GANAE(images, cartoons, edges, num_layers=NUM_LAYERS)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = AEGAN(images, cartoons, edges, num_layers=NUM_LAYERS)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -87,7 +87,7 @@ with sess.as_default():
         for variable in slim.get_model_variables():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
-        # Handle depedencies with update_ops (batch-norm)
+        # Handle dependencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
@@ -104,7 +104,7 @@ with sess.as_default():
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
-        # Handle sumaries
+        # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)

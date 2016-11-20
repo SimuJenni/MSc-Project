@@ -1,52 +1,9 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
-
-
-def ToonGenerator(inputs, num_layers=5):
-    f_dims = F_DIMS
-    with tf.variable_scope('generator'):
-        with toon_net_argscope():
-            net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0', stride=2)
-            for l in range(0, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1), stride=2)
-
-            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
-            net = add_noise_plane(net, NOISE_CHANNELS[num_layers + 1])
-            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='upconv_0', stride=1)
-
-            for l in range(0, num_layers):
-                net = add_noise_plane(net, NOISE_CHANNELS[num_layers - l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='upconv_{}'.format(l + 1))
-
-            net = add_noise_plane(net, NOISE_CHANNELS[0])
-            net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
-                              activation_fn=tf.nn.tanh)
-            return net
-
-
-def ToonDiscriminator(inputs, num_layers=5, is_training=True):
-    f_dims = F_DIMS
-    with tf.variable_scope('discriminator'):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID', kernel_size=(3, 3))):
-            net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_0', stride=2)
-            for l in range(1, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l), stride=2)
-
-            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers), stride=1)
-
-            # Fully connected layers
-            net = slim.flatten(net)
-            net = slim.fully_connected(net, 2048)
-            net = slim.dropout(net, 0.5, is_training=is_training)
-            net = slim.fully_connected(net, 2048)
-            net = slim.dropout(net, 0.5, is_training=is_training)
-            net = slim.fully_connected(net, 1,
-                                       activation_fn=None,
-                                       normalizer_fn=None)
-            return net
 
 
 def ToonGenAE(inputs, num_layers=5):
@@ -112,7 +69,7 @@ def ToonDiscAE(inputs):
             return net
 
 
-def GANAE(img, cartoon, edges, num_layers=5):
+def AEGAN(img, cartoon, edges, num_layers=5):
     gen_in = merge(cartoon, edges)
     gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
     enc_im = ToonEncoder(img, num_layers=num_layers)
@@ -121,34 +78,6 @@ def GANAE(img, cartoon, edges, num_layers=5):
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
     dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
     return dec_im, dec_gen, disc_out, enc_im, gen_enc
-
-
-def spatial_dropout(net, p):
-    input_shape = net.get_shape().as_list()
-    noise_shape = (input_shape[0], 1, 1, input_shape[3])
-    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
-
-
-def merge(a, b, dim=3):
-    return tf.concat(concat_dim=dim, values=[a, b])
-
-
-def add_noise_plane(net, noise_channels):
-    noise_shape = net.get_shape().as_list()
-    noise_shape[-1] = noise_channels
-    return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
-
-
-def up_conv2d(net, num_outputs, scope, factor=2):
-    in_shape = net.get_shape().as_list()
-    net = tf.image.resize_images(net, factor * in_shape[1], factor * in_shape[2],
-                                 tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    net = slim.conv2d(net, num_outputs=num_outputs, scope=scope, stride=1)
-    return net
-
-
-def lrelu(x, leak=0.2):
-    return tf.maximum(x, leak * x)
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME'):
@@ -169,3 +98,24 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME')
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params) as arg_sc:
                 return arg_sc
+
+
+def classifier(inputs, model, num_classes):
+    net = model(inputs)
+    batch_norm_params = {'decay': 0.9997, 'epsilon': 0.001}
+    with tf.variable_scope('fully_connected'):
+        with slim.arg_scope([slim.fully_connected],
+                            activation_fn=tf.nn.relu,
+                            weights_regularizer=slim.l2_regularizer(0.0005),
+                            normalizer_fn=slim.batch_norm,
+                            normalizer_params=batch_norm_params):
+            net = slim.flatten(net)
+            net = slim.fully_connected(net, 4096, scope='fc1')
+            net = slim.dropout(net)
+            net = slim.fully_connected(net, 4096, scope='fc2')
+            net = slim.dropout(net)
+            net = slim.fully_connected(net, num_classes, scope='fc3',
+                                       activation_fn=None,
+                                       normalizer_fn=None,
+                                       biases_initializer=tf.zeros_initializer)
+    return net

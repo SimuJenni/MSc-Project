@@ -1,14 +1,13 @@
+import gc
+import sys
+import time
+
 import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
-import os
-import time
-import sys
-import gc
 
 from ToonNet import Classifier, make_name, gen_data
-from datasets import CIFAR10, TinyImagenet
+from keras.datasets import CIFAR10
 from utils import generator_queue
-
 
 # Get the data-set object
 data = CIFAR10()

@@ -72,7 +72,7 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
 
     """
     img_color = img_rgb
-    im_s = img_rgb.shape[1]
+    im_shape = img_rgb.shape
 
     # Downsample
     for _ in range(num_donw_samp):
@@ -87,10 +87,11 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
     for _ in range(num_donw_samp):
         img_color = cv2.pyrUp(img_color)
 
+    cv2.resize(img_color, (im_shape[0], im_shape[1]))
     return img_color
 
 
-def auto_canny(image, sigma=0.1):
+def auto_canny(image, sigma=0.3):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     image = cv2.medianBlur(image, 3)
 
@@ -104,6 +105,7 @@ def auto_canny(image, sigma=0.1):
 
     # return the edged image
     return edged
+
 
 def process_data(X, num_threads=10, num_downsample=2):
     """Process an array of images with specified number of threads

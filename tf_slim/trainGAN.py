@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 NUM_LAYERS = 4
 BATCH_SIZE = 256
 IM_SHAPE = [32, 32, 3]
-NUM_EPOCHS = 15
+NUM_EPOCHS = 50
 data = cifar10
 LOG_DIR = '/data/cvg/simon/data/logs/cifar10_gan_adam/'
 

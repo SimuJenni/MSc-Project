@@ -13,7 +13,8 @@ slim = tf.contrib.slim
 # Setup training parameters
 NUM_LAYERS = 6
 BATCH_SIZE = 256
-IM_SHAPE = [128, 128, 3]
+TARGET_SHAPE = [128, 128, 3]
+IM_SIZE = 256
 NUM_EPOCHS = 50
 data = imagenet
 LOG_DIR = '/data/cvg/simon/data/logs/imagenet_gan/'
@@ -36,9 +37,9 @@ with sess.as_default():
 
         # Preprocess training data
         image, edge, cartoon = preprocess_images_toon(image, edge, cartoon,
-                                                      output_height=IM_SHAPE[0], output_width=IM_SHAPE[1],
-                                                      resize_side_min=min(IM_SHAPE[:1]),
-                                                      resize_side_max=int(min(IM_SHAPE[:1]) * 1.25))
+                                                      output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                                      resize_side_min=min(TARGET_SHAPE[:1]),
+                                                      resize_side_max=int(IM_SIZE * 1.25))
 
         # Make batches
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],

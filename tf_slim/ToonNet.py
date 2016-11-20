@@ -60,7 +60,7 @@ def ToonGenAE(inputs, num_layers=5):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
 
-            net = add_noise_plane(net, NOISE_CHANNELS[num_layers + 1])
+            net = add_noise_plane(net, NOISE_CHANNELS[num_layers])
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
 
             return net

@@ -85,7 +85,7 @@ def _random_crop(image_list, crop_height, crop_width):
     for i in range(len(image_list)):
         image_rank = tf.rank(image_list[i])
         rank_assert = tf.Assert(
-            tf.equal(image_rank, 3),
+            tf.logical_or(tf.equal(image_rank, 3), tf.equal(image_rank, 0)),
             ['Wrong rank for tensor  %s [expected] [actual]',
              image_list[i].name, 3, image_rank])
         rank_assertions.append(rank_assert)

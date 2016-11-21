@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-from constants import CIFAR10_TF_DATADIR
+from constants import STL10_TF_DATADIR
 
 import tensorflow as tf
 
@@ -23,7 +23,7 @@ _ITEMS_TO_DESCRIPTIONS = {
 }
 
 
-def get_split(split_name, dataset_dir=CIFAR10_TF_DATADIR, file_pattern=None, reader=None):
+def get_split(split_name, dataset_dir=STL10_TF_DATADIR, file_pattern=None, reader=None):
     """Gets a dataset tuple with instructions for reading stl10.
     Args:
       split_name: A train/test split name.

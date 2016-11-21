@@ -190,3 +190,6 @@ def run():
     with tf.python_io.TFRecordWriter(labeled_test_tf_file) as tfrecord_writer:
         num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
     print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
+
+if __name__ == '__main__':
+    run()

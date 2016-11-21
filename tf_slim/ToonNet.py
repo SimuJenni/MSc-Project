@@ -112,7 +112,7 @@ def AEGAN2(img, cartoon, edges, order, num_layers=5):
     disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
     # disc_in = ordered_merge(dec_gen, dec_im, order)
     disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                stddev=1.0 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 1000)))
+                                stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
     disc_out = ToonDisc(disc_in, num_layers=num_layers)
     return dec_im, dec_gen, disc_out, enc_im, gen_enc
 

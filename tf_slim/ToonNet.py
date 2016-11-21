@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout
+from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, ordered_merge
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
@@ -57,8 +57,8 @@ def ToonDiscAE(inputs):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
                                        stddev=5.0*tf.pow(0.99, tf.to_float(slim.get_global_step()/100)))
-            net = spatial_dropout(inputs, 0.5)
-            net = slim.flatten(net)
+            # inputs = spatial_dropout(inputs, 0.5)
+            net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 2048)
@@ -69,11 +69,12 @@ def ToonDiscAE(inputs):
             return net
 
 
-def AEGAN(img, cartoon, edges, num_layers=5):
+def AEGAN(img, cartoon, edges, order, num_layers=5):
     gen_in = merge(cartoon, edges)
     gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
     enc_im = ToonEncoder(img, num_layers=num_layers)
-    disc_in = merge(enc_im, gen_enc, dim=0)
+    disc_in = ordered_merge(enc_im, gen_enc, order)
+    # disc_in = merge(enc_im, gen_enc, dim=0)
     disc_out = ToonDiscAE(disc_in)
     dec_im = ToonDecoder(enc_im, num_layers=num_layers)
     dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)

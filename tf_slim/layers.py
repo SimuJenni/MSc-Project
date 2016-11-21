@@ -20,6 +20,10 @@ def add_noise_plane(net, noise_channels):
     return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
 
 
+def ordered_merge(a, b, order):
+    return tf.select(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
+
+
 def merge(a, b, dim=3):
     return tf.concat(concat_dim=dim, values=[a, b])
 

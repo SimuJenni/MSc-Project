@@ -32,6 +32,8 @@ SPLITS_TO_SIZES = {'train': 50000, 'test': 10000}
 
 NUM_CLASSES = 10
 
+MIN_SIZE = 32
+
 _FILE_PATTERN = 'cifar10_%s.tfrecord'
 
 _ITEMS_TO_DESCRIPTIONS = {

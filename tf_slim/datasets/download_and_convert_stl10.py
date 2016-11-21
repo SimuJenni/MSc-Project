@@ -119,7 +119,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
                 # Get image, edge-map and cartooned image
                 image = np.squeeze(images[j])
                 edges = auto_canny(image)[:, :, None]
-                cartoon = cartoonify(image, num_donw_samp=1)
+                cartoon = cartoonify(image)
                 if label_filename:
                     label = labels[j]
                 else:

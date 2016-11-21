@@ -470,5 +470,7 @@ def run(train_directory, validation_directory, output_directory, train_shards=10
     # Run it!
     _process_dataset('validation', validation_directory,
                      validation_shards, synset_to_human, labels_file, num_threads, output_directory)
-    _process_dataset('train', train_directory, train_shards,
-                     synset_to_human, labels_file, num_threads, output_directory)
+
+    #TODO: Uncomment!
+    # _process_dataset('train', train_directory, train_shards,
+    #                  synset_to_human, labels_file, num_threads, output_directory)

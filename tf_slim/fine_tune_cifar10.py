@@ -63,9 +63,6 @@ with sess.as_default():
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels)
-
-
-
         total_loss = slim.losses.get_total_loss()
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

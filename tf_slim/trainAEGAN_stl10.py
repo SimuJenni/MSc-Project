@@ -18,6 +18,7 @@ IM_SIZE = 96
 NUM_EPOCHS = 50
 data = stl10
 LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan/'
+SET_NAME = 'train_unlabeled'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -28,7 +29,7 @@ with sess.as_default():
         global_step = slim.create_global_step()
 
         # Get the dataset
-        dataset = data.get_split('train_unlabeled')
+        dataset = data.get_split(SET_NAME)
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,
@@ -98,7 +99,7 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning rate
-        decay_steps = int(data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
+        decay_steps = int(data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.005,
                                                    global_step,
                                                    decay_steps,
@@ -142,7 +143,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = data.SPLITS_TO_SIZES['train'] / BATCH_SIZE * NUM_EPOCHS
+        num_train_steps = data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             LOG_DIR,
                             save_summaries_secs=120,

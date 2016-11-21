@@ -63,7 +63,7 @@ with sess.as_default():
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.2)
+        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.1)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')

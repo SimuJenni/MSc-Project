@@ -56,7 +56,7 @@ def ToonDiscAE(inputs):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
-                                       stddev=5.0*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
+                                       stddev=5.0*tf.pow(0.99, tf.to_float(slim.get_global_step()/100)))
             net = spatial_dropout(inputs, 0.5)
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)

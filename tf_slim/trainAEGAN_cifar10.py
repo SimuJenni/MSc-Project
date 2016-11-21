@@ -41,7 +41,7 @@ with sess.as_default():
                                                           output_height=TARGET_SHAPE[0],
                                                           output_width=TARGET_SHAPE[1],
                                                           resize_side_min=data.MIN_SIZE,
-                                                          resize_side_max=data.MIN_SIZE * 2)
+                                                          resize_side_max=int(data.MIN_SIZE * 1.5))
 
         # Make batches
         images, edges, cartoons = tf.train.batch([image, edge, cartoon],
@@ -124,6 +124,10 @@ with sess.as_default():
         tf.image_summary('images/ground-truth', montage(images, 8, 8), max_images=1)
         tf.image_summary('images/cartoons', montage(cartoons, 8, 8), max_images=1)
         tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
+
+        # For debugginh
+        tf.scalar_summary('max_label', tf.arg_max(labels, dimension=0))
+
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)

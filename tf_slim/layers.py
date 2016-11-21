@@ -28,6 +28,12 @@ def merge(a, b, dim=3):
     return tf.concat(concat_dim=dim, values=[a, b])
 
 
+def feature_dropout(net, p):
+    input_shape = net.get_shape().as_list()
+    noise_shape = (input_shape[0], input_shape[1], input_shape[2], 1)
+    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='feature_dropout')
+
+
 def spatial_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], 1, 1, input_shape[3])

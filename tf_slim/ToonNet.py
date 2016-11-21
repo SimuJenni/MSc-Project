@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, ordered_merge
+from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, ordered_merge, feature_dropout
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
@@ -56,8 +56,9 @@ def ToonDiscAE(inputs):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
-                                       stddev=5.0*tf.pow(0.99, tf.to_float(slim.get_global_step()/100)))
+                                       stddev=5.0*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
             # inputs = spatial_dropout(inputs, 0.5)
+            inputs = feature_dropout(inputs, 0.75*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)

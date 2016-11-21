@@ -183,8 +183,8 @@ def _process_image(filename, coder, max_im_dim=256):
     # Make cartooned images
     im_toon = cartoonify(image)
 
-    assert im_edges.shape[:1] == im_toon[:1]
-    assert im_edges.shape[:1] == image[:1]
+    assert all(im_edges.shape[:1] == im_toon[:1])
+    assert all(im_edges.shape[:1] == image[:1])
 
     # Encode all the things
     im_edges = coder.encode_jpeg(im_edges)

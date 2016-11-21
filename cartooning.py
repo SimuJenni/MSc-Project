@@ -6,59 +6,6 @@ from skimage.restoration import denoise_tv_chambolle
 from skimage import img_as_int
 
 
-def cartoonify_tv1(im, num_donw_samp=2, weight=0.1):
-    """Cartoonify an image with total variation de-noising
-
-    Args:
-        im: Image as numpy array
-        num_donw_samp: Number of down- and up-sampling steps (factor 2)
-        weight: Parameter for total variation de-noising
-
-    Returns:
-        im: The cortoonified image
-
-    """
-    # Downsample
-    for _ in range(num_donw_samp):
-        im = cv2.pyrDown(im)
-
-    # Perform TVL1 denoising
-    im = denoise_tv_chambolle(im, weight=weight, multichannel=True)
-
-    # Upsample
-    for _ in range(num_donw_samp):
-        im = cv2.pyrUp(im)
-
-    return im
-
-
-def cartoonify_bilateral(im, num_donw_samp=2, num_filter=100):
-    """Cartoonify an image with bilateral filtering
-
-    Args:
-        im: Image as numpy array
-        numDownSamples: Number of down- and up-sampling steps (factor 2)
-        num_filter: Number of times to apply bilateral filtering
-
-    Returns:
-        im: The cortoonified image
-
-    """
-    # Downsample
-    for _ in range(num_donw_samp):
-        im = cv2.pyrDown(im)
-
-    # Repeatedly apply small bilateral filter
-    for _ in range(num_filter):
-        im = cv2.bilateralFilter(im, 8, 16, 7)
-
-    # Upsample
-    for _ in range(num_donw_samp):
-        im = cv2.pyrUp(im)
-
-    return im
-
-
 def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
     """Cartoonify an image with bilateral filtering
 
@@ -80,14 +27,13 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
 
     # Repeatedly apply small bilateral filter
     for _ in range(num_filter):
-        #img_color = cv2.bilateralFilter(img_color, 9, 9, 7)
         img_color = cv2.bilateralFilter(img_color, 9, sigmaColor=21, sigmaSpace=9)
 
     # Upsample
     for _ in range(num_donw_samp):
         img_color = cv2.pyrUp(img_color)
 
-    cv2.resize(img_color, (im_shape[0], im_shape[1]))
+    img_color = cv2.resize(img_color, (im_shape[1], im_shape[0]))
     return img_color
 
 
@@ -104,7 +50,7 @@ def auto_canny(image, sigma=0.3):
     upper = int(min(255, (1.0 + sigma) * v))
     edged = cv2.Canny(image, lower, upper)
 
-    cv2.resize(edged, (im_shape[0], im_shape[1]))
+    edged = cv2.resize(edged, (im_shape[1], im_shape[0]))
 
     # return the edged image
     return edged
@@ -162,15 +108,17 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     img_rgb = plt.imread("test.jpg")
-    img_rgb = cv2.resize(img_rgb, (4*256, 4*256))
+    #img_rgb = cv2.resize(img_rgb, (4*256, 4*256))
+    img_rgb = cv2.resize(img_rgb, (555, 555))
 
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
     img_edge = auto_canny(img_rgb, sigma=0.33)
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
     img_edge = img_edge.astype(dtype=np.uint8)
-    print(img_edge[0])
-
     print(img_edge.shape)
+    print(cartoon.shape)
+    print(img_rgb.shape)
+
 
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(8, 5), sharex=True, sharey=True,
                        subplot_kw={'adjustable': 'box-forced'})

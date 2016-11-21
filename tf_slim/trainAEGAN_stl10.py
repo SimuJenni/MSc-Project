@@ -12,7 +12,7 @@ slim = tf.contrib.slim
 
 # Setup training parameters
 NUM_LAYERS = 5
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 TARGET_SHAPE = [96, 96, 3]
 IM_SIZE = 96
 NUM_EPOCHS = 50

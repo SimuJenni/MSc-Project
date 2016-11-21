@@ -459,6 +459,8 @@ def run(train_directory, validation_directory, output_directory, train_shards=10
         'Please make the num_threads commensurate with '
         'validation_shards')
     print('Saving results to %s' % output_directory)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
 
     # Build a map from synset to human-readable label.
     synset_to_human = _build_synset_lookup(imagenet_metadata_file)

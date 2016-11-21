@@ -92,6 +92,7 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
 
 
 def auto_canny(image, sigma=0.3):
+    im_shape = image.shape
     image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     image = cv2.medianBlur(image, 3)
 
@@ -102,6 +103,8 @@ def auto_canny(image, sigma=0.3):
     lower = int(max(0, (1.0 - sigma) * v))
     upper = int(min(255, (1.0 + sigma) * v))
     edged = cv2.Canny(image, lower, upper)
+
+    cv2.resize(edged, (im_shape[0], im_shape[1]))
 
     # return the edged image
     return edged

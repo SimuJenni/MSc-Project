@@ -53,7 +53,8 @@ with sess.as_default():
         labels = tf.Variable(tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,),
                                                                 minval=0.0,
                                                                 maxval=1.0)),
-                                     dtype=tf.int32))
+                                     dtype=tf.int32), trainable=False)
+        slim.add_model_variable(labels)
 
         labels_disc = slim.one_hot_encoding(labels, 2)
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)

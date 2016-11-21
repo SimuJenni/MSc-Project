@@ -6,7 +6,78 @@ F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 
-def ToonGenAE(inputs, num_layers=5):
+class AEGAN3:
+
+    def __init__(self, num_layers):
+        self.name = 'AEGAN3'
+        self.num_layers = num_layers
+
+    def net(self, img, cartoon, edges, labels=None):
+        gen_in = merge(cartoon, edges)
+        gen_enc = generator(gen_in, num_layers=self.num_layers)
+        enc_im = encoder(img, num_layers=self.num_layers)
+        dec_im = decoder(enc_im, num_layers=self.num_layers)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
+        disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
+        disc_in += tf.random_normal(shape=tf.shape(disc_in),
+                                    stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
+        disc_out = discriminator(disc_in, num_layers=self.num_layers)
+        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+
+    @staticmethod
+    def disc_labels(batch_size):
+        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(batch_size,), dtype=tf.int32),
+                                                           tf.ones(shape=(batch_size,), dtype=tf.int32),
+                                                           2*tf.ones(shape=(batch_size,), dtype=tf.int32)]))
+
+
+class AEGAN2:
+
+    def __init__(self, num_layers):
+        self.name = 'AEGAN2'
+        self.num_layers = num_layers
+
+    def net(self, img, cartoon, edges, labels=None):
+        gen_in = merge(cartoon, edges)
+        gen_enc = generator(gen_in, num_layers=self.num_layers)
+        enc_im = encoder(img, num_layers=self.num_layers)
+        dec_im = decoder(enc_im, num_layers=self.num_layers)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
+        disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
+        disc_in += tf.random_normal(shape=tf.shape(disc_in),
+                                    stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
+        disc_out = discriminator(disc_in, num_layers=self.num_layers)
+        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+
+    @staticmethod
+    def disc_labels(batch_size):
+        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(batch_size,), dtype=tf.int32),
+                                                           tf.ones(shape=(batch_size,), dtype=tf.int32)]))
+
+
+class AEGAN:
+
+    def __init__(self, num_layers):
+        self.name = 'AEGAN'
+        self.num_layers = num_layers
+
+    def net(self, img, cartoon, edges, labels=None):
+        gen_in = merge(cartoon, edges)
+        gen_enc = generator(gen_in, num_layers=self.num_layers)
+        enc_im = encoder(img, num_layers=self.num_layers)
+        disc_in = merge(enc_im, gen_enc, dim=0)
+        disc_out = discriminator_ae(disc_in)
+        dec_im = decoder(enc_im, num_layers=self.num_layers)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
+        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+
+    @staticmethod
+    def disc_labels(batch_size):
+        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(batch_size,), dtype=tf.int32),
+                                                           tf.ones(shape=(batch_size,), dtype=tf.int32)]))
+
+
+def generator(inputs, num_layers=5):
     f_dims = F_DIMS
     with tf.variable_scope('generator'):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -23,7 +94,7 @@ def ToonGenAE(inputs, num_layers=5):
             return net
 
 
-def ToonEncoder(inputs, num_layers=5):
+def encoder(inputs, num_layers=5):
     f_dims = F_DIMS
     with tf.variable_scope('encoder'):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -36,7 +107,7 @@ def ToonEncoder(inputs, num_layers=5):
             return net
 
 
-def ToonDecoder(inputs, num_layers=5, reuse=None):
+def decoder(inputs, num_layers=5, reuse=None):
     f_dims = F_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -51,7 +122,7 @@ def ToonDecoder(inputs, num_layers=5, reuse=None):
             return net
 
 
-def ToonDiscAE(inputs):
+def discriminator_ae(inputs):
     with tf.variable_scope('discriminator'):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
@@ -70,19 +141,7 @@ def ToonDiscAE(inputs):
             return net
 
 
-def AEGAN(img, cartoon, edges, order, num_layers=5):
-    gen_in = merge(cartoon, edges)
-    gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
-    enc_im = ToonEncoder(img, num_layers=num_layers)
-    # disc_in = ordered_merge(enc_im, gen_enc, order)
-    disc_in = merge(enc_im, gen_enc, dim=0)
-    disc_out = ToonDiscAE(disc_in)
-    dec_im = ToonDecoder(enc_im, num_layers=num_layers)
-    dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
-    return dec_im, dec_gen, disc_out, enc_im, gen_enc
-
-
-def ToonDisc(inputs, num_layers=5):
+def discriminator(inputs, num_layers=5):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator'):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID')):
@@ -101,20 +160,6 @@ def ToonDisc(inputs, num_layers=5):
                                        activation_fn=None,
                                        normalizer_fn=None)
             return net
-
-
-def AEGAN2(img, cartoon, edges, order, num_layers=5):
-    gen_in = merge(cartoon, edges)
-    gen_enc = ToonGenAE(gen_in, num_layers=num_layers)
-    enc_im = ToonEncoder(img, num_layers=num_layers)
-    dec_im = ToonDecoder(enc_im, num_layers=num_layers)
-    dec_gen = ToonDecoder(gen_enc, num_layers=num_layers, reuse=True)
-    disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
-    # disc_in = ordered_merge(dec_gen, dec_im, order)
-    disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
-    disc_out = ToonDisc(disc_in, num_layers=num_layers)
-    return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME'):

@@ -13,6 +13,8 @@ SPLITS_TO_SIZES = {'train_unlabeled': 100000, 'train': 5000, 'test': 8000}
 
 NUM_CLASSES = 10
 
+NAME = 'stl10'
+
 MIN_SIZE = 96
 
 _FILE_PATTERN = 'stl10_%s.tfrecord'

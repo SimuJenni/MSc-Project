@@ -3,7 +3,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 
-from ToonNet import ToonGenAE
+from ToonNet import generator
 from datasets import cifar10
 from preprocess import preprocess_image
 from tf_slim.ToonNet import classifier
@@ -13,7 +13,7 @@ slim = tf.contrib.slim
 
 
 def model(inputs):
-    return ToonGenAE(inputs, num_layers=4)
+    return generator(inputs, num_layers=4)
 
 
 fine_tune = False

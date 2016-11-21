@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
@@ -7,17 +8,18 @@ from datasets import stl10
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
+from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
 # Setup training parameters
-NUM_LAYERS = 5
+model = AEGAN2(num_layers=5)
+data = stl10
+SET_NAME = 'train_unlabeled'
 BATCH_SIZE = 128
 TARGET_SHAPE = [96, 96, 3]
-NUM_EPOCHS = 30
-LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan2/'
-SET_NAME = 'train_unlabeled'
-data = stl10
+NUM_EPOCHS = 50
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -50,16 +52,14 @@ with sess.as_default():
                                                  capacity=8 * BATCH_SIZE)
 
         # Make labels for discriminator training
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE,), dtype=tf.int32),
-                                                             tf.ones(shape=(BATCH_SIZE,), dtype=tf.int32)]))
+        labels = model.disc_labels(BATCH_SIZE)
+
         # labels = tf.random_shuffle(labels)
         labels_disc = slim.one_hot_encoding(labels, 2)
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = AEGAN2(images, cartoons, edges,
-                                                            num_layers=NUM_LAYERS,
-                                                            order=labels)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(images, cartoons, edges)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -147,7 +147,7 @@ with sess.as_default():
         # Start training
         num_train_steps = (data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE) * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
-                            LOG_DIR,
+                            SAVE_DIR,
                             save_summaries_secs=120,
                             save_interval_secs=3000,
                             log_every_n_steps=100,

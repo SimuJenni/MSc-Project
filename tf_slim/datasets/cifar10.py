@@ -34,6 +34,8 @@ NUM_CLASSES = 10
 
 MIN_SIZE = 32
 
+NAME = 'cifar10'
+
 _FILE_PATTERN = 'cifar10_%s.tfrecord'
 
 _ITEMS_TO_DESCRIPTIONS = {

@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
@@ -7,17 +8,18 @@ from datasets import cifar10
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
+from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
 # Setup training parameters
-NUM_LAYERS = 4
+model = AEGAN2(num_layers=4)
+data = cifar10
+SET_NAME = 'train'
 BATCH_SIZE = 128
 TARGET_SHAPE = [32, 32, 3]
 NUM_EPOCHS = 50
-LOG_DIR = '/data/cvg/simon/data/logs/cifar10_aegan2/'
-SET_NAME = 'train'
-data = cifar10
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -57,9 +59,7 @@ with sess.as_default():
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = AEGAN2(images, cartoons, edges,
-                                                            num_layers=NUM_LAYERS,
-                                                            order=labels)
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(images, cartoons, edges)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -147,7 +147,7 @@ with sess.as_default():
         # Start training
         num_train_steps = (data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE) * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
-                            LOG_DIR,
+                            SAVE_DIR,
                             save_summaries_secs=120,
                             save_interval_secs=3000,
                             log_every_n_steps=100,

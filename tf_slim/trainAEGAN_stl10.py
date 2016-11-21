@@ -28,7 +28,7 @@ with sess.as_default():
         global_step = slim.create_global_step()
 
         # Get the dataset
-        dataset = data.get_split('train')
+        dataset = data.get_split('train_unlabeled')
         provider = slim.dataset_data_provider.DatasetDataProvider(dataset,
                                                                   num_readers=8,
                                                                   common_queue_capacity=32 * BATCH_SIZE,

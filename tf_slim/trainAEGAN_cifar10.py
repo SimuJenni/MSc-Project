@@ -126,8 +126,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
 
         # For debugginh
-        tf.scalar_summary('max_label', tf.arg_max(labels, dimension=0))
-
+        tf.histogram_summary('label', labels)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)

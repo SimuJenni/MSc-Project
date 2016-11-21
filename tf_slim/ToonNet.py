@@ -92,7 +92,7 @@ def ToonDisc(inputs, num_layers=5):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
             # Fully connected layers
             net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
-            net = slim.flatten(inputs)
+            net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 2048)

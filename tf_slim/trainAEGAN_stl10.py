@@ -12,7 +12,7 @@ slim = tf.contrib.slim
 
 # Setup training parameters
 NUM_LAYERS = 5
-BATCH_SIZE = 128
+BATCH_SIZE = 96
 TARGET_SHAPE = [96, 96, 3]
 NUM_EPOCHS = 30
 LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan2/'

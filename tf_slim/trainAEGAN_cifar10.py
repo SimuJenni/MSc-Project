@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN
 from datasets import cifar10
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
@@ -15,7 +15,7 @@ NUM_LAYERS = 4
 BATCH_SIZE = 128
 TARGET_SHAPE = [32, 32, 3]
 NUM_EPOCHS = 50
-LOG_DIR = '/data/cvg/simon/data/logs/cifar10_aegan2/'
+LOG_DIR = '/data/cvg/simon/data/logs/cifar10_aegan/'
 SET_NAME = 'train'
 data = cifar10
 
@@ -57,7 +57,7 @@ with sess.as_default():
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_im, gen_enc = AEGAN2(images, cartoons, edges,
+        img_rec, gen_rec, disc_out, enc_im, gen_enc = AEGAN(images, cartoons, edges,
                                                             num_layers=NUM_LAYERS,
                                                             order=labels)
 

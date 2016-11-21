@@ -15,7 +15,7 @@ NUM_LAYERS = 5
 BATCH_SIZE = 128
 TARGET_SHAPE = [96, 96, 3]
 NUM_EPOCHS = 30
-LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan2_2/'
+LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan2/'
 SET_NAME = 'train_unlabeled'
 data = stl10
 

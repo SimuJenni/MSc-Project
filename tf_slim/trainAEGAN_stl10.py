@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 model = AEGAN2(num_layers=5)
 data = stl10
 SET_NAME = 'train_unlabeled'
-BATCH_SIZE = 128
+BATCH_SIZE = 96
 TARGET_SHAPE = [96, 96, 3]
 NUM_EPOCHS = 50
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))

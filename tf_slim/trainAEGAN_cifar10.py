@@ -50,8 +50,8 @@ with sess.as_default():
                                                  capacity=8 * BATCH_SIZE)
 
         # Make labels for discriminator training
-        labels = tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE/2,), dtype=tf.int32),
-                                                 tf.ones(shape=(BATCH_SIZE/2,), dtype=tf.int32)])
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE/2,), dtype=tf.int32),
+                                                             tf.ones(shape=(BATCH_SIZE/2,), dtype=tf.int32)]))
         labels = tf.random_shuffle(labels)
         labels_disc = slim.one_hot_encoding(labels, 2)
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
@@ -145,7 +145,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE * NUM_EPOCHS
+        num_train_steps = (data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE) * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             LOG_DIR,
                             save_summaries_secs=120,

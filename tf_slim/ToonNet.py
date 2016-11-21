@@ -82,6 +82,10 @@ def AEGAN(img, cartoon, edges, order, num_layers=5):
     return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
 
+def AEGAN2(img, cartoon, edges, order, num_layers=5):
+
+
+
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME'):
     batch_norm_params = {
         'decay': 0.997,

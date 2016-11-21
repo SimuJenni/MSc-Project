@@ -1,6 +1,5 @@
 import os, sys, tarfile, urllib
 import numpy as np
-import matplotlib.pyplot as plt
 from constants import STL10_DATADIR, STL10_TF_DATADIR
 from cartooning import auto_canny, cartoonify
 import dataset_utils
@@ -158,6 +157,7 @@ def download_and_extract():
         print('Downloaded', filename)
         tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
+
 def run():
     # download data if needed
     download_and_extract()
@@ -191,5 +191,7 @@ def run():
         num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
     print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
 
+
 if __name__ == '__main__':
     run()
+

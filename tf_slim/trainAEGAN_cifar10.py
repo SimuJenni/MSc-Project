@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 NUM_LAYERS = 4
 BATCH_SIZE = 128
 TARGET_SHAPE = [32, 32, 3]
-NUM_EPOCHS = 30
+NUM_EPOCHS = 50
 LOG_DIR = '/data/cvg/simon/data/logs/cifar10_aegan/'
 SET_NAME = 'train'
 data = cifar10
@@ -50,11 +50,9 @@ with sess.as_default():
                                                  capacity=8 * BATCH_SIZE)
 
         # Make labels for discriminator training
-        labels = tf.Variable(tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,),
-                                                                minval=0.0,
-                                                                maxval=1.0)),
-                                     dtype=tf.int32), trainable=False)
-
+        labels = tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE/2,), dtype=tf.int32),
+                                                 tf.ones(shape=(BATCH_SIZE/2,), dtype=tf.int32)])
+        labels = tf.random_shuffle(labels)
         labels_disc = slim.one_hot_encoding(labels, 2)
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 
@@ -124,9 +122,6 @@ with sess.as_default():
         tf.image_summary('images/ground-truth', montage(images, 8, 8), max_images=1)
         tf.image_summary('images/cartoons', montage(cartoons, 8, 8), max_images=1)
         tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
-
-        # For debugginh
-        tf.histogram_summary('label', labels)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)

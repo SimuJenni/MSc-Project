@@ -50,11 +50,8 @@ with sess.as_default():
                                                  capacity=8 * BATCH_SIZE)
 
         # Make labels for discriminator training
-        labels = tf.Variable(tf.cast(tf.round(tf.random_uniform(shape=(BATCH_SIZE,),
-                                                                minval=0.0,
-                                                                maxval=1.0)),
-                                     dtype=tf.int32))
-
+        labels = tf.concat(concat_dim=0, values=[tf.zeros(shape=(BATCH_SIZE/2,), dtype=tf.int32),
+                                                 tf.ones(shape=(BATCH_SIZE/2,), dtype=tf.int32)])
         labels_disc = slim.one_hot_encoding(labels, 2)
         labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
 

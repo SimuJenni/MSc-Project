@@ -3,7 +3,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
 from ToonNet import AEGAN
-from datasets import cifar10
+from datasets import stl10
 from preprocess import preprocess_images_toon
 from tf_slim.utils import get_variables_to_train
 from utils import montage
@@ -11,13 +11,13 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-NUM_LAYERS = 4
+NUM_LAYERS = 5
 BATCH_SIZE = 256
-TARGET_SHAPE = [32, 32, 3]
-IM_SIZE = 32
+TARGET_SHAPE = [96, 96, 3]
+IM_SIZE = 96
 NUM_EPOCHS = 50
-data = cifar10
-LOG_DIR = '/data/cvg/simon/data/logs/cifar_gan/'
+data = stl10
+LOG_DIR = '/data/cvg/simon/data/logs/stl10_aegan/'
 
 tf.logging.set_verbosity(tf.logging.INFO)
 

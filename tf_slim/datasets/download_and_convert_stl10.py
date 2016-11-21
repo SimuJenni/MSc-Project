@@ -132,7 +132,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
 
                 # Buil example
                 example = dataset_utils.cifar10_example(
-                    image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, label)
+                    image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, int(label))
                 tfrecord_writer.write(example.SerializeToString())
 
     return num_images
@@ -171,11 +171,11 @@ def run():
     if not os.path.exists(STL10_TF_DATADIR):
         os.mkdir(STL10_TF_DATADIR)
 
-    unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
-    unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
-    with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
-    print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
+    # unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
+    # unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
+    # with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
+    #     num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
+    # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     labeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/train_X.bin')
     labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train.tfrecord')

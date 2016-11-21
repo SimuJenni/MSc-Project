@@ -3,8 +3,8 @@ import os
 NUM_THREADS = 16
 
 # Directories for data, images and models
-DATA_DIR = '/Users/simujenni/MSc-Project/data/'
-#DATA_DIR = '/data/cvg/simon/data/'
+#DATA_DIR = '/Users/simujenni/MSc-Project/data/'
+DATA_DIR = '/data/cvg/simon/data/'
 MODEL_DIR = os.path.join(DATA_DIR, 'models/')
 IMG_DIR = os.path.join(DATA_DIR, 'img/')
 LOG_DIR = os.path.join(DATA_DIR, 'logs/')
@@ -15,7 +15,7 @@ CIFAR10_DATADIR = os.path.join(DATA_DIR, 'cifar-10/')
 CIFAR10_TF_DATADIR = os.path.join(DATA_DIR, 'cifar-10-TFRecords/')
 TINYIMAGENET_TOON_DATADIR = os.path.join(DATA_DIR, 'tiny-imagenet-toon/')
 IMAGENET_TOON_DATADIR = os.path.join(DATA_DIR, 'imagenet-toon/')
-IMAGENET_TF_DATADIR = os.path.join(DATA_DIR, 'imagenet-TFRecords/')
+IMAGENET_TF_DATADIR = os.path.join(DATA_DIR, 'imagenet-TFRecords-new/')
 
 # Source directories for datasets
 TINYIMAGENET_SRC_DIR = os.path.join(DATA_DIR, 'tiny-imagenet-200-prepped/')

@@ -46,7 +46,7 @@ class AEGAN2:
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 1000)))
+                                    stddev=1.0 * tf.pow(0.9, tf.to_float(slim.get_global_step() / 1000)))
         disc_out = discriminator(disc_in, num_layers=self.num_layers)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 

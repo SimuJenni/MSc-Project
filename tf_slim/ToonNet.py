@@ -15,16 +15,16 @@ class AEGAN3:
 
     def net(self, img, cartoon, edges, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc = generator(gen_in, num_layers=self.num_layers)
-        enc_im = encoder(img, num_layers=self.num_layers)
-        dec_im = decoder(enc_im, num_layers=self.num_layers)
+        gen_enc = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
+        enc_im = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),
                               merge(dec_gen, merge(img, dec_im)), dim=0),
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers)
+                                    stddev=1.0 * tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
     def disc_labels(self):

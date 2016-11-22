@@ -102,7 +102,7 @@ with sess.as_default():
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES[SET_NAME] / BATCH_SIZE)
-        learning_rate = tf.train.exponential_decay(0.002,
+        learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
                                                    0.94,
@@ -124,7 +124,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-3)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-4)
 
         # Generator training operation
         scopes_gen = 'generator'

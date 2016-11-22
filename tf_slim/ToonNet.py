@@ -40,17 +40,17 @@ class AEGAN2:
         self.num_layers = num_layers
         self.batch_size = batch_size
 
-    def net(self, img, cartoon, edges, labels=None):
+    def net(self, img, cartoon, edges, labels=None, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc = generator(gen_in, num_layers=self.num_layers)
-        enc_im = encoder(img, num_layers=self.num_layers)
-        dec_im = decoder(enc_im, num_layers=self.num_layers)
+        gen_enc = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
+        enc_im = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                     stddev=1.0 * tf.pow(0.95,
                                                         tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers, batch_size=self.batch_size)
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, batch_size=self.batch_size, reuse=reuse)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
     @staticmethod
@@ -82,9 +82,9 @@ class AEGAN:
                                                            tf.ones(shape=(batch_size,), dtype=tf.int32)]))
 
 
-def generator(inputs, num_layers=5):
+def generator(inputs, num_layers=5, reuse=None):
     f_dims = F_DIMS
-    with tf.variable_scope('generator'):
+    with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = add_noise_plane(inputs, NOISE_CHANNELS[0])
             net = slim.conv2d(net, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
@@ -99,9 +99,9 @@ def generator(inputs, num_layers=5):
             return net
 
 
-def encoder(inputs, num_layers=5):
+def encoder(inputs, num_layers=5, reuse=None):
     f_dims = F_DIMS
-    with tf.variable_scope('encoder'):
+    with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
@@ -127,8 +127,8 @@ def decoder(inputs, num_layers=5, reuse=None):
             return net
 
 
-def discriminator_ae(inputs):
-    with tf.variable_scope('discriminator'):
+def discriminator_ae(inputs, reuse=None):
+    with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
@@ -146,9 +146,9 @@ def discriminator_ae(inputs):
             return net
 
 
-def discriminator(inputs, num_layers=5, batch_size=128):
+def discriminator(inputs, num_layers=5, batch_size=128, reuse=None):
     f_dims = F_DIMS
-    with tf.variable_scope('discriminator'):
+    with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID')):
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 

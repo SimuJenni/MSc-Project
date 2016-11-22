@@ -35,7 +35,7 @@ class AEGAN3:
 class AEGAN2:
 
     def __init__(self, num_layers):
-        self.name = 'AEGAN2'
+        self.name = 'AEGAN2_v2'
         self.num_layers = num_layers
 
     def net(self, img, cartoon, edges, labels=None):
@@ -46,7 +46,7 @@ class AEGAN2:
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.9, tf.to_float(slim.get_global_step() / 1000)))
+                                    stddev=1.0 * tf.pow(0.9, tf.to_float(slim.get_global_step() / 250)))
         disc_out = discriminator(disc_in, num_layers=self.num_layers)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
@@ -128,9 +128,9 @@ def discriminator_ae(inputs):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
             inputs += tf.random_normal(shape=tf.shape(inputs),
-                                       stddev=5.0*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
+                                       stddev=5.0*tf.pow(0.95, tf.to_float(slim.get_global_step()/250)))
             # inputs = spatial_dropout(inputs, 0.5)
-            inputs = feature_dropout(inputs, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
+            inputs = feature_dropout(inputs, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/250)))
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -152,7 +152,7 @@ def discriminator(inputs, num_layers=5):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
             # Fully connected layers
             net = feature_dropout(net, 0.5*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
-            net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
+            net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/250)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)

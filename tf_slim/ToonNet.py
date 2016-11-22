@@ -13,6 +13,7 @@ class AEGAN3:
         self.num_layers = num_layers
 
     def net(self, img, cartoon, edges, labels=None):
+        # TDOD: Test discriminator with 3 possible classes (real, ae_recon, model_recon)
         gen_in = merge(cartoon, edges)
         gen_enc = generator(gen_in, num_layers=self.num_layers)
         enc_im = encoder(img, num_layers=self.num_layers)
@@ -45,7 +46,7 @@ class AEGAN2:
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.975, tf.to_float(slim.get_global_step() / 100)))
+                                    stddev=1.0 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 1000)))
         disc_out = discriminator(disc_in, num_layers=self.num_layers)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 

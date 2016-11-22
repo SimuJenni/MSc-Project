@@ -14,7 +14,7 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 model = AEGAN3(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
@@ -73,24 +73,28 @@ with sess.as_default():
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.05)
+        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=1.0,
+                                                    label_smoothing=0.1)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=0.05)
-        l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=10.0)
+        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=1.0,
+                                                  label_smoothing=0.1)
+        l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=0.1)
-        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=2.0)
-        l2feat_gen = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=0.2)
+        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1,
+                                                   label_smoothing=0.1)
+        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
+        for lg, le in zip(gen_enc, enc_im):
+            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=5.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -124,7 +128,6 @@ with sess.as_default():
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        tf.scalar_summary('losses/l2feat generator', l2feat_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)
         tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
@@ -134,7 +137,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-4)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
 
         # Generator training operation
         scopes_gen = 'generator'

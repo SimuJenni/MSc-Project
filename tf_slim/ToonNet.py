@@ -15,17 +15,19 @@ class AEGAN3:
 
     def net(self, img, cartoon, edges, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
-        enc_im = encoder(img, num_layers=self.num_layers, reuse=reuse)
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
+        gen_enc, l_gen = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
+        enc_im, l_enc = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        dec_im = decoder(enc_im, num_layers=self.num_layers, layers=l_enc, reuse=reuse)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, layers=l_gen, reuse=True)
         disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),
                               merge(dec_gen, merge(img, dec_im)), dim=0),
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                     stddev=1.0 * tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 5000)))
         disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3)
-        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+        l_gen.append(gen_enc)
+        l_enc.append(enc_im)
+        return dec_im, dec_gen, disc_out, l_enc, l_gen
 
     def disc_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
@@ -99,15 +101,16 @@ def generator(inputs, num_layers=5, reuse=None):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = add_noise_plane(inputs, NOISE_CHANNELS[0])
             net = slim.conv2d(net, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
-
+            layers = []
             for l in range(1, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+                layers.append(net)
 
             net = add_noise_plane(net, NOISE_CHANNELS[num_layers])
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
 
-            return net
+            return net, layers
 
 
 def encoder(inputs, num_layers=5, reuse=None):
@@ -115,21 +118,24 @@ def encoder(inputs, num_layers=5, reuse=None):
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
-
+            layers = []
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+                layers.append(net)
 
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
-            return net
+            return net, layers
 
 
-def decoder(inputs, num_layers=5, reuse=None):
+def decoder(inputs, num_layers=5, reuse=None, layers=None):
     f_dims = F_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_0')
 
             for l in range(1, num_layers):
+                if layers:
+                    net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
                 # net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 

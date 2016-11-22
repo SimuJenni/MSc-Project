@@ -181,8 +181,8 @@ def discriminator(inputs, num_layers=5, batch_size=128, reuse=None, num_out=2):
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME'):
     batch_norm_params = {
-        'decay': 0.997,
-        'epsilon': 1e-5,
+        'decay': 0.99,
+        'epsilon': 1e-3,
         'scale': True,
         'updates_collections': tf.GraphKeys.UPDATE_OPS,
     }
@@ -201,7 +201,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME')
 
 def classifier(inputs, model, num_classes):
     net = model(inputs)
-    batch_norm_params = {'decay': 0.9997, 'epsilon': 0.001}
+    batch_norm_params = {'decay': 0.99, 'epsilon': 0.001}
     with tf.variable_scope('fully_connected'):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=tf.nn.relu,

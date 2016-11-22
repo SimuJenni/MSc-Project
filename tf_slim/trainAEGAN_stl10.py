@@ -13,10 +13,10 @@ from constants import LOG_DIR
 slim = tf.contrib.slim
 
 # Setup training parameters
-model = AEGAN2(num_layers=5)
+BATCH_SIZE = 64
+model = AEGAN2(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 SET_NAME = 'train_unlabeled'
-BATCH_SIZE = 64
 TARGET_SHAPE = [96, 96, 3]
 NUM_EPOCHS = 50
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))

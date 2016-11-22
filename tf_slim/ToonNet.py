@@ -151,6 +151,7 @@ def discriminator(inputs, num_layers=5):
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
             # Fully connected layers
+            net = feature_dropout(net, 0.5*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
             net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)

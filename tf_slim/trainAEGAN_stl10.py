@@ -14,7 +14,7 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 model = AEGAN3(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'

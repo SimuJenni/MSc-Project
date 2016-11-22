@@ -60,7 +60,7 @@ with sess.as_default():
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                               batch_size=BATCH_SIZE, num_threads=8,
                                                               capacity=8 * BATCH_SIZE)
-        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=BATCH_SIZE)
+        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=64)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()

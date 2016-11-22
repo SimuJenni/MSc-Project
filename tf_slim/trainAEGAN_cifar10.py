@@ -73,14 +73,14 @@ with sess.as_default():
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.05)
+        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=0.05, label_smoothing = 0.1)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=0.05)
+        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=0.05, label_smoothing=0.1)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=10.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -88,7 +88,7 @@ with sess.as_default():
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=0.1)
+        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=0.1, label_smoothing = 0.1)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=2.0)
         l2feat_gen = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=0.2)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
@@ -134,7 +134,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-5)
 
         # Generator training operation
         scopes_gen = 'generator'

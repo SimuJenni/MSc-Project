@@ -325,6 +325,31 @@ def preprocess_images_toon(image, edge, cartoon,
     return image, edge, cartoon
 
 
+def preprocess_images_toon_test(image, edge, cartoon,
+                         output_height,
+                         output_width,
+                         resize_side=_RESIZE_SIDE_MIN):
+    # Resize/zoom
+    image = _aspect_preserving_resize(image, resize_side)
+    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
+    cartoon = _aspect_preserving_resize(cartoon, resize_side)
+
+    # Select random crops
+    [image, edge, cartoon] = _central_crop([image, edge, cartoon], output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
+    cartoon.set_shape([output_height, output_width, 3])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) * (2. / 255.) - 1.
+    cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
+
+    return image, edge, cartoon
+
+
 def preprocess_image(image, output_height, output_width, is_training=False,
                      resize_side_min=_RESIZE_SIDE_MIN,
                      resize_side_max=_RESIZE_SIDE_MAX):

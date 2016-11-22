@@ -36,7 +36,7 @@ class AEGAN3:
 class AEGAN2:
 
     def __init__(self, num_layers, batch_size):
-        self.name = 'AEGAN2_v3'
+        self.name = 'AEGAN2_v4'
         self.num_layers = num_layers
         self.batch_size = batch_size
 

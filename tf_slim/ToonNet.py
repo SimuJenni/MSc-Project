@@ -8,9 +8,10 @@ NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
 
 class AEGAN3:
 
-    def __init__(self, num_layers):
+    def __init__(self, num_layers, batch_size):
         self.name = 'AEGAN3'
         self.num_layers = num_layers
+        self.batch_size = batch_size
 
     def net(self, img, cartoon, edges, labels=None):
         # TDOD: Test discriminator with 3 possible classes (real, ae_recon, model_recon)
@@ -34,9 +35,10 @@ class AEGAN3:
 
 class AEGAN2:
 
-    def __init__(self, num_layers):
-        self.name = 'AEGAN2_v2'
+    def __init__(self, num_layers, batch_size):
+        self.name = 'AEGAN2_v3'
         self.num_layers = num_layers
+        self.batch_size = batch_size
 
     def net(self, img, cartoon, edges, labels=None):
         gen_in = merge(cartoon, edges)
@@ -46,8 +48,9 @@ class AEGAN2:
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.9, tf.to_float(slim.get_global_step() / 250)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers)
+                                    stddev=1.0 * tf.pow(0.9,
+                                                        tf.to_float(self.batch_size * slim.get_global_step() / 5000)))
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, batch_size=self.batch_size)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
     @staticmethod
@@ -58,9 +61,10 @@ class AEGAN2:
 
 class AEGAN:
 
-    def __init__(self, num_layers):
+    def __init__(self, num_layers, batch_size):
         self.name = 'AEGAN'
         self.num_layers = num_layers
+        self.batch_size = batch_size
 
     def net(self, img, cartoon, edges, labels=None):
         gen_in = merge(cartoon, edges)
@@ -142,7 +146,7 @@ def discriminator_ae(inputs):
             return net
 
 
-def discriminator(inputs, num_layers=5):
+def discriminator(inputs, num_layers=5, batch_size=128):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator'):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID')):
@@ -151,8 +155,8 @@ def discriminator(inputs, num_layers=5):
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
             # Fully connected layers
-            net = feature_dropout(net, 0.5*tf.pow(0.975, tf.to_float(slim.get_global_step()/100)))
-            net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/250)))
+            # net = feature_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
+            net = spatial_dropout(net, 0.5*tf.pow(0.95, tf.to_float(batch_size * slim.get_global_step()/5000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)

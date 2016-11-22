@@ -4,7 +4,7 @@ import tensorflow.contrib.slim as slim
 from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, feature_dropout
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
-NOISE_CHANNELS = [2, 4, 8, 16, 32, 64, 100]
+NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 
 class AEGAN3:
@@ -35,7 +35,7 @@ class AEGAN3:
                                                              2 * tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 3)
 
-    def ea_labels(self):
+    def ae_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              2 * tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
@@ -50,27 +50,35 @@ class AEGAN3:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size):
-        self.name = 'AEGAN2_test'
+        self.name = 'AEGANv2'
         self.num_layers = num_layers
         self.batch_size = batch_size
 
-    def net(self, img, cartoon, edges, labels=None, reuse=None):
+    def net(self, img, cartoon, edges, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
-        enc_im = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.25)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.25)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
-        disc_in = merge(merge(dec_gen, cartoon), merge(dec_im, cartoon), dim=0)
+        disc_in = merge(merge(dec_gen, img), merge(dec_im, img), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.95,
+                                    stddev=1.0 * tf.pow(0.975,
                                                         tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers, batch_size=self.batch_size, reuse=reuse)
-        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse)
+        return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
-    @staticmethod
-    def disc_labels(batch_size):
-        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(batch_size,), dtype=tf.int32),
-                                                           tf.ones(shape=(batch_size,), dtype=tf.int32)]))
+    def disc_labels(self):
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                           tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
+
+    def ae_labels(self):
+        return self.disc_labels()
+
+    def gen_labels(self):
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                           tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
 
 
 class AEGAN:
@@ -89,13 +97,12 @@ class AEGAN:
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
-    @staticmethod
-    def disc_labels(batch_size):
-        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(batch_size,), dtype=tf.int32),
-                                                           tf.ones(shape=(batch_size,), dtype=tf.int32)]))
+    def disc_labels(self):
+        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                           tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
 
 
-def generator(inputs, num_layers=5, reuse=None):
+def generator(inputs, num_layers=5, reuse=None, p=0.0):
     f_dims = F_DIMS
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -109,11 +116,12 @@ def generator(inputs, num_layers=5, reuse=None):
 
             net = add_noise_plane(net, NOISE_CHANNELS[num_layers])
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
+            net = spatial_dropout(net, p)
 
             return net, layers
 
 
-def encoder(inputs, num_layers=5, reuse=None):
+def encoder(inputs, num_layers=5, reuse=None, p=0.0):
     f_dims = F_DIMS
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -124,20 +132,21 @@ def encoder(inputs, num_layers=5, reuse=None):
                 layers.append(net)
 
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
+            net = spatial_dropout(net, p)
             return net, layers
 
 
-def decoder(inputs, num_layers=5, reuse=None, layers=None):
+def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder'):
     f_dims = F_DIMS
-    with tf.variable_scope('decoder', reuse=reuse):
+    with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
             net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_0')
 
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-                # net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                # net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
@@ -148,9 +157,6 @@ def discriminator_ae(inputs, reuse=None):
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu)):
             # Fully connected layers
-            inputs += tf.random_normal(shape=tf.shape(inputs),
-                                       stddev=5.0 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 250)))
-            # inputs = spatial_dropout(inputs, 0.5)
             inputs = feature_dropout(inputs, 0.5 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 250)))
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
@@ -163,7 +169,7 @@ def discriminator_ae(inputs, reuse=None):
             return net
 
 
-def discriminator(inputs, num_layers=5, batch_size=128, reuse=None, num_out=2):
+def discriminator(inputs, num_layers=5, reuse=None, num_out=2):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID')):
@@ -172,8 +178,7 @@ def discriminator(inputs, num_layers=5, batch_size=128, reuse=None, num_out=2):
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
             # Fully connected layers
-            # net = feature_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
-            net = spatial_dropout(net, 0.5 * tf.pow(0.975, tf.to_float(batch_size * slim.get_global_step() / 5000)))
+            net = feature_dropout(net, 0.5*tf.pow(0.95, tf.to_float(slim.get_global_step()/1000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)

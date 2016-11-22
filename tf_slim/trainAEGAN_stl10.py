@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN3
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 # Setup training parameters
 BATCH_SIZE = 64
-model = AEGAN2(num_layers=5, batch_size=BATCH_SIZE)
+model = AEGAN3(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
@@ -62,12 +62,10 @@ with sess.as_default():
                                                               capacity=8 * BATCH_SIZE)
         imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=BATCH_SIZE)
 
-        # Make labels for discriminator training
-        labels = model.disc_labels(BATCH_SIZE)
-
-        # labels = tf.random_shuffle(labels)
-        labels_disc = slim.one_hot_encoding(labels, 2)
-        labels_gen = slim.one_hot_encoding(tf.ones_like(labels) - labels, 2)
+        # Get labels for discriminator training
+        labels_disc = model.disc_labels()
+        labels_gen = model.gen_labels()
+        labels_ae = model.ea_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
@@ -82,7 +80,7 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=ae_loss_scope, weight=0.01)
+        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=0.01)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=5.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)

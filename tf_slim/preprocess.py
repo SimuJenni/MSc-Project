@@ -313,7 +313,7 @@ def preprocess_images_toon(image, edge, cartoon,
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.
-    edge = tf.to_float(edge) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
     cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
 
     # Flip left-right
@@ -344,7 +344,7 @@ def preprocess_images_toon_test(image, edge, cartoon,
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.
-    edge = tf.to_float(edge) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
     cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
 
     return image, edge, cartoon

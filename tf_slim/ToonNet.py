@@ -24,7 +24,7 @@ class AEGAN3:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                     stddev=1.0 * tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse)
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
     def disc_labels(self):
@@ -157,7 +157,7 @@ def discriminator_ae(inputs, reuse=None):
             return net
 
 
-def discriminator(inputs, num_layers=5, batch_size=128, reuse=None):
+def discriminator(inputs, num_layers=5, batch_size=128, reuse=None, num_out=2):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID')):
@@ -173,7 +173,7 @@ def discriminator(inputs, num_layers=5, batch_size=128, reuse=None):
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 2,
+            net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None)
             return net

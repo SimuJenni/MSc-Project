@@ -15,8 +15,8 @@ class AEGAN4:
 
     def net(self, img, cartoon, edges, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc, l_gen = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
-        enc_im, l_enc = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        gen_enc, l_gen = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=.75)
+        enc_im, l_enc = encoder(img, num_layers=self.num_layers, reuse=reuse, p=.75)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),

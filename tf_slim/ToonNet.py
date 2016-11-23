@@ -8,10 +8,11 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 
 class AEGAN4:
-    def __init__(self, num_layers, batch_size):
+    def __init__(self, num_layers, batch_size, data_size):
         self.name = 'AEGANv4_dtransp_0.025lsmooth_10featl2'
         self.num_layers = num_layers
         self.batch_size = batch_size
+        self.data_size = data_size
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
@@ -24,10 +25,12 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(self.batch_size/5000, name='random gauss rate', training=training))
+                                        stddev=noise_amount(self.data_size/self.batch_size, name='random gauss rate',
+                                                            training=training))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(self.batch_size/5000, name='feat dropout rate', training=training))
+                                    noise_level=noise_amount(self.data_size/self.batch_size, name='feat dropout rate',
+                                                             training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -221,7 +224,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                     return arg_sc
 
 
-def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):
+def noise_amount(decay_steps, decay_rate=0.95, name='noise rate', training=False):
     rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
     if training:
         tf.scalar_summary(name, rate)

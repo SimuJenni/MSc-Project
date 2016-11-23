@@ -14,9 +14,9 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-model = AEGAN4(num_layers=4, batch_size=128)
 data = cifar10
 TRAIN_SET_NAME = 'train'
+model = AEGAN4(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME])
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [32, 32, 3]
 NUM_EPOCHS = 50

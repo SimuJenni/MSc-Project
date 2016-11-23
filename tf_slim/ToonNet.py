@@ -22,11 +22,12 @@ class AEGAN4:
         disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),
                               merge(dec_gen, merge(img, dec_im)), dim=0),
                         merge(dec_im, merge(dec_gen, img)), dim=0)
-        disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=noise_amount(10000/self.batch_size, name='random gauss rate'))
+        if training:
+            disc_in += tf.random_normal(shape=tf.shape(disc_in),
+                                        stddev=noise_amount(10000/self.batch_size, name='random gauss rate'))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(5000/self.batch_size, name='feat dropout rate'))
+                                    noise_level=noise_amount(5000/self.batch_size, name='feat dropout rate', training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -220,9 +221,10 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                     return arg_sc
 
 
-def noise_amount(decay_steps, decay_rate=0.9, name='noise rate'):
+def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):
     rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
-    tf.scalar_summary(name, rate)
+    if training:
+        tf.scalar_summary(name, rate)
     return rate
 
 

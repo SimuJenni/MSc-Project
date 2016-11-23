@@ -26,7 +26,7 @@ class AEGAN4:
                                     stddev=1.0 * tf.pow(0.975,
                                                         tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
-                                 batch_size=self.batch_size, training=training)
+                                    batch_size=self.batch_size, training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -51,7 +51,8 @@ class AEGAN4:
         disc_in = merge(merge(merge(img, merge(img, img)),
                               merge(img, merge(img, img)), dim=0),
                         merge(img, merge(img, img)), dim=0)
-        model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes, batch_size=self.batch_size, training=True)
+        model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
+                              batch_size=self.batch_size, training=True)
         pass
 
 
@@ -71,7 +72,7 @@ class AEGAN2:
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                     stddev=tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, batch_size=self.batch_size,
-                                 training=training)
+                                    training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):

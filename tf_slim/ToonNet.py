@@ -9,7 +9,7 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 class AEGAN4:
     def __init__(self, num_layers, batch_size):
-        self.name = 'AEGANv4_3'
+        self.name = 'AEGANv4_4'
         self.num_layers = num_layers
         self.batch_size = batch_size
 
@@ -152,7 +152,9 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                # net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                net = slim.conv2d_transpose(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')

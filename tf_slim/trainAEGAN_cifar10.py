@@ -73,7 +73,7 @@ with sess.as_default():
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
         dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope,
-                                                    weight=1.0, label_smoothing=0.1)
+                                                    weight=1.0, label_smoothing=0.05)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
@@ -81,7 +81,7 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
-                                                  weight=1.0, label_smoothing=0.1)
+                                                  weight=1.0, label_smoothing=0.05)
         l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -90,7 +90,7 @@ with sess.as_default():
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
-                                                   weight=1.0, label_smoothing=0.1)
+                                                   weight=1.0, label_smoothing=0.05)
         l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
         for lg, le in zip(gen_enc, enc_im):
             slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=5.0)

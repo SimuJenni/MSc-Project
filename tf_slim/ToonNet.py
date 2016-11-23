@@ -182,11 +182,11 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, batch_size=128, t
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
-                net = spatial_dropout(net, 0.75)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
 
             encoded = net
             # Fully connected layers
+            net = spatial_dropout(net, 0.5)
             net = feature_dropout(net, 1.0 - 0.5 * tf.pow(0.975, tf.to_float(batch_size * slim.get_global_step() / 5000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)

@@ -15,8 +15,8 @@ class AEGAN4:
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=.75, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=.75, training=training)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
         disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),
@@ -24,7 +24,7 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                     stddev=1.0 * tf.pow(0.975,
-                                                        tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
+                                                        tf.to_float(self.batch_size * slim.get_global_step() / 5000)))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
@@ -182,11 +182,12 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, batch_size=128, t
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
+                net = spatial_dropout(net, 0.75)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
 
             encoded = net
             # Fully connected layers
-            net = feature_dropout(net, 1.0 - 0.5 * tf.pow(0.95, tf.to_float(batch_size * slim.get_global_step() / 1000)))
+            net = feature_dropout(net, 1.0 - 0.5 * tf.pow(0.975, tf.to_float(batch_size * slim.get_global_step() / 5000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -202,7 +203,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,
-        'epsilon': 0.01,
+        'epsilon': 0.001,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,

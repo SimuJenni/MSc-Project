@@ -87,8 +87,8 @@ with sess.as_default():
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=2)
-        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1)
+        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
         for lg, le in zip(gen_enc, enc_im):
             slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=5.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
@@ -115,7 +115,7 @@ with sess.as_default():
         learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
-                                                   0.94,
+                                                   0.9,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 

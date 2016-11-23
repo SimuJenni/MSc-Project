@@ -24,10 +24,10 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(self.batch_size/2500, name='random gauss rate', training=training))
+                                        stddev=noise_amount(self.batch_size/5000, name='random gauss rate', training=training))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(self.batch_size/2500, name='feat dropout rate', training=training))
+                                    noise_level=noise_amount(self.batch_size/5000, name='feat dropout rate', training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):

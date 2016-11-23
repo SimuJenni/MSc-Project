@@ -163,7 +163,7 @@ def discriminator_ae(inputs, reuse=None, training=True):
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, training=training)):
             # Fully connected layers
-            inputs = feature_dropout(inputs, 0.5 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 250)))
+            inputs = feature_dropout(inputs, 1.0 - 0.5 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 250)))
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -186,7 +186,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, batch_size=128, t
 
             encoded = net
             # Fully connected layers
-            net = feature_dropout(net, 0.5 * tf.pow(0.95, tf.to_float(batch_size * slim.get_global_step() / 1000)))
+            net = feature_dropout(net, 1.0 - 0.5 * tf.pow(0.95, tf.to_float(batch_size * slim.get_global_step() / 1000)))
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -202,7 +202,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,
-        'epsilon': 0.001,
+        'epsilon': 0.01,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,

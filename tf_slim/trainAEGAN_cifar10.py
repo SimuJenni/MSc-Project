@@ -14,8 +14,7 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-BATCH_SIZE = 128
-model = AEGAN2(num_layers=4, batch_size=BATCH_SIZE)
+model = AEGAN2(num_layers=4, batch_size=128)
 data = cifar10
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'test'
@@ -35,8 +34,8 @@ with sess.as_default():
         train_set = data.get_split(TRAIN_SET_NAME)
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set,
                                                                   num_readers=8,
-                                                                  common_queue_capacity=32 * BATCH_SIZE,
-                                                                  common_queue_min=8 * BATCH_SIZE)
+                                                                  common_queue_capacity=32 * model.batch_size,
+                                                                  common_queue_min=8 * model.batch_size)
         [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
         # Get some test-data
@@ -58,9 +57,9 @@ with sess.as_default():
 
         # Make batches
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
-                                                              batch_size=BATCH_SIZE, num_threads=8,
-                                                              capacity=8 * BATCH_SIZE)
-        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=BATCH_SIZE)
+                                                              batch_size=model.batch_size, num_threads=8,
+                                                              capacity=8 * model.batch_size)
+        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -115,7 +114,7 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning rate
-        decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / BATCH_SIZE)
+        decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size)
         learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
@@ -158,10 +157,10 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / BATCH_SIZE) * NUM_EPOCHS
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             SAVE_DIR,
-                            save_summaries_secs=120,
+                            save_summaries_secs=300,
                             save_interval_secs=3000,
                             log_every_n_steps=100,
                             number_of_steps=num_train_steps)

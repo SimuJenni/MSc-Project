@@ -47,6 +47,13 @@ class AEGAN4:
                                                              tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 3)
 
+    def classifier(self, img, edge, toon, num_classes):
+        disc_in = merge(merge(merge(img, merge(img, img)),
+                              merge(img, merge(img, img)), dim=0),
+                        merge(img, merge(img, img)), dim=0)
+        model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes, batch_size=self.batch_size, training=True)
+        pass
+
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size):
@@ -146,7 +153,6 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
                 if layers:
                     net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-                # net = slim.convolution2d_transpose(net, f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
@@ -177,6 +183,8 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, batch_size=128, t
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+
+            encoded = net
             # Fully connected layers
             net = feature_dropout(net, 0.5 * tf.pow(0.95, tf.to_float(batch_size * slim.get_global_step() / 1000)))
             net = slim.flatten(net)
@@ -187,14 +195,14 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, batch_size=128, t
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None)
-            return net
+            return net, encoded
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME', training=True):
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,
-        'epsilon': 0.001,
+        'epsilon': 0.01,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,

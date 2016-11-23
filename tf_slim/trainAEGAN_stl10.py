@@ -14,16 +14,15 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-BATCH_SIZE = 48
-model = AEGAN4(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
+model = AEGAN4(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME])
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [96, 96, 3]
 NUM_EPOCHS = 50
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.DEBUG)
 
 sess = tf.Session()
 g = tf.Graph()
@@ -35,8 +34,8 @@ with sess.as_default():
         train_set = data.get_split(TRAIN_SET_NAME)
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set,
                                                                   num_readers=8,
-                                                                  common_queue_capacity=32 * BATCH_SIZE,
-                                                                  common_queue_min=8 * BATCH_SIZE)
+                                                                  common_queue_capacity=32 * model.batch_size,
+                                                                  common_queue_min=8 * model.batch_size)
         [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
         # Get some test-data
@@ -58,9 +57,9 @@ with sess.as_default():
 
         # Make batches
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
-                                                              batch_size=BATCH_SIZE, num_threads=8,
-                                                              capacity=8 * BATCH_SIZE)
-        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=64)
+                                                              batch_size=model.batch_size, num_threads=8,
+                                                              capacity=8 * model.batch_size)
+        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -69,20 +68,20 @@ with sess.as_default():
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
-        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True)
+        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True, training=False)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.sigmoid_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=1.0,
-                                                    label_smoothing=0.1)
+        dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope,
+                                                    weight=1.0, label_smoothing=0.025)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.sigmoid_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=1.0,
-                                                  label_smoothing=0.1)
+        dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
+                                                  weight=1.0, label_smoothing=0.025)
         l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -90,11 +89,11 @@ with sess.as_default():
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1,
-                                                   label_smoothing=0.1)
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
+                                                   weight=1.0, label_smoothing=0.025)
         l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
         for lg, le in zip(gen_enc, enc_im):
-            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=1.0)
+            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -115,11 +114,11 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning rate
-        decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / BATCH_SIZE)
+        decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size)
         learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
-                                                   0.94,
+                                                   0.9,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
@@ -130,11 +129,11 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)
-        tf.image_summary('images/generator', montage(gen_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ground-truth', montage(imgs_test, 6, 6), max_images=1)
-        tf.image_summary('images/cartoons', montage(toons_test, 6, 6), max_images=1)
-        tf.image_summary('images/edges', montage(edges_test, 6, 6), max_images=1)
+        tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
+        tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
+        tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
+        tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-4)
@@ -158,10 +157,10 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / BATCH_SIZE) * NUM_EPOCHS
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * NUM_EPOCHS
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             SAVE_DIR,
-                            save_summaries_secs=120,
+                            save_summaries_secs=300,
                             save_interval_secs=3000,
                             log_every_n_steps=100,
                             number_of_steps=num_train_steps)

@@ -65,7 +65,7 @@ with sess.as_default():
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
         labels_gen = model.gen_labels()
-        labels_ae = model.ea_labels()
+        labels_ae = model.ae_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)

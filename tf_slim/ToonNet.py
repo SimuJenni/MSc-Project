@@ -240,7 +240,6 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME')
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
-                        weights_regularizer=slim.l2_regularizer(0.0001),
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],

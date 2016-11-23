@@ -9,7 +9,7 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 class AEGAN4:
     def __init__(self, num_layers, batch_size):
-        self.name = 'AEGANv4_4'
+        self.name = 'AEGANv4_dtransp_0.05lsmooth'
         self.num_layers = num_layers
         self.batch_size = batch_size
 

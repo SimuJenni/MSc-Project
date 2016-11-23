@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -8,6 +9,7 @@ from datasets import cifar10
 from preprocess import preprocess_image
 from tf_slim.ToonNet import classifier
 from utils import get_variables_to_train, assign_from_checkpoint_fn
+from constants import LOG_DIR
 
 slim = tf.contrib.slim
 
@@ -19,9 +21,10 @@ def model(inputs):
 fine_tune = False
 data = cifar10
 BATCH_SIZE = 64
-NUM_CLASSES = 1000
 NUM_EPOCHS = 30
-IM_SHAPE = [224, 224, 3]
+IM_SHAPE = [32, 32, 3]
+
+SAVE_DIR = os.path.join(LOG_DIR, '{}_fine_tune/'.format(data.NAME))
 
 MODEL_PATH = '/data/cvg/simon/data/logs/cifar10_gan/model.ckpt-9750'
 LOG_DIR = '/data/cvg/simon/data/logs/cifar10_finetune/'

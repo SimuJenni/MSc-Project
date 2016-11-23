@@ -97,8 +97,8 @@ class AEGAN2:
 
     def net(self, img, cartoon, edges, reuse=None):
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.25)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.25)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.75)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
         disc_in = merge(merge(dec_gen, img), merge(dec_im, img), dim=0)
@@ -143,7 +143,7 @@ class AEGAN:
                                                            tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
 
 
-def generator(inputs, num_layers=5, reuse=None, p=0.0):
+def generator(inputs, num_layers=5, reuse=None, p=1.0):
     f_dims = F_DIMS
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):
@@ -162,7 +162,7 @@ def generator(inputs, num_layers=5, reuse=None, p=0.0):
             return net, layers
 
 
-def encoder(inputs, num_layers=5, reuse=None, p=0.0):
+def encoder(inputs, num_layers=5, reuse=None, p=1.0):
     f_dims = F_DIMS
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME')):

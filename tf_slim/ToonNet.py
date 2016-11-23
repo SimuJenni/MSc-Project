@@ -48,65 +48,23 @@ class AEGAN4:
         return slim.one_hot_encoding(labels, 3)
 
 
-class AEGAN3:
-    def __init__(self, num_layers, batch_size):
-        self.name = 'AEGANv3'
-        self.num_layers = num_layers
-        self.batch_size = batch_size
-
-    def net(self, img, cartoon, edges, reuse=None):
-        gen_in = merge(cartoon, edges)
-        gen_enc, l_gen = generator(gen_in, num_layers=self.num_layers, reuse=reuse)
-        enc_im, l_enc = encoder(img, num_layers=self.num_layers, reuse=reuse)
-        dec_im = decoder(enc_im, num_layers=self.num_layers, layers=l_enc, reuse=reuse)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, layers=l_gen, reuse=True)
-        disc_in = merge(merge(merge(img, merge(dec_im, dec_gen)),
-                              merge(dec_gen, merge(img, dec_im)), dim=0),
-                        merge(dec_im, merge(dec_gen, img)), dim=0)
-        disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.975,
-                                                        tf.to_float(self.batch_size * slim.get_global_step() / 5000)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3)
-        l_gen.append(gen_enc)
-        l_enc.append(enc_im)
-        return dec_im, dec_gen, disc_out, l_enc, l_gen
-
-    def disc_labels(self):
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             2 * tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 3)
-
-    def ae_labels(self):
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             2 * tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 3)
-
-    def gen_labels(self):
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[2 * tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 3)
-
-
 class AEGAN2:
     def __init__(self, num_layers, batch_size):
-        self.name = 'AEGANv2.1'
+        self.name = 'AEGANv2'
         self.num_layers = num_layers
         self.batch_size = batch_size
 
-    def net(self, img, cartoon, edges, reuse=None):
+    def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.75)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75)
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
+        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
         disc_in = merge(merge(dec_gen, img), merge(dec_im, img), dim=0)
         disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=1.0 * tf.pow(0.95,
-                                                        tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
-        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, batch_size=self.batch_size)
+                                    stddev=tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
+        disc_out = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, batch_size=self.batch_size,
+                                 training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):

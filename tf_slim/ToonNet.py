@@ -48,12 +48,11 @@ class AEGAN4:
         return slim.one_hot_encoding(labels, 3)
 
     def classifier(self, img, edge, toon, num_classes):
-        disc_in = merge(merge(merge(img, merge(img, img)),
-                              merge(img, merge(img, img)), dim=0),
-                        merge(img, merge(img, img)), dim=0)
-        model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
-                              batch_size=self.batch_size, training=True)
-        pass
+        disc_in = merge(img, merge(img, img))
+        _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
+                                 batch_size=self.batch_size, training=True)
+        model = classifier(model, num_classes)
+        return model
 
 
 class AEGAN2:
@@ -203,7 +202,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,
-        'epsilon': 0.01,
+        'epsilon': 0.001,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
@@ -218,8 +217,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                     return arg_sc
 
 
-def classifier(inputs, model, num_classes):
-    net = model(inputs)
+def classifier(inputs, num_classes):
     batch_norm_params = {'decay': 0.99, 'epsilon': 0.001}
     with tf.variable_scope('fully_connected'):
         with slim.arg_scope([slim.fully_connected],
@@ -227,7 +225,7 @@ def classifier(inputs, model, num_classes):
                             weights_regularizer=slim.l2_regularizer(0.0005),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
-            net = slim.flatten(net)
+            net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net)
             net = slim.fully_connected(net, 4096, scope='fc2')

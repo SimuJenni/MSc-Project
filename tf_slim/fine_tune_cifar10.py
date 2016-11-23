@@ -57,7 +57,7 @@ with sess.as_default():
         labels_train = slim.one_hot_encoding(labels_train, data.NUM_CLASSES)
 
         # Create the model
-        predictions = model.classifier(imgs_train, edges_train, toons_train)
+        predictions = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)
 
         # Define the loss
         slim.losses.softmax_cross_entropy(predictions, labels_train)

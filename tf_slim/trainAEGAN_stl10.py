@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN3
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 # Setup training parameters
 BATCH_SIZE = 48
-model = AEGAN3(num_layers=5, batch_size=BATCH_SIZE)
+model = AEGAN2(num_layers=5, batch_size=BATCH_SIZE)
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'

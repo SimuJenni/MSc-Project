@@ -60,7 +60,7 @@ class AEGAN4:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv2_only_gen&disc_wdecim_mse_training'
+        self.name = 'AEGANv2_only_gen&disc_wdecim_mse_training_no_dropnoise'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -68,14 +68,14 @@ class AEGAN2:
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=1.0, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=1.0, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
-        if training:
-            disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
+        # if training:
+        #     disc_in += tf.random_normal(shape=tf.shape(disc_in),
+        #                                 stddev=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
                                     batch_size=self.batch_size, training=training,
                                     noise_level=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
@@ -159,7 +159,6 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
                 # net = slim.conv2d_transpose(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
-
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
             return net
@@ -192,8 +191,8 @@ def discriminator(inputs, noise_level, num_layers=5, reuse=None, num_out=2, batc
 
             encoded = net
             # Fully connected layers
-            net = spatial_dropout(net, 0.5)
-            net = feature_dropout(net, 1.0 - 0.5 * noise_level)
+            # net = spatial_dropout(net, 0.5)
+            # net = feature_dropout(net, 1.0 - 0.5 * noise_level)
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)

@@ -81,7 +81,7 @@ with sess.as_default():
         ae_loss_scope = 'ae_loss'
         # dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
         #                                           weight=1.0, label_smoothing=0.)
-        l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
+        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
@@ -90,7 +90,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
                                                    weight=1.0, label_smoothing=0.0)
-        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         for lg, le in zip(gen_enc, enc_im):
             slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=25.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)

@@ -67,7 +67,7 @@ with sess.as_default():
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
-        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True, training=False)
+        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'

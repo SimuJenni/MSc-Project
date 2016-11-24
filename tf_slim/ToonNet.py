@@ -91,6 +91,14 @@ class AEGAN2:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
+    def classifier(self, img, edge, toon, num_classes):
+        # disc_in = merge(img, merge(img, img))
+        # _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
+        #                          batch_size=self.batch_size, training=True)
+        model, _ = encoder(img, num_layers=self.num_layers)
+        model = classifier(model, num_classes)
+        return model
+
 
 class AEGAN:
     def __init__(self, num_layers, batch_size):

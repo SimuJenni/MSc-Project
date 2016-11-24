@@ -5,7 +5,7 @@ import os
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 
-from ToonNet import AEGAN4
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_images_toon
@@ -15,9 +15,7 @@ slim = tf.contrib.slim
 
 fine_tune = False
 data = cifar10
-model = AEGAN4(num_layers=4, batch_size=128)
-
-NUM_EPOCHS = 30
+model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = ''
@@ -109,6 +107,6 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
-        num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * NUM_EPOCHS
+        num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         slim.learning.train(train_op, SAVE_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
                             log_every_n_steps=100)

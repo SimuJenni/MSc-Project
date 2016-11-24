@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import cifar10
-from preprocess import preprocess_images_toon
+from preprocess import preprocess_images_toon, preprocess_images_toon_test
 from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
@@ -30,7 +30,7 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Get the dataset
+        # Get the training dataset
         dataset = data.get_split('train')
         provider = slim.dataset_data_provider.DatasetDataProvider(
             dataset,
@@ -39,6 +39,11 @@ with sess.as_default():
             common_queue_min=8 * model.batch_size)
         [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
+        # Get some test-data
+        test_set = data.get_split('test')
+        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False)
+        [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
+
         # Pre-process training data
         with tf.device('/cpu:0'):
             img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
@@ -46,19 +51,27 @@ with sess.as_default():
                                                                        output_width=TARGET_SHAPE[1],
                                                                        resize_side_min=data.MIN_SIZE,
                                                                        resize_side_max=int(data.MIN_SIZE * 1.5))
+            img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
+                                                                         output_height=TARGET_SHAPE[0],
+                                                                         output_width=TARGET_SHAPE[1],
+                                                                         resize_side=data.MIN_SIZE)
 
         # Make batches
         imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
             [img_train, edge_train, toon_train, label_train],
             batch_size=model.batch_size, num_threads=8,
             capacity=8 * model.batch_size)
-        labels_train = slim.one_hot_encoding(labels_train, data.NUM_CLASSES)
+        imgs_test, edges_test, toons_test, labels_test = tf.train.batch([img_train, edge_train, toon_train, label_test],
+                                                                        batch_size=model.batch_size)
+
+        labels_train_oh = slim.one_hot_encoding(labels_train, data.NUM_CLASSES)
 
         # Create the model
         predictions = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)
+        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True)
 
         # Define the loss
-        slim.losses.softmax_cross_entropy(predictions, labels_train)
+        slim.losses.softmax_cross_entropy(predictions, labels_train_oh)
         total_loss = slim.losses.get_total_loss()
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -66,17 +79,13 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_loss = control_flow_ops.with_dependencies([updates], total_loss)
 
+        preds_train = tf.argmax(predictions, 1)
+        preds_test = tf.argmax(preds_test, 1)
+
         # Gather all summaries.
-        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
-        for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
         tf.scalar_summary('losses/total loss', total_loss)
-        with tf.name_scope('accuracy'):
-            with tf.name_scope('correct_prediction'):
-                correct_prediction = tf.equal(tf.argmax(predictions, 1), tf.argmax(labels_train, 1))
-            with tf.name_scope('accuracy'):
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            tf.scalar_summary('accuracy', accuracy)
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)

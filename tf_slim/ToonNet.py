@@ -91,12 +91,12 @@ class AEGAN2:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, toon, num_classes):
+    def classifier(self, img, edge, toon, num_classes, reuse=None):
         # disc_in = merge(img, merge(img, img))
         # _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
         #                          batch_size=self.batch_size, training=True)
-        model, _ = encoder(img, num_layers=self.num_layers)
-        model = classifier(model, num_classes)
+        model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse)
+        model = classifier(model, num_classes, reuse=reuse)
         return model
 
 
@@ -237,9 +237,9 @@ def noise_amount(decay_steps):
     return rate
 
 
-def classifier(inputs, num_classes):
+def classifier(inputs, num_classes, reuse=None):
     batch_norm_params = {'decay': 0.99, 'epsilon': 0.001}
-    with tf.variable_scope('fully_connected'):
+    with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=tf.nn.relu,
                             weights_regularizer=slim.l2_regularizer(0.0005),

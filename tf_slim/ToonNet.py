@@ -75,10 +75,10 @@ class AEGAN2:
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
+                                        stddev=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
+                                    noise_level=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -225,7 +225,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                         return arg_sc
 
 
-def noise_amount(decay_steps, name='noise rate', training=False):
+def noise_amount(decay_steps):
     rate = tf.maximum(1.0-tf.cast(slim.get_global_step(), tf.float32)/decay_steps, 0.0, name='noise_rate')
     return rate
 

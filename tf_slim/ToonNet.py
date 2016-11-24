@@ -8,11 +8,12 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 
 class AEGAN4:
-    def __init__(self, num_layers, batch_size, data_size):
+    def __init__(self, num_layers, batch_size, data_size, num_epochs):
         self.name = 'AEGANv4_lin_decay_50/50_l2gen'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
+        self.num_ep = num_epochs
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
@@ -25,11 +26,13 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(self.data_size, name='random gauss rate',
+                                        stddev=noise_amount(self.num_ep*self.data_size/self.batch_size,
+                                                            name='random gauss rate',
                                                             training=training))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(self.data_size, name='feat dropout rate',
+                                    noise_level=noise_amount(self.num_ep*self.data_size/self.batch_size,
+                                                             name='feat dropout rate',
                                                              training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 

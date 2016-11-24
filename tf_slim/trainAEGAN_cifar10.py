@@ -16,10 +16,9 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = cifar10
 TRAIN_SET_NAME = 'train'
-model = AEGAN4(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME])
+model = AEGAN4(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=30)
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [32, 32, 3]
-NUM_EPOCHS = 50
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -157,7 +156,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * NUM_EPOCHS
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             SAVE_DIR,
                             save_summaries_secs=300,

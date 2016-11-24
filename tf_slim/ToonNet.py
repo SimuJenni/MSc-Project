@@ -225,7 +225,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
 
 
 def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):
-    rate = tf.maximum(1.0-slim.get_global_step()/int(decay_steps), 0.0, name='noise_rate')
+    rate = tf.maximum(1.0-tf.cast(slim.get_global_step(), tf.float32)/decay_steps, 0.0, name='noise_rate')
     # rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
     if training:
         tf.scalar_summary(name, rate)

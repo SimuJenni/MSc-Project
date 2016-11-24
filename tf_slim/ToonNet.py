@@ -9,7 +9,7 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 class AEGAN4:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv4_lin_decay_nolsmooth'
+        self.name = 'AEGANv4_weight_decay_fc'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -26,12 +26,12 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(self.num_ep*self.data_size/self.batch_size,
+                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
                                                             name='random gauss rate',
                                                             training=training))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(self.num_ep*self.data_size/self.batch_size,
+                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
                                                              name='feat dropout rate',
                                                              training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
@@ -195,7 +195,7 @@ def discriminator(inputs, noise_level, num_layers=5, reuse=None, num_out=2, batc
 
             encoded = net
             # Fully connected layers
-            net = spatial_dropout(net, 0.75)
+            net = spatial_dropout(net, 0.5)
             net = feature_dropout(net, 1.0 - 0.5 * noise_level)
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
@@ -222,9 +222,10 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                             stride=2,
                             kernel_size=kernel_size,
                             padding=padding):
-            with slim.arg_scope([slim.batch_norm], **batch_norm_params):
-                with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
-                    return arg_sc
+            with slim.arg_scope([slim.fully_connected], weights_regularizer=slim.l2_regularizer(0.001)):
+                with slim.arg_scope([slim.batch_norm], **batch_norm_params):
+                    with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
+                        return arg_sc
 
 
 def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):

@@ -64,7 +64,7 @@ class AEGAN4:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv2_only_gen&disc'
+        self.name = 'AEGANv2_only_gen&disc_wdecim'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -76,7 +76,7 @@ class AEGAN2:
         enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
-        disc_in = merge(merge(dec_gen, img), merge(img, dec_gen), dim=0)
+        disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                         stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
@@ -84,7 +84,7 @@ class AEGAN2:
                                                             training=training))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
+                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size,
                                                              name='feat dropout rate',
                                                              training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]

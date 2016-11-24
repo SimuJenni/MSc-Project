@@ -9,7 +9,7 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 class AEGAN4:
     def __init__(self, num_layers, batch_size, data_size):
-        self.name = 'AEGANv4_dtransp_0.025lsmooth_10featl2'
+        self.name = 'AEGANv4_lin_decay_50/50_l2gen'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -156,8 +156,8 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
-                # net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-                net = slim.conv2d_transpose(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                # net = slim.conv2d_transpose(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
@@ -192,8 +192,8 @@ def discriminator(inputs, noise_level, num_layers=5, reuse=None, num_out=2, batc
 
             encoded = net
             # Fully connected layers
-            net = spatial_dropout(net, 0.5)
-            net = feature_dropout(net, 1.0 - 0.75 * noise_level)
+            net = spatial_dropout(net, 0.75)
+            net = feature_dropout(net, 1.0 - 0.5 * noise_level)
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
@@ -225,7 +225,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
 
 
 def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):
-    rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
+    rate = tf.maximum(1.0-slim.get_global_step()/int(decay_steps), 0.0, name='noise_rate')
+    # rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
     if training:
         tf.scalar_summary(name, rate)
     return rate

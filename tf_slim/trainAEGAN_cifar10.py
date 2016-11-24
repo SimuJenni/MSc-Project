@@ -18,7 +18,7 @@ data = cifar10
 TRAIN_SET_NAME = 'train'
 model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
 TEST_SET_NAME = 'test'
-TARGET_SHAPE = [96, 96, 3]
+TARGET_SHAPE = [32, 32, 3]
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.DEBUG)

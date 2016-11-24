@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN4
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,10 +16,9 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
-model = AEGAN4(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME])
+model = AEGAN2(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=30)
 TEST_SET_NAME = 'test'
-TARGET_SHAPE = [96, 96, 3]
-NUM_EPOCHS = 50
+TARGET_SHAPE = [32, 32, 3]
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -64,7 +63,7 @@ with sess.as_default():
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
         labels_gen = model.gen_labels()
-        labels_ae = model.ae_labels()
+        # labels_ae = model.ae_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
@@ -73,16 +72,16 @@ with sess.as_default():
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
         dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope,
-                                                    weight=1.0, label_smoothing=0.025)
+                                                    weight=1.0, label_smoothing=0.)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
-                                                  weight=1.0, label_smoothing=0.025)
-        l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
+        # dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
+        #                                           weight=1.0, label_smoothing=0.)
+        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
@@ -90,10 +89,10 @@ with sess.as_default():
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
-                                                   weight=1.0, label_smoothing=0.025)
-        l2_gen = slim.losses.absolute_difference(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
+                                                   weight=1.0, label_smoothing=0.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         for lg, le in zip(gen_enc, enc_im):
-            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=10.0)
+            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=25.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -125,7 +124,7 @@ with sess.as_default():
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
-        tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
+        #tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)
@@ -157,7 +156,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * NUM_EPOCHS
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             SAVE_DIR,
                             save_summaries_secs=300,

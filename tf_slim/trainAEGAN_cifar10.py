@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN4
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = cifar10
 TRAIN_SET_NAME = 'train'
-model = AEGAN4(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=30)
+model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=30)
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [32, 32, 3]
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
@@ -63,7 +63,7 @@ with sess.as_default():
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
         labels_gen = model.gen_labels()
-        labels_ae = model.ae_labels()
+        # labels_ae = model.ae_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
@@ -79,8 +79,8 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
-                                                  weight=1.0, label_smoothing=0.)
+        # dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
+        #                                           weight=1.0, label_smoothing=0.)
         l2_ae = slim.losses.absolute_difference(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -124,7 +124,7 @@ with sess.as_default():
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
-        tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
+        #tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)

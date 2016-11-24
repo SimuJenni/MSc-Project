@@ -63,10 +63,12 @@ class AEGAN4:
 
 
 class AEGAN2:
-    def __init__(self, num_layers, batch_size):
-        self.name = 'AEGANv2'
+    def __init__(self, num_layers, batch_size, data_size, num_epochs):
+        self.name = 'AEGANv2_only_gen&disc'
         self.num_layers = num_layers
         self.batch_size = batch_size
+        self.data_size = data_size
+        self.num_ep = num_epochs
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
@@ -74,20 +76,23 @@ class AEGAN2:
         enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=0.75, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
-        disc_in = merge(merge(dec_gen, img), merge(dec_im, img), dim=0)
-        disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                    stddev=tf.pow(0.975, tf.to_float(self.batch_size * slim.get_global_step() / 1000)))
-        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, batch_size=self.batch_size,
-                                    training=training)
+        disc_in = merge(merge(dec_gen, img), merge(img, dec_gen), dim=0)
+        if training:
+            disc_in += tf.random_normal(shape=tf.shape(disc_in),
+                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
+                                                            name='random gauss rate',
+                                                            training=training))
+        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
+                                    batch_size=self.batch_size, training=training,
+                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
+                                                             name='feat dropout rate',
+                                                             training=training))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
-
-    def ae_labels(self):
-        return self.disc_labels()
 
     def gen_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),

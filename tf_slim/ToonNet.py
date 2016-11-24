@@ -26,14 +26,10 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
-                                                            name='random gauss rate',
-                                                            training=training))
+                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
-                                                             name='feat dropout rate',
-                                                             training=training))
+                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -79,14 +75,10 @@ class AEGAN2:
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size,
-                                                            name='random gauss rate',
-                                                            training=training))
+                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
                                     batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size,
-                                                             name='feat dropout rate',
-                                                             training=training))
+                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -233,11 +225,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME',
                         return arg_sc
 
 
-def noise_amount(decay_steps, decay_rate=0.9, name='noise rate', training=False):
+def noise_amount(decay_steps, name='noise rate', training=False):
     rate = tf.maximum(1.0-tf.cast(slim.get_global_step(), tf.float32)/decay_steps, 0.0, name='noise_rate')
-    # rate = tf.train.exponential_decay(1.0, slim.get_global_step(), int(decay_steps), decay_rate, name='noise_rate')
-    if training:
-        tf.scalar_summary(name, rate)
     return rate
 
 

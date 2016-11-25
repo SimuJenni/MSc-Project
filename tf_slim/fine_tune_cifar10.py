@@ -36,7 +36,7 @@ with sess.as_default():
             dataset = data.get_split('train')
             provider = slim.dataset_data_provider.DatasetDataProvider(
                 dataset,
-                num_readers=4,
+                num_readers=16,
                 common_queue_capacity=32 * model.batch_size,
                 common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
@@ -50,13 +50,12 @@ with sess.as_default():
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
                 [img_train, edge_train, toon_train, label_train],
-                batch_size=model.batch_size, num_threads=4,
+                batch_size=model.batch_size, num_threads=16,
                 capacity=4 * model.batch_size)
 
-        with tf.device('/cpu:1'):
             # Get some test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=4)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=16)
             [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
             # Preprocess data
@@ -66,7 +65,7 @@ with sess.as_default():
                                                                          resize_side=data.MIN_SIZE)
             imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
                 [img_train, edge_train, toon_train, label_test],
-                batch_size=model.batch_size, num_threads=4)
+                batch_size=model.batch_size, num_threads=16)
 
         # Create the model
         predictions = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)

@@ -101,6 +101,9 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_loss = control_flow_ops.with_dependencies([updates], total_loss)
 
+        preds_train = tf.argmax(predictions, 1)
+        preds_test = tf.argmax(preds_test, 1)
+
         # Gather all summaries.
         tf.scalar_summary('losses/total loss', total_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(predictions, labels))

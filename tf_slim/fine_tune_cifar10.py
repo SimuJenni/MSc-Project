@@ -20,7 +20,7 @@ TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = ''
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)

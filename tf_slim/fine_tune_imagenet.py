@@ -60,31 +60,31 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Get the training dataset
-        dataset = imagenet.get_split('train', DATA_DIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(
-            dataset,
-            num_readers=8,
-            common_queue_capacity=32 * BATCH_SIZE,
-            common_queue_min=8 * BATCH_SIZE)
-        [image, label] = provider.get(['image', 'label'])
-
-        # Get some test-data
-        test_set = imagenet.get_split('validation', DATA_DIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=4)
-        [img_test, label_test] = provider.get(['image', 'label'])
-
         # Pre-process training data
         with tf.device('/cpu:0'):
+            # Get the training dataset
+            dataset = imagenet.get_split('train', DATA_DIR)
+            provider = slim.dataset_data_provider.DatasetDataProvider(
+                dataset,
+                num_readers=16,
+                common_queue_capacity=32 * BATCH_SIZE,
+                common_queue_min=8 * BATCH_SIZE)
+            [image, label] = provider.get(['image', 'label'])
+
+            # Get some test-data
+            test_set = imagenet.get_split('validation', DATA_DIR)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=16)
+            [img_test, label_test] = provider.get(['image', 'label'])
+
             if fine_tune:
                 image = tf.cast(image, tf.float32) * (2. / 255) - 1
             else:
                 image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
                 img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
-        # Make batches
-        images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=8, capacity=8 * BATCH_SIZE)
-        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
+            # Make batches
+            images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=16, capacity=8 * BATCH_SIZE)
+            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=16)
 
         # Create the model
         predictions = Classifier(images, fine_tune)

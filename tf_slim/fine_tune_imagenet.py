@@ -106,7 +106,7 @@ with sess.as_default():
 
         # Gather all summaries.
         tf.scalar_summary('losses/total loss', total_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(predictions, labels))
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Define learning rate

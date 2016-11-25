@@ -41,7 +41,7 @@ with sess.as_default():
 
         # Get some test-data
         test_set = data.get_split('test')
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False)
+        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=8)
         [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
         # Pre-process training data

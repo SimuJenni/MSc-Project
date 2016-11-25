@@ -70,7 +70,7 @@ with sess.as_default():
         [image, label] = provider.get(['image', 'label'])
 
         # Get some test-data
-        test_set = imagenet.get_split('test')
+        test_set = imagenet.get_split('validation')
         provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False)
         [img_test, label_test] = provider.get(['image', 'label'])
 

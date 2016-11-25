@@ -30,39 +30,43 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Get the training dataset
-        dataset = data.get_split('train')
-        provider = slim.dataset_data_provider.DatasetDataProvider(
-            dataset,
-            num_readers=8,
-            common_queue_capacity=32 * model.batch_size,
-            common_queue_min=8 * model.batch_size)
-        [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
-
-        # Get some test-data
-        test_set = data.get_split('test')
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=8)
-        [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
-
         # Pre-process training data
         with tf.device('/cpu:0'):
+            # Get the training dataset
+            dataset = data.get_split('train')
+            provider = slim.dataset_data_provider.DatasetDataProvider(
+                dataset,
+                num_readers=4,
+                common_queue_capacity=32 * model.batch_size,
+                common_queue_min=4 * model.batch_size)
+            [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
+
+            # Preprocess data
             img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
                                                                        output_height=TARGET_SHAPE[0],
                                                                        output_width=TARGET_SHAPE[1],
                                                                        resize_side_min=data.MIN_SIZE,
                                                                        resize_side_max=int(data.MIN_SIZE * 1.5))
+            # Make batches
+            imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
+                [img_train, edge_train, toon_train, label_train],
+                batch_size=model.batch_size, num_threads=4,
+                capacity=4 * model.batch_size)
+
+        with tf.device('/cpu:1'):
+            # Get some test-data
+            test_set = data.get_split('test')
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=4)
+            [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
+
+            # Preprocess data
             img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
                                                                          output_height=TARGET_SHAPE[0],
                                                                          output_width=TARGET_SHAPE[1],
                                                                          resize_side=data.MIN_SIZE)
-
-        # Make batches
-        imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
-            [img_train, edge_train, toon_train, label_train],
-            batch_size=model.batch_size, num_threads=8,
-            capacity=8 * model.batch_size)
-        imgs_test, edges_test, toons_test, labels_test = tf.train.batch([img_train, edge_train, toon_train, label_test],
-                                                                        batch_size=model.batch_size)
+            imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
+                [img_train, edge_train, toon_train, label_test],
+                batch_size=model.batch_size, num_threads=4)
 
         # Create the model
         predictions = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)

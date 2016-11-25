@@ -22,11 +22,13 @@ import tensorflow as tf
 slim = tf.contrib.slim
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
 
+
 def alexnet(inputs,
-               num_classes=1000,
-               is_training=True,
-               dropout_keep_prob=0.5,
-               use_batch_norm=False):
+            num_classes=1000,
+            is_training=True,
+            dropout_keep_prob=0.5,
+            use_batch_norm=False,
+            reuse=None):
     """AlexNet version 2.
     Described in: http://arxiv.org/pdf/1404.5997v2.pdf
     Parameters from:
@@ -61,7 +63,7 @@ def alexnet(inputs,
     else:
         normalizer_fn = None
         normalizer_params = {}
-    with tf.variable_scope('alexnet_v2') as sc:
+    with tf.variable_scope('alexnet_v2', reuse=reuse) as sc:
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             activation_fn=tf.nn.relu,
                             biases_initializer=tf.constant_initializer(0.1),
@@ -96,5 +98,6 @@ def alexnet(inputs,
                                            scope='fc8')
 
             return net
+
 
 alexnet.default_image_size = 224

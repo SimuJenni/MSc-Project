@@ -25,10 +25,10 @@ sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
-def Classifier(inputs, fine_tune=False):
+def Classifier(inputs, fine_tune=False, training=True, reuse=None):
     if fine_tune:
         # Specify model to fine-tune here
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=True, image_shape=IM_SHAPE)
+        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=training, image_shape=IM_SHAPE)
         with tf.variable_scope(PRE_TRAINED_SCOPE):
             net = model.discriminator(inputs)
 
@@ -50,7 +50,7 @@ def Classifier(inputs, fine_tune=False):
                                            biases_initializer=tf.zeros_initializer, )
         return net
     else:
-        net = alexnet(inputs, use_batch_norm=True)
+        net = alexnet(inputs, use_batch_norm=True, is_training=training, reuse=reuse)
         return net
 
 
@@ -60,56 +60,53 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
+        # Get the training dataset
         dataset = imagenet.get_split('train', DATA_DIR)
         provider = slim.dataset_data_provider.DatasetDataProvider(
             dataset,
             num_readers=8,
             common_queue_capacity=32 * BATCH_SIZE,
             common_queue_min=8 * BATCH_SIZE)
-
         [image, label] = provider.get(['image', 'label'])
 
-        image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-        if fine_tune:
-            image = tf.cast(image, tf.float32) * (2. / 255) - 1
+        # Get some test-data
+        test_set = imagenet.get_split('test')
+        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False)
+        [img_test, label_test] = provider.get(['image', 'label'])
 
-        images, labels = tf.train.batch(
-            [image, label],
-            batch_size=BATCH_SIZE,
-            num_threads=8,
-            capacity=8 * BATCH_SIZE)
+        # Pre-process training data
+        with tf.device('/cpu:0'):
+            if fine_tune:
+                image = tf.cast(image, tf.float32) * (2. / 255) - 1
+            else:
+                image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+                img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
 
-        labels = slim.one_hot_encoding(labels, NUM_CLASSES)
+        # Make batches
+        images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=8, capacity=8 * BATCH_SIZE)
+        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE)
 
         # Create the model
         predictions = Classifier(images, fine_tune)
+        preds_test = Classifier(imgs_test, fine_tune, training=False, reuse=True)
 
         # Define the loss
-        slim.losses.softmax_cross_entropy(predictions, labels)
-
-        # Gather initial summaries.
-        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
-
-        # Add summaries for variables.
-        for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
-
+        labels_oh = slim.one_hot_encoding(labels, NUM_CLASSES)
+        slim.losses.softmax_cross_entropy(predictions, labels_oh)
         total_loss = slim.losses.get_total_loss()
 
+        # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
             total_loss = control_flow_ops.with_dependencies([updates], total_loss)
 
+        # Gather all summaries.
         tf.scalar_summary('losses/total loss', total_loss)
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(predictions, labels))
+        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
-        with tf.name_scope('accuracy'):
-            with tf.name_scope('correct_prediction'):
-                correct_prediction = tf.equal(tf.argmax(predictions, 1), tf.argmax(labels, 1))
-            with tf.name_scope('accuracy'):
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            tf.scalar_summary('accuracy', accuracy)
-
+        # Define learning rate
         decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
@@ -126,10 +123,10 @@ with sess.as_default():
             var2train = get_variables_to_train(trainable_scopes='fully_connected')
         else:
             var2train = get_variables_to_train()
-
         train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, summarize_gradients=True)
 
+        # Handle initialisation
         init_fn = None
         if fine_tune:
             # Specify the layers of your model you want to exclude

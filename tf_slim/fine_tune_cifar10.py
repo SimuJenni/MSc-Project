@@ -64,16 +64,16 @@ with sess.as_default():
         imgs_test, edges_test, toons_test, labels_test = tf.train.batch([img_train, edge_train, toon_train, label_test],
                                                                         batch_size=model.batch_size)
 
-        labels_train_oh = slim.one_hot_encoding(labels_train, data.NUM_CLASSES)
-
         # Create the model
         predictions = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)
         preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True)
 
         # Define the loss
+        labels_train_oh = slim.one_hot_encoding(labels_train, data.NUM_CLASSES)
         slim.losses.softmax_cross_entropy(predictions, labels_train_oh)
         total_loss = slim.losses.get_total_loss()
 
+        # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)

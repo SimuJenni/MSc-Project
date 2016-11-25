@@ -71,7 +71,7 @@ with sess.as_default():
 
         # Get some test-data
         test_set = imagenet.get_split('validation', DATA_DIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False)
+        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=4)
         [img_test, label_test] = provider.get(['image', 'label'])
 
         # Pre-process training data
@@ -84,7 +84,7 @@ with sess.as_default():
 
         # Make batches
         images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=8, capacity=8 * BATCH_SIZE)
-        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE)
+        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
 
         # Create the model
         predictions = Classifier(images, fine_tune)

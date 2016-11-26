@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 fine_tune = True
 type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
+model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = 'model.ckpt-19500'
@@ -127,6 +127,8 @@ with sess.as_default():
 
         # Start training
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
+        if fine_tune:
+            num_train_steps *= 3
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=300, save_interval_secs=3000,

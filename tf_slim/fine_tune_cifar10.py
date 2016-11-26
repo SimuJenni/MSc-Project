@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 fine_tune = True
 type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
+model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = 'model.ckpt-19500'

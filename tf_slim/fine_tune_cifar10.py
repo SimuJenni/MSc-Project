@@ -122,7 +122,7 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                exclude=['fc1', 'fc2', 'fc3'])
+                exclude=['fully_connected'])
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training

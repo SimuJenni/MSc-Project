@@ -13,14 +13,18 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
-fine_tune = False
+fine_tune = True
+type = 'generator'
 data = cifar10
 model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = ''
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+if fine_tune:
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, type))
+else:
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)

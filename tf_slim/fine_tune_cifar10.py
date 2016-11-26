@@ -37,6 +37,7 @@ with sess.as_default():
 
         # Pre-process training data
         with tf.device('/cpu:0'):
+
             # Get the training dataset
             dataset = data.get_split('train')
             provider = slim.dataset_data_provider.DatasetDataProvider(
@@ -46,31 +47,31 @@ with sess.as_default():
                 common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
-            # Preprocess data
-            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
-                                                                       output_height=TARGET_SHAPE[0],
-                                                                       output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=data.MIN_SIZE,
-                                                                       resize_side_max=int(data.MIN_SIZE * 1.5))
-            # Make batches
-            imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
-                [img_train, edge_train, toon_train, label_train],
-                batch_size=model.batch_size, num_threads=16,
-                capacity=4 * model.batch_size)
-
             # Get some test-data
             test_set = data.get_split('test')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=16)
             [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
             # Preprocess data
+            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
+                                                                       output_height=TARGET_SHAPE[0],
+                                                                       output_width=TARGET_SHAPE[1],
+                                                                       resize_side_min=data.MIN_SIZE,
+                                                                       resize_side_max=int(data.MIN_SIZE * 1.5))
             img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
                                                                          output_height=TARGET_SHAPE[0],
                                                                          output_width=TARGET_SHAPE[1],
                                                                          resize_side=data.MIN_SIZE)
+
+            # Make batches
+            imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
+                [img_train, edge_train, toon_train, label_train],
+                batch_size=model.batch_size, num_threads=16,
+                capacity=4 * model.batch_size)
             imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
-                [img_train, edge_train, toon_train, label_test],
+                [img_test, edge_test, toon_test, label_test],
                 batch_size=model.batch_size, num_threads=16)
+
 
         # Create the model
         preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)

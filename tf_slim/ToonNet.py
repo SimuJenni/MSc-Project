@@ -73,12 +73,7 @@ class AEGAN2:
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
-        # if training:
-        #     disc_in += tf.random_normal(shape=tf.shape(disc_in),
-        #                                 stddev=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
-        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2,
-                                    batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
+        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -91,12 +86,12 @@ class AEGAN2:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, toon, num_classes, reuse=None):
+    def classifier(self, img, edge, toon, num_classes, reuse=None, training=True):
         # disc_in = merge(img, merge(img, img))
         # _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
         #                          batch_size=self.batch_size, training=True)
-        model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse)
-        model = classifier(model, num_classes, reuse=reuse)
+        model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 
 
@@ -188,7 +183,7 @@ def discriminator_ae(inputs, reuse=None, training=True):
             return net
 
 
-def discriminator(inputs, noise_level, num_layers=5, reuse=None, num_out=2, batch_size=128, training=True):
+def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID', training=training)):
@@ -199,12 +194,10 @@ def discriminator(inputs, noise_level, num_layers=5, reuse=None, num_out=2, batc
 
             encoded = net
             # Fully connected layers
-            # net = spatial_dropout(net, 0.5)
-            # net = feature_dropout(net, 1.0 - 0.5 * noise_level)
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 2048)
+            net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 2048)
+            net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
@@ -237,8 +230,12 @@ def noise_amount(decay_steps):
     return rate
 
 
-def classifier(inputs, num_classes, reuse=None):
-    batch_norm_params = {'decay': 0.99, 'epsilon': 0.001}
+def classifier(inputs, num_classes, reuse=None, training=True):
+    batch_norm_params = {
+        'is_training': training,
+        'decay': 0.999,
+        'epsilon': 0.001,
+    }
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=tf.nn.relu,
@@ -247,9 +244,9 @@ def classifier(inputs, num_classes, reuse=None):
                             normalizer_params=batch_norm_params):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net)
+            net = slim.dropout(net, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net)
+            net = slim.dropout(net, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,

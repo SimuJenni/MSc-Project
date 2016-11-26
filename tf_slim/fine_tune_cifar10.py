@@ -69,7 +69,7 @@ with sess.as_default():
 
         # Create the model
         preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)
-        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True)
+        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train, slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
@@ -87,7 +87,8 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Gather all summaries.
-        tf.scalar_summary('losses/training loss', total_train_loss)
+        tf.scalar_summary('losses/training loss', train_loss)
+        tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 

@@ -194,12 +194,12 @@ def discriminator_ae(inputs, reuse=None, training=True):
 def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID', training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1, padding='SAME')
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
 
             encoded = net
             # Fully connected layers

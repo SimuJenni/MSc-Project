@@ -19,7 +19,7 @@ data = cifar10
 model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
 TARGET_SHAPE = [32, 32, 3]
 
-CHECKPOINT = ''
+CHECKPOINT = 'model.ckpt-19500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, type))

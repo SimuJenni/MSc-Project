@@ -124,7 +124,6 @@ with sess.as_default():
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
-        #tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)

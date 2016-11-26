@@ -107,6 +107,8 @@ with sess.as_default():
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
         tf.histogram_summary('labels_train', label_train)
+        tf.histogram_summary('preds_train', preds_train)
+
 
         # Define optimizer
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
@@ -132,5 +134,5 @@ with sess.as_default():
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
-                            save_summaries_secs=300, save_interval_secs=3000,
+                            save_summaries_secs=60, save_interval_secs=3000,
                             log_every_n_steps=100)

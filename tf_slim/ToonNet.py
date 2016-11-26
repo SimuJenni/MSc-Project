@@ -89,7 +89,7 @@ class AEGAN2:
     def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True):
         if type == 'generator':
             gen_in = merge(img, edge)
-            model, _ = generator(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, merge(img, img))
             _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,

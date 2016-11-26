@@ -4,6 +4,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.framework import ops
 
 from ToonNet import AEGAN2
 from constants import LOG_DIR
@@ -122,13 +123,12 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                exclude=['fully_connected'])
+                exclude=['fully_connected', ops.GraphKeys.GLOBAL_STEP])
+            slim.get_or_create_global_step()
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
-        if fine_tune:
-            num_train_steps = None
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=300, save_interval_secs=3000,

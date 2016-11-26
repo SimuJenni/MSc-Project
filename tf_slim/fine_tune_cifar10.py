@@ -27,7 +27,7 @@ else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 sess = tf.Session()
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.DEBUG)
 
 g = tf.Graph()
 with sess.as_default():
@@ -128,7 +128,7 @@ with sess.as_default():
         # Start training
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         if fine_tune:
-            num_train_steps *= 3
+            num_train_steps = None
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=300, save_interval_secs=3000,

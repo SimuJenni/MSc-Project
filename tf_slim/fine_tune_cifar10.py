@@ -76,19 +76,24 @@ with sess.as_default():
         slim.losses.softmax_cross_entropy(predictions, labels_train_oh)
         total_loss = slim.losses.get_total_loss()
 
+        # Compute accuracy
+        preds_train = tf.argmax(predictions, 1)
+        preds_test = tf.argmax(preds_test, 1)
+        names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
+            'accuracy_train': slim.metrics.streaming_accuracy(preds_train, labels_train, name='accuracy_train'),
+            'accuracy_test': slim.metrics.streaming_accuracy(preds_test, labels_test, name='accuracy_test'),
+        })
+
         # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
             total_loss = control_flow_ops.with_dependencies([updates], total_loss)
 
-        preds_train = tf.argmax(predictions, 1)
-        preds_test = tf.argmax(preds_test, 1)
-
         # Gather all summaries.
         tf.scalar_summary('losses/total loss', total_loss)
-        tf.scalar_summary('streaming_accuracy/train', slim.metrics.streaming_accuracy(preds_train, labels_train))
-        tf.scalar_summary('streaming_accuracy/test', slim.metrics.streaming_accuracy(preds_test, labels_test))
+        tf.scalar_summary('streaming_accuracy/train', names_to_values['accuracy_train'])
+        tf.scalar_summary('streaming_accuracy/test', names_to_values['accuracy_test'])
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)
@@ -111,6 +116,10 @@ with sess.as_default():
                                                  global_step=global_step, summarize_gradients=True)
 
         # Handle initialisation
+        init_op = tf.group(
+            tf.initialize_local_variables(),
+            tf.initialize_all_variables())
+
         init_fn = None
         if fine_tune:
             # Specify the layers of your model you want to exclude
@@ -120,5 +129,7 @@ with sess.as_default():
 
         # Start training
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
-        slim.learning.train(train_op, SAVE_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
+        slim.learning.train(train_op, SAVE_DIR,
+                            init_op=init_op, init_fn=init_fn,
+                            save_summaries_secs=300, save_interval_secs=3000,
                             log_every_n_steps=100)

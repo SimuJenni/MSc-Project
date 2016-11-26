@@ -86,18 +86,16 @@ class AEGAN2:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, toon, num_classes, fine_tune=True, type='generator', reuse=None, training=True):
-        if not fine_tune:
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        elif type == 'generator':
-            gen_in = merge(img, edge) #TODO:maybe use cartoon instead?
-            model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True):
+        if type == 'generator':
+            gen_in = merge(img, edge)
+            model, _ = generator(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, merge(img, img))
             _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
                                      training=True)
-        else:
-            raise('Wrong type!')
+        elif type == 'classifier':
+            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 
@@ -128,7 +126,7 @@ def generator(inputs, num_layers=5, reuse=None, p=1.0, training=True):
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             net = add_noise_plane(inputs, NOISE_CHANNELS[0])
-            net = slim.conv2d(net, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
+            net = slim.conv2d(net, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_1', stride=1)
             layers = []
             for l in range(1, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
@@ -147,10 +145,11 @@ def encoder(inputs, num_layers=5, reuse=None, p=1.0, training=True):
     f_dims = F_DIMS
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
+            net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_1', stride=1)
             layers = []
             for l in range(1, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 layers.append(net)
 
             net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
@@ -162,13 +161,12 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
     f_dims = F_DIMS
     with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_0')
+            net = slim.conv2d(inputs, f_dims[num_layers - 1], stride=1, scope='deconv_1')
 
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-                # net = slim.conv2d_transpose(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l+1))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
@@ -195,7 +193,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
-            net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
+            net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_1', stride=1)
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
@@ -214,7 +212,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
             return net, encoded
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME', training=True):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True):
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,

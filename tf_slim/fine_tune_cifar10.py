@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 fine_tune = False
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
+model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=20)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = ''
@@ -87,8 +87,8 @@ with sess.as_default():
 
         # Gather all summaries.
         tf.scalar_summary('losses/total loss', total_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+        tf.scalar_summary('streaming_accuracy/train', slim.metrics.streaming_accuracy(preds_train, labels_train))
+        tf.scalar_summary('streaming_accuracy/test', slim.metrics.streaming_accuracy(preds_test, labels_test))
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)

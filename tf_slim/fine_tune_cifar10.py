@@ -106,6 +106,7 @@ with sess.as_default():
         tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+        tf.histogram_summary('labels_train', label_train)
 
         # Define optimizer
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)

@@ -132,7 +132,8 @@ def generator(inputs, num_layers=5, reuse=None, p=1.0, training=True):
             layers = []
             for l in range(1, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 layers.append(net)
 
             net = add_noise_plane(net, NOISE_CHANNELS[num_layers])
@@ -197,7 +198,8 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
             net = slim.conv2d(inputs, kernel_size=(3, 3), num_outputs=f_dims[0], scope='conv_0', stride=1)
 
             for l in range(1, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
+                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
 
             encoded = net
             # Fully connected layers

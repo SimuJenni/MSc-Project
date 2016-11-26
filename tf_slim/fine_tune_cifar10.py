@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 fine_tune = False
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=20)
+model = AEGAN2(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=30)
 TARGET_SHAPE = [32, 32, 3]
 
 CHECKPOINT = ''
@@ -86,12 +86,6 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
-        # Gather all summaries.
-        tf.scalar_summary('losses/training loss', train_loss)
-        tf.scalar_summary('losses/test loss', test_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
@@ -100,6 +94,13 @@ with sess.as_default():
                                                    0.94,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
+
+        # Gather all summaries.
+        tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('losses/training loss', train_loss)
+        tf.scalar_summary('losses/test loss', test_loss)
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Define optimizer
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)

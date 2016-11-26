@@ -91,9 +91,9 @@ with sess.as_default():
         preds_test = Classifier(imgs_test, fine_tune, training=False, reuse=True)
 
         # Define the loss
-        labels_oh = slim.one_hot_encoding(labels, NUM_CLASSES)
-        slim.losses.softmax_cross_entropy(predictions, labels_oh)
+        train_loss = slim.losses.softmax_cross_entropy(predictions, slim.one_hot_encoding(labels, NUM_CLASSES))
         total_loss = slim.losses.get_total_loss()
+        test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, NUM_CLASSES))
 
         # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -104,11 +104,6 @@ with sess.as_default():
         preds_train = tf.argmax(predictions, 1)
         preds_test = tf.argmax(preds_test, 1)
 
-        # Gather all summaries.
-        tf.scalar_summary('losses/total loss', total_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels))
-        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-
         # Define learning rate
         decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
         learning_rate = tf.train.exponential_decay(0.01,
@@ -117,6 +112,13 @@ with sess.as_default():
                                                    0.94,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
+
+        # Gather all summaries.
+        tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('losses/train loss', train_loss)
+        tf.scalar_summary('losses/train loss', test_loss)
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels))
+        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Define optimizer
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
@@ -127,7 +129,7 @@ with sess.as_default():
         else:
             var2train = get_variables_to_train()
         train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, summarize_gradients=True)
+                                                 global_step=global_step)
 
         # Handle initialisation
         init_fn = None

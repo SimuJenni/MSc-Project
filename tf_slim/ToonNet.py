@@ -28,7 +28,7 @@ class AEGAN4:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
                                         stddev=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3, training=training,
-                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
+                                    noise_level=0.5*noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):

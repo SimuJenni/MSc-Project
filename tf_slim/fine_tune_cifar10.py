@@ -15,7 +15,7 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 slim = tf.contrib.slim
 
 fine_tune = True
-type = 'generator'
+type = 'discriminator'
 data = cifar10
 model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
 TARGET_SHAPE = [32, 32, 3]
@@ -135,5 +135,5 @@ with sess.as_default():
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
-                            save_summaries_secs=60, save_interval_secs=3000,
+                            save_summaries_secs=120, save_interval_secs=3000,
                             log_every_n_steps=100)

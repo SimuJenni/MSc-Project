@@ -9,7 +9,7 @@ NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
 
 class AEGAN4:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv4_weight_decay_fc'
+        self.name = 'AEGANv4'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -26,10 +26,9 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
-        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3,
-                                    batch_size=self.batch_size, training=training,
-                                    noise_level=noise_amount(0.9*self.num_ep*self.data_size/self.batch_size))
+                                        stddev=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
+        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3, training=training,
+                                    noise_level=noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -52,8 +51,7 @@ class AEGAN4:
 
     def classifier(self, img, edge, toon, num_classes):
         disc_in = merge(img, merge(img, img))
-        _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes,
-                                 batch_size=self.batch_size, training=True)
+        _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=False, num_out=num_classes, training=True)
         model = classifier(model, num_classes)
         return model
 
@@ -68,8 +66,8 @@ class AEGAN2:
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, p=1.0, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, p=1.0, training=training)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
@@ -102,27 +100,6 @@ class AEGAN2:
             raise('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
-
-
-class AEGAN:
-    def __init__(self, num_layers, batch_size):
-        self.name = 'AEGAN'
-        self.num_layers = num_layers
-        self.batch_size = batch_size
-
-    def net(self, img, cartoon, edges, labels=None):
-        gen_in = merge(cartoon, edges)
-        gen_enc = generator(gen_in, num_layers=self.num_layers)
-        enc_im = encoder(img, num_layers=self.num_layers)
-        disc_in = merge(enc_im, gen_enc, dim=0)
-        disc_out = discriminator_ae(disc_in)
-        dec_im = decoder(enc_im, num_layers=self.num_layers)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True)
-        return dec_im, dec_gen, disc_out, enc_im, gen_enc
-
-    def disc_labels(self):
-        return tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                           tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
 
 
 def generator(inputs, num_layers=5, reuse=None, p=1.0, training=True):
@@ -193,7 +170,7 @@ def discriminator_ae(inputs, reuse=None, training=True):
             return net
 
 
-def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
+def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, noise_level=0.0):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
@@ -201,8 +178,10 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
+                net = spatial_dropout(net, 1.0-noise_level)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
 
+            net = spatial_dropout(net, 1.0 - noise_level)
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)

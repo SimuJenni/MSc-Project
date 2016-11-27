@@ -14,7 +14,7 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
-fine_tune = True
+fine_tune = False
 type = 'encoder'
 data = cifar10
 model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
@@ -72,10 +72,10 @@ with sess.as_default():
                 [img_test, edge_test, toon_test, label_test],
                 batch_size=model.batch_size, num_threads=16)
 
-
         # Create the model
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES)
-        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False)
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
+        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
+                                      finetune=fine_tune)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train, slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
@@ -109,7 +109,6 @@ with sess.as_default():
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
         tf.histogram_summary('labels_train', label_train)
         tf.histogram_summary('preds_train', preds_train)
-
 
         # Define optimizer
         optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)

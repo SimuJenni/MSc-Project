@@ -86,8 +86,10 @@ class AEGAN2:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True):
-        if type == 'generator':
+    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
+        if not finetune:
+            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        elif type == 'generator':
             gen_in = merge(img, edge)
             model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
@@ -96,6 +98,8 @@ class AEGAN2:
                                      training=training)
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        else:
+            raise('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 

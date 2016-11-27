@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN3
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -14,13 +14,13 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
-fine_tune = False
-type = 'encoder'
+fine_tune = True
+type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
+model = AEGAN3(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
 TARGET_SHAPE = [32, 32, 3]
 
-CHECKPOINT = 'model.ckpt-31202'
+CHECKPOINT = 'model.ckpt-39002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, type))

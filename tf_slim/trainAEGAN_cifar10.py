@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN4
+from ToonNet import AEGAN3
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,8 +16,8 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = cifar10
 TRAIN_SET_NAME = 'train'
-model = AEGAN4(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=80)
-train_ae = True
+model = AEGAN3(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+train_ae = False
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [32, 32, 3]
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
@@ -65,7 +65,8 @@ with sess.as_default():
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
         labels_gen = model.gen_labels()
-        labels_ae = model.ae_labels()
+        if train_ae:
+            labels_ae = model.ae_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)

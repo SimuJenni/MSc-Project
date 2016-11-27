@@ -4,7 +4,7 @@ import tensorflow.contrib.slim as slim
 from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, feature_dropout
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
-NOISE_CHANNELS = [1, 8, 16, 32, 64, 128, 256]
+NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 class AEGAN4:
@@ -26,9 +26,10 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.25*self.num_ep*self.data_size/self.batch_size))
+                                        stddev=noise_amount(0.25 * self.num_ep * self.data_size / self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3, training=training,
-                                    noise_level=0.5*noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
+                                    noise_level=0.5 * noise_amount(
+                                        0.5 * self.num_ep * self.data_size / self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -97,7 +98,57 @@ class AEGAN2:
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
-            raise('Wrong type!')
+            raise ('Wrong type!')
+        model = classifier(model, num_classes, reuse=reuse, training=training)
+        return model
+
+
+class AEGAN3:
+    def __init__(self, num_layers, batch_size, data_size, num_epochs):
+        self.name = 'AEGANv3'
+        self.num_layers = num_layers
+        self.batch_size = batch_size
+        self.data_size = data_size
+        self.num_ep = num_epochs
+
+    def net(self, img, cartoon, edges, reuse=None, training=True):
+        gen_in = merge(cartoon, edges)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
+        rand_u = tf.random_uniform(shape=(2*self.batch_size,), minval=0.0, maxval=1.0)
+        noise = noise_amount(1.0 * self.num_ep * self.data_size / self.batch_size)
+        disc_in = tf.select(rand_u > noise,
+                            merge(merge(dec_gen, img), merge(img, dec_gen), dim=0),
+                            merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0))
+        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
+        return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
+
+    def disc_labels(self):
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
+
+    def gen_labels(self):
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
+
+    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
+        if not finetune:
+            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        elif type == 'generator':
+            gen_in = merge(img, edge)
+            model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        elif type == 'discriminator':
+            disc_in = merge(img, img)
+            _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
+                                     training=training)
+        elif type == 'encoder':
+            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        else:
+            raise ('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 
@@ -112,6 +163,7 @@ def generator(inputs, num_layers=5, reuse=None, p=1.0, training=True):
             for l in range(1, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l])
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
+                net = add_noise_plane(net, NOISE_CHANNELS[l])
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 layers.append(net)
 
@@ -147,7 +199,7 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l+1))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l + 1))
 
             net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, padding='SAME')
@@ -164,7 +216,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
 
-            net = spatial_dropout(net, 1.0-noise_level)
+            net = spatial_dropout(net, 1.0 - noise_level)
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
@@ -197,7 +249,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 def noise_amount(decay_steps):
-    rate = tf.maximum(1.0-tf.cast(slim.get_global_step(), tf.float32)/decay_steps, 0.0, name='noise_rate')
+    rate = tf.maximum(1.0 - tf.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0, name='noise_rate')
     return rate
 
 

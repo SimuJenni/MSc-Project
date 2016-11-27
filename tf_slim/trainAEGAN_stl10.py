@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN3
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
-model = AEGAN2(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
+model = AEGAN3(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [96, 96, 3]
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))

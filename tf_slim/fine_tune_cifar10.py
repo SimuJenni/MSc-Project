@@ -14,8 +14,8 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
-fine_tune = False
-type = 'discriminator'
+fine_tune = True
+type = 'encoder'
 data = cifar10
 model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
 TARGET_SHAPE = [32, 32, 3]

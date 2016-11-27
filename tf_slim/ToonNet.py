@@ -94,7 +94,7 @@ class AEGAN2:
             disc_in = merge(img, img)
             _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                      training=training)
-        elif type == 'classifier':
+        elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model

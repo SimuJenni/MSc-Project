@@ -59,7 +59,8 @@ with sess.as_default():
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                               batch_size=model.batch_size, num_threads=8,
                                                               capacity=8 * model.batch_size)
-        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=model.batch_size)
+        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train],
+                                                           batch_size=model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -88,8 +89,7 @@ with sess.as_default():
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
-                                                   weight=1.0, label_smoothing=0.0)
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         for lg, le in zip(gen_enc, enc_im):
             slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=25.0)

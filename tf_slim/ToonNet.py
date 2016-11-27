@@ -26,9 +26,9 @@ class AEGAN4:
                         merge(dec_im, merge(dec_gen, img)), dim=0)
         if training:
             disc_in += tf.random_normal(shape=tf.shape(disc_in),
-                                        stddev=noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
+                                        stddev=noise_amount(0.25*self.num_ep*self.data_size/self.batch_size))
         disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=3, training=training,
-                                    noise_level=0.5*noise_amount(0.75*self.num_ep*self.data_size/self.batch_size))
+                                    noise_level=0.5*noise_amount(0.5*self.num_ep*self.data_size/self.batch_size))
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 
     def disc_labels(self):
@@ -154,22 +154,6 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
             return net
 
 
-def discriminator_ae(inputs, reuse=None, training=True):
-    with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, training=training)):
-            # Fully connected layers
-            inputs = feature_dropout(inputs, 1.0 - 0.5 * tf.pow(0.95, tf.to_float(slim.get_global_step() / 250)))
-            net = slim.flatten(inputs)
-            net = slim.fully_connected(net, 2048)
-            net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 2048)
-            net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 2,
-                                       activation_fn=None,
-                                       normalizer_fn=None)
-            return net
-
-
 def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, noise_level=0.0):
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
@@ -178,10 +162,9 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
-                net = spatial_dropout(net, 1.0-noise_level)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
 
-            net = spatial_dropout(net, 1.0 - noise_level)
+            net = spatial_dropout(net, 1.0-noise_level)
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
@@ -189,9 +172,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, num_out,
-                                       activation_fn=None,
-                                       normalizer_fn=None)
+            net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None)
             return net, encoded
 
 

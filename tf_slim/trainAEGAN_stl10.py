@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN3
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,9 +16,11 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
-model = AEGAN3(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
+model = AEGAN2(num_layers=6, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
+train_ae = False
 TEST_SET_NAME = 'test'
-TARGET_SHAPE = [96, 96, 3]
+TARGET_SHAPE = [128, 128, 3]
+RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -44,43 +46,44 @@ with sess.as_default():
 
         # Pre-process training data
         with tf.device('/cpu:0'):
-            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
-                                                                       output_height=TARGET_SHAPE[0],
-                                                                       output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=data.MIN_SIZE,
-                                                                       resize_side_max=int(data.MIN_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
-                                                                         output_height=TARGET_SHAPE[0],
-                                                                         output_width=TARGET_SHAPE[1],
-                                                                         resize_side=data.MIN_SIZE)
+            img_train, edge_train, toon_train = preprocess_images_toon(
+                img_train, edge_train, toon_train,
+                output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                resize_side_min=RESIZE_SIZE,
+                resize_side_max=int(RESIZE_SIZE * 1.5))
+            img_test, edge_test, toon_test = preprocess_images_toon_test(
+                img_test, edge_test, toon_test,
+                output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                resize_side=RESIZE_SIZE)
 
         # Make batches
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                               batch_size=model.batch_size, num_threads=8,
                                                               capacity=8 * model.batch_size)
-        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train], batch_size=model.batch_size)
+        imgs_test, edges_test, toons_test = tf.train.batch([img_train, edge_train, toon_train],
+                                                           batch_size=model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
         labels_gen = model.gen_labels()
-        # labels_ae = model.ae_labels()
+        if train_ae:
+            labels_ae = model.ae_labels()
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
-        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True)
+        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True, training=False)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope,
-                                                    weight=1.0, label_smoothing=0.)
+        dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=1.0)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        # dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope,
-        #                                           weight=1.0, label_smoothing=0.)
+        if train_ae:
+            dL_ae = slim.losses.softmax_cross_entropy(disc_out, labels_ae, scope=ae_loss_scope, weight=1.0)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -88,8 +91,7 @@ with sess.as_default():
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope,
-                                                   weight=1.0, label_smoothing=0.0)
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         for lg, le in zip(gen_enc, enc_im):
             slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=25.0)
@@ -117,14 +119,15 @@ with sess.as_default():
         learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
-                                                   0.9,
+                                                   0.97,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
-        #tf.scalar_summary('losses/disc-loss auto-encoder', dL_ae)
+        if train_ae:
+            tf.scalar_summary('losses/disc-loss ae', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.scalar_summary('learning rate', learning_rate)
@@ -135,7 +138,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-4)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
 
         # Generator training operation
         scopes_gen = 'generator'

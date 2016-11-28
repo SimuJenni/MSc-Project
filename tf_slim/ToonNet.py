@@ -3,7 +3,7 @@ import tensorflow.contrib.slim as slim
 
 from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, feature_dropout
 
-F_DIMS = [64, 128, 256, 512, 1024, 2048]
+F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
@@ -217,9 +217,9 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 2056)
+            net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 2056)
+            net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None)
             return net, encoded

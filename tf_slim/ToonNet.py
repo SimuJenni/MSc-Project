@@ -264,7 +264,9 @@ def classifier(inputs, num_classes, reuse=None, training=True):
                             weights_regularizer=slim.l2_regularizer(0.001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
+            inputs = slim.batch_norm(inputs)
             net = slim.flatten(inputs)
+            net = slim.dropout(net, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')

@@ -3,7 +3,7 @@ import tensorflow.contrib.slim as slim
 
 from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, feature_dropout
 
-F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
+F_DIMS = [64, 96, 128, 256, 512, 768, 1024, 2048]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 

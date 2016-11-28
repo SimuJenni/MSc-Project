@@ -206,8 +206,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
     f_dims = F_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
-            net = slim.conv2d(inputs, num_outputs=f_dims[0], kernel_size=(5, 5), scope='conv_1', stride=1,
-                              normalizer_fn=None)
+            net = slim.conv2d(inputs, num_outputs=f_dims[0], kernel_size=(5, 5), scope='conv_1', stride=1)
 
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))

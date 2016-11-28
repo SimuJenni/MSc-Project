@@ -166,8 +166,7 @@ def generator(inputs, num_layers=5, reuse=None, p=1.0, training=True):
                 layers.append(net)
 
             net = add_noise_plane(net, NOISE_CHANNELS[num_layers])
-            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1,
-                              normalizer_fn=None)
+            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
             net = spatial_dropout(net, p)
             return net, layers
 
@@ -182,8 +181,7 @@ def encoder(inputs, num_layers=5, reuse=None, p=1.0, training=True):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
                 layers.append(net)
 
-            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1,
-                              normalizer_fn=None)
+            net = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_{}'.format(num_layers + 1), stride=1)
             net = spatial_dropout(net, p)
             return net, layers
 
@@ -199,8 +197,8 @@ def decoder(inputs, num_layers=5, reuse=None, layers=None, scope='decoder', trai
                     net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l + 1))
 
-            net = slim.conv2d(net, num_outputs=3, kernel_size=(5, 5), scope='upconv_{}'.format(num_layers), stride=1,
-                              activation_fn=tf.nn.tanh, padding='SAME', normalizer_fn=None)
+            net = slim.conv2d(net, num_outputs=3, scope='upconv_{}'.format(num_layers), stride=1,
+                              activation_fn=tf.nn.tanh, normalizer_fn=None)
             return net
 
 
@@ -264,7 +262,6 @@ def classifier(inputs, num_classes, reuse=None, training=True):
                             weights_regularizer=slim.l2_regularizer(0.001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
-            inputs = slim.batch_norm(inputs)
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, is_training=training)

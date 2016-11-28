@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN3
+from ToonNet import AEGAN2
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_images_toon, preprocess_images_toon_test
@@ -16,10 +16,11 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = cifar10
 TRAIN_SET_NAME = 'train'
-model = AEGAN3(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
 train_ae = False
 TEST_SET_NAME = 'test'
-TARGET_SHAPE = [32, 32, 3]
+TARGET_SHAPE = [64, 64, 3]
+RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -45,15 +46,15 @@ with sess.as_default():
 
         # Pre-process training data
         with tf.device('/cpu:0'):
-            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
-                                                                       output_height=TARGET_SHAPE[0],
-                                                                       output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=data.MIN_SIZE,
-                                                                       resize_side_max=int(data.MIN_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
-                                                                         output_height=TARGET_SHAPE[0],
-                                                                         output_width=TARGET_SHAPE[1],
-                                                                         resize_side=data.MIN_SIZE)
+            img_train, edge_train, toon_train = preprocess_images_toon(
+                img_train, edge_train, toon_train,
+                output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                resize_side_min=RESIZE_SIZE,
+                resize_side_max=int(RESIZE_SIZE * 1.5))
+            img_test, edge_test, toon_test = preprocess_images_toon_test(
+                img_test, edge_test, toon_test,
+                output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                resize_side=RESIZE_SIZE)
 
         # Make batches
         imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],

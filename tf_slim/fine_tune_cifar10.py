@@ -93,17 +93,16 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
-        # Define learning rate
-        decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)
-        learning_rate = tf.train.exponential_decay(0.001,
-                                                   global_step,
-                                                   decay_steps,
-                                                   0.975,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
+        # # Define learning rate
+        # decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size)
+        # learning_rate = tf.train.exponential_decay(0.01,
+        #                                            global_step,
+        #                                            decay_steps,
+        #                                            0.975,
+        #                                            staircase=True,
+        #                                            name='exponential_decay_learning_rate')
 
         # Gather all summaries.
-        tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
@@ -112,7 +111,7 @@ with sess.as_default():
         tf.histogram_summary('preds_train', preds_train)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
         if fine_tune:
@@ -120,7 +119,14 @@ with sess.as_default():
         else:
             var2train = get_variables_to_train()
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, summarize_gradients=True)
+                                                 global_step=global_step)
+
+        # Gather initial summaries.
+        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+
+        # Add summaries for variables.
+        for variable in var2train:
+            summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         # Handle initialisation
         init_fn = None

@@ -114,14 +114,14 @@ with sess.as_default():
             ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
-        # Define learning rate
-        decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size)
-        learning_rate = tf.train.exponential_decay(0.001,
-                                                   global_step,
-                                                   decay_steps,
-                                                   0.97,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
+        # # Define learning rate
+        # decay_steps = int(data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size)
+        # learning_rate = tf.train.exponential_decay(0.001,
+        #                                            global_step,
+        #                                            decay_steps,
+        #                                            0.975,
+        #                                            staircase=True,
+        #                                            name='exponential_decay_learning_rate')
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
@@ -130,7 +130,6 @@ with sess.as_default():
             tf.scalar_summary('losses/disc-loss ae', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.scalar_summary('learning rate', learning_rate)
         tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
         tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
         tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
@@ -138,7 +137,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9)
 
         # Generator training operation
         scopes_gen = 'generator'

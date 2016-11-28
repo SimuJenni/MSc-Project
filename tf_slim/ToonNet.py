@@ -217,15 +217,15 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096)
+            net = slim.fully_connected(net, 2056)
             net = slim.dropout(net, 0.5)
-            net = slim.fully_connected(net, 4096)
+            net = slim.fully_connected(net, 2056)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None)
             return net, encoded
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME', training=True):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True):
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,

@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = cifar10
 TRAIN_SET_NAME = 'train'
-model = AEGAN2(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=80)
+model = AEGAN2(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=75)
 train_ae = False
 TEST_SET_NAME = 'test'
 TARGET_SHAPE = [64, 64, 3]

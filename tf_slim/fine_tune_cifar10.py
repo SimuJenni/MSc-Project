@@ -18,7 +18,8 @@ fine_tune = True
 type = 'generator'
 data = cifar10
 model = AEGAN3(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
-TARGET_SHAPE = [32, 32, 3]
+TARGET_SHAPE = [64, 64, 3]
+RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 CHECKPOINT = 'model.ckpt-39002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -56,12 +57,12 @@ with sess.as_default():
             img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
                                                                        output_height=TARGET_SHAPE[0],
                                                                        output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=data.MIN_SIZE,
-                                                                       resize_side_max=int(data.MIN_SIZE * 1.5))
+                                                                       resize_side_min=RESIZE_SIZE,
+                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
             img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
                                                                          output_height=TARGET_SHAPE[0],
                                                                          output_width=TARGET_SHAPE[1],
-                                                                         resize_side=data.MIN_SIZE)
+                                                                         resize_side=RESIZE_SIZE)
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
@@ -94,10 +95,10 @@ with sess.as_default():
 
         # Define learning rate
         decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size * 2.0)
-        learning_rate = tf.train.exponential_decay(0.01,
+        learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    decay_steps,
-                                                   0.94,
+                                                   0.975,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
@@ -111,7 +112,7 @@ with sess.as_default():
         tf.histogram_summary('preds_train', preds_train)
 
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
 
         # Create training operation
         if fine_tune:
@@ -134,5 +135,5 @@ with sess.as_default():
         num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
-                            save_summaries_secs=120, save_interval_secs=3000,
+                            save_summaries_secs=60, save_interval_secs=600,
                             log_every_n_steps=100)

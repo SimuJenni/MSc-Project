@@ -16,10 +16,10 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
-model = AEGAN2(num_layers=6, batch_size=48, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
+model = AEGAN2(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
 train_ae = False
 TEST_SET_NAME = 'test'
-TARGET_SHAPE = [128, 128, 3]
+TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
 

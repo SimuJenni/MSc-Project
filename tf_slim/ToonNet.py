@@ -107,7 +107,7 @@ class AEGAN2:
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
             gen_in = merge(img, edge)
-            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=False) #TODO: put training
             model = maxpool_and_flatten(layers)
         elif type == 'discriminator':
             disc_in = merge(img, img)

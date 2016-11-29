@@ -94,7 +94,7 @@ with sess.as_default():
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         for lg, le in zip(gen_enc, enc_im):
-            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=10.0)
+            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=20.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

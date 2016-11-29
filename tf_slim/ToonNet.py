@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, feature_dropout
+from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
@@ -93,10 +93,30 @@ class AEGAN2:
             model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)
-            _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
+            _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                      training=training)
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        else:
+            raise ('Wrong type!')
+        model = classifier(model, num_classes, reuse=reuse, training=training)
+        return model
+
+    def classifier2(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
+        if not finetune:
+            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        elif type == 'generator':
+            gen_in = merge(img, edge)
+            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = maxpool_and_flatten(layers)
+        elif type == 'discriminator':
+            disc_in = merge(img, img)
+            _, _, layers = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
+                                     training=training)
+            model = maxpool_and_flatten(layers)
+        elif type == 'encoder':
+            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = maxpool_and_flatten(layers)
         else:
             raise ('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training)
@@ -143,7 +163,7 @@ class AEGAN3:
             model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)
-            _, model = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
+            _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                      training=training)
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
@@ -207,10 +227,11 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             net = slim.conv2d(inputs, num_outputs=f_dims[0], scope='conv_1', stride=1)
-
+            layers = []
             for l in range(1, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
+                layers.append(net)
 
             net = spatial_dropout(net, 1.0 - noise_level)
             encoded = net
@@ -221,7 +242,7 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
             net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.5)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None)
-            return net, encoded
+            return net, encoded, layers
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True):
@@ -247,6 +268,14 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 def noise_amount(decay_steps):
     rate = tf.maximum(1.0 - tf.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0, name='noise_rate')
     return rate
+
+
+def maxpool_and_flatten(layers):
+    ds = [16, 8, 4, 2, 1]
+    net = slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[0], ds[0]), stride=ds[0]))
+    for l in range(1, len(layers)):
+        net = merge(slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[l], ds[l]), stride=ds[l])), net, dim=1)
+    return net
 
 
 def classifier(inputs, num_classes, reuse=None, training=True):

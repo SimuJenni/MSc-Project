@@ -109,7 +109,7 @@ with sess.as_default():
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
                                                    decay_steps,
-                                                   0.94,
+                                                   0.975,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 
@@ -121,7 +121,7 @@ with sess.as_default():
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1.0, momentum=0.9, decay=0.9)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=0.9, decay=0.9)
 
         # Create training operation
         if fine_tune:
@@ -130,6 +130,13 @@ with sess.as_default():
             var2train = get_variables_to_train()
         train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step)
+
+        # Gather initial summaries.
+        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+
+        # Add summaries for variables.
+        for variable in var2train:
+            summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         # Handle initialisation
         init_fn = None
@@ -140,5 +147,5 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=300, save_interval_secs=3000,
+        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=120, save_interval_secs=1200,
                             log_every_n_steps=100)

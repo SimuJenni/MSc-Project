@@ -119,7 +119,7 @@ with sess.as_default():
         # learning_rate = tf.train.exponential_decay(0.001,
         #                                            global_step,
         #                                            decay_steps,
-        #                                            0.97,
+        #                                            0.975,
         #                                            staircase=True,
         #                                            name='exponential_decay_learning_rate')
 
@@ -130,11 +130,11 @@ with sess.as_default():
             tf.scalar_summary('losses/disc-loss ae', dL_ae)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/generator', montage(gen_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ground-truth', montage(imgs_test, 6, 6), max_images=1)
-        tf.image_summary('images/cartoons', montage(toons_test, 6, 6), max_images=1)
-        tf.image_summary('images/edges', montage(edges_test, 6, 6), max_images=1)
+        tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
+        tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
+        tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
+        tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5)

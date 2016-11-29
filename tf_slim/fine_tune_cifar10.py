@@ -111,7 +111,7 @@ with sess.as_default():
         tf.histogram_summary('preds_train', preds_train)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
         if fine_tune:

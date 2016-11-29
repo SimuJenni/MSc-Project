@@ -190,13 +190,12 @@ def decoder(net, num_layers=5, reuse=None, layers=None, scope='decoder', trainin
     f_dims = F_DIMS
     with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            net = spatial_dropout(net, 0.75)
+            # net = spatial_dropout(net, 0.75)
 
             for l in range(1, num_layers):
-                net = slim.conv2d(net, f_dims[num_layers - 1], stride=1, scope='deconv_{}_0'.format(l))
                 if layers:
                     net = merge(net, layers[-l])
-                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}_1'.format(l))
+                net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
 
             net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, normalizer_fn=None)

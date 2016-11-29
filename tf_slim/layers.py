@@ -14,10 +14,13 @@ def up_conv2d(net, num_outputs, scope, factor=2):
     return net
 
 
-def add_noise_plane(net, noise_channels):
+def add_noise_plane(net, noise_channels, training=True):
     noise_shape = net.get_shape().as_list()
     noise_shape[-1] = noise_channels
-    return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
+    if training:
+        return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
+    else:
+        return tf.concat(3, [net, tf.zeros(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
 
 
 def ordered_merge(a, b, order):

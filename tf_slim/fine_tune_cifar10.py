@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 fine_tune = True
 type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=50)
+model = AEGAN2(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=100)
 TARGET_SHAPE = [64, 64, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 

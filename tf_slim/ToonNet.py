@@ -269,7 +269,7 @@ def noise_amount(decay_steps):
 
 
 def maxpool_and_flatten(layers):
-    ds = [8, 4, 2, 1, 1]
+    ds = [8, 4, 2, 2, 1]
     net = slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[0], ds[0]), stride=ds[0]))
     for l in range(1, len(layers)):
         net = merge(slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[l], ds[l]), stride=ds[l])), net, dim=1)

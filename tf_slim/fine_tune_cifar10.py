@@ -17,8 +17,8 @@ slim = tf.contrib.slim
 fine_tune = True
 type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=100)
-TARGET_SHAPE = [64, 64, 3]
+model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
+TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 CHECKPOINT = 'model.ckpt-39000'
@@ -74,8 +74,8 @@ with sess.as_default():
                 batch_size=model.batch_size, num_threads=16)
 
         # Create the model
-        preds_train = model.classifier2(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
-        preds_test = model.classifier2(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
+        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
                                       finetune=fine_tune)
 
         # Define the loss
@@ -93,25 +93,20 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
-        # # Define learning rate
-        # decay_steps = int(data.SPLITS_TO_SIZES['train'] / model.batch_size)
-        # learning_rate = tf.train.exponential_decay(0.01,
-        #                                            global_step,
-        #                                            decay_steps,
-        #                                            0.975,
-        #                                            staircase=True,
-        #                                            name='exponential_decay_learning_rate')
+        # Define learning parameters
+        num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+                                  0.001 - 0.001 * 2 * tf.cast(global_step, tf.float32) / num_train_steps, 0.001)
+        beta1 = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2), 0.5, 0.9)
+
+        # Define optimizer
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=beta1)
 
         # Gather all summaries.
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-        tf.histogram_summary('labels_train', label_train)
-        tf.histogram_summary('preds_train', preds_train)
-
-        # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
         # Create training operation
         if fine_tune:
@@ -138,7 +133,6 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
-        num_train_steps = data.SPLITS_TO_SIZES['train'] / model.batch_size * model.num_ep
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=60, save_interval_secs=600,

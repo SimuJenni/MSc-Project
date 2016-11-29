@@ -94,77 +94,7 @@ class AEGAN2:
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                     training=training)
-        elif type == 'encoder':
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        else:
-            raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training)
-        return model
-
-    def classifier2(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
-        if not finetune:
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        elif type == 'generator':
-            gen_in = merge(img, edge)
-            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=False) #TODO: put training
-            model = maxpool_and_flatten(layers)
-        elif type == 'discriminator':
-            disc_in = merge(img, img)
-            _, _, layers = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                     training=training)
-            model = maxpool_and_flatten(layers)
-        elif type == 'encoder':
-            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-            model = maxpool_and_flatten(layers)
-        else:
-            raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training)
-        return model
-
-
-class AEGAN3:
-    def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv3'
-        self.num_layers = num_layers
-        self.batch_size = batch_size
-        self.data_size = data_size
-        self.num_ep = num_epochs
-
-    def net(self, img, cartoon, edges, reuse=None, training=True):
-        gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
-        rand_u = tf.random_uniform(shape=(2*self.batch_size,), minval=0.0, maxval=1.0)
-        noise = noise_amount(1.0 * self.num_ep * self.data_size / self.batch_size)
-        disc_in = tf.select(rand_u > noise,
-                            merge(merge(dec_gen, img), merge(img, dec_gen), dim=0),
-                            merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0))
-        disc_out, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
-        return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
-
-    def disc_labels(self):
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
-
-    def gen_labels(self):
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
-
-    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
-        if not finetune:
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        elif type == 'generator':
-            gen_in = merge(img, edge)
-            model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        elif type == 'discriminator':
-            disc_in = merge(img, img)
-            _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                     training=training)
+                                        training=training)
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
@@ -208,13 +138,11 @@ def decoder(net, num_layers=5, reuse=None, layers=None, scope='decoder', trainin
     f_dims = F_DIMS
     with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            net = spatial_dropout(net, 0.75)
-
+            net = spatial_dropout(net, 0.9) #TODO: test if good idea or not...
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-
             net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers), stride=1,
                               activation_fn=tf.nn.tanh, normalizer_fn=None)
             return net
@@ -236,9 +164,9 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True, no
             # Fully connected layers
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096)
-            net = slim.dropout(net, 0.5)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, 4096)
-            net = slim.dropout(net, 0.5)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None)
             return net, encoded, layers
 
@@ -248,19 +176,20 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'is_training': training,
         'decay': 0.999,
         'epsilon': 0.001,
+        'center': False,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
                         normalizer_fn=slim.batch_norm,
-                        normalizer_params=batch_norm_params):
+                        normalizer_params=batch_norm_params,
+                        weights_regularizer=slim.l2_regularizer(0.0001)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             stride=2,
                             kernel_size=kernel_size,
                             padding=padding):
-            with slim.arg_scope([slim.fully_connected], weights_regularizer=slim.l2_regularizer(0.001)):
-                with slim.arg_scope([slim.batch_norm], **batch_norm_params):
-                    with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
-                        return arg_sc
+            with slim.arg_scope([slim.batch_norm], **batch_norm_params):
+                with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
+                    return arg_sc
 
 
 def noise_amount(decay_steps):
@@ -269,7 +198,7 @@ def noise_amount(decay_steps):
 
 
 def maxpool_and_flatten(layers):
-    ds = [8, 4, 2, 2, 1]
+    ds = [8, 4, 2, 1, 1]
     net = slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[0], ds[0]), stride=ds[0]))
     for l in range(1, len(layers)):
         net = merge(slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[l], ds[l]), stride=ds[l])), net, dim=1)
@@ -285,14 +214,14 @@ def classifier(inputs, num_classes, reuse=None, training=True):
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=tf.nn.relu,
-                            weights_regularizer=slim.l2_regularizer(0.001),
+                            weights_regularizer=slim.l2_regularizer(0.0001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,

@@ -137,7 +137,7 @@ with sess.as_default():
         tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0003, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
 
         # Generator training operation
         scopes_gen = 'generator'

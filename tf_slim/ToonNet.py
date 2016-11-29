@@ -59,7 +59,7 @@ class AEGAN4:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv2_new'
+        self.name = 'AEGANv2_new_spdropindec'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -190,7 +190,7 @@ def decoder(net, num_layers=5, reuse=None, layers=None, scope='decoder', trainin
     f_dims = F_DIMS
     with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            # net = spatial_dropout(net, 0.75)
+            net = spatial_dropout(net, 0.75)
 
             for l in range(1, num_layers):
                 if layers:

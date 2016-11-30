@@ -102,6 +102,27 @@ class AEGAN2:
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 
+    def classifier2(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
+        if not finetune:
+            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = maxpool_and_flatten(layers)
+        elif type == 'generator':
+            gen_in = merge(img, edge)
+            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = maxpool_and_flatten(layers)
+        elif type == 'discriminator':
+            disc_in = merge(img, img)
+            _, _, layers = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
+                                        training=training)
+            model = maxpool_and_flatten(layers)
+        elif type == 'encoder':
+            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = maxpool_and_flatten(layers)
+        else:
+            raise ('Wrong type!')
+        model = classifier(model, num_classes, reuse=reuse, training=training)
+        return model
+
 
 def generator(inputs, num_layers=5, reuse=None, training=True):
     f_dims = F_DIMS
@@ -205,7 +226,7 @@ def maxpool_and_flatten(layers):
     return net
 
 
-def classifier(inputs, num_classes, reuse=None, training=True):
+def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.relu):
     batch_norm_params = {
         'is_training': training,
         'decay': 0.999,
@@ -213,8 +234,8 @@ def classifier(inputs, num_classes, reuse=None, training=True):
     }
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
-                            activation_fn=tf.nn.relu,
-                            weights_regularizer=slim.l2_regularizer(0.00001),
+                            activation_fn=activation,
+                            weights_regularizer=slim.l2_regularizer(0.0001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
             net = slim.flatten(inputs)

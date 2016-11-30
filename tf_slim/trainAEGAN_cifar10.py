@@ -34,14 +34,14 @@ with sess.as_default():
 
             # Get the training dataset
             dataset = data.get_split('train')
-            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=16,
+            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Get some test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=8)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
@@ -56,10 +56,10 @@ with sess.as_default():
                                                                          resize_side=RESIZE_SIZE)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
-                                                                  batch_size=model.batch_size, num_threads=16,
+                                                                  batch_size=model.batch_size, num_threads=8,
                                                                   capacity=4 * model.batch_size)
             imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
-                                                               batch_size=model.batch_size, num_threads=8)
+                                                               batch_size=model.batch_size, num_threads=4)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()

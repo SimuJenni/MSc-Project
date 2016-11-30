@@ -43,14 +43,14 @@ with sess.as_default():
             dataset = data.get_split('train')
             provider = slim.dataset_data_provider.DatasetDataProvider(
                 dataset,
-                num_readers=16,
+                num_readers=8,
                 common_queue_capacity=32 * model.batch_size,
                 common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
             # Get some test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=8)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
             # Preprocess data
@@ -67,15 +67,15 @@ with sess.as_default():
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
                 [img_train, edge_train, toon_train, label_train],
-                batch_size=model.batch_size, num_threads=16,
+                batch_size=model.batch_size, num_threads=8,
                 capacity=4 * model.batch_size)
             imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
                 [img_test, edge_test, toon_test, label_test],
-                batch_size=model.batch_size, num_threads=8)
+                batch_size=model.batch_size, num_threads=4)
 
         # Create the model
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
-        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
+        preds_train = model.classifier2(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
+        preds_test = model.classifier2(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
                                       finetune=fine_tune)
 
         # Define the loss
@@ -102,6 +102,7 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Gather all summaries.
+        tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))

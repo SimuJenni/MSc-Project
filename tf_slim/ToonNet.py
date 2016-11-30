@@ -235,7 +235,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=activation,
-                            weights_regularizer=slim.l2_regularizer(0.0001),
+                            weights_regularizer=slim.l2_regularizer(0.001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
             net = slim.flatten(inputs)

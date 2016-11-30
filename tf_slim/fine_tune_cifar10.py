@@ -74,8 +74,8 @@ with sess.as_default():
                 batch_size=model.batch_size, num_threads=4)
 
         # Create the model
-        preds_train = model.classifier2(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
-        preds_test = model.classifier2(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
+        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
                                       finetune=fine_tune)
 
         # Define the loss

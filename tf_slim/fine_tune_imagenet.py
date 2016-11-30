@@ -20,7 +20,7 @@ IM_SHAPE = [224, 224, 3]
 PRE_TRAINED_SCOPE = 'generator'
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_new/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_quad_decay/'
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -106,8 +106,8 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.001 - 0.001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.001)
+        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps,
+                                                  end_learning_rate=0.00005, power=2.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-6)

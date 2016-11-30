@@ -20,7 +20,7 @@ IM_SHAPE = [224, 224, 3]
 PRE_TRAINED_SCOPE = 'generator'
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_quad_decay/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_exp_decay/'
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -117,7 +117,7 @@ with sess.as_default():
                                                    name='exponential_decay_learning_rate')
 
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1e-8, momentum=0.9, decay=0.9)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1e-6, momentum=0.9, decay=0.9)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout
+from tf_slim.layers import lrelu, up_conv2d, add_noise_plane, merge, spatial_dropout, random_select
 
 F_DIMS = [64, 96, 128, 256, 512, 1024, 2048]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
@@ -59,11 +59,12 @@ class AEGAN4:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv2_correct_test'
+        self.name = 'AEGANv2_randsel'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
         self.num_ep = num_epochs
+        self.num_steps = num_epochs*data_size/batch_size
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         gen_in = merge(cartoon, edges)
@@ -71,7 +72,9 @@ class AEGAN2:
         enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
-        disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
+        p = 0.5*tf.cast(slim.get_global_step(), tf.float32) / self.num_steps
+        disc_in = merge(merge(dec_gen, random_select(dec_im, img, p, self.batch_size)),
+                        merge(random_select(dec_im, img, p, self.batch_size), dec_gen), dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, [enc_im], [gen_enc]
 

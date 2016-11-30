@@ -59,7 +59,7 @@ class AEGAN4:
 
 class AEGAN2:
     def __init__(self, num_layers, batch_size, data_size, num_epochs):
-        self.name = 'AEGANv2_new'
+        self.name = 'AEGANv2_correct_test'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size

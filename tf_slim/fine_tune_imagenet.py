@@ -106,11 +106,18 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        learning_rate = tf.train.polynomial_decay(0.003, global_step, num_train_steps,
-                                                  end_learning_rate=0.0001, power=2.0)
+
+        # Define learning rate
+        decay_steps = int(2*imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE)
+        learning_rate = tf.train.exponential_decay(0.01,
+                                                   global_step,
+                                                   decay_steps,
+                                                   0.975,
+                                                   staircase=True,
+                                                   name='exponential_decay_learning_rate')
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-6)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1e-8, momentum=0.9, decay=0.9)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)

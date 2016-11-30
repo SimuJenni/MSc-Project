@@ -50,7 +50,7 @@ with sess.as_default():
 
             # Get some test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=16)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=8)
             [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
             # Preprocess data
@@ -71,7 +71,7 @@ with sess.as_default():
                 capacity=4 * model.batch_size)
             imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
                 [img_test, edge_test, toon_test, label_test],
-                batch_size=model.batch_size, num_threads=16)
+                batch_size=model.batch_size, num_threads=8)
 
         # Create the model
         preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)

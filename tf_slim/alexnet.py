@@ -53,7 +53,7 @@ def alexnet(inputs,
     """
     batch_norm_params = {
         # Decay for the moving averages.
-        'decay': 0.9997,
+        'decay': 0.999,
         # epsilon to prevent 0s in variance.
         'epsilon': 0.001,
     }

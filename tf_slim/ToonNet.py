@@ -86,6 +86,7 @@ class AEGAN2:
         return slim.one_hot_encoding(labels, 2)
 
     def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
+        activation = tf.nn.relu
         if not finetune:
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
@@ -95,32 +96,12 @@ class AEGAN2:
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training)
+            activation = lrelu
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training)
-        return model
-
-    def classifier2(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, finetune=True):
-        if not finetune:
-            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-            model = maxpool_and_flatten(layers)
-        elif type == 'generator':
-            gen_in = merge(img, edge)
-            _, layers = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-            model = maxpool_and_flatten(layers)
-        elif type == 'discriminator':
-            disc_in = merge(img, img)
-            _, _, layers = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                        training=training)
-            model = maxpool_and_flatten(layers)
-        elif type == 'encoder':
-            _, layers = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-            model = maxpool_and_flatten(layers)
-        else:
-            raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training)
+        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
         return model
 
 
@@ -216,14 +197,6 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 def noise_amount(decay_steps):
     rate = tf.maximum(1.0 - tf.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0, name='noise_rate')
     return rate
-
-
-def maxpool_and_flatten(layers):
-    ds = [8, 4, 2, 1, 1]
-    net = slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[0], ds[0]), stride=ds[0]))
-    for l in range(1, len(layers)):
-        net = merge(slim.flatten(slim.max_pool2d(layers[0], kernel_size=(ds[l], ds[l]), stride=ds[l])), net, dim=1)
-    return net
 
 
 def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.relu):

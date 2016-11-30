@@ -115,7 +115,7 @@ with sess.as_default():
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/train loss', train_loss)
-        tf.scalar_summary('losses/train loss', test_loss)
+        tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 

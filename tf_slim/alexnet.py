@@ -67,7 +67,7 @@ def alexnet(inputs,
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             activation_fn=tf.nn.relu,
                             biases_initializer=tf.constant_initializer(0.1),
-                            weights_regularizer=slim.l2_regularizer(0.00004),
+                            weights_regularizer=slim.l2_regularizer(0.00001),
                             normalizer_fn=normalizer_fn,
                             normalizer_params=normalizer_params
                             ):

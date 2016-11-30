@@ -182,7 +182,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         activation_fn=activation,
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params,
-                        weights_regularizer=slim.l2_regularizer(0.0001)):
+                        weights_regularizer=slim.l2_regularizer(0.00001)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             stride=2,
                             kernel_size=kernel_size,
@@ -214,7 +214,7 @@ def classifier(inputs, num_classes, reuse=None, training=True):
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope([slim.fully_connected],
                             activation_fn=tf.nn.relu,
-                            weights_regularizer=slim.l2_regularizer(0.0001),
+                            weights_regularizer=slim.l2_regularizer(0.00001),
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):
             net = slim.flatten(inputs)

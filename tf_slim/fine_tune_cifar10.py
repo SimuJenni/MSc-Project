@@ -97,7 +97,8 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
         #                           0.003 - 0.003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.003)
-        learning_rate = 0.002 - 0.002 * (tf.cast(global_step, tf.float32)/num_train_steps-1.0)
+        learning_rate = tf.train.polynomial_decay(0.003, global_step, num_train_steps,
+                                                  end_learning_rate=0.00005, power=2.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

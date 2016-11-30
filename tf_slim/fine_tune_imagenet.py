@@ -15,11 +15,12 @@ fine_tune = False
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 BATCH_SIZE = 64
 NUM_CLASSES = 1000
+NUM_EP = 100
 IM_SHAPE = [224, 224, 3]
 PRE_TRAINED_SCOPE = 'generator'
 
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2_new/'
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -50,9 +51,8 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
                                            biases_initializer=tf.zeros_initializer, )
         return net
     else:
-        net = alexnet(inputs, use_batch_norm=True, is_training=training, reuse=reuse)
+        net = alexnet(inputs, use_batch_norm=True, is_training=training, reuse=reuse, dropout_keep_prob=0.9)
         return net
-
 
 g = tf.Graph()
 
@@ -104,14 +104,13 @@ with sess.as_default():
         preds_train = tf.argmax(predictions, 1)
         preds_test = tf.argmax(preds_test, 1)
 
-        # Define learning rate
-        decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE * 2.0)
-        learning_rate = tf.train.exponential_decay(0.01,
-                                                   global_step,
-                                                   decay_steps,
-                                                   0.975,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
+        # Define learning parameters
+        num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+                                  0.001 - 0.001 * 2 * tf.cast(global_step, tf.float32) / num_train_steps, 0.001)
+
+        # Define optimizer
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)
@@ -119,9 +118,6 @@ with sess.as_default():
         tf.scalar_summary('losses/train loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels))
         tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-
-        # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=0.9, decay=0.9)
 
         # Create training operation
         if fine_tune:

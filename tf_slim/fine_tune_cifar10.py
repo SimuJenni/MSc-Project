@@ -24,7 +24,7 @@ RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 CHECKPOINT = 'model.ckpt-78002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_lr0.003/'.format(data.NAME, model.name, type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_lr0.002/'.format(data.NAME, model.name, type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -95,8 +95,9 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.003 - 0.003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.003)
+        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+        #                           0.003 - 0.003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.003)
+        learning_rate = 0.002 - 0.002 * (tf.cast(global_step, tf.float32)/num_train_steps-1.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

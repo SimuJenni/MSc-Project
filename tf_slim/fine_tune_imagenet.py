@@ -106,8 +106,8 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps,
-                                                  end_learning_rate=0.00005, power=2.0)
+        learning_rate = tf.train.polynomial_decay(0.003, global_step, num_train_steps,
+                                                  end_learning_rate=0.0001, power=2.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-6)

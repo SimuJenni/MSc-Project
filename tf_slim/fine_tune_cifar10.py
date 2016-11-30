@@ -24,7 +24,7 @@ RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 CHECKPOINT = 'model.ckpt-78002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_lr0.002/'.format(data.NAME, model.name, type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_quad_decay/'.format(data.NAME, model.name, type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 

@@ -33,15 +33,15 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            dataset = data.get_split('train')
-            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=16,
+            dataset = data.get_split(TRAIN_SET_NAME)
+            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Get some test-data
-            test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, shuffle=False, num_readers=16)
+            test_set = data.get_split(TEST_SET_NAME)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
@@ -56,10 +56,10 @@ with sess.as_default():
                                                                          resize_side=RESIZE_SIZE)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
-                                                                  batch_size=model.batch_size, num_threads=16,
+                                                                  batch_size=model.batch_size, num_threads=8,
                                                                   capacity=4 * model.batch_size)
             imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
-                                                               batch_size=model.batch_size, num_threads=16)
+                                                               batch_size=model.batch_size, num_threads=4)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -111,11 +111,10 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.001 - 0.001 * 2 * tf.cast(global_step, tf.float32) / num_train_steps, 0.001)
-        beta1 = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2), 0.5, 0.9)
+                                  0.0003 - 0.0003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0003)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=beta1)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.75)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

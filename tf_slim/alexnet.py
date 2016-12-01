@@ -51,7 +51,6 @@ def alexnet_v2(inputs,
                num_classes=1000,
                is_training=True,
                dropout_keep_prob=0.5,
-               spatial_squeeze=True,
                scope='alexnet_v2',
                reuse=None):
   """AlexNet version 2.
@@ -108,10 +107,5 @@ def alexnet_v2(inputs,
                           biases_initializer=tf.zeros_initializer,
                           scope='fc8')
 
-      # Convert end_points_collection into a end_point dict.
-      end_points = slim.utils.convert_collection_to_dict(end_points_collection)
-      if spatial_squeeze:
-        net = tf.squeeze(net, [1, 2], name='fc8/squeezed')
-        end_points[sc.name + '/fc8'] = net
-      return net, end_points
+      return net
 alexnet_v2.default_image_size = 224

@@ -51,6 +51,7 @@ def alexnet_v2(inputs,
                num_classes=1000,
                is_training=True,
                dropout_keep_prob=0.5,
+               spatial_squeeze=True,
                scope='alexnet_v2',
                reuse=None):
   """AlexNet version 2.
@@ -107,5 +108,7 @@ def alexnet_v2(inputs,
                           biases_initializer=tf.zeros_initializer,
                           scope='fc8')
 
+      if spatial_squeeze:
+        net = tf.squeeze(net, [1, 2], name='fc8/squeezed')
       return net
 alexnet_v2.default_image_size = 224

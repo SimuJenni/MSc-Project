@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from tensorflow.python.ops import control_flow_ops
 
-from alexnet import alexnet
+from alexnet import alexnet_v2, alexnet_v2_arg_scope
 from datasets import imagenet
 from preprocess import preprocess_image
 from tf_slim.qhu_code.model_edge_advplus_128 import DCGAN
@@ -51,7 +51,8 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
                                            biases_initializer=tf.zeros_initializer, )
         return net
     else:
-        net = alexnet(inputs, use_batch_norm=True, is_training=training, reuse=reuse, dropout_keep_prob=0.9)
+        with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.00004)):
+            net = alexnet_v2(input, is_training=training, reuse=reuse)
         return net
 
 g = tf.Graph()
@@ -108,16 +109,21 @@ with sess.as_default():
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
 
         # Define learning rate
-        decay_steps = int(2*imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE)
-        learning_rate = tf.train.exponential_decay(0.01,
-                                                   global_step,
-                                                   decay_steps,
-                                                   0.975,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
+        decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE)
+        learning_rate = tf.train.polynomial_decay(0.01,
+                                                     global_step,
+                                                     decay_steps,
+                                                     0.0001,
+                                                     power=1.0,
+                                                     cycle=False,
+                                                     name='polynomial_decay_learning_rate')
 
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, epsilon=1e-6, momentum=0.9, decay=0.9)
+        optimizer = tf.train.RMSPropOptimizer(
+            learning_rate,
+            decay=0.9,
+            momentum=0.9,
+            epsilon=1.0)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)

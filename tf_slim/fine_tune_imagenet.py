@@ -52,8 +52,9 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
         return net
     else:
         with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.00004)):
-            net = alexnet_v2(inputs, is_training=training, reuse=reuse) #test
+            net = alexnet_v2(inputs, is_training=training, reuse=reuse)  # test
         return net
+
 
 g = tf.Graph()
 
@@ -81,10 +82,12 @@ with sess.as_default():
                 image = tf.cast(image, tf.float32) * (2. / 255) - 1
             else:
                 image = preprocess_image(image, is_training=True, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
-                img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0], output_width=IM_SHAPE[1])
+                img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0],
+                                            output_width=IM_SHAPE[1])
 
             # Make batches
-            images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=8, capacity=8 * BATCH_SIZE)
+            images, labels = tf.train.batch([image, label], batch_size=BATCH_SIZE, num_threads=8,
+                                            capacity=8 * BATCH_SIZE)
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
 
         # Create the model
@@ -109,21 +112,16 @@ with sess.as_default():
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
 
         # Define learning rate
-        decay_steps = int(imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE)
         learning_rate = tf.train.polynomial_decay(0.01,
-                                                     global_step,
-                                                     decay_steps,
-                                                     0.0001,
-                                                     power=1.0,
-                                                     cycle=False,
-                                                     name='polynomial_decay_learning_rate')
+                                                  global_step,
+                                                  num_train_steps,
+                                                  0.0001,
+                                                  power=1.0,
+                                                  cycle=False,
+                                                  name='polynomial_decay_learning_rate')
 
         # Define optimizer
-        optimizer = tf.train.RMSPropOptimizer(
-            learning_rate,
-            decay=0.9,
-            momentum=0.9,
-            epsilon=1.0)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate, decay=0.9, momentum=0.9, epsilon=0.1)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)

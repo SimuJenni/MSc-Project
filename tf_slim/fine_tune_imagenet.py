@@ -52,7 +52,7 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
         return net
     else:
         with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.00004)):
-            net, _ = alexnet_v2(input, is_training=training, reuse=reuse) #test
+            net, _ = alexnet_v2(inputs, is_training=training, reuse=reuse) #test
         return net
 
 g = tf.Graph()

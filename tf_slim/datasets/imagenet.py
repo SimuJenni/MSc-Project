@@ -164,13 +164,13 @@ def get_split(split_name, dataset_dir=IMAGENET_TF_DATADIR, reader=None):
     }
 
     items_to_handlers = {
-        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format', channels=3),
         'height': slim.tfexample_decoder.Tensor('image/height'),
         'width': slim.tfexample_decoder.Tensor('image/width'),
         'label': slim.tfexample_decoder.Tensor('image/class/label'),
         'label_text': slim.tfexample_decoder.Tensor('image/class/text'),
-        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format'),
-        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format'),
+        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format', channels=1),
+        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format', channels=3),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(

@@ -22,7 +22,7 @@ model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['trai
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
-CHECKPOINT = 'model.ckpt-78000'
+CHECKPOINT = 'model.ckpt-78002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))

@@ -51,8 +51,8 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
                                            biases_initializer=tf.zeros_initializer, )
         return net
     else:
-        with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.0001)):
-            net = alexnet_v2(inputs, is_training=training, reuse=reuse)  # test
+        with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.00005)):
+            net = alexnet_v2(inputs, is_training=training, reuse=reuse, dropout_keep_prob=0.8)  # test
         return net
 
 
@@ -112,16 +112,16 @@ with sess.as_default():
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
 
         # Define learning rate
-        learning_rate = tf.train.polynomial_decay(0.003,
+        learning_rate = tf.train.polynomial_decay(0.001,
                                                   global_step,
                                                   num_train_steps,
-                                                  0.0001,
+                                                  0.00001,
                                                   power=1.0,
                                                   cycle=False,
                                                   name='polynomial_decay_learning_rate')
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=0.001)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
 
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)

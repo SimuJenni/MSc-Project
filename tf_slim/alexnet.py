@@ -81,8 +81,7 @@ def alexnet_v2(inputs,
         'decay': 0.999,
         'epsilon': 0.001,
     }
-    with tf.variable_scope(scope, reuse=reuse) as sc:
-        end_points_collection = sc.name + '_end_points'
+    with tf.variable_scope(scope, reuse=reuse):
         with slim.arg_scope([slim.conv2d, slim.fully_connected],
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params):

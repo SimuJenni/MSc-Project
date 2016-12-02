@@ -100,6 +100,7 @@ class AEGAN:
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training)
+            activation = lrelu
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
@@ -214,7 +215,9 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
             # Fully connected layers
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096)   # TODO:Before 4096
+            net = slim.dropout(net, 0.95, is_training=training)
             net = slim.fully_connected(net, 2048)   # TODO:Before 4096
+            net = slim.dropout(net, 0.95, is_training=training)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None,
                                        biases_initializer=tf.zeros_initializer)
             return net, encoded, layers

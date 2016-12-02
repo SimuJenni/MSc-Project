@@ -20,7 +20,7 @@ NUM_EP = 100
 IM_SHAPE = [224, 224, 3]
 PRE_TRAINED_SCOPE = 'pre_trained_scope'
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/?'  # TODO: specify log-dir
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'  # TODO: specify log-dir
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)

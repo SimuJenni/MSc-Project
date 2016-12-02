@@ -29,12 +29,11 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Pre-process training data
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            dataset = data.get_split(TRAIN_SET_NAME)
-            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=8,
+            train_set = data.get_split(TRAIN_SET_NAME)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
@@ -87,8 +86,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
-        for lg, le in zip(gen_enc, enc_im):
-            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=20.0)
+        l2_feat = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=20.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -111,22 +109,23 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.0003 - 0.0003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0003)
+                                  0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.75)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
+        tf.scalar_summary('losses/l2 features', l2_feat)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
-        tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
-        tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
-        tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
+        tf.image_summary('images/generator', montage(gen_rec_test, 6, 6), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec_test, 6, 6), max_images=1)
+        tf.image_summary('images/ground-truth', montage(imgs_test, 6, 6), max_images=1)
+        tf.image_summary('images/cartoons', montage(toons_test, 6, 6), max_images=1)
+        tf.image_summary('images/edges', montage(edges_test, 6, 6), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

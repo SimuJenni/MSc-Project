@@ -87,8 +87,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
-        for lg, le in zip(gen_enc, enc_im):
-            slim.losses.sum_of_squares(lg, le, scope=gen_loss_scope, weight=20.0)
+        l2_feat = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=20.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -121,6 +120,7 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
+        tf.scalar_summary('losses/l2 features', l2_feat)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
         tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)

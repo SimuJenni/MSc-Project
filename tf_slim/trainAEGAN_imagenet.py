@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-model = AEGAN(num_layers=6, batch_size=16, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+model = AEGAN(num_layers=6, batch_size=32, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
 TARGET_SHAPE = [192, 192, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
@@ -33,8 +33,8 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            dataset = data.get_split(TRAIN_SET_NAME)
-            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=8,
+            train_set = data.get_split(TRAIN_SET_NAME)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
@@ -111,10 +111,10 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.0003 - 0.0003 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0003)
+                                  0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.75)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

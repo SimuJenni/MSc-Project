@@ -115,7 +115,7 @@ with sess.as_default():
         learning_rate = tf.train.polynomial_decay(0.001,
                                                   global_step,
                                                   num_train_steps,
-                                                  0.00001,
+                                                  0.0001,
                                                   power=1.0,
                                                   cycle=False,
                                                   name='polynomial_decay_learning_rate')

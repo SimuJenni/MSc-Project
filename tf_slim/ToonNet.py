@@ -18,7 +18,7 @@ class AEGAN:
             num_epochs: Number of epochs used for training
         """
         #self.name = 'AEGANv2_normal' #TODO: before
-        self.name = 'AEGANv2'
+        self.name = 'AEGANv2_new_disc'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -213,10 +213,8 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
+            net = slim.fully_connected(net, 4096)   # TODO:Before 4096
             net = slim.fully_connected(net, 2048)   # TODO:Before 4096
-            net = slim.dropout(net, 0.9)
-            net = slim.fully_connected(net, 2048)   # TODO:Before 4096
-            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None,
                                        biases_initializer=tf.zeros_initializer)
             return net, encoded, layers

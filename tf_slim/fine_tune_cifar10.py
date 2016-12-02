@@ -16,9 +16,9 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'generator'
+net_type = 'discriminator'
 data = cifar10
-model = AEGAN(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
@@ -94,8 +94,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.polynomial_decay(0.001, global_step, num_train_steps,
-                                                  end_learning_rate=0.0, power=1.0)
+        learning_rate = tf.train.exponential_decay(0.01,
+                                                   global_step,
+                                                   (data.SPLITS_TO_SIZES['train'] / model.batch_size),
+                                                   0.97,
+                                                   staircase=True,
+                                                   name='exponential_decay_learning_rate')
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

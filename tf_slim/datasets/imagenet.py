@@ -54,7 +54,11 @@ _ITEMS_TO_DESCRIPTIONS = {
     'label_text': 'The text of the label.',
 }
 
-_NUM_CLASSES = 1001
+NUM_CLASSES = 1000
+
+MIN_SIZE = 32
+
+NAME = 'imagenet'
 
 
 def create_readable_names_for_imagenet_labels():

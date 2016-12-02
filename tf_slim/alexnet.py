@@ -38,10 +38,13 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
 
 
 def alexnet_v2_arg_scope(weight_decay=0.0005):
+    batch_norm_params = {'decay': 0.999, 'epsilon': 0.001}
     with slim.arg_scope([slim.conv2d, slim.fully_connected],
                         activation_fn=tf.nn.relu,
                         biases_initializer=tf.constant_initializer(0.1),
-                        weights_regularizer=slim.l2_regularizer(weight_decay)):
+                        weights_regularizer=slim.l2_regularizer(weight_decay),
+                        normalizer_fn=slim.batch_norm,
+                        normalizer_params=batch_norm_params):
         with slim.arg_scope([slim.conv2d], padding='SAME'):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
                 return arg_sc

@@ -63,8 +63,8 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
         return net
     else:
         # Train AlexNet
-        with slim.arg_scope(alexnet_v2_arg_scope()):
-            net = alexnet_v2(inputs, is_training=training, reuse=reuse)
+        with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.0001)):
+            net = alexnet_v2(inputs, is_training=training, reuse=reuse, dropout_keep_prob=0.9)
         return net
 
 

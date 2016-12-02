@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 # Setup training parameters
 data = imagenet
 TRAIN_SET_NAME = 'train'
-TEST_SET_NAME = 'test'
+TEST_SET_NAME = 'validation'
 model = AEGAN2(num_layers=6, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
 TARGET_SHAPE = [224, 224, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)

@@ -290,11 +290,8 @@ def preprocess_for_eval(image, output_height, output_width, resize_side):
     return _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
 
 
-def preprocess_images_toon(image, edge, cartoon,
-                         output_height,
-                         output_width,
-                         resize_side_min=_RESIZE_SIDE_MIN,
-                         resize_side_max=_RESIZE_SIDE_MAX):
+def preprocess_toon_train(image, edge, cartoon, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
+                          resize_side_max=_RESIZE_SIDE_MAX):
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
 
@@ -325,10 +322,7 @@ def preprocess_images_toon(image, edge, cartoon,
     return image, edge, cartoon
 
 
-def preprocess_images_toon_test(image, edge, cartoon,
-                         output_height,
-                         output_width,
-                         resize_side=_RESIZE_SIDE_MIN):
+def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
     # Resize/zoom
     image = _aspect_preserving_resize(image, resize_side)
     edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)

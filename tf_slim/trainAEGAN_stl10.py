@@ -4,10 +4,10 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_images_toon, preprocess_images_toon_test
+from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
 from utils import montage
 
@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = AEGAN2(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+model = AEGAN(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
@@ -45,15 +45,15 @@ with sess.as_default():
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
-            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
-                                                                       output_height=TARGET_SHAPE[0],
-                                                                       output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=RESIZE_SIZE,
-                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
-                                                                         output_height=TARGET_SHAPE[0],
-                                                                         output_width=TARGET_SHAPE[1],
-                                                                         resize_side=RESIZE_SIZE)
+            img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side_min=RESIZE_SIZE,
+                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
+            img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+                                                                  output_height=TARGET_SHAPE[0],
+                                                                  output_width=TARGET_SHAPE[1],
+                                                                  resize_side=RESIZE_SIZE)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,

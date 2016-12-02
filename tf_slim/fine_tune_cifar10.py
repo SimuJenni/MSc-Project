@@ -6,25 +6,26 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNet import AEGAN2
+from ToonNet import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
-from preprocess import preprocess_images_toon, preprocess_images_toon_test
+from preprocess import preprocess_toon_train, preprocess_toon_test
 from utils import get_variables_to_train, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
+# Setup
 fine_tune = True
-type = 'generator'
+net_type = 'generator'
 data = cifar10
-model = AEGAN2(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 CHECKPOINT = 'model.ckpt-78000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -36,33 +37,30 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Pre-process training data
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            dataset = data.get_split('train')
-            provider = slim.dataset_data_provider.DatasetDataProvider(
-                dataset,
-                num_readers=8,
-                common_queue_capacity=32 * model.batch_size,
-                common_queue_min=4 * model.batch_size)
+            train_set = data.get_split('train')
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+                                                                      common_queue_capacity=32 * model.batch_size,
+                                                                      common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
-            # Get some test-data
+            # Get test-data
             test_set = data.get_split('test')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
-            # Preprocess data
-            img_train, edge_train, toon_train = preprocess_images_toon(img_train, edge_train, toon_train,
-                                                                       output_height=TARGET_SHAPE[0],
-                                                                       output_width=TARGET_SHAPE[1],
-                                                                       resize_side_min=RESIZE_SIZE,
-                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_images_toon_test(img_test, edge_test, toon_test,
-                                                                         output_height=TARGET_SHAPE[0],
-                                                                         output_width=TARGET_SHAPE[1],
-                                                                         resize_side=RESIZE_SIZE)
+            # Pre-process data
+            img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side_min=RESIZE_SIZE,
+                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
+            img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+                                                                  output_height=TARGET_SHAPE[0],
+                                                                  output_width=TARGET_SHAPE[1],
+                                                                  resize_side=RESIZE_SIZE)
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
@@ -73,13 +71,14 @@ with sess.as_default():
                 [img_test, edge_test, toon_test, label_test],
                 batch_size=model.batch_size, num_threads=4)
 
-        # Create the model
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, finetune=fine_tune)
+        # Get predictions
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, fine_tune=fine_tune)
         preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
-                                      finetune=fine_tune)
+                                      fine_tune=fine_tune)
 
         # Define the loss
-        train_loss = slim.losses.softmax_cross_entropy(preds_train, slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
+        train_loss = slim.losses.softmax_cross_entropy(preds_train,
+                                                       slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
         total_train_loss = slim.losses.get_total_loss()
         test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
 
@@ -95,9 +94,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-        #                           0.001 - 0.001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.001)
-        learning_rate = tf.train.polynomial_decay(0.002, global_step, num_train_steps,
+        learning_rate = tf.train.polynomial_decay(0.001, global_step, num_train_steps,
                                                   end_learning_rate=0.0, power=1.0)
 
         # Define optimizer

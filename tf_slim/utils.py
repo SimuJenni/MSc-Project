@@ -6,9 +6,9 @@ from tensorflow.python.training import saver as tf_saver
 
 def montage(imgs, num_h, num_w):
     imgs = tf.unpack(imgs)
-    img_rows = [None]*num_h
+    img_rows = [None] * num_h
     for r in range(num_h):
-        img_rows[r] = tf.concat(1,imgs[r*num_w:(r+1)*num_w])
+        img_rows[r] = tf.concat(1, imgs[r * num_w:(r + 1) * num_w])
     montage = tf.concat(0, img_rows)
     return tf.expand_dims(montage, 0)
 

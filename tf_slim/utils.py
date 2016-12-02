@@ -5,6 +5,16 @@ from tensorflow.python.training import saver as tf_saver
 
 
 def montage(imgs, num_h, num_w):
+    """Makes a motage of imgs that can be used in image_summaries.
+
+    Args:
+        imgs: Tensor of images
+        num_h: Number of images per column
+        num_w: Number of images per row
+
+    Returns:
+        A montage of num_h*num_w images
+    """
     imgs = tf.unpack(imgs)
     img_rows = [None] * num_h
     for r in range(num_h):
@@ -16,23 +26,26 @@ def montage(imgs, num_h, num_w):
 def assign_from_checkpoint_fn(model_path, var_list, ignore_missing_vars=False,
                               reshape_variables=False):
     """Returns a function that assigns specific variables from a checkpoint.
+
     Args:
-      model_path: The full path to the model checkpoint. To get latest checkpoint
+        model_path: The full path to the model checkpoint. To get latest checkpoint
           use `model_path = tf.train.latest_checkpoint(checkpoint_dir)`
-      var_list: A list of `Variable` objects or a dictionary mapping names in the
+        var_list: A list of `Variable` objects or a dictionary mapping names in the
           checkpoint to the correspoing variables to initialize. If empty or None,
           it would return  no_op(), None.
-      ignore_missing_vars: Boolean, if True it would ignore variables missing in
+        ignore_missing_vars: Boolean, if True it would ignore variables missing in
           the checkpoint with a warning instead of failing.
-      reshape_variables: Boolean, if True it would automatically reshape variables
+        reshape_variables: Boolean, if True it would automatically reshape variables
           which are of different shape then the ones stored in the checkpoint but
           which have the same number of elements.
+
     Returns:
-      A function that takes a single argument, a `tf.Session`, that applies the
-      assignment operation.
+        A function that takes a single argument, a `tf.Session`, that applies the
+        assignment operation.
+
     Raises:
-      ValueError: If the checkpoint specified at `model_path` is missing one of
-        the variables in `var_list`.
+        ValueError: If the checkpoint specified at `model_path` is missing one of
+                    the variables in `var_list`.
     """
     if ignore_missing_vars:
         reader = pywrap_tensorflow.NewCheckpointReader(model_path)

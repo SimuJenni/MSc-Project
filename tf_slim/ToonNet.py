@@ -78,17 +78,17 @@ class AEGAN:
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
 
         Args:
-            img:
-            edge:
-            toon:
-            num_classes:
-            type:
-            reuse:
-            training:
-            fine_tune:
+            img: Input image
+            edge: Edge map
+            toon: Cartooned image
+            num_classes: Number of output classes
+            type: Type of network to build on. One of {'generator', 'encoder', 'discriminator'}
+            reuse: Whether to reuse already defined variables.
+            training: Whether in train or test mode
+            fine_tune: If False, builds classifier using encoder (used to compare to supervised training)
 
         Returns:
-
+            Output logits from the classifier
         """
         activation = tf.nn.relu
         if not fine_tune:

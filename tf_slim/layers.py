@@ -2,6 +2,26 @@ import tensorflow as tf
 from tensorflow.contrib import slim as slim
 
 
+def bottleneck_res_layer(inputs, depth, depth_bottleneck, noise_channels, scope, reuse=None):
+    """Bottleneck residual unit variant with BN before convolutions.
+    Args:
+      inputs: A tensor of size [batch, height, width, channels].
+      depth: The depth of the ResNet unit output.
+      depth_bottleneck: The depth of the bottleneck layers.
+      scope: Optional variable_scope.
+    Returns:
+      The ResNet unit's output.
+    """
+    with tf.variable_scope(scope, reuse=reuse):
+        shortcut = inputs
+        residual = add_noise_plane(inputs, noise_channels)
+        residual = slim.conv2d(residual, depth_bottleneck, kernel_size=(1, 1), stride=1, scope='conv1')
+        residual = slim.conv2d(residual, depth_bottleneck, scope='conv2', stride=1)
+        residual = slim.conv2d(residual, depth, kernel_size=(1, 1), stride=1, activation_fn=None, scope='conv3')
+        output = tf.nn.relu(shortcut + residual)
+        return output
+
+
 def lrelu(x, leak=0.2):
     return tf.maximum(x, leak * x)
 

@@ -16,13 +16,13 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = False
-net_type = 'encoder'
+net_type = 'discriminator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
-CHECKPOINT = 'model.ckpt-39002'
+CHECKPOINT = 'model.ckpt-39000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))

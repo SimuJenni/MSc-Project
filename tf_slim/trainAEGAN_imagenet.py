@@ -122,11 +122,11 @@ with sess.as_default():
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/generator', montage(gen_rec_test, 4, 4), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec_test, 4, 4), max_images=1)
-        tf.image_summary('images/ground-truth', montage(imgs_test, 4, 4), max_images=1)
-        tf.image_summary('images/cartoons', montage(toons_test, 4, 4), max_images=1)
-        tf.image_summary('images/edges', montage(edges_test, 4, 4), max_images=1)
+        tf.image_summary('images/generator', montage(gen_rec_test, 5, 5), max_images=1)
+        tf.image_summary('images/ae', montage(img_rec_test, 5, 5), max_images=1)
+        tf.image_summary('images/ground-truth', montage(imgs_test, 5, 5), max_images=1)
+        tf.image_summary('images/cartoons', montage(toons_test, 5, 5), max_images=1)
+        tf.image_summary('images/edges', montage(edges_test, 5, 5), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

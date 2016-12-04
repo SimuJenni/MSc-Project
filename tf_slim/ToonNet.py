@@ -8,7 +8,7 @@ NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 class AEGAN:
-    def __init__(self, num_layers, batch_size, data_size, num_epochs):
+    def __init__(self, num_layers, batch_size, data_size, num_epochs=100):
         """Initialises an AEGAN using the provided paramters.
 
         Args:
@@ -17,7 +17,6 @@ class AEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        #self.name = 'AEGANv2_normal' #TODO: before
         self.name = 'AEGANv2_new_disc'
         self.num_layers = num_layers
         self.batch_size = batch_size
@@ -177,7 +176,6 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            # net = spatial_dropout(net, 0.9) #TODO: Try without
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
@@ -210,15 +208,16 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 layers.append(net)
 
-            # net = spatial_dropout(net, 1.0 - noise_level) #TODO: before in
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096)   # TODO:Before 4096
+            net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.95, is_training=training)
-            net = slim.fully_connected(net, 2048)   # TODO:Before 4096
+            net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.95, is_training=training)
-            net = slim.fully_connected(net, num_out, activation_fn=None, normalizer_fn=None,
+            net = slim.fully_connected(net, num_out,
+                                       activation_fn=None,
+                                       normalizer_fn=None,
                                        biases_initializer=tf.zeros_initializer)
             return net, encoded, layers
 

@@ -15,7 +15,7 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'generator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)

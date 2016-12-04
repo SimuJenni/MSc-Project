@@ -76,10 +76,6 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        # Handle initialisation
-        variables_to_restore = slim.get_variables_to_restore()
-        init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
-
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation_loop(
             '',

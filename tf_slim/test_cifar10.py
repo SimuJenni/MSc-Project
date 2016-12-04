@@ -72,7 +72,7 @@ with sess.as_default():
         # Create the summary ops such that they also print out to std output:
         summary_ops = []
         for metric_name, metric_value in names_to_values.iteritems():
-            op = tf.summary.scalar(metric_name, metric_value)
+            op = tf.scalar_summary(metric_name, metric_value)
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 

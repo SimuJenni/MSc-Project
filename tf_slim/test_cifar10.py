@@ -29,6 +29,8 @@ else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_eval/'.format(data.NAME, model.name))
 
+print('Evaluating model: {}'.format(MODEL_PATH))
+
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
@@ -78,6 +80,6 @@ with sess.as_default():
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
-                                        max_number_of_evaluations=num_eval_steps,
+                                        max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops))

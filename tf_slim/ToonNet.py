@@ -17,7 +17,7 @@ class AEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_new_disc'
+        self.name = 'AEGANv2_new_setting'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -176,6 +176,7 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+            net = spatial_dropout(net, 0.9, )
             for l in range(1, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
@@ -212,9 +213,9 @@ def discriminator(inputs, num_layers=5, reuse=None, num_out=2, training=True):
             # Fully connected layers
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096)
-            net = slim.dropout(net, 0.95, is_training=training)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, 2048)
-            net = slim.dropout(net, 0.95, is_training=training)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -239,9 +240,9 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, 0.95, is_training=training)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net, 0.95, is_training=training)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,

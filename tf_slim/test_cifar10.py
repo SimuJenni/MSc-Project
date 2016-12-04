@@ -3,20 +3,17 @@ from __future__ import print_function
 import os
 
 import tensorflow as tf
-from tensorflow.python.ops import control_flow_ops
-from tensorflow.python.framework import ops
 
-from ToonNet import AEGAN
+from ToonResNet import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
-from preprocess import preprocess_toon_train, preprocess_toon_test
-from utils import get_variables_to_train, assign_from_checkpoint_fn
+from preprocess import preprocess_toon_test
 
 slim = tf.contrib.slim
 
 # Setup
-finetuned = False
-net_type = 'encoder'
+finetuned = True
+net_type = 'discriminator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]

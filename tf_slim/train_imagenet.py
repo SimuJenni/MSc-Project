@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from alexnet import alexnet_v2, alexnet_v2_arg_scope
+from alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
 from datasets import imagenet
 from preprocess import preprocess_image
 from qhu_code.model_edge_advplus_128 import DCGAN

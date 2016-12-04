@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonResNet import AEGAN
+from ToonNet import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = cifar10
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'test'
-model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=400)
+model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))

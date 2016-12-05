@@ -18,7 +18,7 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = cifar10
-model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
@@ -105,7 +105,7 @@ with sess.as_default():
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
-                                          fine_tune=fine_tune)
+                                          fine_tune=fine_tune, type=net_type)
             test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
@@ -137,7 +137,6 @@ with sess.as_default():
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
                 exclude=['fully_connected', ops.GraphKeys.GLOBAL_STEP])
-            slim.get_or_create_global_step()
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training

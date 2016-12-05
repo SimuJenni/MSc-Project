@@ -74,7 +74,8 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, type=net_type,
+                                       fine_tune=fine_tune)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train,

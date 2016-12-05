@@ -16,9 +16,9 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'discriminator'
+net_type = 'encoder'
 data = cifar10
-model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False

@@ -21,7 +21,7 @@ data = stl10
 model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 
 CHECKPOINT = 'model.ckpt-125002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -116,10 +116,7 @@ with sess.as_default():
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 
         # Create training operation
-        if fine_tune:
-            var2train = get_variables_to_train(trainable_scopes='fully_connected')
-        else:
-            var2train = get_variables_to_train()
+        var2train = get_variables_to_train()
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step)
 

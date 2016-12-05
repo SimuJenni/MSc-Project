@@ -18,8 +18,8 @@ class AEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        #self.name = 'AEGANv2_400res'
-        self.name = 'AEGANv2_300res_new_noise'
+        self.name = 'AEGANv2_400res'
+        #self.name = 'AEGANv2_300res_new_noise'
         #self.name = 'AEGANv2_res'
         self.num_layers = num_layers
         self.batch_size = batch_size

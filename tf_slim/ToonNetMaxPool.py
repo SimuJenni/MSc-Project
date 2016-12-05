@@ -98,7 +98,7 @@ class AEGAN:
             num_epochs: Number of epochs used for training
         """
         self.name = 'AEGANv2_maxpool'
-        self.num_layers = num_layers-1 #TODO: Testing!
+        self.num_layers = num_layers-1  #TODO: Testing!
         self.batch_size = batch_size
         self.data_size = data_size
         self.num_ep = num_epochs
@@ -176,7 +176,7 @@ class AEGAN:
             gen_in = merge(img, edge)
             model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
-            disc_in = merge(img, img)
+            disc_in = merge(img, img+tf.random_normal(shape=tf.shape(img), stddev=0.1))
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training)
             activation = lrelu

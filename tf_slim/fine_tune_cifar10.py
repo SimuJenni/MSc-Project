@@ -1,12 +1,11 @@
 from __future__ import print_function
 
 import os
-
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNetMaxPool import AEGAN
+from ToonNetMaxPool import AEGAN4
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -16,9 +15,9 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'encoder'
+net_type = 'discriminator'
 data = cifar10
-model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN4(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False

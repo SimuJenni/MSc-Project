@@ -45,12 +45,10 @@ with sess.as_default():
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
-
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
                                                                   capacity=4 * model.batch_size)
-
             if TEST:
                 # Get test-data
                 test_set = data.get_split('test')

@@ -13,7 +13,7 @@ slim = tf.contrib.slim
 
 # Setup
 finetuned = True
-net_type = 'discriminator'
+net_type = 'generator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]

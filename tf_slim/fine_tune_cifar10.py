@@ -15,8 +15,8 @@ from utils import get_variables_to_train, assign_from_checkpoint_fn
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
-net_type = 'encoder'
+fine_tune = True
+net_type = 'discriminator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
@@ -74,7 +74,8 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, type=net_type,
+                                       fine_tune=fine_tune)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train,

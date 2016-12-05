@@ -176,7 +176,7 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             net = spatial_dropout(net, 0.9, )
-            for l in range(1, num_layers):
+            for l in range(0, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))

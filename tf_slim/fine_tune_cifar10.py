@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonResNet import AEGAN
+from ToonNetMaxPool import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -16,13 +16,14 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'encoder'
+net_type = 'discriminator'
 data = cifar10
 model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
+TEST_WHILE_TRAIN = False
 
-CHECKPOINT = 'model.ckpt-78000'
+CHECKPOINT = 'model.ckpt-58502'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))
@@ -46,45 +47,42 @@ with sess.as_default():
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train, label_train] = provider.get(['image', 'edges', 'cartoon', 'label'])
 
-            # Get test-data
-            test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-            [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
-
             # Pre-process data
             img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
-                                                                  output_height=TARGET_SHAPE[0],
-                                                                  output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
                 [img_train, edge_train, toon_train, label_train],
                 batch_size=model.batch_size, num_threads=8,
                 capacity=4 * model.batch_size)
-            imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
-                [img_test, edge_test, toon_test, label_test],
-                batch_size=model.batch_size, num_threads=4)
+
+            if TEST_WHILE_TRAIN:
+                # Get test-data
+                test_set = data.get_split('test')
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+                [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
+                img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side=RESIZE_SIZE)
+                imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
+                    [img_test, edge_test, toon_test, label_test],
+                    batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, fine_tune=fine_tune)
-        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
-                                      fine_tune=fine_tune)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train,
                                                        slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
         total_train_loss = slim.losses.get_total_loss()
-        test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
 
         # Compute predicted label for accuracy
         preds_train = tf.argmax(preds_train, 1)
-        preds_test = tf.argmax(preds_test, 1)
 
         # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -104,12 +102,18 @@ with sess.as_default():
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
+        if TEST_WHILE_TRAIN:
+            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
+                                          fine_tune=fine_tune)
+            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
+            preds_test = tf.argmax(preds_test, 1)
+            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+            tf.scalar_summary('losses/test loss', test_loss)
+
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
-        tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Create training operation
         if fine_tune:

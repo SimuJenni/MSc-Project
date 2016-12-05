@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import AEGAN
+from ToonNetMaxPool import AEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,10 +17,11 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = AEGAN(num_layers=5, batch_size=80, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+model = AEGAN(num_layers=5, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
+TEST = False
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
 sess = tf.Session()
@@ -32,16 +33,11 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split(TRAIN_SET_NAME)
+            train_set = data.get_split('train')
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
-
-            # Get some test-data
-            test_set = data.get_split(TEST_SET_NAME)
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-            [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
             img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
@@ -49,16 +45,23 @@ with sess.as_default():
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
-            img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
-                                                                  output_height=TARGET_SHAPE[0],
-                                                                  output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
+
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
                                                                   capacity=4 * model.batch_size)
-            imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
-                                                               batch_size=model.batch_size, num_threads=4)
+
+            if TEST:
+                # Get test-data
+                test_set = data.get_split('test')
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+                [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
+                img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side=RESIZE_SIZE)
+                imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
+                                                                   batch_size=model.batch_size, num_threads=4)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -66,7 +69,6 @@ with sess.as_default():
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_im, gen_enc = model.net(imgs_train, toons_train, edges_train)
-        img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True, training=False)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -86,7 +88,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
-        l2_feat = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=20.0)
+        l2_feat = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -121,11 +123,21 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 features', l2_feat)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/generator', montage(gen_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ae', montage(img_rec_test, 6, 6), max_images=1)
-        tf.image_summary('images/ground-truth', montage(imgs_test, 6, 6), max_images=1)
-        tf.image_summary('images/cartoons', montage(toons_test, 6, 6), max_images=1)
-        tf.image_summary('images/edges', montage(edges_test, 6, 6), max_images=1)
+
+        if TEST:
+            img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
+                                                            training=False)
+            tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
+            tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
+        else:
+            tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_train, 8, 8), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_train, 8, 8), max_images=1)
+            tf.image_summary('images/edges', montage(edges_train, 8, 8), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

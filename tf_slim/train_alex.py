@@ -63,7 +63,8 @@ with sess.as_default():
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
         boundaries = tf.constant([int(num_train_steps*0.25), int(num_train_steps*0.5), int(num_train_steps*0.75)],
                                  dtype=tf.int64)
-        values = [0.01, 0.01*250**(-1./3.), 0.01*250**(-2./3.),  0.01*250**(-1.)]
+        values = [0.01, 0.01*250.**(-1./3.), 0.01*250**(-2./3.),  0.01*250.**(-1.)]
+        print(values)
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

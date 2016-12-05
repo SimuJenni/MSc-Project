@@ -210,7 +210,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True):
 
             encoded = net
             # Fully connected layers
-            net = slim.conv2d(net, num_outputs=2048, scope='conv_'.format(num_layers+1), stride=1, padding='VALID')
+            net = slim.conv2d(net, num_outputs=2048, scope='conv_'.format(num_layers+1), stride=2, padding='VALID')
             net = spatial_dropout(net, 0.75)
             net = slim.flatten(net)
             net = slim.fully_connected(net, 2048)

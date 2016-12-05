@@ -42,6 +42,7 @@ def add_noise_plane(net, noise_channels, training=True):
     else:
         noise_planes = tf.zeros(shape=noise_shape)
     biases = tf.Variable(tf.constant(0.0, shape=[noise_channels], dtype=tf.float32), trainable=True, name='noise_mu')
+    slim.add_model_variable(biases)
     noise_planes = tf.nn.bias_add(noise_planes, biases)
     return tf.concat(3, [net, noise_planes], name='add_noise_{}'.format(noise_channels))
 

@@ -21,6 +21,7 @@ IM_SHAPE = [224, 224, 3]
 PRE_TRAINED_SCOPE = 'pre_trained_scope'
 MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'  # TODO: specify log-dir
+TEST_WHILE_TRAIN = False
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -82,32 +83,33 @@ with sess.as_default():
                                                                       common_queue_min=8 * BATCH_SIZE)
             [img_train, label] = provider.get(['image', 'label'])
 
-            # Get some test-data
-            test_set = imagenet.get_split('validation', DATA_DIR)
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-            [img_test, label_test] = provider.get(['image', 'label'])
-
+            # Pre-process images
             img_train = preprocess_image(img_train, is_training=True, output_height=IM_SHAPE[0],
                                          output_width=IM_SHAPE[1])
-            img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0],
-                                        output_width=IM_SHAPE[1])
-            if FINE_TUNE:
-                img_train = tf.to_float(img_train) * (2. / 255.)
-                img_test = tf.to_float(img_test) * (2. / 255.)
-
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label], batch_size=BATCH_SIZE, num_threads=8,
                                                       capacity=8 * BATCH_SIZE)
-            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
+            if FINE_TUNE:
+                img_train = tf.to_float(img_train) * (2. / 255.)
+
+            if TEST_WHILE_TRAIN:
+                test_set = imagenet.get_split('validation', DATA_DIR)
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+                [img_test, label_test] = provider.get(['image', 'label'])
+                img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0],
+                                            output_width=IM_SHAPE[1])
+                imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
+                if FINE_TUNE:
+                    img_test = tf.to_float(img_test) * (2. / 255.)
+
+
 
         # Create the model
         predictions = Classifier(imgs_train, FINE_TUNE)
-        preds_test = Classifier(imgs_test, FINE_TUNE, training=False, reuse=True)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(predictions, slim.one_hot_encoding(labels_train, NUM_CLASSES))
         total_loss = slim.losses.get_total_loss()
-        test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, NUM_CLASSES))
 
         # Handle dependencies
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -117,7 +119,11 @@ with sess.as_default():
 
         # Compute predictions for accuracy computation
         preds_train = tf.argmax(predictions, 1)
-        preds_test = tf.argmax(preds_test, 1)
+
+        if TEST_WHILE_TRAIN:
+            preds_test = Classifier(imgs_test, FINE_TUNE, training=False, reuse=True)
+            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, NUM_CLASSES))
+            preds_test = tf.argmax(preds_test, 1)
 
         # Define learning rate
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
@@ -134,9 +140,10 @@ with sess.as_default():
         # Gather all summaries.
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/train loss', train_loss)
-        tf.scalar_summary('losses/test loss', test_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+        if TEST_WHILE_TRAIN:
+            tf.scalar_summary('losses/test loss', test_loss)
+            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Create training operation
         if FINE_TUNE:

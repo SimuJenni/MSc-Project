@@ -1,32 +1,3 @@
-# Copyright 2016 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-"""Contains a model definition for AlexNet.
-This work was first described in:
-  ImageNet Classification with Deep Convolutional Neural Networks
-  Alex Krizhevsky, Ilya Sutskever and Geoffrey E. Hinton
-and later refined in:
-  One weird trick for parallelizing convolutional neural networks
-  Alex Krizhevsky, 2014
-Here we provide the implementation proposed in "One weird trick" and not
-"ImageNet Classification", as per the paper, the LRN layers have been removed.
-Usage:
-  with slim.arg_scope(alexnet.alexnet_v2_arg_scope()):
-    outputs, end_points = alexnet.alexnet_v2(inputs)
-@@alexnet_v2
-"""
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -38,10 +9,13 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
 
 
 def alexnet_v2_arg_scope(weight_decay=0.0005):
+    batch_norm_params = {'decay': 0.999, 'epsilon': 0.001}
     with slim.arg_scope([slim.conv2d, slim.fully_connected],
                         activation_fn=tf.nn.relu,
                         biases_initializer=tf.constant_initializer(0.1),
-                        weights_regularizer=slim.l2_regularizer(weight_decay)):
+                        weights_regularizer=slim.l2_regularizer(weight_decay),
+                        normalizer_fn=slim.batch_norm,
+                        normalizer_params=batch_norm_params):
         with slim.arg_scope([slim.conv2d], padding='SAME'):
             with slim.arg_scope([slim.max_pool2d], padding='VALID') as arg_sc:
                 return arg_sc

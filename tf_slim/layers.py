@@ -38,9 +38,12 @@ def add_noise_plane(net, noise_channels, training=True):
     noise_shape = net.get_shape().as_list()
     noise_shape[-1] = noise_channels
     if training:
-        return tf.concat(3, [net, tf.random_normal(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
+        noise_planes = tf.random_normal(shape=noise_shape)
     else:
-        return tf.concat(3, [net, tf.zeros(shape=noise_shape)], name='add_noise_{}'.format(noise_channels))
+        noise_planes = tf.zeros(shape=noise_shape)
+    biases = tf.Variable(tf.constant(0.0, shape=[noise_channels], dtype=tf.float32), trainable=True, name='noise_mu')
+    noise_planes = tf.nn.bias_add(noise_planes, biases)
+    return tf.concat(3, [net, noise_planes], name='add_noise_{}'.format(noise_channels))
 
 
 def ordered_merge(a, b, order):

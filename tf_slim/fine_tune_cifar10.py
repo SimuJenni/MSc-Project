@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNetMaxPool import AEGAN4
+from ToonNetMaxPool import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,12 +17,12 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = cifar10
-model = AEGAN4(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
-CHECKPOINT = 'model.ckpt-58500'
+CHECKPOINT = 'model.ckpt-58502'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))

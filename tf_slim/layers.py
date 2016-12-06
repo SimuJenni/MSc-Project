@@ -37,10 +37,6 @@ def up_conv2d(net, num_outputs, scope, factor=2):
 def add_noise_plane(net, noise_channels, training=True):
     noise_shape = net.get_shape().as_list()
     noise_shape[-1] = noise_channels
-    # if training:
-    #     noise_planes = tf.random_normal(shape=noise_shape)
-    # else:
-    #     noise_planes = tf.zeros(shape=noise_shape)
     noise_planes = tf.random_normal(shape=noise_shape)
     biases = tf.Variable(tf.constant(0.0, shape=[noise_channels], dtype=tf.float32), trainable=True, name='noise_mu')
     if training:

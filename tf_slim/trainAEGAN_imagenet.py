@@ -125,17 +125,17 @@ with sess.as_default():
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
-            tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
-            tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec_test, 5, 5), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec_test, 5, 5), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_test, 5, 5), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_test, 5, 5), max_images=1)
+            tf.image_summary('images/edges', montage(edges_test, 5, 5), max_images=1)
         else:
-            tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_train, 8, 8), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_train, 8, 8), max_images=1)
-            tf.image_summary('images/edges', montage(edges_train, 8, 8), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec, 5, 5), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec, 5, 5), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_train, 5, 5), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_train, 5, 5), max_images=1)
+            tf.image_summary('images/edges', montage(edges_train, 5, 5), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

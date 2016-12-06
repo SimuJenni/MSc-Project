@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'test'
-model = AEGAN(num_layers=6, batch_size=25, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=200)
+model = AEGAN(num_layers=6, batch_size=20, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=200)
 TARGET_SHAPE = [192, 192, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}/'.format(data.NAME, model.name))
@@ -125,17 +125,17 @@ with sess.as_default():
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
-            tf.image_summary('images/generator', montage(gen_rec_test, 5, 5), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec_test, 5, 5), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_test, 5, 5), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_test, 5, 5), max_images=1)
-            tf.image_summary('images/edges', montage(edges_test, 5, 5), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec_test, 4, 4), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec_test, 4, 4), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_test, 4, 4), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_test, 4, 4), max_images=1)
+            tf.image_summary('images/edges', montage(edges_test, 4, 4), max_images=1)
         else:
-            tf.image_summary('images/generator', montage(gen_rec, 5, 5), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, 5, 5), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_train, 5, 5), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_train, 5, 5), max_images=1)
-            tf.image_summary('images/edges', montage(edges_train, 5, 5), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec, 4, 4), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec, 4, 4), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_train, 4, 4), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_train, 4, 4), max_images=1)
+            tf.image_summary('images/edges', montage(edges_train, 4, 4), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

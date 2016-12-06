@@ -211,10 +211,8 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True):
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            #net = slim.fully_connected(net, 4096)
-            net = slim.fully_connected(net, 2048)
+            net = slim.fully_connected(net, 4096)
             net = slim.dropout(net, 0.9)
-            #net = slim.fully_connected(net, 2048)
             net = slim.fully_connected(net, 2048)
             net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,

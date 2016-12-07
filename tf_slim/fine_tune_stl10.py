@@ -104,8 +104,8 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True, training=False,
-                                          fine_tune=fine_tune)
+            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,
+                                          training=False, fine_tune=fine_tune, type=net_type)
             test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))

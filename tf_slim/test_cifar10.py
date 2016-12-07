@@ -20,7 +20,7 @@ TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_train/'.format(data.NAME, model.name, net_type))
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_eval/'.format(data.NAME, model.name, net_type))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

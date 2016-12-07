@@ -133,8 +133,9 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                exclude=['fully_connected', ops.GraphKeys.GLOBAL_STEP])
-            slim.get_or_create_global_step()
+                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
+                                             ops.GraphKeys.GLOBAL_STEP])
+            print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training

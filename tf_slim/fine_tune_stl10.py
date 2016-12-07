@@ -93,7 +93,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.0002,
+        learning_rate = tf.train.exponential_decay(0.0005,
                                                    global_step,
                                                    (data.SPLITS_TO_SIZES['train'] / model.batch_size),
                                                    0.99,

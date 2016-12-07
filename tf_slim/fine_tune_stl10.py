@@ -18,7 +18,7 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = stl10
-model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = AEGAN(num_layers=5, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
@@ -93,10 +93,10 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.001,
+        learning_rate = tf.train.exponential_decay(0.0002,
                                                    global_step,
                                                    (data.SPLITS_TO_SIZES['train'] / model.batch_size),
-                                                   0.985,
+                                                   0.99,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')
 

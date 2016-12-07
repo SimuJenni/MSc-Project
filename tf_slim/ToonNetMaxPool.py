@@ -53,6 +53,35 @@ class AEGAN:
         disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, enc_im, gen_enc
 
+    def gan(self, img, cartoon, edges, reuse=None, training=True):
+        """Builds the AEGAN with the given inputs.
+
+        Args:
+            img: Placeholder for input images
+            cartoon: Placeholder for cartooned images
+            edges: Placeholder for edge-maps
+            reuse: Whether to reuse already defined variables.
+            training: Whether in train or test mode
+
+        Returns:
+            dec_im: The autoencoded image
+            dec_gen: The reconstructed image from cartoon and edge inputs
+            disc_out: The discriminator output
+            enc_im: Encoding of the image
+            gen_enc: Output of the generator
+        """
+        # Concatenate cartoon and edge for input to generator
+        gen_in = merge(cartoon, edges)
+        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=False)
+        # Decode both encoded images and generator output using the same decoder
+        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=False)
+        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=False)
+        # Build input for discriminator (discriminator tries to guess order of real/fake)
+        disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
+        disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
+        return dec_gen, disc_out, enc_im, gen_enc
+
     def ae_gen(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the AE and generator with the given inputs.
 

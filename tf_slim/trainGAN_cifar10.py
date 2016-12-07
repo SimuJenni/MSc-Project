@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage
+from utils import montage, assign_from_checkpoint_fn
 
 slim = tf.contrib.slim
 
@@ -20,7 +20,9 @@ TEST_SET_NAME = 'test'
 model = AEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_ae_gen/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_GAN/'.format(data.NAME, model.name))
+CHECKPOINT = 'model.ckpt-58502'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_ae_gen/{}'.format(data.NAME, model.name, CHECKPOINT))
 TEST = False
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -61,18 +63,23 @@ with sess.as_default():
                 imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
                                                                    batch_size=model.batch_size, num_threads=4)
 
-        # Create the model
-        img_rec, gen_rec, enc_im, gen_enc = model.ae_gen(imgs_train, toons_train, edges_train)
+        # Get labels for discriminator training
+        labels_disc = model.disc_labels()
+        labels_gen = model.gen_labels()
 
-        # Define the losses for AE training
-        ae_loss_scope = 'ae_loss'
-        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
-        losses_ae = slim.losses.get_losses(ae_loss_scope)
-        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
+        # Create the model
+        gen_rec, disc_out, enc_im, gen_enc = model.gan(imgs_train, toons_train, edges_train)
+
+        # Define loss for discriminator training
+        disc_loss_scope = 'disc_loss'
+        dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=1.0)
+        losses_disc = slim.losses.get_losses(disc_loss_scope)
+        losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
+        disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=50)
         l2_feat = slim.losses.sum_of_squares(gen_enc, enc_im, scope=gen_loss_scope, weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
@@ -91,7 +98,7 @@ with sess.as_default():
         if update_ops:
             updates = tf.group(*update_ops)
             gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
-            ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
+            disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
@@ -103,21 +110,19 @@ with sess.as_default():
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('losses/discriminator loss', disc_loss)
+        tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/l2 features', l2_feat)
-        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:
-            img_rec_test, gen_rec_test, _, _ = model.ae_gen(imgs_test, toons_test, edges_test, reuse=True,
-                                                            training=False)
+            gen_rec_test, _, _, _ = model.gan(imgs_test, toons_test, edges_test, reuse=True, training=False)
             tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
             tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
             tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
             tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
         else:
             tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
             tf.image_summary('images/ground-truth', montage(imgs_train, 8, 8), max_images=1)
             tf.image_summary('images/cartoons', montage(toons_train, 8, 8), max_images=1)
             tf.image_summary('images/edges', montage(edges_train, 8, 8), max_images=1)
@@ -128,15 +133,21 @@ with sess.as_default():
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=False)
 
-        # Auto-encoder training operation
-        scopes_ae = 'encoder, decoder'
-        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
-        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
-                                                    global_step=global_step, summarize_gradients=False)
+        # Discriminator training operation
+        scopes_disc = 'discriminator'
+        vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)
+        train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
+                                                      global_step=global_step, summarize_gradients=False)
+
+        # Specify the layers of your model you want to exclude
+        variables_to_restore = slim.get_variables_to_restore(include=['decoder', 'encoder', 'generator'])
+        print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
+        init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
-        slim.learning.train(train_op_ae + train_op_gen,
+        slim.learning.train(train_op_gen + train_op_disc,
                             SAVE_DIR,
+                            init_fn=init_fn,
                             save_summaries_secs=300,
                             save_interval_secs=3000,
                             log_every_n_steps=100,

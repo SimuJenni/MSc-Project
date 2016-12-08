@@ -152,7 +152,7 @@ class AEGAN:
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                        training=training)
+                                        training=training, train_fc=False)
             activation = lrelu
         elif type == 'encoder':
             model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
@@ -239,7 +239,7 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
             return net
 
 
-def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True):
+def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True):
     """Builds a discriminator network on top of inputs.
 
     Args:
@@ -265,14 +265,15 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True):
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096)
+            net = slim.fully_connected(net, 4096, trainable=train_fc)
             net = slim.dropout(net, 0.9)
-            net = slim.fully_connected(net, 2048)
+            net = slim.fully_connected(net, 2048, trainable=train_fc)
             net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
-                                       biases_initializer=tf.zeros_initializer)
+                                       biases_initializer=tf.zeros_initializer,
+                                       trainable=train_fc)
             return net, encoded, layers
 
 

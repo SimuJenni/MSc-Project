@@ -107,9 +107,10 @@ with sess.as_default():
 
         # Create training operation
         if RETRAIN:
-            var2train = get_variables_to_train(trainable_scopes='fully_connected')
-        else:
             var2train = get_variables_to_train()
+        else:
+            var2train = get_variables_to_train(trainable_scopes='fully_connected')
+
         pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
         grad_multipliers = {}
         for v in var2train:

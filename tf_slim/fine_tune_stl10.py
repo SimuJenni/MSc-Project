@@ -18,10 +18,11 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = stl10
-model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=200)
+model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
+pre_trained_grad_weight = 0.2
 
 CHECKPOINT = 'model.ckpt-312402'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -93,7 +94,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.0005,
+        learning_rate = tf.train.exponential_decay(0.001,
                                                    global_step,
                                                    (data.SPLITS_TO_SIZES['train'] / model.batch_size),
                                                    0.99,
@@ -118,8 +119,12 @@ with sess.as_default():
 
         # Create training operation
         var2train = get_variables_to_train()
+        pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
+        grad_multipliers = {}
+        for v in pre_trained_vars:
+            grad_multipliers[v] = pre_trained_grad_weight
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step)
+                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))

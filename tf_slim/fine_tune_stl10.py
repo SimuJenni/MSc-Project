@@ -121,12 +121,13 @@ with sess.as_default():
         var2train = get_variables_to_train()
         pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
         grad_multipliers = {}
-        for v in var2train:
+        for v in var2train: #TODO: Fix this shit
             if v in pre_trained_vars:
                 grad_multipliers[v.op.name] = pre_trained_grad_weight
             else:
                 grad_multipliers[v.op.name] = 1.0
 
+        print(grad_multipliers)
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, gradient_multipliers=grad_multipliers)
 

@@ -18,11 +18,11 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = stl10
-model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
+model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-pre_trained_grad_weight = 0.2
+pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-312402'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -86,11 +86,11 @@ with sess.as_default():
         # Compute predicted label for accuracy
         preds_train = tf.argmax(preds_train, 1)
 
-        # # Handle dependencies
-        # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        # if update_ops:
-        #     updates = tf.group(*update_ops)
-        #     total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
+        # Handle dependencies
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        if update_ops:
+            updates = tf.group(*update_ops)
+            total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep

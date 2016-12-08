@@ -86,11 +86,11 @@ with sess.as_default():
         # Compute predicted label for accuracy
         preds_train = tf.argmax(preds_train, 1)
 
-        # Handle dependencies
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        if update_ops:
-            updates = tf.group(*update_ops)
-            total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
+        # # Handle dependencies
+        # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        # if update_ops:
+        #     updates = tf.group(*update_ops)
+        #     total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep

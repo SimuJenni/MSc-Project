@@ -110,9 +110,9 @@ with sess.as_default():
         grad_multipliers = {}
         for v in var2train: #TODO: Fix this shit
             if v in pre_trained_vars:
-                grad_multipliers[v.op.name] = pre_trained_grad_weight
+                grad_multipliers[v] = pre_trained_grad_weight
             else:
-                grad_multipliers[v.op.name] = 1.0
+                grad_multipliers[v] = 1.0
 
         print(grad_multipliers)
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,

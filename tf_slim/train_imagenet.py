@@ -102,8 +102,6 @@ with sess.as_default():
                 if FINE_TUNE:
                     img_test = tf.to_float(img_test) * (2. / 255.)
 
-
-
         # Create the model
         predictions = Classifier(imgs_train, FINE_TUNE)
 

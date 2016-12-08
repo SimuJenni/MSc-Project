@@ -104,19 +104,6 @@ with sess.as_default():
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
-        if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,
-                                          training=False, fine_tune=fine_tune, type=net_type)
-            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
-            preds_test = tf.argmax(preds_test, 1)
-            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-            tf.scalar_summary('losses/test loss', test_loss)
-
-        # Gather all summaries.
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/training loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-
         # Create training operation
         var2train = get_variables_to_train()
         pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
@@ -131,12 +118,22 @@ with sess.as_default():
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, gradient_multipliers=grad_multipliers)
 
-        # Gather initial summaries.
-        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+        if TEST_WHILE_TRAIN:
+            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,
+                                          training=False, fine_tune=fine_tune, type=net_type)
+            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
+            preds_test = tf.argmax(preds_test, 1)
+            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+            tf.scalar_summary('losses/test loss', test_loss)
+
+        # Gather all summaries.
+        tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('losses/training loss', train_loss)
+        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 
         # Add summaries for variables.
         for variable in var2train:
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            tf.histogram_summary(variable.op.name, variable)
 
         # Handle initialisation
         init_fn = None

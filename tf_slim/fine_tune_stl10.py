@@ -22,9 +22,9 @@ num_layers = 5
 model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-TEST_WHILE_TRAIN = True
+TEST_WHILE_TRAIN = False
 RETRAIN = True
-pre_trained_grad_weight = 0.1
+pre_trained_grad_weight = 0.2
 
 CHECKPOINT = 'model.ckpt-312402'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -55,7 +55,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
-                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
+                                                                      resize_side_max=int(RESIZE_SIZE * 2))
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
@@ -96,14 +96,14 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        # learning_rate = tf.train.exponential_decay(0.001,
-        #                                            global_step,
-        #                                            (data.SPLITS_TO_SIZES['train'] / model.batch_size),
-        #                                            0.99,
-        #                                            staircase=True,
-        #                                            name='exponential_decay_learning_rate')
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.001 - 0.001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.001)
+        learning_rate = tf.train.exponential_decay(0.001,
+                                                   global_step,
+                                                   2*(data.SPLITS_TO_SIZES['train'] / model.batch_size),
+                                                   0.99,
+                                                   staircase=True,
+                                                   name='exponential_decay_learning_rate')
+        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+        #                           0.001 - 0.001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.001)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

@@ -19,7 +19,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 5
-model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
+model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
@@ -55,7 +55,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
-                                                                      resize_side_max=int(RESIZE_SIZE * 2))
+                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(

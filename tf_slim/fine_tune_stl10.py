@@ -18,12 +18,13 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = stl10
-model = AEGAN(num_layers=5, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
+num_layers = 5
+model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-RETRAIN = False
-pre_trained_grad_weight = 0.1
+RETRAIN = True
+pre_trained_grad_weight = 0.2
 
 CHECKPOINT = 'model.ckpt-312402'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -107,7 +108,9 @@ with sess.as_default():
 
         # Create training operation
         if RETRAIN:
-            var2train = get_variables_to_train()
+            var2train = get_variables_to_train(
+                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2'.format(
+                    net_type, num_layers-1, net_type, num_layers-1))
         else:
             var2train = get_variables_to_train(trainable_scopes='fully_connected')
 

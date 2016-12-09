@@ -17,7 +17,7 @@ NUM_CLASSES = 1000
 NUM_EP = 90
 IM_SHAPE = [224, 224, 3]
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net/'  # TODO: specify log-dir
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run2/'  # TODO: specify log-dir
 TEST_WHILE_TRAIN = False
 
 sess = tf.Session()
@@ -52,18 +52,12 @@ with sess.as_default():
         train_loss = slim.losses.softmax_cross_entropy(predictions, slim.one_hot_encoding(labels_train, NUM_CLASSES))
         total_loss = slim.losses.get_total_loss()
 
-        # Handle dependencies
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        if update_ops:
-            updates = tf.group(*update_ops)
-            total_loss = control_flow_ops.with_dependencies([updates], total_loss)
-
         # Compute predictions for accuracy computation
         preds_train = tf.argmax(predictions, 1)
 
         # Define learning rate
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        boundaries = [np.int64(num_train_steps*0.1), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
+        boundaries = [np.int64(num_train_steps*0.1), np.int64(num_train_steps*0.6), np.int64(num_train_steps*0.9)]
 
         boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
         values = [0.01, 0.01*250.**(-1./3.), 0.01*250**(-2./3.),  0.01*250.**(-1.)]
@@ -90,5 +84,8 @@ with sess.as_default():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         # Start training.
-        slim.learning.train(train_op, LOG_DIR, save_summaries_secs=120, save_interval_secs=1200,
+        slim.learning.train(train_op, LOG_DIR,
+                            number_of_steps=num_train_steps,
+                            save_summaries_secs=120,
+                            save_interval_secs=1200,
                             log_every_n_steps=100)

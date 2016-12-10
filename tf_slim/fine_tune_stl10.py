@@ -111,8 +111,8 @@ with sess.as_default():
         # Create training operation
         if RETRAIN:
             var2train = get_variables_to_train(
-                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2'.format(
-                    net_type, num_layers-1, net_type, num_layers-1))
+                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2,{}/conv_{}_1,{}/conv_{}_2'.format(
+                    net_type, num_layers-1, net_type, num_layers-1, net_type, num_layers-2, net_type, num_layers-2))
         else:
             var2train = get_variables_to_train(trainable_scopes='fully_connected')
 

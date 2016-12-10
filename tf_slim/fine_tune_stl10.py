@@ -16,13 +16,13 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'generator'
+net_type = 'discriminator'
 data = stl10
 num_layers = 5
 model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 RETRAIN = True
 pre_trained_grad_weight = 0.2
 
@@ -111,8 +111,8 @@ with sess.as_default():
         # Create training operation
         if RETRAIN:
             var2train = get_variables_to_train(
-                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2,{}/conv_{}_1,{}/conv_{}_2'.format(
-                    net_type, num_layers-1, net_type, num_layers-1, net_type, num_layers-2, net_type, num_layers-2))
+                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2'.format(
+                    net_type, num_layers-1, net_type, num_layers-1))
         else:
             var2train = get_variables_to_train(trainable_scopes='fully_connected')
 

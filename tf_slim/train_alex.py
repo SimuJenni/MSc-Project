@@ -57,8 +57,6 @@ with sess.as_default():
 
         # Define learning rate
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        boundaries = [np.int64(num_train_steps*0.1), np.int64(num_train_steps*0.6), np.int64(num_train_steps*0.9)]
-
         boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
         values = [0.01, 0.01*250.**(-1./3.), 0.01*250**(-2./3.),  0.01*250.**(-1.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)

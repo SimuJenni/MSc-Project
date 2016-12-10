@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'discriminator'
+net_type = 'generator'
 data = stl10
 num_layers = 5
 model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)

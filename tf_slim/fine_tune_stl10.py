@@ -24,7 +24,7 @@ TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
 RETRAIN = True
-pre_trained_grad_weight = 0.2
+pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-312402'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -110,9 +110,10 @@ with sess.as_default():
 
         # Create training operation
         if RETRAIN:
-            var2train = get_variables_to_train(
-                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2,{}/conv_{}_1,{}/conv_{}_2'.format(
-                    net_type, num_layers-1, net_type, num_layers-1, net_type, num_layers-2, net_type, num_layers-2))
+            # var2train = get_variables_to_train(
+            #     trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2,{}/conv_{}_1,{}/conv_{}_2'.format(
+            #         net_type, num_layers-1, net_type, num_layers-1, net_type, num_layers-2, net_type, num_layers-2))
+            var2train = get_variables_to_train()
         else:
             var2train = get_variables_to_train(trainable_scopes='fully_connected')
 

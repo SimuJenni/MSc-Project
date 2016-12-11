@@ -78,10 +78,12 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        kl_enc = kl_correct(enc_mu, enc_sigma)
+        #kl_enc = kl_correct(enc_mu, enc_sigma)
+
         #unit_gauss = tf.random_normal(shape=enc_dist.get_shape().as_list())
         #kl_enc = 1e-4*kl_divergence(enc_dist, unit_gauss)
-        slim.losses.add_loss(kl_enc)
+
+        #slim.losses.add_loss(kl_enc)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -128,7 +130,7 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        tf.scalar_summary('losses/KL encoder', kl_enc)
+        #tf.scalar_summary('losses/KL encoder', kl_enc)
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)

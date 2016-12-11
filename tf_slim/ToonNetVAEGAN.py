@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from tensorflow.python.ops import math_ops
 
 from tf_slim.layers import lrelu, up_conv2d, sample, merge, spatial_dropout
 
@@ -191,7 +192,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             else:
                 net = mu
 
-            return net, mu, tf.exp(log_sigma)
+            return net, mu, math_ops.exp(log_sigma)
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -222,7 +223,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = sample(mu, log_sigma)
             else:
                 net = mu
-            return net, mu, tf.exp(log_sigma)
+            return net, mu, math_ops.exp(log_sigma)
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
@@ -348,6 +349,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 def noise_amount(decay_steps):
-    rate = tf.maximum(1.0 - tf.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0, name='noise_rate')
+    rate = math_ops.maximum(1.0 - math_ops.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0,
+                            name='noise_rate')
     return rate
 

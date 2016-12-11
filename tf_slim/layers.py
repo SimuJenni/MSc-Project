@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib import slim as slim
+from tensorflow.python.ops import math_ops
 
 
 def bottleneck_res_layer(inputs, depth, depth_bottleneck, noise_channels, scope, reuse=None):
@@ -48,7 +49,7 @@ def add_noise_plane(net, noise_channels, training=True):
 def sample(mu, log_sigma):
     noise_shape = mu.get_shape().as_list()
     noise = tf.random_normal(shape=noise_shape)
-    samples = tf.add(tf.mul(tf.exp(log_sigma), noise), mu)
+    samples = math_ops.add(math_ops.mul(math_ops.exp(log_sigma), noise), mu)
     return samples
 
 

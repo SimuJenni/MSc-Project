@@ -18,7 +18,7 @@ class AEGAN:
             num_epochs: Number of epochs used for training
         """
         self.name = 'AEGANv2_vaegan'
-        self.num_layers = num_layers-1  #TODO: Testing!
+        self.num_layers = num_layers-1
         self.batch_size = batch_size
         self.data_size = data_size
         self.num_ep = num_epochs
@@ -187,7 +187,10 @@ def generator(net, num_layers=5, reuse=None, training=True):
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1, normalizer_fn=None)
-            net = sample(mu, sigma)
+            if training:
+                net = sample(mu, sigma)
+            else:
+                net = mu
 
             return net, layers
 
@@ -217,8 +220,10 @@ def encoder(net, num_layers=5, reuse=None, training=True):
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1, normalizer_fn=None)
-            net = sample(mu, sigma)
-
+            if training:
+                net = sample(mu, sigma)
+            else:
+                net = mu
             return net, layers
 
 

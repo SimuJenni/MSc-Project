@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage, kl_divergence, kl_correct
+from utils import montage, kl_correct
 
 slim = tf.contrib.slim
 
@@ -20,7 +20,7 @@ TEST_SET_NAME = 'test'
 model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_correct_KL/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_no_KL/'.format(data.NAME, model.name))
 TEST = False
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -78,22 +78,17 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        kl_enc = kl_correct(enc_mu, enc_logvar)
-
-        #unit_gauss = tf.random_normal(shape=enc_dist.get_shape().as_list())
-        #kl_enc = 1e-4*kl_divergence(enc_dist, unit_gauss)
-
+        # kl_enc = kl_correct(enc_mu, enc_logvar)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae + [1e-5*kl_enc], name='ae_total_loss')
+        #ae_loss = math_ops.add_n(losses_ae + [1e-5*kl_enc], name='ae_total_loss')
+        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        #kl_gen = 1e-4*kl_divergence(gen_dist, enc_dist)
-        #slim.losses.add_loss(kl_gen)
         l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
         l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
                                               weight=10.0)
@@ -129,7 +124,7 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        tf.scalar_summary('losses/KL encoder', kl_enc)
+        # tf.scalar_summary('losses/KL encoder', kl_enc)
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)

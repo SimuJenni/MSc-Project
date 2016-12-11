@@ -191,7 +191,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             else:
                 net = mu
 
-            return net, mu, log_sigma
+            return net, mu, tf.exp(log_sigma)
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -222,7 +222,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = sample(mu, log_sigma)
             else:
                 net = mu
-            return net, mu, log_sigma
+            return net, mu, tf.exp(log_sigma)
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):

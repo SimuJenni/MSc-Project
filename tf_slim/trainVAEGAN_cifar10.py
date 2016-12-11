@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage, kl_correct
+from utils import montage, kl_divergence
 
 slim = tf.contrib.slim
 
@@ -20,8 +20,9 @@ TEST_SET_NAME = 'test'
 model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_no_KL/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_KL_infeat/'.format(data.NAME, model.name))
 TEST = False
+NUM_IMG_SUMMARY = 8
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
 sess = tf.Session()
@@ -78,20 +79,19 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        # kl_enc = kl_correct(enc_mu, enc_logvar)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        #ae_loss = math_ops.add_n(losses_ae + [1e-5*kl_enc], name='ae_total_loss')
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
-        l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
-                                              weight=10.0)
+        kl_gen = kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
+        # l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
+        # l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
+        #                                       weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -124,25 +124,25 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        # tf.scalar_summary('losses/KL encoder', kl_enc)
-        tf.scalar_summary('losses/L2 mu', l2_mu)
-        tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        # tf.scalar_summary('losses/L2 mu', l2_mu)
+        # tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        tf.scalar_summary('losses/KL generator', kl_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
             tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec_test, 8, 8), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1)
-            tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         else:
-            tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_train, 8, 8), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_train, 8, 8), max_images=1)
-            tf.image_summary('images/edges', montage(edges_train, 8, 8), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

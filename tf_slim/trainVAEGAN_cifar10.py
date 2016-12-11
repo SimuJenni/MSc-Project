@@ -78,7 +78,7 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         unit_gauss = tf.random_normal(shape=enc_dist.get_shape().as_list())
-        kl_enc = kl_divergence(enc_dist, unit_gauss)
+        kl_enc = 1e-4*kl_divergence(enc_dist, unit_gauss)
         slim.losses.add_loss(kl_enc)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
@@ -89,7 +89,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        kl_gen = kl_divergence(gen_dist, enc_dist)
+        kl_gen = 1e-4*kl_divergence(gen_dist, enc_dist)
         slim.losses.add_loss(kl_gen)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)

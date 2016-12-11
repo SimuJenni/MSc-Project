@@ -96,8 +96,8 @@ with sess.as_default():
         #kl_gen = 1e-4*kl_divergence(gen_dist, enc_dist)
         #slim.losses.add_loss(kl_gen)
         l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
-        # l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_sigma), math_ops.exp(enc_sigma), scope=gen_loss_scope,
-        #                                       weight=10.0)
+        l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_sigma), math_ops.exp(enc_sigma), scope=gen_loss_scope,
+                                              weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -123,7 +123,7 @@ with sess.as_default():
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)
@@ -132,7 +132,7 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/KL encoder', kl_enc)
         tf.scalar_summary('losses/L2 mu', l2_mu)
-        #tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:

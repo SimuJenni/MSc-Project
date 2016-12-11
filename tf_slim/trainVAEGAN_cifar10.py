@@ -83,11 +83,10 @@ with sess.as_default():
         #unit_gauss = tf.random_normal(shape=enc_dist.get_shape().as_list())
         #kl_enc = 1e-4*kl_divergence(enc_dist, unit_gauss)
 
-        slim.losses.add_loss(kl_enc)
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
+        ae_loss = math_ops.add_n(losses_ae + [kl_enc], name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'

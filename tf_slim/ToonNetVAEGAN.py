@@ -19,11 +19,11 @@ class AEGAN:
             num_epochs: Number of epochs used for training
         """
         self.name = 'AEGANv2_vaegan'
-        self.num_layers = num_layers-1
+        self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
         self.num_ep = num_epochs
-        self.num_steps = num_epochs*data_size/batch_size
+        self.num_steps = num_epochs * data_size / batch_size
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the AEGAN with the given inputs.
@@ -186,7 +186,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
-                                    activation_fn=None, normalizer_fn=None)
+                                  activation_fn=None, normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
             else:
@@ -218,7 +218,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
-                                    activation_fn=None, normalizer_fn=None)
+                                  activation_fn=None, normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
             else:
@@ -352,4 +352,3 @@ def noise_amount(decay_steps):
     rate = math_ops.maximum(1.0 - math_ops.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0,
                             name='noise_rate')
     return rate
-

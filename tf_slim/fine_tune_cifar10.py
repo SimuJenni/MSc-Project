@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNetMaxPool import AEGAN
+from ToonNetVAEGAN import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -22,7 +22,7 @@ TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
-CHECKPOINT = 'model.ckpt-29101'
+CHECKPOINT = 'model.ckpt-58500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_GAN/{}'.format(data.NAME, model.name, CHECKPOINT)) # TODO: Used new seperated training!
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_train/'.format(data.NAME, model.name, net_type))

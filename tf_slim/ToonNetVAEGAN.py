@@ -43,15 +43,15 @@ class AEGAN:
         """
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        gen_dist, gen_mu, gen_sigma = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_dist, enc_mu, enc_sigma = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
+        dec_im = decoder(enc_dist, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
-        return dec_im, dec_gen, disc_out, enc_im, gen_enc
+        return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_sigma, gen_sigma
 
     def gan(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the AEGAN with the given inputs.
@@ -177,12 +177,10 @@ def generator(net, num_layers=5, reuse=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            layers = []
             for l in range(0, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
-                layers.append(net)
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
@@ -192,7 +190,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             else:
                 net = mu
 
-            return net, layers
+            return net, mu, sigma
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -210,12 +208,10 @@ def encoder(net, num_layers=5, reuse=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            layers = []
             for l in range(0, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
-                layers.append(net)
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
@@ -224,7 +220,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = sample(mu, sigma)
             else:
                 net = mu
-            return net, layers
+            return net, mu, sigma
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):

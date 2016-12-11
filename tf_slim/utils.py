@@ -101,3 +101,10 @@ def kl_divergence(predictions, targets, epsilon=1e-7, scope=None):
         predictions = tf.clip_by_value(predictions, epsilon, 1.0)
         targets = tf.clip_by_value(targets, epsilon, 1.0)
         return math_ops.reduce_sum(math_ops.mul(targets, math_ops.log(math_ops.div(targets, predictions))))
+
+
+def kl_correct(mu, log_sigma, scope=None):
+    with ops.op_scope([mu, log_sigma],
+                      scope, "kl_divergence") as scope:
+        return -0.5 * math_ops.reduce_sum(1 + 2 * log_sigma - mu ** 2 - math_ops.exp(2 * log_sigma), 1)
+

@@ -93,7 +93,7 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-7, scope=None):
+def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-8, scope=None):
     with ops.op_scope([mu1, sigma1, mu2, sigma2],
                       scope, "kl_divergence") as scope:
         mu1 = slim.flatten(mu1)
@@ -101,8 +101,8 @@ def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-7, scope=None):
         sigma1 = slim.flatten(sigma1)
         sigma2 = slim.flatten(sigma2)
         k = mu1.get_shape().as_list()[1]
-        t1 = math_ops.reduce_sum(math_ops.div(sigma1+math_ops.square(mu2-mu1), sigma2), reduction_indices=[1])
-        t2 = math_ops.log(math_ops.reduce_prod(math_ops.div(sigma2, sigma1), reduction_indices=[1]))
+        t1 = math_ops.reduce_sum(math_ops.div(sigma1+math_ops.square(mu2-mu1), sigma2+epsilon), reduction_indices=[1])
+        t2 = math_ops.log(math_ops.reduce_prod(math_ops.div(sigma2, sigma1+epsilon), reduction_indices=[1]))
         return math_ops.reduce_mean(0.5*(t1+t2-k))
 
 

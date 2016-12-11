@@ -106,5 +106,5 @@ def kl_divergence(predictions, targets, epsilon=1e-7, scope=None):
 def kl_correct(mu, log_sigma, scope=None):
     with ops.op_scope([mu, log_sigma],
                       scope, "kl_divergence") as scope:
-        return -0.5 * math_ops.reduce_sum(1 + 2 * log_sigma - mu ** 2 - math_ops.exp(2 * log_sigma), 1)
+        return -0.5 * math_ops.reduce_sum(1 + 2 * log_sigma - mu ** 2 - math_ops.exp(2 * log_sigma))
 

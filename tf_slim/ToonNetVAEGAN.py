@@ -184,13 +184,14 @@ def generator(net, num_layers=5, reuse=None, training=True):
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
-            sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1, normalizer_fn=None)
+            log_sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
+                                    activation_fn=None, normalizer_fn=None)
             if training:
-                net = sample(mu, sigma)
+                net = sample(mu, log_sigma)
             else:
                 net = mu
 
-            return net, mu, sigma
+            return net, mu, log_sigma
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -215,12 +216,13 @@ def encoder(net, num_layers=5, reuse=None, training=True):
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
-            sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1, normalizer_fn=None)
+            log_sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
+                                    activation_fn=None, normalizer_fn=None)
             if training:
-                net = sample(mu, sigma)
+                net = sample(mu, log_sigma)
             else:
                 net = mu
-            return net, mu, sigma
+            return net, mu, log_sigma
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):

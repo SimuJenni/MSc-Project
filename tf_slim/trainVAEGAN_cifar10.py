@@ -66,7 +66,7 @@ with sess.as_default():
         labels_gen = model.gen_labels()
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_sigma, gen_sigma = \
+        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
             model.net(imgs_train, toons_train, edges_train)
 
         # Define loss for discriminator training
@@ -78,7 +78,7 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        kl_enc = kl_correct(enc_mu, enc_sigma)
+        kl_enc = kl_correct(enc_mu, enc_logvar)
 
         #unit_gauss = tf.random_normal(shape=enc_dist.get_shape().as_list())
         #kl_enc = 1e-4*kl_divergence(enc_dist, unit_gauss)
@@ -96,7 +96,7 @@ with sess.as_default():
         #kl_gen = 1e-4*kl_divergence(gen_dist, enc_dist)
         #slim.losses.add_loss(kl_gen)
         l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
-        l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_sigma), math_ops.exp(enc_sigma), scope=gen_loss_scope,
+        l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
                                               weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)

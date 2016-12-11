@@ -103,8 +103,8 @@ def kl_divergence(predictions, targets, epsilon=1e-7, scope=None):
         return math_ops.reduce_sum(math_ops.mul(targets, math_ops.log(math_ops.div(targets, predictions))))
 
 
-def kl_correct(mu, log_sigma, scope=None):
-    with ops.op_scope([mu, log_sigma],
+def kl_correct(mu, log_var, scope=None):
+    with ops.op_scope([mu, log_var],
                       scope, "kl_divergence") as scope:
-        return -0.5 * math_ops.reduce_sum(1.0 + 2.0 * log_sigma - math_ops.square(mu) - math_ops.exp(2.0 * log_sigma))
+        return -0.5 * math_ops.reduce_sum(1.0 + log_var - math_ops.square(mu) - math_ops.exp(log_var))
 

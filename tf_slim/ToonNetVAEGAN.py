@@ -44,15 +44,15 @@ class AEGAN:
         """
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
-        gen_dist, gen_mu, gen_sigma = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_sigma = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        gen_dist, gen_mu, gen_logvar = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_dist, enc_mu, enc_logvar = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = decoder(enc_dist, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
-        return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_sigma, gen_sigma
+        return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
 
     def gan(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the AEGAN with the given inputs.
@@ -185,14 +185,14 @@ def generator(net, num_layers=5, reuse=None, training=True):
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
-            log_sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
                                     activation_fn=None, normalizer_fn=None)
             if training:
-                net = sample(mu, log_sigma)
+                net = sample(mu, log_var)
             else:
                 net = mu
 
-            return net, mu, log_sigma
+            return net, mu, log_var
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -217,13 +217,13 @@ def encoder(net, num_layers=5, reuse=None, training=True):
 
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
-            log_sigma = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
                                     activation_fn=None, normalizer_fn=None)
             if training:
-                net = sample(mu, log_sigma)
+                net = sample(mu, log_var)
             else:
                 net = mu
-            return net, mu, log_sigma
+            return net, mu, log_var
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):

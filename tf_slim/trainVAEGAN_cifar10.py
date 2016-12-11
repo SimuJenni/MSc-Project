@@ -94,7 +94,7 @@ with sess.as_default():
         #                                       weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
-        gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
+        gen_loss = math_ops.add_n(losses_gen+[kl_gen], name='gen_total_loss')
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))

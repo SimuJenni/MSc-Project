@@ -93,7 +93,7 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-8, scope=None):
+def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-7, scope=None):
     with ops.op_scope([mu1, sigma1, mu2, sigma2],
                       scope, "kl_divergence") as scope:
         mu1 = slim.flatten(mu1)

@@ -94,7 +94,8 @@ with sess.as_default():
         #kl_gen = 1e-4*kl_divergence(gen_dist, enc_dist)
         #slim.losses.add_loss(kl_gen)
         l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
-        l2_sigma = slim.losses.sum_of_squares(gen_sigma, enc_sigma, scope=gen_loss_scope, weight=10.0)
+        l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_sigma), math_ops.exp(enc_sigma), scope=gen_loss_scope,
+                                              weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

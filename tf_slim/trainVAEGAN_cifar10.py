@@ -86,7 +86,7 @@ with sess.as_default():
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100.0)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae + [1e-4*kl_enc], name='ae_total_loss')
+        ae_loss = math_ops.add_n(losses_ae + [1e-5*kl_enc], name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'

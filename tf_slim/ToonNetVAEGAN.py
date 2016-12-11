@@ -145,17 +145,17 @@ class AEGAN:
         """
         activation = tf.nn.relu
         if not fine_tune:
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
             gen_in = merge(img, edge)
-            model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            model, _, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)
             activation = lrelu
         elif type == 'encoder':
-            model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            model, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)

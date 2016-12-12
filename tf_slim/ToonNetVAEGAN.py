@@ -148,9 +148,8 @@ class AEGAN:
         if not fine_tune:
             model, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
-            gen_in = merge(img, edge)
-            _, mu, sigma = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-            model = merge(mu, sigma)
+            gen_in = merge(toon, edge)
+            model, _, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,

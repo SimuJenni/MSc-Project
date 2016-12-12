@@ -88,7 +88,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        kl_gen = 1e-3*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
+        kl_gen = 1e-3*kl_divergence(gen_mu, gen_logvar, enc_mu, enc_logvar)
         losses_gen = slim.losses.get_losses(gen_loss_scope) + [kl_gen]
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

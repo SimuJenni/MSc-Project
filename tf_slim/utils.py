@@ -93,13 +93,13 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-def kl_divergence(mu1, sigma1, mu2, sigma2, scope=None):
-    with ops.op_scope([mu1, sigma1, mu2, sigma2],
+def kl_divergence(mu1, lvar1, mu2, lvar2, scope=None):
+    with ops.op_scope([mu1, lvar1, mu2, lvar2],
                       scope, "kl_divergence") as scope:
         pm = slim.flatten(mu1)
         qm = slim.flatten(mu2)
-        pv = slim.flatten(sigma1)
-        qv = slim.flatten(sigma2)
+        pv = math_ops.maximum(slim.flatten(math_ops.exp(lvar1)), 1e-6)
+        qv = math_ops.maximum(slim.flatten(math_ops.exp(lvar2)), 1e-6)
         # Determinants of diagonal covariances
         dpv = math_ops.reduce_prod(pv, reduction_indices=[1])
         dqv = math_ops.reduce_prod(qv, reduction_indices=[1])

@@ -60,7 +60,7 @@ with sess.as_default():
             summary_ops.append(op)
 
         # Run the evaluation
-        num_eval_steps = int(imagenet.SPLITS_TO_SIZES['test'] / BATCH_SIZE)
+        num_eval_steps = int(imagenet.SPLITS_TO_SIZES['validation'] / BATCH_SIZE)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=1,

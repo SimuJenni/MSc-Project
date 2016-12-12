@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage, kl_divergence
+from utils import montage
 
 slim = tf.contrib.slim
 
@@ -88,7 +88,6 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        # kl_gen = 1e-5*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
         l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
         l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope,
                                               weight=10.0)
@@ -126,7 +125,6 @@ with sess.as_default():
         tf.scalar_summary('losses/l2 generator', l2_gen)
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
-        #tf.scalar_summary('losses/KL generator', kl_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:

@@ -4,7 +4,7 @@ from tensorflow.python.ops import math_ops
 
 from tf_slim.layers import lrelu, up_conv2d, sample, merge, spatial_dropout
 
-DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 512, 1024]
+DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 416, 672]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
@@ -149,7 +149,8 @@ class AEGAN:
             model, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
             gen_in = merge(img, edge)
-            model, _, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, mu, sigma = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            model = merge(mu, sigma)
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,

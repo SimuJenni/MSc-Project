@@ -113,15 +113,3 @@ def kl_divergence(mu1, lvar1, mu2, lvar2, scope=None):
                                       + math_ops.reduce_sum(math_ops.exp(pv-qv), reduction_indices=[1])
                                       + math_ops.reduce_sum(diff * math_ops.exp(-qv) * diff, reduction_indices=[1])
                                       - pm.get_shape().as_list()[1])))
-
-        # return math_ops.reduce_mean((0.5 *
-        #                              (math_ops.log((math_ops.div(dqv, dpv)))
-        #                               + math_ops.reduce_sum(iqv * pv, reduction_indices=[1])
-        #                               + math_ops.reduce_sum(diff * iqv * diff, reduction_indices=[1])
-        #                               - pm.get_shape().as_list()[1])))
-
-
-def kl_correct(mu, log_var, scope=None):
-    with ops.op_scope([mu, log_var],
-                      scope, "kl_divergence") as scope:
-        return -0.5 * math_ops.reduce_sum(1.0 + log_var - math_ops.square(mu) - math_ops.exp(log_var))

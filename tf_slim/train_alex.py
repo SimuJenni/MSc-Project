@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 import numpy as np
-from tensorflow.python.ops import control_flow_ops
 
 from alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
 from datasets import imagenet
@@ -11,14 +10,12 @@ from utils import get_variables_to_train
 
 slim = tf.contrib.slim
 
-FINE_TUNE = False
 BATCH_SIZE = 256
 NUM_CLASSES = 1000
 NUM_EP = 90
 IM_SHAPE = [224, 224, 3]
-DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run2/'  # TODO: specify log-dir
-TEST_WHILE_TRAIN = False
+DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'  # Directory of tf-records
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run2/'  # Directory where checktpoints and summaries are stored
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -57,8 +54,9 @@ with sess.as_default():
 
         # Define learning rate
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        values = [0.01, 0.01*250.**(-1./3.), 0.01*250**(-2./3.),  0.01*250.**(-1.)]
+        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
+                      np.int64(num_train_steps * 0.75)]
+        values = [0.01, 0.01 * 250. ** (-1. / 3.), 0.01 * 250 ** (-2. / 3.), 0.01 * 250. ** (-1.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

@@ -27,7 +27,7 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = imagenet.get_split('test', dataset_dir=DATA_DIR)
+            test_set = imagenet.get_split('validation', dataset_dir=DATA_DIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, label] = provider.get(['image', 'label'])
 

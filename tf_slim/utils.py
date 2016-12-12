@@ -98,20 +98,27 @@ def kl_divergence(mu1, lvar1, mu2, lvar2, scope=None):
                       scope, "kl_divergence") as scope:
         pm = slim.flatten(mu1)
         qm = slim.flatten(mu2)
-        pv = math_ops.maximum(slim.flatten(math_ops.exp(lvar1)), 1e-6)
-        qv = math_ops.maximum(slim.flatten(math_ops.exp(lvar2)), 1e-6)
+        pv = slim.flatten(lvar1)
+        qv = slim.flatten(lvar2)
         # Determinants of diagonal covariances
-        dpv = math_ops.reduce_prod(pv, reduction_indices=[1])
-        dqv = math_ops.reduce_prod(qv, reduction_indices=[1])
+        dpv = math_ops.reduce_sum(pv, reduction_indices=[1])
+        dqv = math_ops.reduce_sum(qv, reduction_indices=[1])
         # Inverse of diagonal covariance
         iqv = 1. / qv
         # Difference between means pm, qm
         diff = qm - pm
+
         return math_ops.reduce_mean((0.5 *
-                                     (math_ops.log((math_ops.div(dqv, dpv)))
-                                      + math_ops.reduce_sum(iqv * pv, reduction_indices=[1])
-                                      + math_ops.reduce_sum(diff * iqv * diff, reduction_indices=[1])
+                                     (dqv-dpv
+                                      + math_ops.reduce_sum(math_ops.exp(pv-qv), reduction_indices=[1])
+                                      + math_ops.reduce_sum(diff * math_ops.exp(-qv) * diff, reduction_indices=[1])
                                       - pm.get_shape().as_list()[1])))
+
+        # return math_ops.reduce_mean((0.5 *
+        #                              (math_ops.log((math_ops.div(dqv, dpv)))
+        #                               + math_ops.reduce_sum(iqv * pv, reduction_indices=[1])
+        #                               + math_ops.reduce_sum(diff * iqv * diff, reduction_indices=[1])
+        #                               - pm.get_shape().as_list()[1])))
 
 
 def kl_correct(mu, log_var, scope=None):

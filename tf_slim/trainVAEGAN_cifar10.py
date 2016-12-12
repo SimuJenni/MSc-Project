@@ -88,7 +88,7 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        kl_gen = 0.001*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
+        kl_gen = 1e-5*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
         # l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
         # l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
         #                                       weight=10.0)
@@ -117,7 +117,7 @@ with sess.as_default():
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

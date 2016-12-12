@@ -101,16 +101,15 @@ def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-7, scope=None):
         sigma1 = slim.flatten(sigma1)
         sigma2 = slim.flatten(sigma2)
         k = mu1.get_shape().as_list()[1]
-        tf.check_numerics(sigma1, 'Trouble in s1', name=None)
-        tf.check_numerics(sigma2, 'Trouble in s2', name=None)
+        print(sigma1.get_shape().as_list())
 
         t1 = math_ops.reduce_sum(math_ops.div(sigma1, sigma2+epsilon), reduction_indices=[1])
-        tf.check_numerics(t1, 'Trouble in 1', name=None)
+        print(t1.get_shape().as_list())
         t2 = math_ops.reduce_sum(math_ops.div(math_ops.square(mu2-mu1), sigma2+epsilon), reduction_indices=[1])
-        tf.check_numerics(t2, 'Trouble in 2', name=None)
+        print(t2.get_shape().as_list())
         t3 = math_ops.log(math_ops.div(math_ops.reduce_prod(sigma2, reduction_indices=[1]),
                                        math_ops.reduce_prod(sigma1, reduction_indices=[1])+epsilon)+epsilon)
-        tf.check_numerics(t3, 'Trouble in 3', name=None)
+        print(t3.get_shape().as_list())
         return math_ops.reduce_mean(0.5*(t1+t2+t3-k))
 
 

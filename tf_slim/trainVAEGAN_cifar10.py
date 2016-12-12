@@ -20,7 +20,7 @@ TEST_SET_NAME = 'test'
 model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_KL_infeat/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_no_KL/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 
@@ -88,13 +88,13 @@ with sess.as_default():
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100)
-        kl_gen = 1e-5*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
-        # l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
-        # l2_sigma = slim.losses.sum_of_squares(math_ops.exp(gen_logvar), math_ops.exp(enc_logvar), scope=gen_loss_scope,
-        #                                       weight=10.0)
+        # kl_gen = 1e-5*kl_divergence(gen_mu, math_ops.exp(gen_logvar), enc_mu, math_ops.exp(enc_logvar))
+        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)
+        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope,
+                                              weight=10.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
-        gen_loss = math_ops.add_n(losses_gen+[kl_gen], name='gen_total_loss')
+        gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -124,9 +124,9 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        # tf.scalar_summary('losses/L2 mu', l2_mu)
-        # tf.scalar_summary('losses/L2 sigma', l2_sigma)
-        tf.scalar_summary('losses/KL generator', kl_gen)
+        tf.scalar_summary('losses/L2 mu', l2_mu)
+        tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        #tf.scalar_summary('losses/KL generator', kl_gen)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:

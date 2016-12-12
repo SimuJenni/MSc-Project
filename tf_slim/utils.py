@@ -93,28 +93,29 @@ def get_variables_to_train(trainable_scopes=None):
     return variables_to_train
 
 
-def kl_divergence(mu1, sigma1, mu2, sigma2, epsilon=1e-7, scope=None):
+def kl_divergence(mu1, sigma1, mu2, sigma2, scope=None):
     with ops.op_scope([mu1, sigma1, mu2, sigma2],
                       scope, "kl_divergence") as scope:
-        mu1 = slim.flatten(mu1)
-        mu2 = slim.flatten(mu2)
-        sigma1 = slim.flatten(sigma1)
-        sigma2 = slim.flatten(sigma2)
-        k = mu1.get_shape().as_list()[1]
-        print(sigma1.get_shape().as_list())
 
-        t1 = math_ops.reduce_sum(math_ops.div(sigma1, sigma2+epsilon), reduction_indices=[1])
-        print(t1.get_shape().as_list())
-        t2 = math_ops.reduce_sum(math_ops.div(math_ops.square(mu2-mu1), sigma2+epsilon), reduction_indices=[1])
-        print(t2.get_shape().as_list())
-        t3 = math_ops.log(math_ops.div(math_ops.reduce_prod(sigma2, reduction_indices=[1]),
-                                       math_ops.reduce_prod(sigma1, reduction_indices=[1])+epsilon)+epsilon)
-        print(t3.get_shape().as_list())
-        return math_ops.reduce_mean(0.5*(t1+t2+t3-k))
+        pm = slim.flatten(mu1)
+        qm = slim.flatten(mu2)
+        pv = slim.flatten(sigma1)
+        qv = slim.flatten(sigma2)
+        # Determinants of diagonal covariances
+        dpv = math_ops.reduce_prod(pv, reduction_indices=[1])
+        dqv = math_ops.reduce_prod(qv, reduction_indices=[1])
+        # Inverse of diagonal covariance
+        iqv = 1. / qv
+        # Difference between means pm, qm
+        diff = qm - pm
+        return math_ops.reduce_mean((0.5 *
+                                     (math_ops.log((math_ops.div(dqv, dpv)))
+                                      + math_ops.reduce_sum(iqv * pv, reduction_indices=[1])
+                                      + math_ops.reduce_sum(diff * iqv * diff, reduction_indices=[1])
+                                      - pm.get_shape().as_list()[1])))
 
 
 def kl_correct(mu, log_var, scope=None):
     with ops.op_scope([mu, log_var],
                       scope, "kl_divergence") as scope:
         return -0.5 * math_ops.reduce_sum(1.0 + log_var - math_ops.square(mu) - math_ops.exp(log_var))
-

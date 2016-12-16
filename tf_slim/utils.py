@@ -115,5 +115,5 @@ def kl_divergence(mu1, lvar1, mu2, lvar2, scope=None):
                                       - pm.get_shape().as_list()[1])))
 
 
-def kl_gauss(z_log_sigma):
-    return - 0.5 * math_ops.reduce_mean(1.0 + z_log_sigma - math_ops.exp(z_log_sigma))
+def kl_gauss(z_log_sigma, z_mean):
+    return - 0.5 * math_ops.reduce_mean(1.0 + z_log_sigma - math_ops.square(z_mean) - math_ops.exp(z_log_sigma))

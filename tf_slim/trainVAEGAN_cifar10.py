@@ -80,7 +80,7 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=50)  #TODO: weight=100
-        kl_ae = kl_gauss(z_log_sigma=enc_logvar/2.0)
+        kl_ae = 0.1*kl_gauss(z_log_sigma=enc_logvar/2.0, z_mean=enc_mu)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae+[kl_ae], name='ae_total_loss')

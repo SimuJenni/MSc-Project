@@ -52,7 +52,7 @@ with sess.as_default():
         preds_test = tf.argmax(disc_out, 1)
 
         # Get labels for discriminator
-        labels_disc = model.disc_labels()
+        labels_disc = tf.argmax(model.disc_labels(), 1)
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({

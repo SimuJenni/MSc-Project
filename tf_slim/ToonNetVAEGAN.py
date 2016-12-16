@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.python.ops import math_ops
 
-from tf_slim.layers import lrelu, up_conv2d, sample, merge, spatial_dropout
+from tf_slim.layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
 DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 416, 672]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
@@ -179,6 +179,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             for l in range(0, num_layers):
+                net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
@@ -241,7 +242,7 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            net = spatial_dropout(net, 0.9, )
+            # net = spatial_dropout(net, 0.9)
             for l in range(0, num_layers):
                 if layers:
                     net = merge(net, layers[-l])
@@ -316,7 +317,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.):    #TODO: weight_reg=.00001
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:

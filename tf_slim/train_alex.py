@@ -12,7 +12,7 @@ slim = tf.contrib.slim
 
 BATCH_SIZE = 128
 NUM_CLASSES = 1000
-NUM_EP = 90
+NUM_EP = 100
 IM_SHAPE = [224, 224, 3]
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'  # Directory of tf-records
 LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run2_b128/'  # Directory where checktpoints and summaries are stored
@@ -54,9 +54,9 @@ with sess.as_default():
 
         # Define learning rate
         num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
-                      np.int64(num_train_steps * 0.75)]
-        values = [0.01, 0.01 * 250. ** (-1. / 3.), 0.01 * 250 ** (-2. / 3.), 0.01 * 250. ** (-1.)]
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

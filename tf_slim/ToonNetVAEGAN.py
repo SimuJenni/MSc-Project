@@ -44,8 +44,8 @@ class AEGAN:
         """
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
-        gen_dist, gen_mu, gen_logvar = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_logvar = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        gen_dist, gen_mu, gen_logvar, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        enc_dist, enc_mu, enc_logvar, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = decoder(enc_dist, num_layers=self.num_layers, reuse=reuse, training=training)
         dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
@@ -53,60 +53,6 @@ class AEGAN:
         disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
-
-    def gan(self, img, cartoon, edges, reuse=None, training=True):
-        """Builds the AEGAN with the given inputs.
-
-        Args:
-            img: Placeholder for input images
-            cartoon: Placeholder for cartooned images
-            edges: Placeholder for edge-maps
-            reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
-
-        Returns:
-            dec_im: The autoencoded image
-            dec_gen: The reconstructed image from cartoon and edge inputs
-            disc_out: The discriminator output
-            enc_im: Encoding of the image
-            gen_enc: Output of the generator
-        """
-        # Concatenate cartoon and edge for input to generator
-        gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=False)
-        # Decode both encoded images and generator output using the same decoder
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=False)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=False)
-        # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
-        disc_out, _, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=2, training=training)
-        return dec_gen, disc_out, enc_im, gen_enc
-
-    def ae_gen(self, img, cartoon, edges, reuse=None, training=True):
-        """Builds the AE and generator with the given inputs.
-
-        Args:
-            img: Placeholder for input images
-            cartoon: Placeholder for cartooned images
-            edges: Placeholder for edge-maps
-            reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
-
-        Returns:
-            dec_im: The autoencoded image
-            dec_gen: The reconstructed image from cartoon and edge inputs
-            enc_im: Encoding of the image
-            gen_enc: Output of the generator
-        """
-        # Concatenate cartoon and edge for input to generator
-        gen_in = merge(cartoon, edges)
-        gen_enc, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_im, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        # Decode both encoded images and generator output using the same decoder
-        dec_im = decoder(enc_im, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_gen = decoder(gen_enc, num_layers=self.num_layers, reuse=True, training=training)
-        return dec_im, dec_gen, enc_im, gen_enc
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -146,17 +92,17 @@ class AEGAN:
         """
         activation = tf.nn.relu
         if not fine_tune:
-            _, model, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
             gen_in = merge(toon, edge)
-            _, model, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)
             activation = lrelu
         elif type == 'encoder':
-            model, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
@@ -183,7 +129,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
-
+            encoded = net
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
@@ -193,7 +139,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             else:
                 net = mu
 
-            return net, mu, log_var
+            return net, mu, log_var, encoded
 
 
 def encoder(net, num_layers=5, reuse=None, training=True):
@@ -215,7 +161,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
-
+            encoded = net
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
                              normalizer_fn=None)
             log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
@@ -224,7 +170,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = sample(mu, log_var)
             else:
                 net = mu
-            return net, mu, log_var
+            return net, mu, log_var, encoded
 
 
 def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
@@ -317,7 +263,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.): #TODO: 0.00001
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:

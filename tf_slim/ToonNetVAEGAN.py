@@ -4,7 +4,7 @@ from tensorflow.python.ops import math_ops
 
 from tf_slim.layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
-DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 416, 672]
+DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 512, 768]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 

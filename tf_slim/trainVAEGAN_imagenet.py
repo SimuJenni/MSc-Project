@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-model = AEGAN(num_layers=6, batch_size=48, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=90)
+model = AEGAN(num_layers=6, batch_size=32, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=90)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_new_settings2/'.format(data.NAME, model.name))

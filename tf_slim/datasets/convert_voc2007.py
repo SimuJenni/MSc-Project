@@ -47,7 +47,6 @@ def _parse_xml(xml_file, data_path):
 
 
 def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
-
     with open(image_ids_file) as f:
         img_ids = f.readlines()
 
@@ -109,22 +108,22 @@ def run(target_dir, source_dir):
     # First, process the trainval data:
     with tf.python_io.TFRecordWriter(trainval_filename) as tfrecord_writer:
         filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'trainval.txt')
-        _to_tfrecord(filename, tfrecord_writer)
+        _to_tfrecord(filename, tfrecord_writer, source_dir)
 
     # Process the train data:
     with tf.python_io.TFRecordWriter(train_filename) as tfrecord_writer:
         filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'train.txt')
-        _to_tfrecord(filename, tfrecord_writer)
+        _to_tfrecord(filename, tfrecord_writer, source_dir)
 
     # Process the val data:
     with tf.python_io.TFRecordWriter(val_filename) as tfrecord_writer:
         filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'val.txt')
-        _to_tfrecord(filename, tfrecord_writer)
+        _to_tfrecord(filename, tfrecord_writer, source_dir)
 
     # Process the test data:
     with tf.python_io.TFRecordWriter(testing_filename) as tfrecord_writer:
         filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'test.txt')
-        _to_tfrecord(filename, tfrecord_writer)
+        _to_tfrecord(filename, tfrecord_writer, source_dir)
 
     # Finally, write the labels file:
     labels_to_class_names = dict(zip(range(len(_CLASS_NAMES)), _CLASS_NAMES))

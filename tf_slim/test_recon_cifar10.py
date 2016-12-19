@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetVAEGAN import AEGAN
+from ToonNetVAEGAN import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_test
@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 
 # Setup
 data = cifar10
-model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'])
+model = VAEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings/'.format(data.NAME, model.name))

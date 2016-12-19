@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNetVAEGAN import AEGAN
+from ToonNetVAEGAN import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-model = AEGAN(num_layers=6, batch_size=32, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
+model = VAEGAN(num_layers=6, batch_size=32, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=50)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_noKL/'.format(data.NAME, model.name))
@@ -80,10 +80,10 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)
-        kl_ae = kl_gauss(z_log_sigma=enc_logvar/2.0, z_mean=enc_mu)
+        # kl_ae = kl_gauss(z_log_sigma=enc_logvar/2.0, z_mean=enc_mu)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae+[kl_ae], name='ae_total_loss')
+        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
@@ -126,7 +126,7 @@ with sess.as_default():
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.scalar_summary('losses/kl auto-encoder', kl_ae)
+        # tf.scalar_summary('losses/kl auto-encoder', kl_ae)
 
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,

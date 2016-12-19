@@ -8,7 +8,7 @@ DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 512, 768]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
-class AEGAN:
+class VAEGAN:
     def __init__(self, num_layers, batch_size, data_size, num_epochs=100):
         """Initialises an AEGAN using the provided paramters.
 
@@ -263,7 +263,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00004):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -277,7 +277,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     """
     batch_norm_params = {
         'is_training': training,
-        'decay': 0.999,
+        'decay': 0.9997,
         'epsilon': 0.001,
         'center': False,
     }

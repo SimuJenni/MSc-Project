@@ -81,8 +81,8 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 edge_str = coder.encode_jpeg(edges)
 
                 # Buil example
-                example = dataset_utils.cartooned_example(image_str, cartoon_str, edge_str, 'jpg', _IMAGE_SIZE,
-                                                          _IMAGE_SIZE, labels[-1])
+                example = dataset_utils.cartooned_example(image_str, cartoon_str, edge_str, 'jpg', im_shape[0],
+                                                          im_shape[1], labels[-1])
                 tfrecord_writer.write(example.SerializeToString())
 
 

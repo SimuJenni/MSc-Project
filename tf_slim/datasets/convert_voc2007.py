@@ -5,7 +5,7 @@ from __future__ import print_function
 import os
 import sys
 import xml.etree.ElementTree as ET
-from PIL import Image
+from scipy import misc
 
 from cartooning import auto_canny, cartoonify
 import numpy as np
@@ -65,7 +65,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 sys.stdout.flush()
 
                 # Get image, edge-map and cartooned image
-                image = Image.open(img_path)
+                image = misc.imread(img_path)
                 im_shape = np.shape(image)
                 edges = auto_canny(image)[:, :, None]
                 cartoon = cartoonify(image, num_donw_samp=1)

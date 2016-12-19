@@ -11,8 +11,8 @@ slim = tf.contrib.slim
 # Setup
 BATCH_SIZE = 256
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'  # Directory of tf-records
-MODEL_PATH = '/data/cvg/simon/data/logs/alex_net_run2/'
-LOG_PATH = '/data/cvg/simon/data/logs/alex_net_eval/'
+MODEL_PATH = '/data/cvg/simon/data/logs/alex_net_run2_b128/'
+LOG_PATH = '/data/cvg/simon/data/logs/alex_net_eval_b128/'
 IM_SHAPE = [224, 224, 3]
 
 print('Evaluating model: {}'.format(MODEL_PATH))

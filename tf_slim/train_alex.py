@@ -10,12 +10,12 @@ from utils import get_variables_to_train
 
 slim = tf.contrib.slim
 
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 NUM_CLASSES = 1000
 NUM_EP = 100
 IM_SHAPE = [224, 224, 3]
 DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'  # Directory of tf-records
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run2_b128/'  # Directory where checktpoints and summaries are stored
+LOG_DIR = '/data/cvg/simon/data/logs/alex_net_run3/'  # Directory where checktpoints and summaries are stored
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.INFO)

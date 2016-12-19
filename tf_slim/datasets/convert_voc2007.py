@@ -57,7 +57,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
 
         with tf.Session('') as sess:
             for j in range(num_images):
-                xml_path = os.path.join(source_dir, 'VOC2007/Annotations', '{}.xml'.format(img_ids[j]))
+                xml_path = os.path.join(source_dir, 'VOC2007/Annotations', '{}.xml'.format(img_ids[j].strip('\n')))
 
                 img_path, label = _parse_xml(xml_path, source_dir)
 

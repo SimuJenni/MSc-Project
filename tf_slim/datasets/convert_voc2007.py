@@ -77,7 +77,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
 
                 # Buil example
                 example = dataset_utils.cartooned_example(image_str, cartoon_str, edge_str, 'jpg', im_shape[0],
-                                                          im_shape[1], label)
+                                                          im_shape[1], label.tolist())
                 tfrecord_writer.write(example.SerializeToString())
 
 

@@ -97,7 +97,7 @@ class AEGAN:
             gen_in = merge(toon, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
-            disc_in = merge(img, img)
+            disc_in = merge(merge(img, img), merge(toon, edge))
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)
             activation = lrelu

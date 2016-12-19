@@ -6,7 +6,7 @@ from tensorflow.python.ops import math_ops
 
 from ToonNetVAEGAN import AEGAN
 from constants import LOG_DIR
-from datasets import stl10
+from datasets import imagenet
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
 from utils import montage, kl_gauss
@@ -14,7 +14,7 @@ from utils import montage, kl_gauss
 slim = tf.contrib.slim
 
 # Setup training parameters
-data = stl10
+data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
 model = AEGAN(num_layers=6, batch_size=32, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=90)

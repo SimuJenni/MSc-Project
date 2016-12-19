@@ -17,10 +17,10 @@ slim = tf.contrib.slim
 data = cifar10
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'test'
-model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
+model = AEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=200)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_new_settings2/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_noKL/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 

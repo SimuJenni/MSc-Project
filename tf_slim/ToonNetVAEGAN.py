@@ -213,7 +213,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
     """
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training, weights_reg=0.00001)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             layers = []
             for l in range(0, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
@@ -250,7 +250,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, weights_reg=0.00001)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9)
@@ -263,7 +263,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:

@@ -79,7 +79,7 @@ with sess.as_default():
 
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)  #TODO: weight=50
+        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)
         kl_ae = kl_gauss(z_log_sigma=enc_logvar/2.0, z_mean=enc_mu)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -88,10 +88,9 @@ with sess.as_default():
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=10.0)  #TODO: weight=50
-        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=1) #TODO: weight=5
-        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope,
-                                              weight=1)  #TODO: weight=5
+        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=10.0)
+        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=1.0)
+        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=1.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -132,7 +131,7 @@ with sess.as_default():
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
-            tf.image_summary('images/generator', montage(gen_rec_test, 8, 8), max_images=1)
+            tf.image_summary('images/generator', montage(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/ae', montage(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/ground-truth', montage(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/cartoons', montage(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)

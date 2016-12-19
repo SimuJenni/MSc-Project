@@ -25,7 +25,7 @@ TEST_WHILE_TRAIN = False
 CHECKPOINT = 'model.ckpt-58502'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings2/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_settings2_2/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_settings2/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -93,7 +93,7 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
-                                                   2*(data.SPLITS_TO_SIZES['train'] / model.batch_size),
+                                                   (data.SPLITS_TO_SIZES['train'] / model.batch_size),
                                                    0.98,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')

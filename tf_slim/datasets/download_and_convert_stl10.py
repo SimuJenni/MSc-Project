@@ -91,9 +91,9 @@ def plot_image(image):
 
 
 def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
-    """Loads data from the cifar10 pickle files and writes files to a TFRecord.
+    """Loads data from the stl10 files and writes files to a TFRecord.
     Args:
-      data_filename: The filename of the cifar10 pickle file.
+      data_filename: The filename of the stl10 file.
       tfrecord_writer: The TFRecord writer to use for writing.
       offset: An offset into the absolute number of images previously written.
     Returns:
@@ -131,7 +131,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
                 edge_str = coder.encode_jpeg(edges)
 
                 # Buil example
-                example = dataset_utils.cifar10_example(
+                example = dataset_utils.cartooned_example(
                     image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, int(label))
                 tfrecord_writer.write(example.SerializeToString())
 

@@ -99,7 +99,7 @@ def _add_to_tfrecord(filename, tfrecord_writer, offset=0):
                 edge_str = coder.encode_jpeg(edges)
 
                 # Buil example
-                example = dataset_utils.cifar10_example(
+                example = dataset_utils.cartooned_example(
                     image_str, cartoon_str, edge_str, 'jpg', _IMAGE_SIZE, _IMAGE_SIZE, label)
                 tfrecord_writer.write(example.SerializeToString())
 

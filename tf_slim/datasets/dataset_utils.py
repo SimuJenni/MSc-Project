@@ -60,7 +60,7 @@ def image_to_tfexample(image_data, image_format, height, width, class_id):
     }))
 
 
-def cifar10_example(image_data, toon_data, edge_data, image_format, height, width, class_id):
+def cartooned_example(image_data, toon_data, edge_data, image_format, height, width, class_id):
     return tf.train.Example(features=tf.train.Features(feature={
         'image/encoded': bytes_feature(image_data),
         'image/format': bytes_feature(image_format),

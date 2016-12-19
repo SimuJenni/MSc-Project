@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetCondVAEGAN import AEGAN
+from ToonNetVAEGAN import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_test
@@ -20,8 +20,8 @@ TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_cond/'.format(data.NAME, model.name, net_type))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_eval_cond/'.format(data.NAME, model.name, net_type))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_settings2_2/'.format(data.NAME, model.name, net_type))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_eval_new_settings2_2/'.format(data.NAME, model.name, net_type))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_eval/'.format(data.NAME, model.name))

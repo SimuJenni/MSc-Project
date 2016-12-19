@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNetCondVAEGAN import AEGAN
+from ToonNetVAEGAN import AEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -23,9 +23,9 @@ RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
 CHECKPOINT = 'model.ckpt-58502'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_cond/{}'.format(data.NAME, model.name, CHECKPOINT))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings2/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_cond/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_settings2_2/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -93,7 +93,7 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         learning_rate = tf.train.exponential_decay(0.01,
                                                    global_step,
-                                                   (data.SPLITS_TO_SIZES['train'] / model.batch_size),
+                                                   2*(data.SPLITS_TO_SIZES['train'] / model.batch_size),
                                                    0.98,
                                                    staircase=True,
                                                    name='exponential_decay_learning_rate')

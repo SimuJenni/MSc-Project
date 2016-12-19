@@ -33,7 +33,7 @@ def _parse_xml(xml_file, data_path):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     image_path = ''
-    labels = []
+    label = np.zeros(20)
 
     for item in root:
         if item.tag == 'filename':
@@ -41,13 +41,9 @@ def _parse_xml(xml_file, data_path):
         elif item.tag == 'object':
             obj_name = item[0].text
             obj_num = _CLASS_NUM[obj_name]
-            xmin = int(item[4][0].text)
-            ymin = int(item[4][1].text)
-            xmax = int(item[4][2].text)
-            ymax = int(item[4][3].text)
-            labels.append([xmin, ymin, xmax, ymax, obj_num])
+            label[obj_num] = 1
 
-    return image_path, labels
+    return image_path, label
 
 
 def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
@@ -64,7 +60,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
             for j in range(num_images):
                 xml_path = os.path.join(source_dir, 'VOC2007/Annotations', '{}.xml'.format(img_ids[j]))
 
-                img_path, labels = _parse_xml(xml_path, source_dir)
+                img_path, label = _parse_xml(xml_path, source_dir)
 
                 sys.stdout.write('\r>> Reading file [%s] image %d/%d' % (img_path, j + 1, num_images))
                 sys.stdout.flush()
@@ -82,7 +78,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
 
                 # Buil example
                 example = dataset_utils.cartooned_example(image_str, cartoon_str, edge_str, 'jpg', im_shape[0],
-                                                          im_shape[1], labels[-1])
+                                                          im_shape[1], label)
                 tfrecord_writer.write(example.SerializeToString())
 
 

@@ -33,7 +33,7 @@ def _parse_xml(xml_file, data_path):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     image_path = ''
-    label = np.zeros(20)
+    label = np.zeros(20, dtype=np.int64)
 
     for item in root:
         if item.tag == 'filename':

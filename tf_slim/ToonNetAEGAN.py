@@ -4,7 +4,8 @@ from tensorflow.python.ops import math_ops
 
 from tf_slim.layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
-DEFAULT_FILTER_DIMS = [64, 96, 160, 256, 512, 768]
+DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
+REPEATS = [1, 1, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
@@ -18,7 +19,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_strong_disc'
+        self.name = 'AEGAN_vgga'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
@@ -126,14 +127,13 @@ def generator(net, num_layers=5, reuse=None, training=True):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             for l in range(0, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
+                net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
             encoded = net
-            mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
+            mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
-                                  activation_fn=None, normalizer_fn=None)
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+                                  normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
             else:
@@ -158,14 +158,13 @@ def encoder(net, num_layers=5, reuse=None, training=True):
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             for l in range(0, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
+                net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
             encoded = net
-            mu = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_mu', stride=1, activation_fn=None,
+            mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers], scope='conv_sigma', stride=1,
-                                  activation_fn=None, normalizer_fn=None)
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+                                  normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
             else:
@@ -173,7 +172,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
             return net, mu, log_var, encoded
 
 
-def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
+def decoder(net, num_layers=5, reuse=None, training=True):
     """Builds a decoder on top of net.
 
     Args:
@@ -188,12 +187,9 @@ def decoder(net, num_layers=5, reuse=None, layers=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-            # net = spatial_dropout(net, 0.9)
             for l in range(0, num_layers):
-                if layers:
-                    net = merge(net, layers[-l])
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-            net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers), stride=1,
+            net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),
                               activation_fn=tf.nn.tanh, normalizer_fn=None)
             return net
 
@@ -216,8 +212,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             layers = []
             for l in range(0, num_layers):
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
-                net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_2'.format(l + 1), stride=1)
+                net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
                 layers.append(net)
 
@@ -287,7 +282,6 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         normalizer_params=batch_norm_params,
                         weights_regularizer=slim.l2_regularizer(weights_reg)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
-                            stride=2,
                             kernel_size=kernel_size,
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):

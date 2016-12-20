@@ -22,7 +22,7 @@ TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
-CHECKPOINT = 'model.ckpt-39000'
+CHECKPOINT = 'model.ckpt-58500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_noKL/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_noKL/'.format(data.NAME, model.name, net_type))

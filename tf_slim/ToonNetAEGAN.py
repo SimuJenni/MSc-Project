@@ -19,7 +19,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGAN_vgga'
+        self.name = 'AEGAN_vgga_bn'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
@@ -220,9 +220,9 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             # Fully connected layers
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, trainable=train_fc)
-            # net = slim.dropout(net, 0.9)
+            net = slim.dropout(net, 0.75)
             net = slim.fully_connected(net, 4096, trainable=train_fc)
-            # net = slim.dropout(net, 0.9)
+            net = slim.dropout(net, 0.75)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,

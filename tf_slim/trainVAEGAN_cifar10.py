@@ -21,7 +21,7 @@ TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_noKL/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_lin_decay/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 
@@ -113,11 +113,11 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-        #                           0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
-        boundaries = [np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        values = [0.0002, 0.0001, 0.00005]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+                                  0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
+        # boundaries = [np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
+        # values = [0.0002, 0.0001, 0.00005]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-5)

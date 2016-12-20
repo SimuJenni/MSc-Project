@@ -22,10 +22,10 @@ TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
-CHECKPOINT = 'model.ckpt-58502'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings2/{}'.format(data.NAME, model.name, CHECKPOINT))
+CHECKPOINT = 'model.ckpt-39000'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_noKL/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_settings2/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_noKL/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 

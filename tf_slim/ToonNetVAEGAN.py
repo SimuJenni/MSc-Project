@@ -18,7 +18,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_vaegan_fc2048_nn'
+        self.name = 'AEGANv2_vaegan_fc4096_nn'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size

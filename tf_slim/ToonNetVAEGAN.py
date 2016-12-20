@@ -226,8 +226,8 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, trainable=train_fc)
             net = slim.dropout(net, 0.9)
-            net = slim.fully_connected(net, 2048, trainable=train_fc)
-            net = slim.dropout(net, 0.9)
+            # net = slim.fully_connected(net, 2048, trainable=train_fc)
+            # net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -253,8 +253,8 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            # net = slim.dropout(net, 0.9)
-            # net = slim.fully_connected(net, 4096, scope='fc2')
+            net = slim.dropout(net, 0.9)
+            net = slim.fully_connected(net, 4096, scope='fc2')
             net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,

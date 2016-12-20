@@ -18,7 +18,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_vaegan_fc4096_nn'
+        self.name = 'AEGANv2_strong_disc'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
@@ -224,10 +224,10 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            # net = slim.fully_connected(net, 4096, trainable=train_fc)
+            net = slim.fully_connected(net, 4096, trainable=train_fc)
             # net = slim.dropout(net, 0.9)
-            net = slim.fully_connected(net, 2048, trainable=train_fc)
-            net = slim.dropout(net, 0.9)
+            net = slim.fully_connected(net, 4096, trainable=train_fc)
+            # net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -263,7 +263,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00004,
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001,
                       center=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
@@ -278,7 +278,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     """
     batch_norm_params = {
         'is_training': training,
-        'decay': 0.9997,
+        'decay': 0.999,
         'epsilon': 0.001,
         'center': center,
     }

@@ -18,7 +18,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_vaegan'
+        self.name = 'AEGANv2_vaegan_bilin_2048'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
@@ -213,7 +213,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
     """
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training, center=False)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training, center=True)):
             layers = []
             for l in range(0, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], scope='conv_{}_1'.format(l + 1), stride=1)
@@ -224,10 +224,10 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096, trainable=train_fc)
-            net = slim.dropout(net, 0.9)
-            # net = slim.fully_connected(net, 2048, trainable=train_fc)
+            # net = slim.fully_connected(net, 4096, trainable=train_fc)
             # net = slim.dropout(net, 0.9)
+            net = slim.fully_connected(net, 2048, trainable=train_fc)
+            net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -250,7 +250,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=False)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9)

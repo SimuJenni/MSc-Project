@@ -116,7 +116,7 @@ with sess.as_default():
         # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
         #                           0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
         boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        values = [0.001, 0.0002, 0.00004, 0.000008]
+        values = [0.0004, 0.0002, 0.0001, 0.00005]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

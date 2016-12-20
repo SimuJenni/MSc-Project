@@ -18,7 +18,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2_vaegan'
+        self.name = 'AEGANv2_vaegan_bilin_2fc'
         self.num_layers = num_layers - 1
         self.batch_size = batch_size
         self.data_size = data_size
@@ -253,8 +253,8 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, 0.9)
-            net = slim.fully_connected(net, 4096, scope='fc2')
+            # net = slim.dropout(net, 0.9)
+            # net = slim.fully_connected(net, 4096, scope='fc2')
             net = slim.dropout(net, 0.9)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,

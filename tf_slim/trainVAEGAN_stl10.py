@@ -116,7 +116,7 @@ with sess.as_default():
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-2)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=1e-8)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

@@ -13,15 +13,15 @@ slim = tf.contrib.slim
 
 # Setup
 finetuned = True
-net_type = 'encoder'
+net_type = 'discriminator'
 data = cifar10
 model = VAEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_do0.9/'.format(data.NAME, model.name, net_type))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_eval_new_do0.9/'.format(data.NAME, model.name, net_type))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_eval/'.format(data.NAME, model.name, net_type))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_eval/'.format(data.NAME, model.name))

@@ -130,9 +130,9 @@ def generator(net, num_layers=5, reuse=None, training=True):
                 net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
             encoded = net
-            mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
+            mu = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+            log_var = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
                                   normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
@@ -161,9 +161,9 @@ def encoder(net, num_layers=5, reuse=None, training=True):
                 net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
                 net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
             encoded = net
-            mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
+            mu = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+            log_var = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
                                   normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)

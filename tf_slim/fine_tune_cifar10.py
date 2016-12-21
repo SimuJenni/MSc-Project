@@ -10,6 +10,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from utils import get_variables_to_train, assign_from_checkpoint_fn
+import numpy as np
 
 slim = tf.contrib.slim
 
@@ -23,9 +24,9 @@ RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 
 CHECKPOINT = 'model.ckpt-29100'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_newObjGen/{}'.format(data.NAME, model.name, CHECKPOINT))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_newObjGen/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_new_lr/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -91,12 +92,18 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.01,
-                                                   global_step,
-                                                   (data.SPLITS_TO_SIZES['train'] / model.batch_size),
-                                                   0.98,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
+        # learning_rate = tf.train.exponential_decay(0.01,
+        #                                            global_step,
+        #                                            (data.SPLITS_TO_SIZES['train'] / model.batch_size),
+        #                                            0.98,
+        #                                            staircase=True,
+        #                                            name='exponential_decay_learning_rate')
+
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
+                  0.01 * 250. ** (-1.)]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

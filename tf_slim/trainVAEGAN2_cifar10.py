@@ -21,7 +21,7 @@ TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_new/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_newObjGen/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 

@@ -132,7 +132,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
             encoded = net
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
                                   normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)
@@ -163,7 +163,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
             encoded = net
             mu = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_mu', activation_fn=None,
                              normalizer_fn=None)
-            log_var = slim.conv2d(net, num_outputs=1.5*f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
+            log_var = slim.conv2d(net, num_outputs=f_dims[num_layers-1], scope='conv_sigma', activation_fn=None,
                                   normalizer_fn=None)
             if training:
                 net = sample(mu, log_var)

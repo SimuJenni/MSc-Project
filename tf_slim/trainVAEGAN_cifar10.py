@@ -9,8 +9,7 @@ from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage, kl_gauss
-import numpy as np
+from utils import montage
 
 slim = tf.contrib.slim
 
@@ -81,7 +80,6 @@ with sess.as_default():
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
         l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)
-        # kl_ae = kl_gauss(z_log_sigma=enc_logvar/2.0, z_mean=enc_mu)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
@@ -115,9 +113,6 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
-        # boundaries = [np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        # values = [0.0002, 0.0001, 0.00005]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-5)
@@ -130,7 +125,6 @@ with sess.as_default():
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        # tf.scalar_summary('losses/kl auto-encoder', kl_ae)
 
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,

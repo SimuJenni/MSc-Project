@@ -9,8 +9,7 @@ from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage, kl_gauss
-import numpy as np
+from utils import montage
 
 slim = tf.contrib.slim
 
@@ -115,9 +114,6 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
-        # boundaries = [np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        # values = [0.0002, 0.0001, 0.00005]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-1)

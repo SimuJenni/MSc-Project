@@ -20,7 +20,7 @@ TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_new/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_new_beta0.7/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 
@@ -115,7 +115,7 @@ with sess.as_default():
                                   0.0002 - 0.0002 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0002)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-8)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.7, epsilon=1e-8)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

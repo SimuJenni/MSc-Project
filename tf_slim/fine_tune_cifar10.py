@@ -26,7 +26,7 @@ TEST_WHILE_TRAIN = False
 CHECKPOINT = 'model.ckpt-29102'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_andanothersetting_exp/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_andanothersetting_beta0.5/'.format(data.NAME, model.name, net_type))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -92,21 +92,15 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.01,
-                                                   global_step,
-                                                   (data.SPLITS_TO_SIZES['train'] / model.batch_size),
-                                                   0.98,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
 
-        # boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-        #               np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        # values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
-        #           0.001 * 200. ** (-1.)]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
+                  0.001 * 200. ** (-1.)]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,

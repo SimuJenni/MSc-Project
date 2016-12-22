@@ -100,7 +100,7 @@ with sess.as_default():
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,

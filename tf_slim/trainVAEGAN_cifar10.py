@@ -21,7 +21,7 @@ model = VAEGAN(num_layers=4, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAI
 TARGET_SHAPE = [32, 32, 3]
 LR = 0.0001
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_andanothersetting/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_andanothersetting_100weight/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 
@@ -88,9 +88,9 @@ with sess.as_default():
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
-        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=30.0)
-        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=3.0)
-        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=3.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=100.0)  #Before 30
+        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=10.0)   #Before 3
+        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=1.0)  #Before 3
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

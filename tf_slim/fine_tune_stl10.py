@@ -24,7 +24,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 1
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234302'
@@ -126,7 +126,8 @@ with sess.as_default():
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,
                                           training=False, fine_tune=fine_tune, type=net_type)
-            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
+            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test,
+                                                                                            data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
             tf.scalar_summary('losses/test loss', test_loss)

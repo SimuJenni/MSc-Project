@@ -11,6 +11,7 @@ from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from utils import get_variables_to_train, assign_from_checkpoint_fn
+import numpy as np
 
 slim = tf.contrib.slim
 
@@ -18,18 +19,19 @@ slim = tf.contrib.slim
 fine_tune = True
 net_type = 'discriminator'
 data = stl10
-num_layers = 5
+num_layers = 4
 model = AEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-RETRAIN = True
+NUM_CONV_TRAIN = 2
 pre_trained_grad_weight = 0.1
 
-CHECKPOINT = 'model.ckpt-312402'
+CHECKPOINT = 'model.ckpt-234302'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}/'.format(data.NAME, model.name, net_type))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}/'.format(data.NAME, model.name, net_type,
+                                                                           NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -96,25 +98,18 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.train.exponential_decay(0.001,
-                                                   global_step,
-                                                   2*(data.SPLITS_TO_SIZES['train'] / model.batch_size),
-                                                   0.99,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-        #                           0.001 - 0.001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.001)
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
+                  0.001 * 200. ** (-1.)]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
-        if RETRAIN:
-            var2train = get_variables_to_train(
-                trainable_scopes='fully_connected,{}/conv_{}_1,{}/conv_{}_2,{}/conv_{}_1,{}/conv_{}_2'.format(
-                    net_type, num_layers-1, net_type, num_layers-1, net_type, num_layers-2, net_type, num_layers-2))
-        else:
-            var2train = get_variables_to_train(trainable_scopes='fully_connected')
+        trainable_scopes = ['conv_{}'.format(num_layers-i) for i in range(NUM_CONV_TRAIN)] + ['fully_connected']
+        var2train = get_variables_to_train(trainable_scopes=','.join(trainable_scopes))
 
         pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
         grad_multipliers = {}

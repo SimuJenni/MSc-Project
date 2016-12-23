@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = cifar10
-model = VAEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
+model = VAEGAN(num_layers=3, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 

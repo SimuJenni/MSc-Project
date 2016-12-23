@@ -1,13 +1,14 @@
 from __future__ import print_function
 
 import os
+
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
 
-from ToonNetAEGAN import VAEGAN
+from ToonNetMaxPool import AEGAN
 from constants import LOG_DIR
-from datasets import cifar10
+from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from utils import get_variables_to_train, assign_from_checkpoint_fn
 import numpy as np
@@ -15,20 +16,27 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
-net_type = 'discriminator'
-data = cifar10
-model = VAEGAN(num_layers=3, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
-TARGET_SHAPE = [32, 32, 3]
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
+FINE_TUNE = True
+NET_TYPE = 'discriminator'
+SET_ID = 'train'
+DATA = stl10
+NUM_LAYERS = 4
+BATCH_SIZE = 256
+NUM_EP = 500
+TARGET_SHAPE = [96, 96, 3]
+NUM_CONV_TRAIN = 2
+GRAD_WEIGHT = 0.1
+CHECKPOINT = 'model.ckpt-234302'
 TEST_WHILE_TRAIN = True
+RESIZE_SIZE = max(TARGET_SHAPE[0], DATA.MIN_SIZE)
 
-CHECKPOINT = 'model.ckpt-29100'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
-if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_andanothersetting/'.format(data.NAME, model.name, net_type))
+model = AEGAN(num_layers=NUM_LAYERS, batch_size=BATCH_SIZE, data_size=DATA.SPLITS_TO_SIZES[SET_ID], num_epochs=NUM_EP)
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(DATA.NAME, model.name, CHECKPOINT))
+if FINE_TUNE:
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}/'.format(DATA.NAME, model.name, NET_TYPE,
+                                                                           NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(DATA.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -41,7 +49,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split('train')
+            train_set = DATA.get_split('train')
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
@@ -53,6 +61,7 @@ with sess.as_default():
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
                                                                       resize_side_max=int(RESIZE_SIZE * 1.5))
+
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
                 [img_train, edge_train, toon_train, label_train],
@@ -61,7 +70,7 @@ with sess.as_default():
 
             if TEST_WHILE_TRAIN:
                 # Get test-data
-                test_set = data.get_split('test')
+                test_set = DATA.get_split('test')
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
                 [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
                 img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
@@ -73,12 +82,12 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, type=net_type,
-                                       fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, edges_train, toons_train, DATA.NUM_CLASSES, type=NET_TYPE,
+                                       fine_tune=FINE_TUNE)
 
         # Define the loss
         train_loss = slim.losses.softmax_cross_entropy(preds_train,
-                                                       slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
+                                                       slim.one_hot_encoding(labels_train, DATA.NUM_CLASSES))
         total_train_loss = slim.losses.get_total_loss()
 
         # Compute predicted label for accuracy
@@ -91,7 +100,7 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
+        num_train_steps = (DATA.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
@@ -101,11 +110,27 @@ with sess.as_default():
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
+        # Create training operation
+        trainable_scopes = ['conv_{}'.format(NUM_LAYERS - i) for i in range(NUM_CONV_TRAIN)] + ['fully_connected']
+        var2train = get_variables_to_train(trainable_scopes=','.join(trainable_scopes))
+
+        pre_trained_vars = get_variables_to_train(trainable_scopes=NET_TYPE)
+        grad_multipliers = {}
+        for v in var2train:
+            if v in pre_trained_vars:
+                grad_multipliers[v.op.name] = GRAD_WEIGHT
+            else:
+                grad_multipliers[v.op.name] = 1.0
+
+        print(grad_multipliers)
+        train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
+                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
+
         if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, reuse=True,
-                                          training=False, fine_tune=fine_tune, type=net_type)
+            preds_test = model.classifier(imgs_test, edges_test, toons_test, DATA.NUM_CLASSES, reuse=True,
+                                          training=False, fine_tune=FINE_TUNE, type=NET_TYPE)
             test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test,
-                                                                                            data.NUM_CLASSES))
+                                                                                            DATA.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
             tf.scalar_summary('losses/test loss', test_loss)
@@ -115,27 +140,16 @@ with sess.as_default():
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 
-        # Create training operation
-        if fine_tune:
-            var2train = get_variables_to_train(trainable_scopes='fully_connected')
-        else:
-            var2train = get_variables_to_train()
-        train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step)
-
-        # Gather initial summaries.
-        summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
-
         # Add summaries for variables.
         for variable in var2train:
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            tf.histogram_summary(variable.op.name, variable)
 
         # Handle initialisation
         init_fn = None
-        if fine_tune:
+        if FINE_TUNE:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
+                include=[NET_TYPE], exclude=['fully_connected', 'discriminator/fully_connected',
                                              ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)

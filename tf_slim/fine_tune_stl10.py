@@ -28,10 +28,10 @@ NUM_CONV_TRAIN = 2
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234302'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}/{}'.format(data.NAME, model.name, CHECKPOINT))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}/'.format(data.NAME, model.name, net_type,
-                                                                           NUM_CONV_TRAIN))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_andanothersetting/'.format(data.NAME, model.name,
+                                                                                             net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 

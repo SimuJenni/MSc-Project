@@ -108,7 +108,8 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
-        trainable_scopes = ['conv_{}'.format(num_layers-i) for i in range(NUM_CONV_TRAIN)] + ['fully_connected']
+        trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
+        trainable_scopes += ['fully_connected']
         var2train = get_variables_to_train(trainable_scopes=','.join(trainable_scopes))
 
         pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)

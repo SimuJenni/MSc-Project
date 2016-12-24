@@ -26,8 +26,8 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 2
-pre_trained_grad_weight = 0.1
+NUM_CONV_TRAIN = 0
+pre_trained_grad_weight = 0.5
 
 CHECKPOINT = 'model.ckpt-234302'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -104,11 +104,14 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
-                  0.001 * 200. ** (-1.)]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+        #               np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        # values = [0.001, 0.001 * 200. ** (-1. / 4.), 0.001 * 200 ** (-2. / 4.), 0.001 * 200 ** (-3. / 4.),
+        #           0.001 * 200. ** (-1.)]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+                                  001 - 001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 001)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

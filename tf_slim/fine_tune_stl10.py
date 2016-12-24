@@ -117,7 +117,6 @@ with sess.as_default():
         trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
         trainable_scopes += ['fully_connected']
         var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
-        var2train = list(set(var2train).union(tf.trainable_variables()))
         pre_trained_vars = slim.get_variables(scope=net_type)
         grad_multipliers = {}
         for v in var2train:
@@ -144,14 +143,12 @@ with sess.as_default():
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
             tf.scalar_summary('losses/test loss', test_loss)
 
-        # Gather all summaries.
+        # Add summaries for variables.
+        for variable in slim.get_model_variables():
+            tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-
-        # Add summaries for variables.
-        for variable in var2train:
-            tf.histogram_summary(variable.op.name, variable)
 
         # Handle initialisation
         init_fn = None

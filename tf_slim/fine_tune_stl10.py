@@ -5,6 +5,7 @@ import sys
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
 from ToonNetAEGAN import VAEGAN
@@ -84,9 +85,13 @@ with sess.as_default():
                                        fine_tune=fine_tune)
 
         # Define the loss
+        loss_scope = 'train_loss'
         train_loss = slim.losses.softmax_cross_entropy(preds_train,
-                                                       slim.one_hot_encoding(labels_train, data.NUM_CLASSES))
-        total_train_loss = slim.losses.get_total_loss()
+                                                       slim.one_hot_encoding(labels_train, data.NUM_CLASSES),
+                                                       scope=loss_scope)
+        train_losses = slim.losses.get_losses(loss_scope)
+        train_losses += slim.losses.get_regularization_losses(loss_scope)
+        total_train_loss = math_ops.add_n(train_losses, name='ae_total_loss')
 
         # Compute predicted label for accuracy
         preds_train = tf.argmax(preds_train, 1)

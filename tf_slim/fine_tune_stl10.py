@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 2
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234302'
@@ -144,7 +144,7 @@ with sess.as_default():
             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
             tf.scalar_summary('losses/test loss', test_loss)
 
-        # Add summaries for variables.
+        # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', learning_rate)

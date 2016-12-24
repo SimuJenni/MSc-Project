@@ -116,9 +116,8 @@ with sess.as_default():
         # Create training operation
         trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
         trainable_scopes += ['fully_connected']
-        var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected',
-                                                                                     ops.GraphKeys.GLOBAL_STEP])
-        var2train = list(set(var2train).intersection(tf.trainable_variables()))
+        var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
+        var2train = list(set(var2train).union(tf.trainable_variables()))
         pre_trained_vars = slim.get_variables(scope=net_type)
         grad_multipliers = {}
         for v in var2train:

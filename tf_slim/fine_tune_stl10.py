@@ -121,6 +121,7 @@ with sess.as_default():
             else:
                 grad_multipliers[v.op.name] = 1.0
 
+        print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
         print('Pre-trained vars: {}'.format([v.op.name for v in pre_trained_vars]))
         print(grad_multipliers)

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import sys
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -110,9 +111,9 @@ with sess.as_default():
         # Create training operation
         trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
         trainable_scopes += ['fully_connected']
-        var2train = get_variables_to_train(trainable_scopes=','.join(trainable_scopes))
+        var2train = slim.get_variables_to_restore(include=trainable_scopes)
 
-        pre_trained_vars = get_variables_to_train(trainable_scopes=net_type)
+        pre_trained_vars = slim.get_variables(scope=[net_type])
         grad_multipliers = {}
         for v in var2train:
             if v in pre_trained_vars:
@@ -120,7 +121,11 @@ with sess.as_default():
             else:
                 grad_multipliers[v.op.name] = 1.0
 
+        print(var2train)
+        print(pre_trained_vars)
         print(grad_multipliers)
+        sys.stdout.flush()
+
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, gradient_multipliers=grad_multipliers)
 

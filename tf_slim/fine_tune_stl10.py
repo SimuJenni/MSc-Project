@@ -113,7 +113,7 @@ with sess.as_default():
         trainable_scopes += ['fully_connected']
         var2train = slim.get_variables_to_restore(include=trainable_scopes)
 
-        pre_trained_vars = slim.get_variables(scope=[net_type])
+        pre_trained_vars = slim.get_variables(scope=net_type)
         grad_multipliers = {}
         for v in var2train:
             if v in pre_trained_vars:

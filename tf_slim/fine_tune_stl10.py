@@ -19,20 +19,20 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'discriminator'
+net_type = 'generator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 0
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234302'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_do1/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_andanothersetting/'.format(data.NAME, model.name,
                                                                                              net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

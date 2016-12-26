@@ -19,6 +19,7 @@ TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=150)
 TARGET_SHAPE = [96, 96, 3]
+LR = 0.0001
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 TEST = False
@@ -112,7 +113,7 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  0.0001 - 0.0001 * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), 0.0001)
+                                  LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)

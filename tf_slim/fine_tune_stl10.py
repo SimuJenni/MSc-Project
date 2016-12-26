@@ -19,7 +19,7 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'generator'
+net_type = 'discriminator'
 data = stl10
 num_layers = 4
 model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)

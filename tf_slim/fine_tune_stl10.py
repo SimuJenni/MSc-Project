@@ -19,10 +19,10 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'generator'
+net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
+model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
@@ -59,7 +59,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
-                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
+                                                                      resize_side_max=int(RESIZE_SIZE * 2))
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
@@ -105,7 +105,7 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        values = [0.001, 0.001 * 100. ** (-1. / 3.), 0.001 * 100 ** (-2. / 3.), 0.001 * 100 ** (-3. / 3.)]
+        values = [0.0003, 0.0003 * 30. ** (-1. / 3.), 0.0003 * 30 ** (-2. / 3.), 0.0003 * 30 ** (-3. / 3.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

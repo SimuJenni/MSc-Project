@@ -25,7 +25,7 @@ num_layers = 3
 model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 0
 pre_trained_grad_weight = 0.1
 

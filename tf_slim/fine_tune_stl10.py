@@ -27,12 +27,12 @@ TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 2
-pre_trained_grad_weight = 0.05
+pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234301'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_0.05weight/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_1.5resize/'.format(data.NAME, model.name,
                                                                                              net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -59,7 +59,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
-                                                                      resize_side_max=int(RESIZE_SIZE * 2))
+                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(

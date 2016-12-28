@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=64, data_size=data.SPLITS_TO_SI
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 0
+NUM_CONV_TRAIN = 1
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234301'

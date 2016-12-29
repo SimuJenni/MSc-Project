@@ -345,6 +345,58 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
     return image, edge, cartoon
 
 
+def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
+                              resize_side_max=_RESIZE_SIDE_MAX):
+    # Compute zoom side-size
+    resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
+
+    # Resize/zoom
+    image = _aspect_preserving_resize(image, resize_side)
+    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
+
+    # Select random crops
+    [image, edge] = _random_crop([image, edge], output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
+
+    # Flip left-right
+    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+    image = _flip_lr(image, p)
+    edge = _flip_lr(edge, p)
+
+    image = tf.image.random_brightness(image, 0.1, seed=None)
+    image = tf.image.random_contrast(image, 0.9, 1.1, seed=None)
+    image = tf.image.random_hue(image, 0.1, seed=None)
+    image = tf.image.random_saturation(image, 0.9, 1.1, seed=None)
+
+    return image, edge
+
+
+def preprocess_finetune_test(image, edge, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
+    # Resize/zoom
+    image = _aspect_preserving_resize(image, resize_side)
+    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
+
+    # Select random crops
+    [image, edge, cartoon] = _central_crop([image, edge], output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
+
+    return image, edge, cartoon
+
+
 def preprocess_image(image, output_height, output_width, is_training=False,
                      resize_side_min=_RESIZE_SIDE_MIN,
                      resize_side_max=_RESIZE_SIDE_MAX):

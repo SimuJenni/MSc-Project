@@ -23,6 +23,44 @@ def _flip_lr(image, p):
     return tf.cond(p > 0.5, fn1=lambda: image, fn2=lambda: tf.image.flip_left_right(image))
 
 
+def adjust_gamma(image, gamma=1, gain=1):
+  """Performs Gamma Correction on the input image.
+    Also known as Power Law Transform. This function transforms the
+    input image pixelwise according to the equation Out = In**gamma
+    after scaling each pixel to the range 0 to 1.
+
+  Args:
+    image : A Tensor.
+    gamma : A scalar. Non negative real number.
+    gain  : A scalar. The constant multiplier.
+
+  Returns:
+    A Tensor. Gamma corrected output image.
+
+  Notes:
+    For gamma greater than 1, the histogram will shift towards left and
+    the output image will be darker than the input image.
+    For gamma less than 1, the histogram will shift towards right and
+    the output image will be brighter than the input image.
+
+  References:
+    [1] http://en.wikipedia.org/wiki/Gamma_correction
+  """
+
+  with ops.op_scope([image, gamma, gain], None, 'adjust_gamma') as name:
+    # Convert pixel value to DT_FLOAT for computing adjusted image
+    img = ops.convert_to_tensor(image, name='img', dtype=dtypes.float32)
+    # Keep image dtype for computing the scale of corresponding dtype
+    image = ops.convert_to_tensor(image, name='image')
+
+    # scale = max(dtype) - min(dtype)
+    scale = constant_op.constant(2, dtype=dtypes.float32)
+    # According to the definition of gamma correction
+    adjusted_img = (img / scale) ** gamma * scale * gain
+
+    return adjusted_img
+
+
 def _crop(image, offset_height, offset_width, crop_height, crop_width):
     """Crops the given image using the provided offsets and sizes.
     Note that the method doesn't assume we know the input image size but it does
@@ -361,31 +399,16 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     # Select random crops
     [image, edge] = _random_crop([image, edge], output_height, output_width)
 
-    # Resize to output size
-    image.set_shape([output_height, output_width, 3])
-    edge.set_shape([output_height, output_width, 1])
-
-    # image = tf.image.rgb_to_hsv(image, name=None)
-    #
-    # dh = random_ops.random_uniform([], -0.1, 0.1)
-    # image[:, :, 0] += dh
-    #
-    # a = random_ops.random_uniform([], 0.7, 1.4)
-    # d = random_ops.random_uniform([], 0.7, 1.4)
-    # b = random_ops.random_uniform([], 0.25, 0.4)
-    # e = random_ops.random_uniform([], 0.25, 0.4)
-    # c = random_ops.random_uniform([], -0.1, 0.1)
-    # f = random_ops.random_uniform([], -0.1, 0.1)
-    #
-    # image[:, :, 1] = a*image[:, :, 1]**b + c
-    # image[:, :, 2] = d*image[:, :, 2]**e + f
-    #
-    # image = tf.image.hsv_to_rgb(image, name=None)
-
+    gamma = random_ops.random_uniform([], 0.7, 1.4)
+    image = adjust_gamma(image, gamma=gamma)
     image = tf.image.random_brightness(image, 0.1, seed=None)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_hue(image, 0.2, seed=None)
     image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.

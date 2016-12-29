@@ -27,7 +27,7 @@ TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 2
-pre_trained_grad_weight = 0.1
+pre_trained_grad_weight = 0.03
 
 CHECKPOINT = 'model.ckpt-234301'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))

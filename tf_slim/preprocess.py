@@ -54,7 +54,7 @@ def adjust_gamma(image, gamma=1, gain=1):
     image = ops.convert_to_tensor(image, name='image')
 
     # scale = max(dtype) - min(dtype)
-    scale = constant_op.constant(image.dtype.limits[1] - image.dtype.limits[0], dtype=dtypes.float32)
+    scale = constant_op.constant(2, dtype=dtypes.float32)
     # According to the definition of gamma correction
     adjusted_img = (img / scale) ** gamma * scale * gain
 

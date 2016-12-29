@@ -384,7 +384,7 @@ def preprocess_finetune_test(image, edge, output_height, output_width, resize_si
     edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
 
     # Select random crops
-    [image, edge, cartoon] = _central_crop([image, edge], output_height, output_width)
+    [image, edge] = _central_crop([image, edge], output_height, output_width)
 
     # Resize to output size
     image.set_shape([output_height, output_width, 3])
@@ -394,7 +394,7 @@ def preprocess_finetune_test(image, edge, output_height, output_width, resize_si
     image = tf.to_float(image) * (2. / 255.) - 1.
     edge = tf.to_float(edge) / 255.
 
-    return image, edge, cartoon
+    return image, edge
 
 
 def preprocess_image(image, output_height, output_width, is_training=False,

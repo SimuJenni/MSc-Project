@@ -405,8 +405,8 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     edge.set_shape([output_height, output_width, 1])
 
     image = tf.image.random_brightness(image, 0.1, seed=None)
-    gamma = random_ops.random_uniform([], 0.9, 1.1)
-    image = adjust_gamma(image, gamma=gamma)
+    # gamma = random_ops.random_uniform([], 0.9, 1.1)
+    # image = adjust_gamma(image, gamma=gamma)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_hue(image, 0.2, seed=None)
     image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)

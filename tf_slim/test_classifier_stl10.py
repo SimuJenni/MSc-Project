@@ -7,7 +7,7 @@ import tensorflow as tf
 from ToonNetAEGAN import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_toon_test
+from preprocess import preprocess_finetune_test
 
 slim = tf.contrib.slim
 
@@ -43,20 +43,20 @@ with sess.as_default():
             # Get test-data
             test_set = data.get_split('test')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-            [img_test, edge_test, toon_test, label_test] = provider.get(['image', 'edges', 'cartoon', 'label'])
+            [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
 
             # Pre-process data
-            img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+            img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
                                                                   resize_side=RESIZE_SIZE)
             # Make batches
-            imgs_test, edges_test, toons_test, labels_test = tf.train.batch(
-                [img_test, edge_test, toon_test, label_test],
+            imgs_test, edges_test, labels_test = tf.train.batch(
+                [img_test, edge_test, label_test],
                 batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_test = model.classifier(imgs_test, edges_test, toons_test, data.NUM_CLASSES, training=False,
+        preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
 
         # Compute predicted label for accuracy

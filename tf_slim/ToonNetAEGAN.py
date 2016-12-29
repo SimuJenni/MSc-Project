@@ -75,7 +75,7 @@ class VAEGAN:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, toon, num_classes, type='generator', reuse=None, training=True, fine_tune=True):
+    def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
 
         Args:
@@ -95,7 +95,7 @@ class VAEGAN:
         if not fine_tune:
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'generator':
-            gen_in = merge(toon, edge)
+            gen_in = merge(img, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             disc_in = merge(img, img)

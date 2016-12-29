@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=64, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
@@ -149,7 +149,7 @@ with sess.as_default():
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.image_summary('images/ground-truth', montage(img_train, 4, 4), max_images=1)
+        tf.image_summary('images/ground-truth', montage(imgs_train, 4, 4), max_images=1)
 
         # Handle initialisation
         init_fn = None

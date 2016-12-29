@@ -365,22 +365,27 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     image.set_shape([output_height, output_width, 3])
     edge.set_shape([output_height, output_width, 1])
 
-    image = tf.image.rgb_to_hsv(image, name=None)
+    # image = tf.image.rgb_to_hsv(image, name=None)
+    #
+    # dh = random_ops.random_uniform([], -0.1, 0.1)
+    # image[:, :, 0] += dh
+    #
+    # a = random_ops.random_uniform([], 0.7, 1.4)
+    # d = random_ops.random_uniform([], 0.7, 1.4)
+    # b = random_ops.random_uniform([], 0.25, 0.4)
+    # e = random_ops.random_uniform([], 0.25, 0.4)
+    # c = random_ops.random_uniform([], -0.1, 0.1)
+    # f = random_ops.random_uniform([], -0.1, 0.1)
+    #
+    # image[:, :, 1] = a*image[:, :, 1]**b + c
+    # image[:, :, 2] = d*image[:, :, 2]**e + f
+    #
+    # image = tf.image.hsv_to_rgb(image, name=None)
 
-    dh = random_ops.random_uniform([], -0.1, 0.1)
-    image[:, :, 0] += dh
-
-    a = random_ops.random_uniform([], 0.7, 1.4)
-    d = random_ops.random_uniform([], 0.7, 1.4)
-    b = random_ops.random_uniform([], 0.25, 0.4)
-    e = random_ops.random_uniform([], 0.25, 0.4)
-    c = random_ops.random_uniform([], -0.1, 0.1)
-    f = random_ops.random_uniform([], -0.1, 0.1)
-
-    image[:, :, 1] = a*image[:, :, 1]**b + c
-    image[:, :, 2] = d*image[:, :, 2]**e + f
-
-    image = tf.image.hsv_to_rgb(image, name=None)
+    image = tf.image.random_brightness(image, 0.1, seed=None)
+    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
+    image = tf.image.random_hue(image, 0.2, seed=None)
+    image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.
@@ -390,11 +395,6 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
     image = _flip_lr(image, p)
     edge = _flip_lr(edge, p)
-
-    image = tf.image.random_brightness(image, 0.1, seed=None)
-    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
-    image = tf.image.random_hue(image, 0.1, seed=None)
-    image = tf.image.random_saturation(image, 0.9, 1.1, seed=None)
 
     return image, edge
 

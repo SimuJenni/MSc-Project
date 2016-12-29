@@ -53,8 +53,6 @@ def adjust_gamma(image, gamma=1, gain=1):
     # Keep image dtype for computing the scale of corresponding dtype
     image = ops.convert_to_tensor(image, name='image')
 
-    if gamma < 0:
-      raise ValueError("Gamma should be a non-negative real number")
     # scale = max(dtype) - min(dtype)
     scale = constant_op.constant(image.dtype.limits[1] - image.dtype.limits[0], dtype=dtypes.float32)
     # According to the definition of gamma correction

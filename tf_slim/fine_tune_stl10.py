@@ -12,7 +12,7 @@ from ToonNetAEGAN import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
-from utils import assign_from_checkpoint_fn
+from utils import assign_from_checkpoint_fn, montage
 import numpy as np
 
 slim = tf.contrib.slim
@@ -32,7 +32,7 @@ pre_trained_grad_weight = 0.05
 CHECKPOINT = 'model.ckpt-234301'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_aug2/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_aug3/'.format(data.NAME, model.name,
                                                                                         net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -149,6 +149,7 @@ with sess.as_default():
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.image_summary('images/ground-truth', montage(img_train, 4, 4), max_images=1)
 
         # Handle initialisation
         init_fn = None

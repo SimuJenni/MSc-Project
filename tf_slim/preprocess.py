@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import random_ops
 
 slim = tf.contrib.slim
 
@@ -370,8 +371,10 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     image = _flip_lr(image, p)
     edge = _flip_lr(edge, p)
 
+    gamma = random_ops.random_uniform([], 0.5, 1.5)
+    image = tf.image.adjust_gamma(image, gamma=gamma)
     image = tf.image.random_brightness(image, 0.1, seed=None)
-    image = tf.image.random_contrast(image, 0.9, 1.1, seed=None)
+    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_hue(image, 0.1, seed=None)
     image = tf.image.random_saturation(image, 0.9, 1.1, seed=None)
 

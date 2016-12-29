@@ -390,8 +390,6 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
 def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
                               resize_side_max=_RESIZE_SIDE_MAX):
     image = tf.to_float(image) * (1. / 255.)
-    gamma = random_ops.random_uniform([], 0.7, 1.4)
-    image = adjust_gamma(image, gamma=gamma)
     image = tf.image.random_brightness(image, 0.1, seed=None)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_hue(image, 0.2, seed=None)

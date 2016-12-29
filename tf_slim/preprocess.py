@@ -404,16 +404,16 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     image.set_shape([output_height, output_width, 3])
     edge.set_shape([output_height, output_width, 1])
 
-    # Scale to [-1, 1]
-    image = tf.to_float(image) * (2. / 255.) - 1.
-    edge = tf.to_float(edge) / 255.
-
     image = tf.image.random_brightness(image, 0.1, seed=None)
     gamma = random_ops.random_uniform([], 0.9, 1.1)
     image = adjust_gamma(image, gamma=gamma)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_hue(image, 0.2, seed=None)
     image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
 
     # Flip left-right
     p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)

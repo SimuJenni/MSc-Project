@@ -451,9 +451,6 @@ def augment_colors(image):
     c = random_ops.random_uniform([], -0.1, 0.1)
     f = random_ops.random_uniform([], -0.1, 0.1)
 
-    image[:, :, 1] = a * image[:, :, 1] ** b + c
-    image[:, :, 2] = d * image[:, :, 2] ** e + f
-
     image = ops.convert_to_tensor(image, name='image')
     # Remember original dtype to so we can convert back if needed
     orig_dtype = image.dtype

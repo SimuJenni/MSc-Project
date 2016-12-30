@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 0
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-234301'
@@ -107,7 +107,6 @@ with sess.as_default():
         boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                       np.int64(num_train_steps * 0.75)]
         values = [0.001, 0.001 * 100. ** (-1. / 3.), 0.001 * 100 ** (-2. / 3.), 0.001 * 100 ** (-3. / 3.)]
-        # values = [0.0003, 0.0003 * 20. ** (-1. / 3.), 0.0003 * 20 ** (-2. / 3.), 0.0003 * 20 ** (-3. / 3.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

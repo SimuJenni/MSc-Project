@@ -11,7 +11,7 @@ slim = tf.contrib.slim
 
 NUM_CLASSES = 1000
 
-MIN_SIZE = 32
+MIN_SIZE = 256
 
 NAME = 'imagenet'
 

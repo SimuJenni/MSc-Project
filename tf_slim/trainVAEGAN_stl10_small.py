@@ -6,7 +6,7 @@ from tensorflow.python.ops import math_ops
 
 from ToonNetAEGAN import VAEGAN
 from constants import LOG_DIR
-from datasets import imagenet
+from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
 from utils import montage
@@ -14,14 +14,14 @@ from utils import montage
 slim = tf.contrib.slim
 
 # Setup training parameters
-data = imagenet
-TRAIN_SET_NAME = 'train'
-TEST_SET_NAME = 'validation'
-model = VAEGAN(num_layers=4, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=60)
-TARGET_SHAPE = [96, 96, 3]
+data = stl10
+TRAIN_SET_NAME = 'train_unlabeled'
+TEST_SET_NAME = 'test'
+model = VAEGAN(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
+TARGET_SHAPE = [64, 64, 3]
 LR = 0.0001
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_small/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 
@@ -35,7 +35,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split('train')
+            train_set = data.get_split(TRAIN_SET_NAME)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
@@ -45,8 +45,8 @@ with sess.as_default():
             img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
-                                                                      resize_side_min=96,
-                                                                      resize_side_max=160)
+                                                                      resize_side_min=64,
+                                                                      resize_side_max=128)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
@@ -113,10 +113,10 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
         learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
+                                  LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-8)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-6)
 
         # Handle summaries
         tf.scalar_summary('learning rate', learning_rate)

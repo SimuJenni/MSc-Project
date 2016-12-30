@@ -29,14 +29,12 @@ TEST_WHILE_TRAIN = False
 
 CHECKPOINT = 'model.ckpt-234301'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
-if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_plus_final/'.format(data.NAME, model.name, net_type))
-else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
-
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_plus_final/'.format(data.NAME, model.name, net_type))
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
 for conv2train in range(num_layers + 1):
+    save_subdir = os.path.join(SAVE_DIR, 'conv_{}'.format(conv2train))
+
     sess = tf.Session()
     g = tf.Graph()
     with sess.as_default():
@@ -129,7 +127,8 @@ for conv2train in range(num_layers + 1):
 
             # Handle initialisation
             if conv2train > 0:
-                ckpt = tf.train.get_checkpoint_state(SAVE_DIR)
+                ckpt_dir = os.path.join(SAVE_DIR, 'conv_{}'.format(conv2train - 1))
+                ckpt = tf.train.get_checkpoint_state(ckpt_dir)
                 variables_to_restore = slim.get_variables_to_restore(
                     include=[net_type, 'fully_connected'], exclude=['discriminator/fully_connected',
                                                                     ops.GraphKeys.GLOBAL_STEP])
@@ -157,7 +156,7 @@ for conv2train in range(num_layers + 1):
                                                      global_step=global_step)
 
             # Start training
-            slim.learning.train(train_op, SAVE_DIR,
+            slim.learning.train(train_op, save_subdir,
                                 init_fn=init_fn, number_of_steps=(conv2train+1)*num_train_steps/(num_layers+1),
                                 save_summaries_secs=60, save_interval_secs=600,
                                 log_every_n_steps=100)

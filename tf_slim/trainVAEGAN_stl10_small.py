@@ -21,7 +21,7 @@ model = VAEGAN(num_layers=4, batch_size=128, data_size=data.SPLITS_TO_SIZES[TRAI
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0001
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_small/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 

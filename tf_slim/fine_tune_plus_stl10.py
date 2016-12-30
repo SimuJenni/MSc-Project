@@ -100,12 +100,9 @@ for conv2train in range(num_layers + 1):
 
             # Define learning parameters
             num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-            boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-                          np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-            values = [0.001, 0.001*100.**(-1./4.), 0.001*100**(-2./4.), 0.001*100**(-3./4.), 0.001*100**(-1.)]
-            learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
             # Define optimizer
+            learning_rate = 0.001*100.**(conv2train/4.)
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
             if TEST_WHILE_TRAIN:

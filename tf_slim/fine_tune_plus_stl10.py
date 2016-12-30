@@ -129,13 +129,17 @@ for conv2train in range(num_layers + 1):
 
             # Handle initialisation
             if conv2train > 0:
-                init_fn = None
+                variables_to_restore = slim.get_variables_to_restore(
+                    include=[net_type, 'fully_connected'], exclude=['discriminator/fully_connected',
+                                                                    ops.GraphKeys.GLOBAL_STEP])
+                init_fn = assign_from_checkpoint_fn(SAVE_DIR, variables_to_restore, ignore_missing_vars=True)
+
             else:
                 variables_to_restore = slim.get_variables_to_restore(
                     include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
                                                  ops.GraphKeys.GLOBAL_STEP])
-                print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
                 init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
+
 
             # Create training operation
             trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers - i) for i in range(conv2train)]
@@ -144,6 +148,7 @@ for conv2train in range(num_layers + 1):
                                                       exclude=['discriminator/fully_connected'])
             var2train = list(set(var2train).intersection(tf.trainable_variables()))
 
+            print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
             print('Variables to train: {}'.format([v.op.name for v in var2train]))
             sys.stdout.flush()

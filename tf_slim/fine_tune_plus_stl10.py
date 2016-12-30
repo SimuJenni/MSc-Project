@@ -157,6 +157,6 @@ for conv2train in range(num_layers + 1):
 
             # Start training
             slim.learning.train(train_op, save_subdir,
-                                init_fn=init_fn, number_of_steps=(conv2train+1)*num_train_steps/(num_layers+1),
+                                init_fn=init_fn, number_of_steps=num_train_steps/(num_layers+1),
                                 save_summaries_secs=60, save_interval_secs=600,
                                 log_every_n_steps=100)

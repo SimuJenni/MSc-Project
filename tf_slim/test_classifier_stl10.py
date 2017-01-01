@@ -16,7 +16,7 @@ finetuned = True
 net_type = 'discriminator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
-TARGET_SHAPE = [64, 64, 3]
+TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 NUM_CONV_TRAIN = 0
 

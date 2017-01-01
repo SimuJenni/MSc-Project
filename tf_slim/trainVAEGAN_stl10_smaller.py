@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage
+from utils import montage, kl_gauss
 
 slim = tf.contrib.slim
 

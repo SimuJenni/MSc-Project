@@ -2,8 +2,6 @@ from threading import Thread
 
 import cv2
 import numpy as np
-from skimage.restoration import denoise_tv_chambolle
-from skimage import img_as_int
 
 
 def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
@@ -108,7 +106,6 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     img_rgb = plt.imread("test.jpg")
-    #img_rgb = cv2.resize(img_rgb, (4*256, 4*256))
     img_rgb = cv2.resize(img_rgb, (555, 555))
 
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
@@ -119,9 +116,8 @@ if __name__ == '__main__':
     print(cartoon.shape)
     print(img_rgb.shape)
 
-
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(8, 5), sharex=True, sharey=True,
-                       subplot_kw={'adjustable': 'box-forced'})
+                           subplot_kw={'adjustable': 'box-forced'})
 
     plt.gray()
     ax[0].imshow(img_rgb)
@@ -139,5 +135,3 @@ if __name__ == '__main__':
 
     plt.imsave('test_edge.jpg', img_edge)
     plt.imsave('test_toon.jpg', cartoon)
-
-

@@ -123,6 +123,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
         Encoding of the input.
     """
     f_dims = DEFAULT_FILTER_DIMS
+    num_layers = min(num_layers, 4)
     with tf.variable_scope('generator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
@@ -156,6 +157,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
         Encoding of the input image.
     """
     f_dims = DEFAULT_FILTER_DIMS
+    num_layers = min(num_layers, 4)
     with tf.variable_scope('encoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
@@ -187,6 +189,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
         Decoded image with 3 channels.
     """
     f_dims = DEFAULT_FILTER_DIMS
+    num_layers = min(num_layers, 4)
     with tf.variable_scope('decoder', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
             for l in range(0, num_layers):

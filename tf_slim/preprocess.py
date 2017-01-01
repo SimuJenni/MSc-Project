@@ -445,40 +445,6 @@ def preprocess_finetune_test(image, edge, output_height, output_width, resize_si
     return image, edge
 
 
-def augment_colors(image):
-    dh = random_ops.random_uniform([], -0.1, 0.1)
-
-    a = random_ops.random_uniform([], 0.7, 1.4)
-    d = random_ops.random_uniform([], 0.7, 1.4)
-    b = random_ops.random_uniform([], 0.25, 0.4)
-    e = random_ops.random_uniform([], 0.25, 0.4)
-    c = random_ops.random_uniform([], -0.1, 0.1)
-    f = random_ops.random_uniform([], -0.1, 0.1)
-
-    image = ops.convert_to_tensor(image, name='image')
-    # Remember original dtype to so we can convert back if needed
-    orig_dtype = image.dtype
-    flt_image = tf.image.convert_image_dtype(image, dtypes.float32)
-
-    hsv = gen_image_ops.rgb_to_hsv(flt_image)
-
-    hue = array_ops.slice(hsv, [0, 0, 0], [-1, -1, 1])
-    saturation = array_ops.slice(hsv, [0, 0, 1], [-1, -1, 1])
-    value = array_ops.slice(hsv, [0, 0, 2], [-1, -1, 1])
-
-    hue += dh
-    saturation = a * saturation ** b + c
-    value = d * value ** e + f
-    hue = clip_ops.clip_by_value(hue, 0.0, 1.0)
-    saturation = clip_ops.clip_by_value(saturation, 0.0, 1.0)
-    value = clip_ops.clip_by_value(value, 0.0, 1.0)
-
-    hsv_altered = array_ops.concat(2, [hue, saturation, value])
-    rgb_altered = gen_image_ops.hsv_to_rgb(hsv_altered)
-
-    return tf.image.convert_image_dtype(rgb_altered, orig_dtype)
-
-
 def preprocess_image(image, output_height, output_width, is_training=False,
                      resize_side_min=_RESIZE_SIDE_MIN,
                      resize_side_max=_RESIZE_SIDE_MAX):

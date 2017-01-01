@@ -21,7 +21,6 @@ TEST_SET_NAME = 'validation'
 model = VAEGAN(num_layers=4, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=40)
 TARGET_SHAPE = [96, 96, 3]
 LR = 0.0001
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_smaller/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
@@ -60,7 +59,7 @@ with sess.as_default():
                 img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
-                                                                      resize_side=RESIZE_SIZE)
+                                                                      resize_side=96)
                 imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
                                                                    batch_size=model.batch_size, num_threads=4)
 

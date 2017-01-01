@@ -19,7 +19,7 @@ TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=192, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
 TARGET_SHAPE = [64, 64, 3]
-LR = 0.0002
+LR = 0.0001
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_small/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6

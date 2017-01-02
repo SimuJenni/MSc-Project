@@ -115,7 +115,7 @@ with sess.as_default():
         grad_multipliers = {}
         var2train = []
         for i in range(NUM_CONV_TRAIN):
-            vs = slim.get_variables_to_restore(include='{}/conv_{}'.format(net_type, num_layers - i),
+            vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
                                                 exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train.append(vs)

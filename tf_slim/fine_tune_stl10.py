@@ -118,12 +118,12 @@ with sess.as_default():
             vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
                                                 exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
-            var2train.append(vs)
+            var2train += vs
             for v in vs:
                 grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
         vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected'])
         vs = list(set(vs).intersection(tf.trainable_variables()))
-        var2train.append(vs)
+        var2train += vs
         for v in vs:
             grad_multipliers[v.op.name] = 1.0
 

@@ -127,18 +127,6 @@ with sess.as_default():
         for v in vs:
             grad_multipliers[v.op.name] = 1.0
 
-        # trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers - i) for i in range(NUM_CONV_TRAIN)]
-        # trainable_scopes += ['fully_connected']
-        # var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
-        # var2train = list(set(var2train).intersection(tf.trainable_variables()))
-        # pre_trained_vars = slim.get_variables(scope=net_type)
-        # grad_multipliers = {}
-        # for v in var2train:
-        #     if v in pre_trained_vars:
-        #         grad_multipliers[v.op.name] = pre_trained_grad_weight
-        #     else:
-        #         grad_multipliers[v.op.name] = 1.0
-
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
         print(grad_multipliers)

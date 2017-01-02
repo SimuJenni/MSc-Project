@@ -563,7 +563,7 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
                               resize_side_max=_RESIZE_SIDE_MAX):
     # Randomly rotate
     if np.random.rand(1) > 0.10:
-        angle = np.random.rand(1) * 30 - 15
+        angle = np.random.rand(1) * 40 - 20
         image = rotate(image, angle)
 
     # Compute zoom side-size

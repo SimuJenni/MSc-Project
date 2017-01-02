@@ -74,7 +74,7 @@ with sess.as_default():
                 img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
                                                                output_height=TARGET_SHAPE[0],
                                                                output_width=TARGET_SHAPE[1],
-                                                               resize_side=64)
+                                                               resize_side=96)
                 imgs_test, edges_test, labels_test = tf.train.batch(
                     [img_test, edge_test, label_test],
                     batch_size=model.batch_size, num_threads=4)

@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 1
-pre_trained_grad_weight = 0.1
+pre_trained_grad_weight = [0.1*0.3**i for i in range(num_layers)]
 
 CHECKPOINT = 'model.ckpt-104001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -112,21 +112,35 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
-        trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers - i) for i in range(NUM_CONV_TRAIN)]
-        trainable_scopes += ['fully_connected']
-        var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
-        var2train = list(set(var2train).intersection(tf.trainable_variables()))
-        pre_trained_vars = slim.get_variables(scope=net_type)
         grad_multipliers = {}
-        for v in var2train:
-            if v in pre_trained_vars:
-                grad_multipliers[v.op.name] = pre_trained_grad_weight
-            else:
-                grad_multipliers[v.op.name] = 1.0
+        var2train = []
+        for i in range(NUM_CONV_TRAIN):
+            vs = slim.get_variables_to_restore(include='{}/conv_{}'.format(net_type, num_layers - i),
+                                                exclude=['discriminator/fully_connected'])
+            vs = list(set(vs).intersection(tf.trainable_variables()))
+            var2train.append(vs)
+            for v in vs:
+                grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
+        vs = slim.get_variables_to_restore(include='fully_connected', exclude=['discriminator/fully_connected'])
+        vs = list(set(vs).intersection(tf.trainable_variables()))
+        var2train.append(vs)
+        for v in vs:
+            grad_multipliers[v.op.name] = 1.0
+
+        # trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers - i) for i in range(NUM_CONV_TRAIN)]
+        # trainable_scopes += ['fully_connected']
+        # var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
+        # var2train = list(set(var2train).intersection(tf.trainable_variables()))
+        # pre_trained_vars = slim.get_variables(scope=net_type)
+        # grad_multipliers = {}
+        # for v in var2train:
+        #     if v in pre_trained_vars:
+        #         grad_multipliers[v.op.name] = pre_trained_grad_weight
+        #     else:
+        #         grad_multipliers[v.op.name] = 1.0
 
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
-        print('Pre-trained vars: {}'.format([v.op.name for v in pre_trained_vars]))
         print(grad_multipliers)
         sys.stdout.flush()
 

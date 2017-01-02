@@ -476,7 +476,7 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
 def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
                               resize_side_max=_RESIZE_SIDE_MAX):
     # Randomly rotate
-    angle = np.random.rand(1) * 0.3 - 0.15
+    angle = np.random.rand(1) * 0.5 - 0.25
     image = rotate_image_tensor(image, angle, mode='black')
     edge = rotate_image_tensor(edge, angle, mode='black')
 

@@ -475,10 +475,10 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
 
 def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
                               resize_side_max=_RESIZE_SIDE_MAX):
-    # Randomly rotate
-    if np.random.rand(1) > 0.1:
-        angle = np.random.rand(1) * 0.5 - 0.25
-        image = rotate_image_tensor(image, angle, mode='black')
+    # # Randomly rotate
+    # if np.random.rand(1) > 0.1:
+    #     angle = np.random.rand(1) * 0.5 - 0.25
+    #     image = rotate_image_tensor(image, angle, mode='black')
 
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)

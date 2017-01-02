@@ -61,6 +61,7 @@ def rotate_image_tensor(image, angle, mode='black'):
     # Perform backward transformation of the image coordinates
     rot_mat_inv = tf.dynamic_stitch([[0], [1], [2], [3]], [tf.cos(angle), tf.sin(angle), -tf.sin(angle), tf.cos(angle)])
     rot_mat_inv = tf.reshape(rot_mat_inv, shape=[2, 2])
+    rot_mat_inv = tf.cast(rot_mat_inv, tf.float32)
     coord_old_centered = tf.matmul(rot_mat_inv, coord_new_centered)
 
     # Find nearest neighbor in old image

@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNetAEGAN import VAEGAN
+from ToonNetAEGAN2 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
@@ -28,7 +28,7 @@ TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
 pre_trained_grad_weight = 0.1
 
-CHECKPOINT = 'model.ckpt-187442'
+CHECKPOINT = 'model.ckpt-104001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_small/'.format(data.NAME, model.name,

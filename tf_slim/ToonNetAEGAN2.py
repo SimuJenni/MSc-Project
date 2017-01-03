@@ -250,7 +250,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=False)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)

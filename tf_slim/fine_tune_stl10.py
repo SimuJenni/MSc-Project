@@ -24,7 +24,7 @@ data = stl10
 num_layers = 4
 model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
 TARGET_SHAPE = [96, 96, 3]
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 1
 pre_trained_grad_weight = [0.1*0.1**i for i in range(num_layers)]
 

@@ -499,7 +499,7 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     # image = tf.image.random_brightness(image, 0.1, seed=None)
 
     # Scale to [-1, 1]
-    image = tf.to_float(image) * 2. - 1.
+    image = tf.to_float(image) * (2. / 255.) - 1.
     edge = tf.to_float(edge) / 255.
 
     # Flip left-right

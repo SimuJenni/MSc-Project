@@ -81,16 +81,7 @@ def read_single_image(image_file):
     return image
 
 
-def plot_image(image):
-    """
-    :param image: the image to be plotted in a 3-D matrix format
-    :return: None
-    """
-    plt.imshow(image)
-    plt.show()
-
-
-def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
+def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augment_num=None):
     """Loads data from the stl10 files and writes files to a TFRecord.
     Args:
       data_filename: The filename of the stl10 file.
@@ -135,6 +126,15 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None):
                     image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, int(label))
                 tfrecord_writer.write(example.SerializeToString())
 
+                if augment_num:
+                    for i in range(augment_num):
+                        image = dataset_utils.random_rotation(image, 20)
+                        image = dataset_utils.random_shear(image, 0.1)
+                        image_str = coder.encode_jpeg(image)
+                        example = dataset_utils.cartooned_example(
+                            image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, int(label))
+                        tfrecord_writer.write(example.SerializeToString())
+
     return num_images
 
 
@@ -171,25 +171,26 @@ def run():
     if not os.path.exists(STL10_TF_DATADIR):
         os.mkdir(STL10_TF_DATADIR)
 
-    unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
-    unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
-    with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
-    print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
+    # unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
+    # unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
+    # with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
+    #     num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
+    # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     labeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/train_X.bin')
     labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train.tfrecord')
     label_file_train = os.path.join(STL10_DATADIR, 'stl10_binary/train_y.bin')
     with tf.python_io.TFRecordWriter(labeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train)
+        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train,
+                                       augment_num=9)
     print('Wrote {} images to {}'.format(num_written, labeled_train_tf_file))
-
-    labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')
-    labeled_test_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_test.tfrecord')
-    label_file_test = os.path.join(STL10_DATADIR, 'stl10_binary/test_y.bin')
-    with tf.python_io.TFRecordWriter(labeled_test_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
-    print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
+    #
+    # labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')
+    # labeled_test_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_test.tfrecord')
+    # label_file_test = os.path.join(STL10_DATADIR, 'stl10_binary/test_y.bin')
+    # with tf.python_io.TFRecordWriter(labeled_test_tf_file) as tfrecord_writer:
+    #     num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
+    # print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
 
 
 if __name__ == '__main__':

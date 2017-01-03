@@ -250,7 +250,7 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
             net = slim.flatten(inputs)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)
@@ -263,7 +263,8 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weights_reg=0.00001,
+                      center=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -279,7 +280,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'is_training': True,    # TODO: remove?
         'decay': 0.999,
         'epsilon': 0.001,
-        'center': False,
+        'center': center,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,

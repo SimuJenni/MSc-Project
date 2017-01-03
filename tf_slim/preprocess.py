@@ -110,92 +110,7 @@ def rotate(image, angle):
         return image_rotated
 
 
-def rotate_image_tensor(image, angle, mode='black'):
-    """
-    Rotates a 3D tensor (HWD), which represents an image by given radian angle.
-
-    New image has the same size as the input image.
-
-    mode controls what happens to border pixels.
-    mode = 'black' results in black bars (value 0 in unknown areas)
-    mode = 'white' results in value 255 in unknown areas
-    mode = 'ones' results in value 1 in unknown areas
-    mode = 'repeat' keeps repeating the closest pixel known
-    """
-    s = image.get_shape().as_list()
-    assert len(s) == 3, "Input needs to be 3D."
-    assert (mode == 'repeat') or (mode == 'black') or (mode == 'white') or (mode == 'ones'), "Unknown boundary mode."
-    image_center = [np.floor(x / 2) for x in s]
-
-    # Coordinates of new image
-    coord1 = tf.range(s[0])
-    coord2 = tf.range(s[1])
-
-    # Create vectors of those coordinates in order to vectorize the image
-    coord1_vec = tf.tile(coord1, [s[1]])
-
-    coord2_vec_unordered = tf.tile(coord2, [s[0]])
-    coord2_vec_unordered = tf.reshape(coord2_vec_unordered, [s[0], s[1]])
-    coord2_vec = tf.reshape(tf.transpose(coord2_vec_unordered, [1, 0]), [-1])
-
-    # center coordinates since rotation center is supposed to be in the image center
-    coord1_vec_centered = coord1_vec - image_center[0]
-    coord2_vec_centered = coord2_vec - image_center[1]
-
-    coord_new_centered = tf.cast(tf.pack([coord1_vec_centered, coord2_vec_centered]), tf.float32)
-
-    # Perform backward transformation of the image coordinates
-    rot_mat_inv = tf.dynamic_stitch([[0], [1], [2], [3]], [tf.cos(angle), tf.sin(angle), -tf.sin(angle), tf.cos(angle)])
-    rot_mat_inv = tf.reshape(rot_mat_inv, shape=[2, 2])
-    rot_mat_inv = tf.cast(rot_mat_inv, tf.float32)
-    coord_old_centered = tf.matmul(rot_mat_inv, coord_new_centered)
-
-    # Find nearest neighbor in old image
-    coord1_old_nn = tf.cast(tf.round(coord_old_centered[0, :] + image_center[0]), tf.int32)
-    coord2_old_nn = tf.cast(tf.round(coord_old_centered[1, :] + image_center[1]), tf.int32)
-
-    # Clip values to stay inside image coordinates
-    if mode == 'repeat':
-        coord_old1_clipped = tf.minimum(tf.maximum(coord1_old_nn, 0), s[0] - 1)
-        coord_old2_clipped = tf.minimum(tf.maximum(coord2_old_nn, 0), s[1] - 1)
-    else:
-        outside_ind1 = tf.logical_or(tf.greater(coord1_old_nn, s[0] - 1), tf.less(coord1_old_nn, 0))
-        outside_ind2 = tf.logical_or(tf.greater(coord2_old_nn, s[1] - 1), tf.less(coord2_old_nn, 0))
-        outside_ind = tf.logical_or(outside_ind1, outside_ind2)
-
-        coord_old1_clipped = tf.boolean_mask(coord1_old_nn, tf.logical_not(outside_ind))
-        coord_old2_clipped = tf.boolean_mask(coord2_old_nn, tf.logical_not(outside_ind))
-
-        coord1_vec = tf.boolean_mask(coord1_vec, tf.logical_not(outside_ind))
-        coord2_vec = tf.boolean_mask(coord2_vec, tf.logical_not(outside_ind))
-
-    coord_old_clipped = tf.cast(tf.transpose(tf.pack([coord_old1_clipped, coord_old2_clipped]), [1, 0]), tf.int32)
-
-    # Coordinates of the new image
-    coord_new = tf.transpose(tf.cast(tf.pack([coord1_vec, coord2_vec]), tf.int32), [1, 0])
-
-    image_channel_list = tf.split(2, s[2], image)
-
-    image_rotated_channel_list = list()
-    for image_channel in image_channel_list:
-        image_chan_new_values = tf.gather_nd(tf.squeeze(image_channel), coord_old_clipped)
-
-        if (mode == 'black') or (mode == 'repeat'):
-            background_color = 0
-        elif mode == 'ones':
-            background_color = 1
-        elif mode == 'white':
-            background_color = 255
-
-        image_rotated_channel_list.append(tf.sparse_to_dense(coord_new, [s[0], s[1]], image_chan_new_values,
-                                                             background_color, validate_indices=False))
-
-    image_rotated = tf.transpose(tf.pack(image_rotated_channel_list), [1, 2, 0])
-
-    return image_rotated
-
-
-def adjust_gamma(image, gamma=1, gain=1):
+def adjust_gamma(image, gamma_min=0.8, gamma_max=1.3, gain=1):
     """Performs Gamma Correction on the input image.
       Also known as Power Law Transform. This function transforms the
       input image pixelwise according to the equation Out = In**gamma
@@ -219,7 +134,7 @@ def adjust_gamma(image, gamma=1, gain=1):
       [1] http://en.wikipedia.org/wiki/Gamma_correction
     """
 
-    with ops.op_scope([image, gamma, gain], None, 'adjust_gamma') as name:
+    with ops.op_scope([image, gamma_min, gamma_max, gain], None, 'adjust_gamma') as name:
         # Convert pixel value to DT_FLOAT for computing adjusted image
         img = ops.convert_to_tensor(image, name='img', dtype=dtypes.float32)
         # Keep image dtype for computing the scale of corresponding dtype
@@ -228,6 +143,7 @@ def adjust_gamma(image, gamma=1, gain=1):
         # scale = max(dtype) - min(dtype)
         scale = constant_op.constant(2, dtype=dtypes.float32)
         # According to the definition of gamma correction
+        gamma = tf.random_uniform([], minval=gamma_min, maxval=gamma_max, dtype=tf.float32)
         adjusted_img = (img / scale) ** gamma * scale * gain
 
         return adjusted_img
@@ -561,10 +477,9 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
 
 def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
                               resize_side_max=_RESIZE_SIDE_MAX):
-    # # Randomly rotate
-    # if np.random.rand(1) > 0.10:
-    #     angle = np.random.rand(1) * 40 - 20
-    #     image = rotate(image, angle)
+    # Randomly rotate
+    angle = tf.random_uniform([], minval=-15, maxval=15, dtype=tf.float32)
+    image = rotate(image, angle)
 
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
@@ -582,10 +497,11 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
-    image = tf.image.random_hue(image, 0.025, seed=None)
+    image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
+    image = tf.image.random_hue(image, 0.05, seed=None)
     image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
-    image = tf.image.random_contrast(image, 0.8, 1.3, seed=None)
-    image = tf.image.random_brightness(image, 0.05, seed=None)
+    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
+    image = tf.image.random_brightness(image, 0.1, seed=None)
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * 2. - 1.

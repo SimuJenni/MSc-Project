@@ -490,13 +490,13 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     image.set_shape([output_height, output_width, 3])
     edge.set_shape([output_height, output_width, 1])
 
-    # Color and contrast augmentation
-    image = tf.to_float(image) / 255.
-    image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
-    image = tf.image.random_hue(image, 0.05, seed=None)
-    image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
-    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
-    image = tf.image.random_brightness(image, 0.1, seed=None)
+    # # Color and contrast augmentation
+    # image = tf.to_float(image) / 255.
+    # image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
+    # image = tf.image.random_hue(image, 0.05, seed=None)
+    # image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
+    # image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
+    # image = tf.image.random_brightness(image, 0.1, seed=None)
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * 2. - 1.

@@ -23,15 +23,15 @@ net_type = 'discriminator'
 data = stl10
 num_layers = 4
 model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=500)
-TARGET_SHAPE = [96, 96, 3]
-TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 1
-pre_trained_grad_weight = [0.1*0.1**i for i in range(num_layers)]
+TARGET_SHAPE = [64, 64, 3]
+TEST_WHILE_TRAIN = False
+NUM_CONV_TRAIN = 0
+pre_trained_grad_weight = [0.1*0.2**i for i in range(num_layers)]
 
 CHECKPOINT = 'model.ckpt-104001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_small/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
                                                                                         net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -57,8 +57,8 @@ with sess.as_default():
             img_train, edge_train = preprocess_finetune_train(img_train, edge_train,
                                                               output_height=TARGET_SHAPE[0],
                                                               output_width=TARGET_SHAPE[1],
-                                                              resize_side_min=96,
-                                                              resize_side_max=144)
+                                                              resize_side_min=64,
+                                                              resize_side_max=128)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(
@@ -74,7 +74,7 @@ with sess.as_default():
                 img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
                                                                output_height=TARGET_SHAPE[0],
                                                                output_width=TARGET_SHAPE[1],
-                                                               resize_side=96)
+                                                               resize_side=64)
                 imgs_test, edges_test, labels_test = tf.train.batch(
                     [img_test, edge_test, label_test],
                     batch_size=model.batch_size, num_threads=4)

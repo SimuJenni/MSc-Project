@@ -482,7 +482,7 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
     for i in range(17):
         pred_fn_pairs[tf.equal(a_idx, tf.constant(i-8, dtype=tf.int32))] = lambda: rotate(image, angles[i])
 
-    image = control_flow_ops.case(pred_fn_pairs, default=lambda: rotate(image, 0))
+    image = control_flow_ops.case(pred_fn_pairs, default=lambda: rotate(image, 0.))
 
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)

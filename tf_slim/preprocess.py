@@ -26,8 +26,6 @@ def _flip_lr(image, p):
 
 def rotate(image, angle):
     with tf.name_scope('rotate'):
-        angle = tf.random_uniform([], minval=-angle, maxval=angle, dtype=tf.float32)
-
         image = tf.cast(image, tf.float32)
         shape = image.get_shape().as_list()
         assert len(shape) == 3, "Input needs to be 3D."
@@ -478,7 +476,13 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
 
 def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
                               resize_side_max=_RESIZE_SIDE_MAX):
+    a_idx = tf.random_uniform(shape=(), minval=0, maxval=16, dtype=tf.int32)
+    angles = [(i-8)/16.*30./180 for i in range(17)]
+    pred_fn_pairs = {}
+    for i in range(17):
+        pred_fn_pairs[tf.equal(a_idx, tf.constant(i-8, dtype=tf.int32))] = lambda: rotate(image, angles[i])
 
+    image = control_flow_ops.case(pred_fn_pairs, default=lambda: rotate(image, 0))
     image = rotate(image, angle=0.2)
 
     # Compute zoom side-size

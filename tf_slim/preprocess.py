@@ -25,7 +25,7 @@ def _flip_lr(image, p):
 
 
 def rotate(image, angle):
-    with tf.name_scope('rotate'):
+    with tf.name_scope('rotate_{}'.format(angle)):
         image = tf.cast(image, tf.float32)
         shape = image.get_shape().as_list()
         assert len(shape) == 3, "Input needs to be 3D."

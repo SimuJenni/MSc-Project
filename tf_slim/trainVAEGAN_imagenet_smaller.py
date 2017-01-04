@@ -35,7 +35,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split('train', dataset_dir=IMAGENET_SMALL_TF_DATADIR)
+            train_set = data.get_split(TRAIN_SET_NAME, dataset_dir=IMAGENET_SMALL_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
@@ -53,7 +53,7 @@ with sess.as_default():
                                                                   capacity=4 * model.batch_size)
             if TEST:
                 # Get test-data
-                test_set = data.get_split('test')
+                test_set = data.get_split(TEST_SET_NAME)
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
                 [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
                 img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,

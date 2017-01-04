@@ -106,7 +106,8 @@ class VAEGAN:
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
+        model = classifier(model, num_classes, num_layers=self.num_layers, reuse=reuse, training=training,
+                           activation=activation)
         return model
 
 
@@ -236,7 +237,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             return net, encoded, layers
 
 
-def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.relu):
+def classifier(net, num_classes, num_layers=5, reuse=None, training=True, activation=tf.nn.relu):
     """Builds a classifier on top of inputs consisting of 3 fully connected layers.
 
     Args:
@@ -251,7 +252,9 @@ def classifier(inputs, num_classes, reuse=None, training=True, activation=tf.nn.
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
-            net = slim.flatten(inputs)
+            if num_layers < 5:
+                net = slim.repeat(net, REPEATS[-1], slim.conv2d, num_outputs=DEFAULT_FILTER_DIMS[-1])
+            net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')

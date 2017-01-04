@@ -128,7 +128,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
                 tfrecord_writer.write(example.SerializeToString())
 
                 if augment_num:
-                    angles = [np.pi / 180 * 20./augment_num * i - 10 for i in range(augment_num)]
+                    angles = [np.pi / 180 * 40./augment_num * i - 20 for i in range(augment_num)]
                     for i in range(augment_num):
                         im_rot = imrotate(image, angle=angles[i])
                         image_str = coder.encode_jpeg(im_rot)

@@ -128,11 +128,11 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
                 tfrecord_writer.write(example.SerializeToString())
 
                 if augment_num:
+                    angles = [np.pi / 180 * 15./augment_num * i - 7.5 for i in range(augment_num)]
                     for i in range(augment_num):
-                        theta = np.pi / 180 * np.random.uniform(-15, 15)
                         im_data = tf.placeholder(dtype=tf.uint8)
                         image = image.astype(dtype=np.uint8)
-                        image = sess.run(rotate(image, theta),
+                        image = sess.run(rotate(image, angles[i]),
                                          feed_dict={im_data: image})
                         # image = dataset_utils.random_rotation(image, 20)
                         # image = dataset_utils.random_shear(image, 0.1)
@@ -188,7 +188,7 @@ def run():
     label_file_train = os.path.join(STL10_DATADIR, 'stl10_binary/train_y.bin')
     with tf.python_io.TFRecordWriter(labeled_train_tf_file) as tfrecord_writer:
         num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train,
-                                       augment_num=9)
+                                       augment_num=4)
     print('Wrote {} images to {}'.format(num_written, labeled_train_tf_file))
     #
     # labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')

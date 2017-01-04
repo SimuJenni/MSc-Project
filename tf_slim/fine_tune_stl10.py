@@ -58,7 +58,7 @@ with sess.as_default():
                                                               output_height=TARGET_SHAPE[0],
                                                               output_width=TARGET_SHAPE[1],
                                                               resize_side_min=96,
-                                                              resize_side_max=144)
+                                                              resize_side_max=128)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(

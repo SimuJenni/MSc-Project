@@ -4,7 +4,7 @@ from constants import STL10_DATADIR, STL10_TF_DATADIR
 from cartooning import auto_canny, cartoonify
 import dataset_utils
 import tensorflow as tf
-from tf_slim.preprocess import rotate
+from scipy.misc import imrotate
 
 # image shape
 HEIGHT = 96
@@ -128,15 +128,10 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
                 tfrecord_writer.write(example.SerializeToString())
 
                 if augment_num:
-                    angles = [np.pi / 180 * 15./augment_num * i - 7.5 for i in range(augment_num)]
+                    angles = [np.pi / 180 * 20./augment_num * i - 10 for i in range(augment_num)]
                     for i in range(augment_num):
-                        im_data = tf.placeholder(dtype=tf.uint8)
-                        image = image.astype(dtype=np.uint8)
-                        image = sess.run(rotate(image, angles[i]),
-                                         feed_dict={im_data: image})
-                        # image = dataset_utils.random_rotation(image, 20)
-                        # image = dataset_utils.random_shear(image, 0.1)
-                        image_str = coder.encode_jpeg(image)
+                        im_rot = imrotate(image, angle=angles[i])
+                        image_str = coder.encode_jpeg(im_rot)
                         example = dataset_utils.cartooned_example(
                             image_str, cartoon_str, edge_str, 'jpg', HEIGHT, WIDTH, int(label))
                         tfrecord_writer.write(example.SerializeToString())
@@ -184,13 +179,13 @@ def run():
     # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     labeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/train_X.bin')
-    labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_new.tfrecord')
+    labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_rot.tfrecord')
     label_file_train = os.path.join(STL10_DATADIR, 'stl10_binary/train_y.bin')
     with tf.python_io.TFRecordWriter(labeled_train_tf_file) as tfrecord_writer:
         num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train,
-                                       augment_num=4)
+                                       augment_num=8)
     print('Wrote {} images to {}'.format(num_written, labeled_train_tf_file))
-    #
+
     # labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')
     # labeled_test_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_test.tfrecord')
     # label_file_test = os.path.join(STL10_DATADIR, 'stl10_binary/test_y.bin')

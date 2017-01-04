@@ -184,10 +184,11 @@ def run():
     # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     labeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/train_X.bin')
-    labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train.tfrecord')
+    labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_new.tfrecord')
     label_file_train = os.path.join(STL10_DATADIR, 'stl10_binary/train_y.bin')
     with tf.python_io.TFRecordWriter(labeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train)
+        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train,
+                                       augment_num=4)
     print('Wrote {} images to {}'.format(num_written, labeled_train_tf_file))
     #
     # labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')

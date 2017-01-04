@@ -24,15 +24,15 @@ data = stl10
 num_layers = 4
 model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
 TARGET_SHAPE = [96, 96, 3]
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 0
-pre_trained_grad_weight = [0.1*0.2**i for i in range(num_layers)]
+pre_trained_grad_weight = [0.1 * 0.2 ** i for i in range(num_layers)]
 
 CHECKPOINT = 'model.ckpt-104001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
-                                                                                        net_type, NUM_CONV_TRAIN))
+                                                                                 net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -58,7 +58,7 @@ with sess.as_default():
                                                               output_height=TARGET_SHAPE[0],
                                                               output_width=TARGET_SHAPE[1],
                                                               resize_side_min=96,
-                                                              resize_side_max=160)
+                                                              resize_side_max=144)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(
@@ -116,7 +116,7 @@ with sess.as_default():
         var2train = []
         for i in range(NUM_CONV_TRAIN):
             vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
-                                                exclude=['discriminator/fully_connected'])
+                                               exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
             for v in vs:

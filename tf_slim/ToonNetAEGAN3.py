@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.python.ops import math_ops
 
-from tf_slim.layers import lrelu, up_conv2d, sample, merge, add_noise_plane
+from layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]

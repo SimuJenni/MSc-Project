@@ -100,7 +100,7 @@ class VAEGAN:
         elif type == 'discriminator':
             disc_in = merge(img, img)
             _, model, _ = discriminator(disc_in, num_layers=self.num_layers, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False)
+                                        training=training, train_fc=False, weights_reg=0.0001)
             activation = lrelu
         elif type == 'encoder':
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
@@ -199,7 +199,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
             return net
 
 
-def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True):
+def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weights_reg=0.00001):
     """Builds a discriminator network on top of inputs.
 
     Args:
@@ -214,7 +214,8 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
     """
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+                                              weights_reg=weights_reg)):
             layers = []
             for l in range(0, num_layers):
                 net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
@@ -250,7 +251,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, weights_reg=0.0001)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)

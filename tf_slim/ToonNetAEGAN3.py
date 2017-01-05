@@ -19,7 +19,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGANv2'
+        self.name = 'AEGANv3'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -199,7 +199,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
             return net
 
 
-def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weights_reg=0.0001):
+def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weights_reg=0.00001):
     """Builds a discriminator network on top of inputs.
 
     Args:

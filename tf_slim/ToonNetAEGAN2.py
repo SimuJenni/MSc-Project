@@ -199,7 +199,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
             return net
 
 
-def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weights_reg=0.00001):
+def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weights_reg=0.0001):
     """Builds a discriminator network on top of inputs.
 
     Args:

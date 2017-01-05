@@ -19,7 +19,7 @@ data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
 # model = VAEGAN(num_layers=5, batch_size=48, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=30)
-model = VAEGAN(num_layers=5, batch_size=64, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=20)
+model = VAEGAN(num_layers=5, batch_size=56, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=20)
 TARGET_SHAPE = [128, 128, 3]
 LR = 0.0001
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_small/'.format(data.NAME, model.name))

@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 1
-pre_trained_grad_weight = [0.1 * 0.2 ** i for i in range(num_layers)]
+pre_trained_grad_weight = [0.1 * 0.1 ** i for i in range(num_layers)]
 
 CHECKPOINT = 'model.ckpt-104004'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))

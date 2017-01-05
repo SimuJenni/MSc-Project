@@ -172,26 +172,25 @@ def run():
     if not os.path.exists(STL10_TF_DATADIR):
         os.mkdir(STL10_TF_DATADIR)
 
-    # unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
-    # unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
-    # with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
-    #     num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
-    # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
+    unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
+    unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
+    with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
+        num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
+    print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     labeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/train_X.bin')
     labeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_rot.tfrecord')
     label_file_train = os.path.join(STL10_DATADIR, 'stl10_binary/train_y.bin')
     with tf.python_io.TFRecordWriter(labeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train,
-                                       augment_num=8)
+        num_written = _add_to_tfrecord(labeled_train_filename, tfrecord_writer, label_filename=label_file_train)
     print('Wrote {} images to {}'.format(num_written, labeled_train_tf_file))
 
-    # labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')
-    # labeled_test_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_test.tfrecord')
-    # label_file_test = os.path.join(STL10_DATADIR, 'stl10_binary/test_y.bin')
-    # with tf.python_io.TFRecordWriter(labeled_test_tf_file) as tfrecord_writer:
-    #     num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
-    # print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
+    labeled_test_filename = os.path.join(STL10_DATADIR, 'stl10_binary/test_X.bin')
+    labeled_test_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_test.tfrecord')
+    label_file_test = os.path.join(STL10_DATADIR, 'stl10_binary/test_y.bin')
+    with tf.python_io.TFRecordWriter(labeled_test_tf_file) as tfrecord_writer:
+        num_written = _add_to_tfrecord(labeled_test_filename, tfrecord_writer, label_filename=label_file_test)
+    print('Wrote {} images to {}'.format(num_written, labeled_test_tf_file))
 
 
 if __name__ == '__main__':

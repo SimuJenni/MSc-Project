@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetAEGAN2 import VAEGAN
+from ToonNetAEGAN3 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_test
@@ -18,7 +18,7 @@ data = stl10
 model = VAEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 0
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(

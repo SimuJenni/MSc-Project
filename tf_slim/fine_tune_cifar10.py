@@ -29,7 +29,7 @@ TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 1
 pre_trained_grad_weight = 0.1
 
-CHECKPOINT = 'model.ckpt-29102'
+CHECKPOINT = 'model.ckpt-14550'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,

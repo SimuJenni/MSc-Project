@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
-pre_trained_grad_weight = [0.1 * 0.1 ** i for i in range(num_layers)]
+pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_layers)]
 
 CHECKPOINT = 'model.ckpt-104001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_small/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -103,12 +103,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        values = [0.001, 0.0003, 0.0001]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
+        # values = [0.001, 0.0003, 0.0001]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
 
         # Create training operation
         grad_multipliers = {}
@@ -146,7 +146,7 @@ with sess.as_default():
         # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        tf.scalar_summary('learning rate', learning_rate)
+        # tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage(imgs_train, 4, 4), max_images=1)

@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNetAEGAN import VAEGAN
+from ToonNetAEGAN_test import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,11 +17,11 @@ slim = tf.contrib.slim
 data = cifar10
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=3, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
+model = VAEGAN(num_layers=3, batch_size=512, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=150)
 TARGET_SHAPE = [32, 32, 3]
 LR = 0.0001
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_andanothersetting/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 8
 
@@ -112,14 +112,14 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-                                  LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
+        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+        #                           LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-8)
+        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-8)
 
         # Handle summaries
-        tf.scalar_summary('learning rate', learning_rate)
+        # tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)

@@ -147,12 +147,12 @@ with sess.as_default():
         vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=False)
-
-        # Auto-encoder training operation
-        scopes_ae = 'encoder, decoder'
-        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
-        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
-                                                    global_step=global_step, summarize_gradients=False)
+        #
+        # # Auto-encoder training operation
+        # scopes_ae = 'encoder, decoder'
+        # vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
+        # train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
+        #                                             global_step=global_step, summarize_gradients=False)
 
         # Discriminator training operation
         scopes_disc = 'discriminator'
@@ -161,7 +161,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
+        slim.learning.train(train_op_gen + train_op_disc,
                             SAVE_DIR,
                             save_summaries_secs=300,
                             save_interval_secs=3000,

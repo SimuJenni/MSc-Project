@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNetAEGAN import VAEGAN
+from ToonNetAEGAN_test import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'generator'
 data = cifar10
 num_layers = 3
-model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=150)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = True
@@ -30,7 +30,7 @@ NUM_CONV_TRAIN = 1
 pre_trained_grad_weight = 0.1
 
 CHECKPOINT = 'model.ckpt-29102'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_andanothersetting/{}'.format(data.NAME, model.name, CHECKPOINT))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
                                                                                              net_type, NUM_CONV_TRAIN))
@@ -81,7 +81,7 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, toons_train, data.NUM_CLASSES, type=net_type,
+        preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type,
                                        fine_tune=fine_tune)
 
         # Define the loss

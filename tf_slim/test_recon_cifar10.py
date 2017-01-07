@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetAEGAN import VAEGAN
+from ToonNetAEGAN_test import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_test
@@ -17,8 +17,8 @@ data = cifar10
 model = VAEGAN(num_layers=3, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings/'.format(data.NAME, model.name))
-LOG_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings_recon_test/'.format(data.NAME, model.name))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
+LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
 
@@ -33,7 +33,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
             # Get test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4, shuffle=False)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Pre-process data
@@ -68,15 +68,14 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 1, 16), max_images=1))
 
-        num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=num_eval_steps,
+                                        num_evals=1,
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops))

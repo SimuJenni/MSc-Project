@@ -17,10 +17,10 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=192, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=100)
+model = VAEGAN(num_layers=4, batch_size=256, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=150)
 TARGET_SHAPE = [64, 64, 3]
-LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_do_100ep/'.format(data.NAME, model.name))
+LR = 0.0001
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_do_150ep/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 
@@ -44,8 +44,8 @@ with sess.as_default():
             img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
-                                                                      resize_side_min=64,
-                                                                      resize_side_max=128)
+                                                                      resize_side_min=96,
+                                                                      resize_side_max=96)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,

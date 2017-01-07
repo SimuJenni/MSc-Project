@@ -143,7 +143,7 @@ with sess.as_default():
             tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
-        scopes_gen = 'generator'
+        scopes_gen = 'generator, decoder'
         vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=False)

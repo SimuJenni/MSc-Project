@@ -98,9 +98,9 @@ with sess.as_default():
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
-        # Add summaries for variables.
-        for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+        # # Add summaries for variables.
+        # for variable in slim.get_model_variables():
+        #     summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         # Handle dependencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

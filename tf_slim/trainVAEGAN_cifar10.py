@@ -68,7 +68,7 @@ with sess.as_default():
         labels_gen = model.gen_labels()
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
+        _, gen_rec, disc_out, _, gen_dist, _, gen_mu, _, gen_logvar = \
             model.net(imgs_train, toons_train, edges_train)
 
         # Define loss for discriminator training
@@ -137,7 +137,7 @@ with sess.as_default():
             tf.image_summary('images/edges', montage(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         else:
             tf.image_summary('images/generator', montage(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            # tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/ground-truth', montage(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/cartoons', montage(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)

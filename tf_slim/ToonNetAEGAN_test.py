@@ -47,7 +47,7 @@ class VAEGAN:
         gen_in = merge(cartoon, edges)
         gen_dist, gen_mu, gen_logvar, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
+        dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=reuse, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         # disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         disc_in = merge(img, dec_gen, dim=0)

@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNetAEGAN_normal_gan import VAEGAN
+from ToonNetAEGAN_test import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -68,7 +68,7 @@ with sess.as_default():
         labels_gen = model.gen_labels()
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
+        _, gen_rec, disc_out, _, gen_dist, _, gen_mu, _, gen_logvar = \
             model.net(imgs_train, toons_train, edges_train)
 
         # Define loss for discriminator training
@@ -78,19 +78,19 @@ with sess.as_default():
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
-        # Define the losses for AE training
-        ae_loss_scope = 'ae_loss'
-        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)
-        losses_ae = slim.losses.get_losses(ae_loss_scope)
-        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
+        # # Define the losses for AE training
+        # ae_loss_scope = 'ae_loss'
+        # l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=100)
+        # losses_ae = slim.losses.get_losses(ae_loss_scope)
+        # losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        # ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=30.0)
-        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=3.0)
-        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=3.0)
+        # l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=3.0)
+        # l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=3.0)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -98,16 +98,16 @@ with sess.as_default():
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
-        # Add summaries for variables.
-        for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+        # # Add summaries for variables.
+        # for variable in slim.get_model_variables():
+        #     summaries.add(tf.histogram_summary(variable.op.name, variable))
 
         # Handle dependencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops)
             gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
-            ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
+            # ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning parameters
@@ -123,9 +123,9 @@ with sess.as_default():
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)
-        tf.scalar_summary('losses/L2 mu', l2_mu)
-        tf.scalar_summary('losses/L2 sigma', l2_sigma)
-        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+        # tf.scalar_summary('losses/L2 mu', l2_mu)
+        # tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        # tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
 
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
@@ -137,22 +137,22 @@ with sess.as_default():
             tf.image_summary('images/edges', montage(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         else:
             tf.image_summary('images/generator', montage(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            # tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/ground-truth', montage(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/cartoons', montage(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
-        scopes_gen = 'generator'
+        scopes_gen = 'generator, decoder'
         vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
         train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
                                                      global_step=global_step, summarize_gradients=False)
-
-        # Auto-encoder training operation
-        scopes_ae = 'encoder, decoder'
-        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
-        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
-                                                    global_step=global_step, summarize_gradients=False)
+        #
+        # # Auto-encoder training operation
+        # scopes_ae = 'encoder, decoder'
+        # vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
+        # train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
+        #                                             global_step=global_step, summarize_gradients=False)
 
         # Discriminator training operation
         scopes_disc = 'discriminator'
@@ -161,7 +161,7 @@ with sess.as_default():
                                                       global_step=global_step, summarize_gradients=False)
 
         # Start training
-        slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
+        slim.learning.train(train_op_gen + train_op_disc,
                             SAVE_DIR,
                             save_summaries_secs=300,
                             save_interval_secs=3000,

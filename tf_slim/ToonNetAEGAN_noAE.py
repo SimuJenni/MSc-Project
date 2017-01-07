@@ -19,7 +19,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGAN_noDist'
+        self.name = 'AEGAN_noAE'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -46,15 +46,13 @@ class VAEGAN:
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
         gen_dist, gen_mu, gen_logvar, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_logvar, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = decoder(enc_mu, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_gen = decoder(gen_mu, num_layers=self.num_layers, reuse=True, training=training)
+        dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=reuse, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         # disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
-        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_in = merge(img, dec_gen, dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=4, reuse=reuse, num_out=2, training=training)
-        return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
+        return _, dec_gen, disc_out, _, gen_dist, _, gen_mu, _, gen_logvar
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

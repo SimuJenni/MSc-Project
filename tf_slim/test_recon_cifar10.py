@@ -56,7 +56,6 @@ with sess.as_default():
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'accuracy': slim.metrics.streaming_accuracy(preds_test, labels_disc),
             'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
             'MSE-generator': slim.metrics.streaming_mean_squared_error(gen_rec, imgs_test),
         })

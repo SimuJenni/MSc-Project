@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNetAEGAN3 import VAEGAN
+from ToonNetAEGAN_normal_gan import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test

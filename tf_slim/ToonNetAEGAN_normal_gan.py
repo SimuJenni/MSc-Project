@@ -94,13 +94,14 @@ class VAEGAN:
         """
         activation = tf.nn.relu
         if not fine_tune:
-            _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+            _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
+                                        training=training, train_fc=False)
+            activation = lrelu
         elif type == 'generator':
             gen_in = merge(img, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
-            disc_in = img
-            _, model, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=num_classes,
+            _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)
             activation = lrelu
         elif type == 'encoder':

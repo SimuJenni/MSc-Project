@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNetAEGAN3 import VAEGAN
+from ToonNetAEGAN_normal_gan import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
@@ -107,7 +107,7 @@ with sess.as_default():
         # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
         # Create training operation
         grad_multipliers = {}

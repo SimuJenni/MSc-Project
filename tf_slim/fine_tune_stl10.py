@@ -21,11 +21,11 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=2000)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
 TARGET_SHAPE = [96, 96, 3]
-TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 0
-pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_layers)]
+TEST_WHILE_TRAIN = True
+NUM_CONV_TRAIN = 5
+pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-75000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -114,7 +114,7 @@ with sess.as_default():
             grad_multipliers = {}
             var2train = []
             for i in range(NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
+                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, NUM_CONV_TRAIN - i)],
                                                    exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs

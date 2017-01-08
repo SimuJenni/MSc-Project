@@ -17,7 +17,7 @@ from utils import assign_from_checkpoint_fn, montage
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = stl10
 num_layers = 4

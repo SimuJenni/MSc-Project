@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetAEGAN3 import VAEGAN
+from ToonNetAEGAN_normal_gan import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_test

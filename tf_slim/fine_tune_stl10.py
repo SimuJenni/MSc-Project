@@ -17,7 +17,7 @@ from utils import assign_from_checkpoint_fn, montage
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
@@ -110,28 +110,31 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
         # Create training operation
-        grad_multipliers = {}
-        var2train = []
-        for i in range(NUM_CONV_TRAIN):
-            vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
-                                               exclude=['discriminator/fully_connected'])
+        if fine_tune:
+            grad_multipliers = {}
+            var2train = []
+            for i in range(NUM_CONV_TRAIN):
+                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, num_layers - i)],
+                                                   exclude=['discriminator/fully_connected'])
+                vs = list(set(vs).intersection(tf.trainable_variables()))
+                var2train += vs
+                for v in vs:
+                    grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
+            vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
             for v in vs:
-                grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
-        vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected'])
-        vs = list(set(vs).intersection(tf.trainable_variables()))
-        var2train += vs
-        for v in vs:
-            grad_multipliers[v.op.name] = 1.0
+                grad_multipliers[v.op.name] = 1.0
+        else:
+            var2train = tf.trainable_variables()
+            grad_multipliers = None
 
+        train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
+                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
         print(grad_multipliers)
         sys.stdout.flush()
-
-        train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, reuse=True,

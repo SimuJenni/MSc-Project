@@ -114,7 +114,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps * 0.75),
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.75)),
                                   LR - LR * (1./0.75 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer

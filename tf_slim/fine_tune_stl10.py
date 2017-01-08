@@ -18,7 +18,7 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4

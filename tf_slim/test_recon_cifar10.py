@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNetAEGAN_normal_gan_cifar import VAEGAN
+from ToonNetAEGAN_noAE import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_test

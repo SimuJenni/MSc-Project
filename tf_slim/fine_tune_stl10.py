@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=900)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 5
@@ -31,7 +31,7 @@ pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 CHECKPOINT = 'model.ckpt-100002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_aug+/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_900ep/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -105,6 +105,8 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
+        # boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.85)]
+
         values = [0.0002, 0.0001, 0.00005]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

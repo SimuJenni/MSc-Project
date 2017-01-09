@@ -273,9 +273,9 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            #net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            #net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,

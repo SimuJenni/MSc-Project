@@ -23,7 +23,7 @@ net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=60)
-TARGET_SHAPE = [224, 224, 3]
+TARGET_SHAPE = [192, 192, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 pre_trained_grad_weight = [0.25 * 0.25 ** i for i in range(NUM_CONV_TRAIN)]
@@ -57,8 +57,8 @@ with sess.as_default():
             img_train, edge_train = preprocess_finetune_train(img_train, edge_train,
                                                               output_height=TARGET_SHAPE[0],
                                                               output_width=TARGET_SHAPE[1],
-                                                              resize_side_min=224,
-                                                              resize_side_max=256)
+                                                              resize_side_min=192,
+                                                              resize_side_max=224)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(
@@ -74,7 +74,7 @@ with sess.as_default():
                 img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
                                                                output_height=TARGET_SHAPE[0],
                                                                output_width=TARGET_SHAPE[1],
-                                                               resize_side=224)
+                                                               resize_side=192)
                 imgs_test, edges_test, labels_test = tf.train.batch(
                     [img_test, edge_test, label_test],
                     batch_size=model.batch_size, num_threads=4)

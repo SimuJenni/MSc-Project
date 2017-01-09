@@ -20,9 +20,9 @@ RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 NUM_CONV_TRAIN = 5
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_0.5/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_fina_0.5l/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

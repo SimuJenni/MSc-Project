@@ -474,8 +474,8 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
     return image, edge, cartoon
 
 
-def preprocess_finetune_train(image, edge, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
-                              resize_side_max=_RESIZE_SIDE_MAX):
+def preprocess_finetune_train(image, edge, output_height, output_width, augment_color=False,
+                              resize_side_min=_RESIZE_SIDE_MIN, resize_side_max=_RESIZE_SIDE_MAX):
 
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
@@ -493,15 +493,15 @@ def preprocess_finetune_train(image, edge, output_height, output_width, resize_s
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
-    image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
-    image = tf.image.random_hue(image, 0.025, seed=None)
-    image = tf.image.random_brightness(image, 0.05, seed=None)
-    image = tf.image.random_contrast(image, 0.8, 1.3, seed=None)
-    image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
-    image = tf.to_float(image) * 2. - 1.
+    if augment_color:
+        image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
+        image = tf.image.random_hue(image, 0.025, seed=None)
+        image = tf.image.random_brightness(image, 0.05, seed=None)
+        image = tf.image.random_contrast(image, 0.8, 1.3, seed=None)
+        image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
 
     # Scale to [-1, 1]
-    # image = tf.to_float(image) * (2. / 255.) - 1.
+    image = tf.to_float(image) * 2. - 1.
     edge = tf.to_float(edge) / 255.
 
     # Flip left-right

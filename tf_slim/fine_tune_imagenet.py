@@ -10,7 +10,7 @@ from tensorflow.python.framework import ops
 
 from ToonNetAEGAN_normal_gan import VAEGAN
 from constants import LOG_DIR
-from datasets import stl10
+from datasets import imagenet
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage
 import numpy as np
@@ -18,13 +18,13 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
-data = stl10
-num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
-TARGET_SHAPE = [96, 96, 3]
-TEST_WHILE_TRAIN = True
+data = imagenet
+num_layers = 5
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=60)
+TARGET_SHAPE = [224, 224, 3]
+TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 pre_trained_grad_weight = [0.25 * 0.25 ** i for i in range(NUM_CONV_TRAIN)]
 
@@ -51,15 +51,14 @@ with sess.as_default():
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
-            [img_train, edge_train, label_train] = provider.get(['image', 'edges', 'label'])
+            [img_train, label_train] = provider.get(['image', 'label'])
 
             # Pre-process data
-            img_train, edge_train = preprocess_finetune_train(img_train, edge_train,
+            img_train, edge_train = preprocess_finetune_train(img_train,
                                                               output_height=TARGET_SHAPE[0],
                                                               output_width=TARGET_SHAPE[1],
-                                                              augment_color=True,
-                                                              resize_side_min=96,
-                                                              resize_side_max=128)
+                                                              resize_side_min=224,
+                                                              resize_side_max=256)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(

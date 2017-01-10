@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 
 # Setup
 data = cartoons
-model = VAEGAN(num_layers=5, batch_size=12, data_size=data.NUM_SAMPLES)
+model = VAEGAN(num_layers=5, batch_size=56, data_size=data.NUM_SAMPLES)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 MODEL_PATH = os.path.join(LOG_DIR, 'imagenet_{}_final/'.format(model.name))
@@ -74,7 +74,7 @@ with sess.as_default():
         summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 1, 12), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 1, 12), max_images=1))
 
-        num_eval_steps = int(data.NUM_SAMPLES / model.batch_size)
+        num_eval_steps = 1
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=1,

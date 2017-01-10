@@ -8,13 +8,13 @@ from scipy import misc
 from cartooning import auto_canny
 import numpy as np
 import tensorflow as tf
+import glob
 
 from tf_slim.datasets import dataset_utils
 
 
 def _to_tfrecord(source_dir, tfrecord_writer):
-
-    img_list = dir(source_dir)
+    img_list = glob.glob('{}/*.jpg'.format(source_dir))
     num_images = len(img_list)
 
     with tf.Graph().as_default():

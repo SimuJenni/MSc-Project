@@ -20,7 +20,7 @@ TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=200, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=250)
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_250/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 

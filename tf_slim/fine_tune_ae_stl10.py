@@ -31,7 +31,7 @@ pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 CHECKPOINT = 'model.ckpt-100002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_ae/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -81,8 +81,7 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type,
-                                       fine_tune=fine_tune)
+        preds_train = model.ae_classifier(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'
@@ -141,8 +140,7 @@ with sess.as_default():
         sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, reuse=True,
-                                          training=False, fine_tune=fine_tune, type=net_type)
+            preds_test = model.ae_classifier(imgs_test, data.NUM_CLASSES, training=True)
             test_loss = slim.losses.softmax_cross_entropy(preds_test,
                                                           slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
@@ -162,8 +160,8 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
-                                             ops.GraphKeys.GLOBAL_STEP])
+                include=[net_type, 'encoder', 'decoder'], exclude=['fully_connected', 'discriminator/fully_connected',
+                                                                   ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 

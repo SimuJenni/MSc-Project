@@ -140,7 +140,7 @@ with sess.as_default():
         sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
-            preds_test = model.ae_classifier(imgs_test, data.NUM_CLASSES, training=True)
+            preds_test = model.ae_classifier(imgs_test, data.NUM_CLASSES, training=True, reuse=True)
             test_loss = slim.losses.softmax_cross_entropy(preds_test,
                                                           slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)

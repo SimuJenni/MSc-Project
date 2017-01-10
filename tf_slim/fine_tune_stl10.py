@@ -105,8 +105,6 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
         boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        # boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.85)]
-
         values = [0.0002, 0.0001, 0.00005]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

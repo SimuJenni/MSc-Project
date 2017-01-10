@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import VAEGAN
+from ToonNet_cifar import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -112,11 +112,11 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-        #                           LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.8)),
+                                  LR - LR * (1./0.8 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-8)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-8)
 
         # Handle summaries
         # tf.scalar_summary('learning rate', learning_rate)

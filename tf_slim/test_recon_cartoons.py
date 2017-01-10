@@ -68,11 +68,11 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 8, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 1, 12), max_images=1))
 
         num_eval_steps = int(data.NUM_SAMPLES / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

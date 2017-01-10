@@ -10,7 +10,7 @@ from ToonDataGenerator import ImageDataGenerator
 from ToonNet import GANAE, gen_data
 from constants import IMG_DIR
 from keras.datasets import TinyImagenetToon
-from utils import montage, generator_queue
+from keras.utils import montage, generator_queue
 
 # Get the data-set object
 data = TinyImagenetToon()

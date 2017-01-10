@@ -14,7 +14,7 @@ from scipy import misc
 
 from cartooning import cartoonify, auto_canny
 from constants import NUM_THREADS
-from utils import imcrop_tosquare
+from keras.utils import imcrop_tosquare
 
 
 def process_image(filename, im_dim):

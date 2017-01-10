@@ -9,7 +9,7 @@ from ToonDataGenerator import ImageDataGenerator
 from ToonNet import Disc2
 from constants import MODEL_DIR
 from keras.datasets import CIFAR10_Toon
-from utils import generator_queue
+from keras.utils import generator_queue
 
 # Get the data-set object
 data = CIFAR10_Toon()

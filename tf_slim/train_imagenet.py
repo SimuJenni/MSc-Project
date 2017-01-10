@@ -1,171 +1,172 @@
-from __future__ import print_function
+import os
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
-from tensorflow.python.framework import ops
+from tensorflow.python.ops import math_ops
 
-from alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
+from ToonNet import VAEGAN
+from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_image
-from qhu_code.model_edge_advplus_128 import DCGAN
-from utils import get_variables_to_train, assign_from_checkpoint_fn
+from preprocess import preprocess_toon_train, preprocess_toon_test
+from tf_slim.utils import get_variables_to_train
+from utils import montage
+from constants import IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
 
-FINE_TUNE = False
-DATA_DIR = '/data/cvg/imagenet/imagenet_tfrecords/'
-BATCH_SIZE = 128
-NUM_CLASSES = 1000
-NUM_EP = 100
-IM_SHAPE = [224, 224, 3]
-PRE_TRAINED_SCOPE = 'pre_trained_scope'
-MODEL_PATH = '/data/cvg/qhu/try_GAN/checkpoint_edge_advplus_128/010/DCGAN.model-148100'
-LOG_DIR = '/data/cvg/simon/data/logs/alex_net_v2/'  # TODO: specify log-dir
-TEST_WHILE_TRAIN = False
+# Setup training parameters
+data = imagenet
+TRAIN_SET_NAME = 'train'
+TEST_SET_NAME = 'validation'
+model = VAEGAN(num_layers=5, batch_size=56, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=15)
+TARGET_SHAPE = [128, 128, 3]
+LR = 0.0002
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
+TEST = False
+NUM_IMG_SUMMARY = 6
 
+tf.logging.set_verbosity(tf.logging.DEBUG)
 sess = tf.Session()
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-def Classifier(inputs, fine_tune=False, training=True, reuse=None):
-    """Build a classifier on the given inputs. If fine_tune=False it builds an AlexNet.
-    Args:
-        inputs: Placeholder of image-batch
-        fine_tune: Whether to build classifier on pretrained model or train AlexNet
-        training: Whether in train or test mode
-        reuse: Whether to reuse already existing variables
-    Returns:
-        Logit outputs from the classifier
-    """
-    if fine_tune:
-        # Build the model to fine-tune
-        model = DCGAN(sess, batch_size=BATCH_SIZE, is_train=training, image_shape=IM_SHAPE)
-        with tf.variable_scope(PRE_TRAINED_SCOPE, reuse=reuse):
-            # TODO: Specify model to fine-tune here
-            net = model.discriminator(inputs)
-
-        # Build classifier on top
-        batch_norm_params = {'decay': 0.999, 'epsilon': 0.001}
-        with tf.variable_scope('fully_connected', reuse=reuse):
-            with slim.arg_scope([slim.fully_connected],
-                                activation_fn=tf.nn.relu,
-                                weights_regularizer=slim.l2_regularizer(0.0005),
-                                normalizer_fn=slim.batch_norm,
-                                normalizer_params=batch_norm_params):
-                net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1')
-                net = slim.dropout(net)
-                net = slim.fully_connected(net, 4096, scope='fc2')
-                net = slim.dropout(net)
-                net = slim.fully_connected(net, NUM_CLASSES, scope='fc3',
-                                           activation_fn=None,
-                                           normalizer_fn=None,
-                                           biases_initializer=tf.zeros_initializer)
-        return net
-    else:
-        # Train AlexNet
-        with slim.arg_scope(alexnet_v2_arg_scope(weight_decay=0.0001)):
-            net = alexnet_v2(inputs, is_training=training, reuse=reuse, dropout_keep_prob=0.9)
-        return net
-
-
 g = tf.Graph()
 with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Pre-process training data
         with tf.device('/cpu:0'):
+
             # Get the training dataset
-            dataset = imagenet.get_split('train', DATA_DIR)
-            provider = slim.dataset_data_provider.DatasetDataProvider(dataset, num_readers=8,
-                                                                      common_queue_capacity=32 * BATCH_SIZE,
-                                                                      common_queue_min=8 * BATCH_SIZE)
-            [img_train, label] = provider.get(['image', 'label'])
+            train_set = data.get_split(TRAIN_SET_NAME, dataset_dir=IMAGENET_SMALL_TF_DATADIR)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+                                                                      common_queue_capacity=32 * model.batch_size,
+                                                                      common_queue_min=4 * model.batch_size)
+            [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
-            # Pre-process images
-            img_train = preprocess_image(img_train, is_training=True, output_height=IM_SHAPE[0],
-                                         output_width=IM_SHAPE[1])
+            # Preprocess data
+            img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side_min=128,
+                                                                      resize_side_max=160)
             # Make batches
-            imgs_train, labels_train = tf.train.batch([img_train, label], batch_size=BATCH_SIZE, num_threads=8,
-                                                      capacity=8 * BATCH_SIZE)
-            if FINE_TUNE:
-                img_train = tf.to_float(img_train) * (2. / 255.)
-
-            if TEST_WHILE_TRAIN:
-                test_set = imagenet.get_split('validation', DATA_DIR)
+            imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
+                                                                  batch_size=model.batch_size, num_threads=8,
+                                                                  capacity=4 * model.batch_size)
+            if TEST:
+                # Get test-data
+                test_set = data.get_split(TEST_SET_NAME)
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-                [img_test, label_test] = provider.get(['image', 'label'])
-                img_test = preprocess_image(img_test, is_training=False, output_height=IM_SHAPE[0],
-                                            output_width=IM_SHAPE[1])
-                imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=BATCH_SIZE, num_threads=4)
-                if FINE_TUNE:
-                    img_test = tf.to_float(img_test) * (2. / 255.)
+                [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
+                img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
+                                                                      output_height=TARGET_SHAPE[0],
+                                                                      output_width=TARGET_SHAPE[1],
+                                                                      resize_side=96)
+                imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
+                                                                   batch_size=model.batch_size, num_threads=4)
+
+        # Get labels for discriminator training
+        labels_disc = model.disc_labels()
+        labels_gen = model.gen_labels()
 
         # Create the model
-        predictions = Classifier(imgs_train, FINE_TUNE)
+        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
+            model.net(imgs_train, toons_train, edges_train)
 
-        # Define the loss
-        train_loss = slim.losses.softmax_cross_entropy(predictions, slim.one_hot_encoding(labels_train, NUM_CLASSES))
-        total_loss = slim.losses.get_total_loss()
+        # Define loss for discriminator training
+        disc_loss_scope = 'disc_loss'
+        dL_disc = slim.losses.softmax_cross_entropy(disc_out, labels_disc, scope=disc_loss_scope, weight=1.0)
+        losses_disc = slim.losses.get_losses(disc_loss_scope)
+        losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
+        disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
-        # Handle dependencies
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        if update_ops:
-            updates = tf.group(*update_ops)
-            total_loss = control_flow_ops.with_dependencies([updates], total_loss)
+        # Define the losses for AE training
+        ae_loss_scope = 'ae_loss'
+        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        losses_ae = slim.losses.get_losses(ae_loss_scope)
+        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
-        # Compute predictions for accuracy computation
-        preds_train = tf.argmax(predictions, 1)
-
-        if TEST_WHILE_TRAIN:
-            preds_test = Classifier(imgs_test, FINE_TUNE, training=False, reuse=True)
-            test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test, NUM_CLASSES))
-            preds_test = tf.argmax(preds_test, 1)
-
-        # Define learning rate
-        num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-        learning_rate = tf.train.exponential_decay(0.01,
-                                                   global_step,
-                                                   (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE),
-                                                   0.94,
-                                                   staircase=True,
-                                                   name='exponential_decay_learning_rate')
-
-        # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=0.001)
-
-        # Gather all summaries.
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/train loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        if TEST_WHILE_TRAIN:
-            tf.scalar_summary('losses/test loss', test_loss)
-            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-
-        # Create training operation
-        if FINE_TUNE:
-            var2train = get_variables_to_train(trainable_scopes='fully_connected')
-        else:
-            var2train = get_variables_to_train()
-        train_op = slim.learning.create_train_op(total_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step)
+        # Define the losses for generator training
+        gen_loss_scope = 'gen_loss'
+        dL_gen = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
+        # l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=30.0)
+        # l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=3.0)
+        # l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=3.0)
+        l2_gen = slim.losses.sum_of_squares(gen_rec, imgs_train, scope=gen_loss_scope, weight=30.0)
+        l2_mu = slim.losses.sum_of_squares(gen_mu, enc_mu, scope=gen_loss_scope, weight=3.0)
+        l2_sigma = slim.losses.sum_of_squares(gen_logvar, enc_logvar, scope=gen_loss_scope, weight=3.0)
+        losses_gen = slim.losses.get_losses(gen_loss_scope)
+        losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
+        gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
         # Add summaries for variables.
-        for variable in var2train:
+        for variable in slim.get_model_variables():
             summaries.add(tf.histogram_summary(variable.op.name, variable))
 
-        # Handle initialisation
-        init_fn = None
-        if FINE_TUNE:
-            # Specify the layers of your model you want to exclude
-            variables_to_restore = slim.get_variables_to_restore(
-                exclude=['fully_connected', ops.GraphKeys.GLOBAL_STEP])
-            init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
+        # Handle dependencies with update_ops (batch-norm)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        if update_ops:
+            updates = tf.group(*update_ops)
+            gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
+            ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
+            disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
-        # Start training.
-        slim.learning.train(train_op, LOG_DIR, init_fn=init_fn, save_summaries_secs=120, save_interval_secs=1200,
-                            log_every_n_steps=100)
+        # Define learning parameters
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
+        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
+        #                           LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
+
+        # Define optimizer
+        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
+
+        # Handle summaries
+        # tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('losses/discriminator loss', disc_loss)
+        tf.scalar_summary('losses/disc-loss generator', dL_gen)
+        tf.scalar_summary('losses/l2 generator', l2_gen)
+        tf.scalar_summary('losses/L2 mu', l2_mu)
+        tf.scalar_summary('losses/L2 sigma', l2_sigma)
+        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+
+        if TEST:
+            img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
+                                                            training=False)
+            tf.image_summary('images/generator', montage(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        else:
+            tf.image_summary('images/generator', montage(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+
+        # Generator training operation
+        scopes_gen = 'generator'
+        vars2train_gen = get_variables_to_train(trainable_scopes=scopes_gen)
+        train_op_gen = slim.learning.create_train_op(gen_loss, optimizer, variables_to_train=vars2train_gen,
+                                                     global_step=global_step, summarize_gradients=False)
+
+        # Auto-encoder training operation
+        scopes_ae = 'encoder, decoder'
+        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
+        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
+                                                    global_step=global_step, summarize_gradients=False)
+
+        # Discriminator training operation
+        scopes_disc = 'discriminator'
+        vars2train_disc = get_variables_to_train(trainable_scopes=scopes_disc)
+        train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
+                                                      global_step=global_step, summarize_gradients=False)
+
+        # Start training
+        slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
+                            SAVE_DIR,
+                            save_summaries_secs=300,
+                            save_interval_secs=3000,
+                            log_every_n_steps=100,
+                            number_of_steps=num_train_steps)

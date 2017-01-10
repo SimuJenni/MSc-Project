@@ -7,7 +7,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from ToonNet import Classifier, make_name, gen_data
 from keras.datasets import CIFAR10
-from utils import generator_queue
+from keras.utils import generator_queue
 
 # Get the data-set object
 data = CIFAR10()

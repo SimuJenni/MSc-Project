@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNetAEGAN_normal_gan import VAEGAN
+from ToonNet import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test

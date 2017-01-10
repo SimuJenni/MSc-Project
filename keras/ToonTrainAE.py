@@ -7,7 +7,7 @@ from ToonDataGenerator import ImageDataGenerator
 from ToonNet import AE
 from constants import MODEL_DIR, IMG_DIR
 from keras.datasets import TinyImagenetToon
-from utils import montage, generator_queue
+from keras.utils import montage, generator_queue
 
 # Get the data-set object
 data = TinyImagenetToon()

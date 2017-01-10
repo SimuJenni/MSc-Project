@@ -16,7 +16,7 @@ slim = tf.contrib.slim
 data = cartoons
 model = VAEGAN(num_layers=5, batch_size=56, data_size=data.NUM_SAMPLES)
 TARGET_SHAPE = [128, 128, 3]
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
+RESIZE_SIZE = 128
 MODEL_PATH = os.path.join(LOG_DIR, 'imagenet_{}_final/'.format(model.name))
 LOG_PATH = os.path.join(LOG_DIR, 'cartoons_{}_recon_test/'.format(model.name))
 

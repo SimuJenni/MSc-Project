@@ -16,7 +16,7 @@ net_type = 'discriminator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=1000, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [96, 96, 3]
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
+RESIZE_SIZE = 96
 NUM_CONV_TRAIN = 5
 
 if finetuned:
@@ -46,9 +46,9 @@ with sess.as_default():
 
             # Pre-process data
             img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
-                                                                  output_height=TARGET_SHAPE[0],
-                                                                  output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
+                                                           output_height=TARGET_SHAPE[0],
+                                                           output_width=TARGET_SHAPE[1],
+                                                           resize_side=RESIZE_SIZE)
             # Make batches
             imgs_test, edges_test, labels_test = tf.train.batch(
                 [img_test, edge_test, label_test],

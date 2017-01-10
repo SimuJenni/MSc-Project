@@ -49,9 +49,10 @@ def run(target_dir, source_dir):
     """
     if not tf.gfile.Exists(target_dir):
         tf.gfile.MakeDirs(target_dir)
+    target_file = '%s/cartoons.tfrecord' % (target_dir)
 
     # Process the test data:
-    with tf.python_io.TFRecordWriter(target_dir) as tfrecord_writer:
+    with tf.python_io.TFRecordWriter(target_file) as tfrecord_writer:
         _to_tfrecord(source_dir, tfrecord_writer)
 
     print('\nFinished converting the cartoon dataset!')

@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 
 # Setup
 data = cartoons
-model = VAEGAN(num_layers=4, batch_size=56, data_size=data.NUM_SAMPLES)
+model = VAEGAN(num_layers=4, batch_size=200, data_size=data.NUM_SAMPLES)
 TARGET_SHAPE = [64, 64, 3]
 RESIZE_SIZE = 64
 MODEL_PATH = os.path.join(LOG_DIR, 'stl10_{}_final/'.format(model.name))
@@ -33,7 +33,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
             # Get test-data
             test_set = data.get_data()
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4, shuffle=False)
             [edge_test, toon_test] = provider.get(['edges', 'cartoon'])
 
             # Pre-process data
@@ -68,11 +68,11 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 7, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 7, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 7, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 7, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 1, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 1, 12), max_images=1))
 
         num_eval_steps = 1
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

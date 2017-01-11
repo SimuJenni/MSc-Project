@@ -13,10 +13,24 @@ slim = tf.contrib.slim
 
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
-    x += 1.0
-    x *= 255/2.
+    x -= x.mean()
+    x /= (x.std() + 1e-5)
+    x *= 0.1
+
+    # clip to [0, 1]
+    x += 0.5
+    x = np.clip(x, 0, 1)
+
+    # convert to RGB array
+    x *= 255
+    x = x.transpose((1, 2, 0))
     x = np.clip(x, 0, 255).astype('uint8')
     return x
+
+    # x += 1.0
+    # x *= 255/2.
+    # x = np.clip(x, 0, 255).astype('uint8')
+    # return x
 
 
 data = imagenet
@@ -25,7 +39,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 0
 LR = 10
-NUM_STEPS = 10000
+NUM_STEPS = 1000
 l2decay = 0.001
 
 x = tf.Variable(tf.random_uniform([1, 128, 128, 3], minval=-1.0, maxval=1.0), name='x')

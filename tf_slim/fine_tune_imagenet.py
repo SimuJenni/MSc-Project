@@ -103,12 +103,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        values = [0.0002, 0.0001, 0.00005]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
+        # values = [0.0002, 0.0001, 0.00005]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
         # Create training operation
         if fine_tune:

@@ -42,7 +42,6 @@ NUM_STEPS = 200
 l2decay = 0.0001
 
 x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
-x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())

@@ -41,7 +41,7 @@ with tf.Session() as sess:
 
     loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
     var_grad = tf.gradients(loss, [x])[0]
-    var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
+    # var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
 
     for i in range(NUM_STEPS):
         var_grad_val = sess.run(var_grad)

@@ -29,17 +29,19 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
 
-        loss = tf.reduce_sum(layers[layer_id - 1][:, :, :, filter_id])
+        loss = -tf.reduce_sum(layers[layer_id - 1][:, :, :, filter_id])
+        loss += 0.0001*tf.reduce_sum(tf.square(x))
         opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
-        grads_and_vars = opt.compute_gradients(loss, var_list=[x])
-        modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
-        train_op = opt.apply_gradients(modded_grads_and_vars)
+        # grads_and_vars = opt.compute_gradients(loss, var_list=[x])
+        # modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
+        # train_op = opt.apply_gradients(modded_grads_and_vars)
+        train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
         for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
-                x *= (1. - 0.0001)
+                # x *= (1. - 0.0001)
                 x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
                 # print(sess.run(loss))
 
@@ -52,8 +54,8 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 1
-LR = 1
+LAYER = 2
+LR = 2
 FILTERS = [i for i in range(16)]
 imgs = [None for i in FILTERS]
 for i, f in enumerate(FILTERS):

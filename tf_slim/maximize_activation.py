@@ -54,10 +54,12 @@ with tf.Session() as sess:
     modded_grads_and_vars = [(-gv[0]/(tf.sqrt(tf.reduce_mean(tf.square(gv[0]))) + 1e-5), gv[1]) for gv in grads_and_vars]
     train_op = opt.apply_gradients(modded_grads_and_vars)
 
+
     for i in range(NUM_STEPS):
         sess.run([train_op])
         #if not i % 100:
         with tf.control_dependencies([train_op]):
+            clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
             print(sess.run(loss))
 
     img = x.eval()

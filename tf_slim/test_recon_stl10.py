@@ -67,11 +67,11 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 8, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 8, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 8, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 8, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 8, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 14, 14), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 14, 14), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test,14, 14), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 14, 14), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 14, 14), max_images=1))
         with tf.variable_scope('discriminator', reuse=True):
             weights_disc_1 = slim.variable('conv_1/conv_1_1/weights')
         summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),

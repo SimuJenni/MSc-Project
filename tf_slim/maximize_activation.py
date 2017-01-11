@@ -21,7 +21,6 @@ def deprocess_image(x):
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
     x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
-    print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
 
@@ -35,13 +34,14 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         grads_and_vars = opt.compute_gradients(loss, var_list=[x])
         modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
         train_op = opt.apply_gradients(modded_grads_and_vars)
+        print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
         for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
                 x *= (1. - 0.0001)
                 x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
-                print(sess.run(loss))
+                # print(sess.run(loss))
 
         img = x.eval()
         img = deprocess_image(np.squeeze(img))
@@ -54,7 +54,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
-FILTERS = [i for i in range(4)]
+FILTERS = [i for i in range(16)]
 imgs = [None for i in FILTERS]
 for i, f in enumerate(FILTERS):
     if i==0:

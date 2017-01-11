@@ -40,6 +40,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
             with tf.control_dependencies([train_op]):
                 x *= (1. - 0.0001)
                 x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+                print(sess.run(loss))
 
         img = x.eval()
         img = deprocess_image(np.squeeze(img))

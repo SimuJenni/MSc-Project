@@ -13,7 +13,7 @@ slim = tf.contrib.slim
 
 
 # util function to convert a tensor into a valid image
-def deprocess_image(x):
+def deprocess_image(im):
     # x -= x.mean()
     # x /= (x.std() + 1e-5)
     # x *= 0.1
@@ -27,10 +27,10 @@ def deprocess_image(x):
     # x = np.clip(x, 0, 255).astype('uint8')
     # return x
 
-    x += 1.0
-    x *= 255/2.
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
+    im += 1.0
+    im *= 255/2.
+    im = np.clip(im, 0, 255).astype('uint8')
+    return im
 
 
 data = imagenet
@@ -63,13 +63,16 @@ with tf.Session() as sess:
     for i in range(NUM_STEPS):
         sess.run([train_op])
         with tf.control_dependencies([train_op]):
-            x *= (1. - l2decay)
-            x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+            tmp = x.eval()
+            tmp *= (1. - l2decay)
+            # tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
+            tmp = np.clip(tmp, -1, 1)
+
             if not i % medfilt_steps:
-                tmp = x.eval()
-                assign_op = x.assign(median_filter(tmp, size=[1, 3, 3, 3]))
-                sess.run(assign_op)
+                tmp = median_filter(tmp, size=[1, 3, 3, 3])
                 print(sess.run(loss))
+            assign_op = x.assign(tmp)
+            sess.run(assign_op)
 
     img = x.eval()
     img = deprocess_image(np.squeeze(img))

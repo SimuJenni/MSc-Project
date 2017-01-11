@@ -33,7 +33,7 @@ def deprocess_image(x):
 
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
-    x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
+    x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
     with tf.Session() as sess:
 
         sess.run(tf.initialize_all_variables())

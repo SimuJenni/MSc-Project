@@ -53,7 +53,7 @@ ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
 FILTERS = [i for i in range(16)]
-imgs = []
+imgs = [None for i in FILTERS]
 for i, f in enumerate(FILTERS):
     imgs[i] = max_activity_img(LAYER, f, LR, ckpt)
 

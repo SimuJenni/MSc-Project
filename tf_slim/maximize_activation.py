@@ -47,7 +47,7 @@ with tf.Session() as sess:
 
     for i in range(NUM_STEPS):
         sess.run([train_op])
-        if not 100 % i:
+        if not i % 100:
             with tf.control_dependencies([train_op]):
                 print(sess.run(loss))
 

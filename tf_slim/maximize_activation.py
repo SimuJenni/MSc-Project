@@ -40,7 +40,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
             for i in range(200):
                 sess.run([train_op])
                 with tf.control_dependencies([train_op]):
-                    x *= (1. - 0.0001)
+                    # x *= (1. - 0.0001)
                     x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
 
             img = x.eval()

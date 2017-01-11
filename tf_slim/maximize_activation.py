@@ -41,7 +41,7 @@ LR = 100
 NUM_STEPS = 200
 l2decay = 0.0001
 
-x = tf.Variable(tf.random_uniform([1, 128, 128, 3], minval=-1.0, maxval=1.0), name='x')
+x = tf.Variable(tf.random_normal([1, 128, 128, 3]), name='x')
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())

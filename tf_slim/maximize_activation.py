@@ -32,7 +32,7 @@ def deprocess_image(x):
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 0
+LAYER_IDX = 1
 FILTER_IDX = 0
 LR = 1
 NUM_STEPS = 200
@@ -60,10 +60,8 @@ with tf.Session() as sess:
         #if not i % 100:
         with tf.control_dependencies([train_op]):
             x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
-            print(sess.run(loss))
 
     img = x.eval()
-    print(img.shape)
     img = deprocess_image(np.squeeze(img))
 
     imsave('%s_filter_%d.png' % (LAYER_IDX, FILTER_IDX), img)

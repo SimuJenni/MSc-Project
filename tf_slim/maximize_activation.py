@@ -14,8 +14,17 @@ slim = tf.contrib.slim
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
     # convert to RGB array
-    x += 1.
-    x *= 255./2
+
+    # normalize tensor: center on 0., ensure std is 0.1
+    x -= x.mean()
+    x /= (x.std() + 1e-5)
+    x *= 0.1
+
+    # clip to [0, 1]
+    x += 0.5
+    x = np.clip(x, 0, 1)
+
+    x *= 255
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 

@@ -45,7 +45,7 @@ with tf.Session() as sess:
     for i in range(NUM_STEPS):
         var_grad_val = sess.run([var_grad])
         with tf.control_dependencies([var_grad]):
-            x += var_grad_val * LR
+            x += var_grad_val
             x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
         print(sess.run(loss))
 

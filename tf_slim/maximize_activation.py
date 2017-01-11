@@ -21,11 +21,12 @@ def deprocess_image(x):
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
     x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
+    print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
 
         _, _, layers = discriminator(x, training=False, train_fc=False, reuse=reuse)
-        vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
+        vars = slim.get_variables_to_restore(include=['discriminator'])
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
 
@@ -35,7 +36,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
         train_op = opt.apply_gradients(modded_grads_and_vars)
 
-        for i in range(200):
+        for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
                 x *= (1. - 0.0001)

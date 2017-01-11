@@ -31,7 +31,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
         saver.restore(sess, ckpt.model_checkpoint_path)
 
         for f in range(num_filters):
-            x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
+            sess.run(tf.initialize_variables([x]))
             loss = tf.reduce_sum(layers[layer_id - 1][:, :, :, f])
             opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
             grads_and_vars = opt.compute_gradients(loss, var_list=[x])

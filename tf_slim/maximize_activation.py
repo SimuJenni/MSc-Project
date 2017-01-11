@@ -51,7 +51,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(500):
+        for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
                 # x *= (1. - 0.0001)

@@ -59,7 +59,7 @@ with tf.Session() as sess:
         sess.run([train_op])
         #if not i % 100:
         with tf.control_dependencies([train_op]):
-            clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+            x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
             print(sess.run(loss))
 
     img = x.eval()

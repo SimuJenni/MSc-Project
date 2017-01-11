@@ -25,7 +25,7 @@ model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 1
-LR = 10
+LR = 1
 NUM_STEPS = 200
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
@@ -39,14 +39,14 @@ with tf.Session() as sess:
     saver = tf.train.Saver(var_list=vars)
     saver.restore(sess, ckpt.model_checkpoint_path)
 
-    loss = -tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
-    optimizer = tf.train.GradientDescentOptimizer(LR).minimize(loss, var_list=[x])
-
-    var_grad = tf.gradients(loss, [x])[0]
+    loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
+    var_grad = tf.gradients([loss], [x])[0]
 
     for i in range(NUM_STEPS):
-        _, var_grad_val = sess.run([optimizer, var_grad])
-        x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+        var_grad_val = sess.run([var_grad])
+        with tf.control_dependencies([var_grad]):
+            x += var_grad_val * LR
+            x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
         print(sess.run(loss))
 
     img = x.eval()

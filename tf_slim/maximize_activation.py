@@ -36,8 +36,8 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 2
-FILTER_IDX = 0
-LR = 1
+FILTER_IDX = 10
+LR = 2
 NUM_STEPS = 200
 l2decay = 0.0001
 
@@ -52,7 +52,7 @@ with tf.Session() as sess:
     saver = tf.train.Saver(var_list=vars)
     saver.restore(sess, ckpt.model_checkpoint_path)
 
-    loss = tf.reduce_sum(layers[LAYER_IDX][:, :, :, FILTER_IDX])
+    loss = tf.reduce_sum(layers[LAYER_IDX-1][:, :, :, FILTER_IDX])
     opt = tf.train.GradientDescentOptimizer(learning_rate=LR)
     grads_and_vars = opt.compute_gradients(loss, var_list=[x])
     modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]

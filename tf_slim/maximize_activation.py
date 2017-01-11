@@ -24,7 +24,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt):
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
 
-        _, _, layers = discriminator(x, training=False, train_fc=False)
+        _, _, layers = discriminator(x, training=False, train_fc=False, reuse=True)
         vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)

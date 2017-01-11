@@ -41,7 +41,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
             # Get test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
 
             # Pre-process data
@@ -52,7 +52,7 @@ with sess.as_default():
             # Make batches
             imgs_test, edges_test, labels_test = tf.train.batch(
                 [img_test, edge_test, label_test],
-                batch_size=model.batch_size, num_threads=4)
+                batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
         preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, training=False,

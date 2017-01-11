@@ -81,7 +81,6 @@ class VAEGAN:
         Args:
             img: Input image
             edge: Edge map
-            toon: Cartooned image
             num_classes: Number of output classes
             type: Type of network to build on. One of {'generator', 'encoder', 'discriminator'}
             reuse: Whether to reuse already defined variables.
@@ -243,8 +242,8 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             layers = []
             for l in range(0, num_layers):
                 net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l+1))
-                net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
                 layers.append(net)
+                net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
 
             encoded = net
             # Fully connected layers
@@ -262,7 +261,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
     """Builds a classifier on top of inputs consisting of 3 fully connected layers.
 
     Args:
-        inputs: The input layer to the classifier
+        net: The input layer to the classifier
         num_classes: Number of output classes
         reuse: Whether to reuse the weights (if already defined earlier)
         training: Whether in train or test mode
@@ -314,9 +313,3 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                     return arg_sc
-
-
-def noise_amount(decay_steps):
-    rate = math_ops.maximum(1.0 - math_ops.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0,
-                            name='noise_rate')
-    return rate

@@ -35,7 +35,8 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 2
 FILTER_IDX = 0
 LR = 1
-NUM_STEPS = 200
+NUM_STEPS = 500
+l2decay = 0.0001
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
@@ -59,6 +60,7 @@ with tf.Session() as sess:
         sess.run([train_op])
         #if not i % 100:
         with tf.control_dependencies([train_op]):
+            x *= (1. - l2decay)
             x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
 
     img = x.eval()

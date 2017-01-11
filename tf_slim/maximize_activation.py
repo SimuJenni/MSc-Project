@@ -35,10 +35,10 @@ def deprocess_image(x):
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 3
+LAYER_IDX = 2
 FILTER_IDX = 0
-LR = 100
-NUM_STEPS = 200
+LR = 10
+NUM_STEPS = 1000
 l2decay = 0.0001
 
 x = tf.Variable(tf.random_normal([1, 128, 128, 3]), name='x')

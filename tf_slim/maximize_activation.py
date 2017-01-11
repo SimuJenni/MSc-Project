@@ -75,6 +75,6 @@ for i, f in enumerate(FILTERS):
     imgs[i], losses[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 print(losses)
-print(np.argsort(losses)[::-1])
-montage_img = montage(imgs[np.argsort(losses)[::-1]])
+imgs = [x for (y,x) in sorted(zip(losses,imgs))]
+montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test.png' % (LAYER))

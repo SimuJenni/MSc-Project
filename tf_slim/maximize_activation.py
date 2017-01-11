@@ -35,7 +35,7 @@ FILTER_IDX = 0
 LR = 500
 NUM_STEPS = 1000
 
-x = tf.Variable(tf.random_uniform([1, 128, 128, 3], minval=-1.0, maxval=1.0), name='x')
+x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())

@@ -39,8 +39,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 11
 LR = 10
-NUM_STEPS = 300
-l2decay = 0.001
+NUM_STEPS = 200
 medfilt_steps = 6
 
 x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
@@ -64,12 +63,11 @@ with tf.Session() as sess:
         sess.run([train_op])
         with tf.control_dependencies([train_op]):
             tmp = x.eval()
-            tmp *= (1. - l2decay)
             # tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             tmp = np.clip(tmp, -1, 1)
 
             if not i % medfilt_steps:
-                tmp = median_filter(tmp, size=[1, 3, 3, 3])
+                tmp = median_filter(tmp, size=[1, 3, 3, 1])
                 print(sess.run(loss))
             assign_op = x.assign(tmp)
             sess.run(assign_op)

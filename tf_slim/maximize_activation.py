@@ -30,7 +30,7 @@ def deprocess_image(x):
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 0
+LAYER_IDX = 3
 FILTER_IDX = 0
 LR = 500
 NUM_STEPS = 1000

@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 def deprocess_image(x):
     x -= x.mean()
     x /= (x.std() + 1e-5)
-    x *= 0.2
+    x *= 0.25
 
     # clip to [0, 1]
     x += 0.5
@@ -67,9 +67,9 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 5
-LR = 80
-FILTERS = [i for i in range(9)]
+LAYER = 1
+LR = 1
+FILTERS = [i for i in range(64)]
 imgs = [None for i in FILTERS]
 for i, f in enumerate(FILTERS):
     if i == 0:
@@ -79,4 +79,4 @@ for i, f in enumerate(FILTERS):
     imgs[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 montage_img = montage(imgs)
-scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_new.png' % (LAYER))
+scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_more.png' % (LAYER))

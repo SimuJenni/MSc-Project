@@ -32,10 +32,10 @@ def deprocess_image(x):
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 3
-FILTER_IDX = 1
-LR = 10
-NUM_STEPS = 1000
+LAYER_IDX = 0
+FILTER_IDX = 0
+LR = 1
+NUM_STEPS = 200
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
@@ -56,9 +56,9 @@ with tf.Session() as sess:
 
     for i in range(NUM_STEPS):
         sess.run([train_op])
-        if not i % 100:
-            with tf.control_dependencies([train_op]):
-                print(sess.run(loss))
+        #if not i % 100:
+        with tf.control_dependencies([train_op]):
+            print(sess.run(loss))
 
     img = x.eval()
     print(img.shape)

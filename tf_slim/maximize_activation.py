@@ -4,6 +4,7 @@ import os
 from ToonNet import VAEGAN, discriminator
 from constants import LOG_DIR
 from datasets import stl10
+from tensorflow.python.ops.clip_ops import clip_by_value
 
 from scipy.misc import imsave
 import numpy as np
@@ -32,8 +33,8 @@ model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 1
-LR = 500
-NUM_STEPS = 1000
+LR = 10
+NUM_STEPS = 200
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
@@ -53,6 +54,7 @@ with tf.Session() as sess:
     for i in range(NUM_STEPS):
         var_grad_val = sess.run(var_grad)
         x += var_grad_val * LR
+        x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
 
     img = x.eval()
     print(img.shape)

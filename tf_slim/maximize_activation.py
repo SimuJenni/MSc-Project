@@ -19,12 +19,12 @@ def deprocess_image(x):
     return x
 
 
-def max_activity_img(layer_id, filter_id, lr, ckpt):
+def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
     x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
 
-        _, _, layers = discriminator(x, training=False, train_fc=False)
+        _, _, layers = discriminator(x, training=False, train_fc=False, reuse=reuse)
         vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
@@ -52,11 +52,14 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
-FILTERS = [i for i in range(1)]
-
+FILTERS = [i for i in range(16)]
 imgs = [None for i in FILTERS]
 for i, f in enumerate(FILTERS):
-    imgs[i] = max_activity_img(LAYER, f, LR, ckpt)
+    if i==0:
+        reuse = None
+    else:
+        reuse = True
+    imgs[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d.png' % (LAYER))

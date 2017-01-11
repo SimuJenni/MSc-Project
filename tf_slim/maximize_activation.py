@@ -5,8 +5,10 @@ from ToonNet import VAEGAN, discriminator
 from constants import LOG_DIR
 from datasets import imagenet
 from tensorflow.python.ops.clip_ops import clip_by_value
+from utils import montage
 
 import numpy as np
+import scipy.misc
 slim = tf.contrib.slim
 
 
@@ -23,7 +25,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt):
         sess.run(tf.initialize_all_variables())
 
         _, _, layers = discriminator(x, training=False, train_fc=False)
-        vars = slim.get_variables_to_restore(include=['discriminator'])
+        vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
 
@@ -49,5 +51,11 @@ model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
+LR = 1
 FILTERS = [i for i in range(16)]
+imgs = []
+for i, f in enumerate(FILTERS):
+    imgs[i] = max_activity_img(LAYER, f, LR, ckpt)
 
+montage_img = montage(imgs)
+scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d.png' % (LAYER))

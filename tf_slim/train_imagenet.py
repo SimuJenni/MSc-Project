@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
-from utils import montage
+from utils import montage_tf
 from constants import IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
@@ -130,17 +130,17 @@ with sess.as_default():
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
-            tf.image_summary('images/generator', montage(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         else:
-            tf.image_summary('images/generator', montage(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/cartoons', montage(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

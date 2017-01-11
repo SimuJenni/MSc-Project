@@ -5,6 +5,7 @@ from tensorflow.python.training import saver as tf_saver
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.contrib import slim as slim
+import numpy as np
 
 
 def weights_montage(weights, grid_Y, grid_X, pad=1):
@@ -55,7 +56,7 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
     return tf.image.convert_image_dtype(x7, dtype=tf.uint8)
 
 
-def montage(imgs, num_h, num_w):
+def montage_tf(imgs, num_h, num_w):
     """Makes a montage of imgs that can be used in image_summaries.
 
     Args:
@@ -140,3 +141,41 @@ def get_variables_to_train(trainable_scopes=None):
 
     return variables_to_train
 
+
+def montage(images, gray=False):
+    """Draw all images as a montage separated by 1 pixel borders.
+
+    Also saves the file to the destination specified by `saveto`.
+
+    Args:
+        images (np.ndarray): Images batch x height x width x channels
+        saveto (str): Location to save the resulting montage image.
+
+    Returns:
+        m (np.ndarray): Montage image.
+    """
+    from PIL import Image
+
+    if isinstance(images, list):
+        images = np.array(images)
+    img_h = images.shape[1]
+    img_w = images.shape[2]
+    n_plots = int(np.ceil(np.sqrt(images.shape[0])))
+    if len(images.shape) == 4 and images.shape[3] == 3:
+        m = np.ones(
+            (images.shape[1] * n_plots + n_plots + 1,
+             images.shape[2] * n_plots + n_plots + 1, 3)) * 0.5
+    else:
+        m = np.ones(
+            (images.shape[1] * n_plots + n_plots + 1,
+             images.shape[2] * n_plots + n_plots + 1)) * 0.5
+    for i in range(n_plots):
+        for j in range(n_plots):
+            this_filter = i * n_plots + j
+            if this_filter < images.shape[0]:
+                this_img = images[this_filter]
+                m[1 + i + i * img_h:1 + i + (i + 1) * img_h,
+                1 + j + j * img_w:1 + j + (j + 1) * img_w] = this_img
+    if gray:
+        m = Image.fromarray((m*255).astype(dtype=np.uint8))
+    return m

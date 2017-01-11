@@ -19,7 +19,8 @@ def deprocess_image(x):
     return x
 
 
-def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
+def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
+    imgs = [None for i in range(num_filters)]
     x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
@@ -29,21 +30,25 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
 
-        loss = tf.reduce_sum(layers[layer_id - 1][:, :, :, filter_id])
-        opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
-        grads_and_vars = opt.compute_gradients(loss, var_list=[x])
-        modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
-        train_op = opt.apply_gradients(modded_grads_and_vars)
+        for f in range(num_filters):
+            assign_op = x.assign(tf.random_normal([1, 128, 128, 3], stddev=10))
+            sess.run(assign_op)
+            loss = tf.reduce_sum(layers[layer_id - 1][:, :, :, f])
+            opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
+            grads_and_vars = opt.compute_gradients(loss, var_list=[x])
+            modded_grads_and_vars = [(-gv[0], gv[1]) for gv in grads_and_vars]
+            train_op = opt.apply_gradients(modded_grads_and_vars)
 
-        for i in range(200):
-            sess.run([train_op])
-            with tf.control_dependencies([train_op]):
-                x *= (1. - 0.0001)
-                x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+            for i in range(200):
+                sess.run([train_op])
+                with tf.control_dependencies([train_op]):
+                    x *= (1. - 0.0001)
+                    x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
 
-        img = x.eval()
-        img = deprocess_image(np.squeeze(img))
-        return img
+            img = x.eval()
+            imgs[f] = deprocess_image(np.squeeze(img))
+
+        return imgs
 
 
 data = imagenet
@@ -52,14 +57,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
-FILTERS = [i for i in range(16)]
-imgs = [None for i in FILTERS]
-for i, f in enumerate(FILTERS):
-    if i==0:
-        reuse = None
-    else:
-        reuse = True
-    imgs[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
-
+NUM_FILTERS = 36
+imgs = max_activity_img(LAYER, NUM_FILTERS, LR, ckpt)
 montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d.png' % (LAYER))

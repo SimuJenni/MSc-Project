@@ -8,7 +8,7 @@ from ToonNet import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_test
-from utils import montage
+from utils import montage, weights_montage
 
 slim = tf.contrib.slim
 
@@ -56,7 +56,7 @@ with sess.as_default():
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            #'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
+            'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
             'MSE-generator': slim.metrics.streaming_mean_squared_error(gen_rec, imgs_test),
         })
 
@@ -68,10 +68,13 @@ with sess.as_default():
             summary_ops.append(op)
 
         summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 8, 16), max_images=1))
-        #summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 8, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 8, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 8, 16), max_images=1))
+        weights_disc_1 = slim.variable('discriminator/conv_1/conv_1_1/weights')
+        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),
+                                            max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=1,

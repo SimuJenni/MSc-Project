@@ -7,8 +7,56 @@ from tensorflow.python.ops import math_ops
 from tensorflow.contrib import slim as slim
 
 
+def weights_montage(weights, grid_Y, grid_X, pad=1):
+    """Visualize conv. features as an image (mostly for the 1st layer).
+    Place kernel into a grid, with some paddings between adjacent filters.
+
+    Args:
+        weights: tensor of shape [Y, X, NumChannels, NumKernels]
+        (grid_Y, grid_X): shape of the grid. Require: NumKernels == grid_Y * grid_X
+        pad: number of black pixels around each filter (between them)
+
+    Return:
+        Tensor of shape [(Y+2*pad)*grid_Y, (X+2*pad)*grid_X, NumChannels, 1].
+    """
+
+    x_min = tf.reduce_min(weights)
+    x_max = tf.reduce_max(weights)
+
+    weights1 = (weights - x_min) / (x_max - x_min)
+
+    # pad X and Y
+    x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [0, 0], [0, 0]]), mode='CONSTANT')
+
+    # X and Y dimensions, w.r.t. padding
+    Y = weights1.get_shape()[0] + 2 * pad
+    X = weights1.get_shape()[1] + 2 * pad
+
+    channels = weights1.get_shape()[2]
+
+    # put NumKernels to the 1st dimension
+    x2 = tf.transpose(x1, (3, 0, 1, 2))
+    # organize grid on Y axis
+    x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, channels]))  # 3
+
+    # switch X and Y axes
+    x4 = tf.transpose(x3, (0, 2, 1, 3))
+    # organize grid on X axis
+    x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, channels]))  # 3
+
+    # back to normal order (not combining with the next step for clarity)
+    x6 = tf.transpose(x5, (2, 1, 3, 0))
+
+    # to tf.image_summary order [batch_size, height, width, channels],
+    #   where in this case batch_size == 1
+    x7 = tf.transpose(x6, (3, 0, 1, 2))
+
+    # scale to [0, 255] and convert to uint8
+    return tf.image.convert_image_dtype(x7, dtype=tf.uint8)
+
+
 def montage(imgs, num_h, num_w):
-    """Makes a motage of imgs that can be used in image_summaries.
+    """Makes a montage of imgs that can be used in image_summaries.
 
     Args:
         imgs: Tensor of images
@@ -92,28 +140,3 @@ def get_variables_to_train(trainable_scopes=None):
 
     return variables_to_train
 
-
-def kl_divergence(mu1, lvar1, mu2, lvar2, scope=None):
-    with ops.op_scope([mu1, lvar1, mu2, lvar2],
-                      scope, "kl_divergence") as scope:
-        pm = slim.flatten(mu1)
-        qm = slim.flatten(mu2)
-        pv = slim.flatten(lvar1)
-        qv = slim.flatten(lvar2)
-        # Determinants of diagonal covariances
-        dpv = math_ops.reduce_sum(pv, reduction_indices=[1])
-        dqv = math_ops.reduce_sum(qv, reduction_indices=[1])
-        # Inverse of diagonal covariance
-        iqv = 1. / qv
-        # Difference between means pm, qm
-        diff = qm - pm
-
-        return math_ops.reduce_mean((0.5 *
-                                     (dqv-dpv
-                                      + math_ops.reduce_sum(math_ops.exp(pv-qv), reduction_indices=[1])
-                                      + math_ops.reduce_sum(diff * math_ops.exp(-qv) * diff, reduction_indices=[1])
-                                      - pm.get_shape().as_list()[1])))
-
-
-def kl_gauss(z_log_sigma, z_mean):
-    return - 0.5 * math_ops.reduce_mean(1.0 + z_log_sigma - math_ops.square(z_mean) - math_ops.exp(z_log_sigma))

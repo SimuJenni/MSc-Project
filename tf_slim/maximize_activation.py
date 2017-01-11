@@ -43,8 +43,8 @@ with tf.Session() as sess:
 
     _, _, layers = discriminator(x, training=False, train_fc=False)
     ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-    vs = slim.get_variables_to_restore(include=['discriminator'])
-    saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
+    vars = slim.get_variables_to_restore(include=['discriminator'])
+    saver = tf.train.Saver(var_list=vars)
     saver.restore(sess, ckpt.model_checkpoint_path)
 
     loss = tf.reduce_mean(layers[0][:, :, :, FILTER_IDX])

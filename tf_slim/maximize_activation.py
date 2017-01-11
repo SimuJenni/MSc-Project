@@ -13,17 +13,9 @@ slim = tf.contrib.slim
 
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
-    # normalize tensor: center on 0., ensure std is 0.1
-    x -= x.mean()
-    x /= (x.std() + 1e-5)
-    x *= 0.1
-
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
-
     # convert to RGB array
-    x *= 255
+    x += 1.
+    x *= 255./2
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
@@ -33,8 +25,8 @@ model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 1
-LR = 10
-NUM_STEPS = 200
+LR = 1
+NUM_STEPS = 1000
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 

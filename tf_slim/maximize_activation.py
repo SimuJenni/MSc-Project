@@ -7,6 +7,7 @@ from datasets import stl10
 
 from scipy.misc import imsave
 import numpy as np
+slim = tf.contrib.slim
 
 
 # util function to convert a tensor into a valid image
@@ -37,19 +38,17 @@ NUM_STEPS = 20
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
-saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
-
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
 
+    _, _, layers = discriminator(x, training=False, train_fc=False)
     ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
+    vs = slim.get_variables_to_restore(include=['discriminator'])
+    saver = tf.train.Saver()  # defaults to saving all variables - in this case w and b
     saver.restore(sess, ckpt.model_checkpoint_path)
 
-    _, _, layers = discriminator(x, training=False, train_fc=False)
     loss = tf.reduce_mean(layers[0][:, :, :, FILTER_IDX])
-
     var_grad = tf.gradients(loss, [x])[0]
-
     var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
 
     for i in range(NUM_STEPS):

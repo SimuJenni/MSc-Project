@@ -59,7 +59,7 @@ with sess.as_default():
                                                               output_width=TARGET_SHAPE[1],
                                                               augment_color=True,
                                                               resize_side_min=96,
-                                                              resize_side_max=96)  #TODO: again 128?
+                                                              resize_side_max=96)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(
@@ -70,7 +70,7 @@ with sess.as_default():
             if TEST_WHILE_TRAIN:
                 # Get test-data
                 test_set = data.get_split('test')
-                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
                 img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
                                                                output_height=TARGET_SHAPE[0],
@@ -78,7 +78,7 @@ with sess.as_default():
                                                                resize_side=96)
                 imgs_test, edges_test, labels_test = tf.train.batch(
                     [img_test, edge_test, label_test],
-                    batch_size=model.batch_size, num_threads=4)
+                    batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type,
@@ -104,12 +104,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        values = [0.0002, 0.0001, 0.00005]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
+        # values = [0.0002, 0.0001, 0.00005]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
         # Create training operation
         if fine_tune:
@@ -150,7 +150,7 @@ with sess.as_default():
         # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        tf.scalar_summary('learning rate', learning_rate)
+        # tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage(imgs_train, 4, 4), max_images=1)

@@ -25,7 +25,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 0
 LR = 10
-NUM_STEPS = 1000
+NUM_STEPS = 10000
 l2decay = 0.001
 
 x = tf.Variable(tf.random_uniform([1, 128, 128, 3], minval=-1.0, maxval=1.0), name='x')

@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 def deprocess_image(x):
     x -= x.mean()
     x /= (x.std() + 1e-5)
-    x *= 0.25
+    x *= 0.20
 
     # clip to [0, 1]
     x += 0.5
@@ -44,12 +44,12 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         saver.restore(sess, ckpt.model_checkpoint_path)
 
         loss = -tf.reduce_sum(layers[layer_id - 1][:, :, :, filter_id])
-        loss += 0.001*tf.reduce_sum(tf.square(x))
+        loss += 0.01*tf.reduce_sum(tf.square(x))
         opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(100):
+        for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
                 x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
@@ -64,7 +64,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
-FILTERS = [i for i in range(64)]
+FILTERS = [i for i in range(25)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

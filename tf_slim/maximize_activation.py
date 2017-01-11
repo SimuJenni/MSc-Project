@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 def deprocess_image(x):
     x -= x.mean()
     x /= (x.std() + 1e-5)
-    x *= 0.25
+    x *= 0.2
 
     # clip to [0, 1]
     x += 0.5

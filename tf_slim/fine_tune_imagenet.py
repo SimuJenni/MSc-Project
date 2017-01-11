@@ -18,17 +18,17 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=64, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=60)
+model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=100)
 TARGET_SHAPE = [192, 192, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 5
-pre_trained_grad_weight = [0.25 * 0.25 ** i for i in range(NUM_CONV_TRAIN)]
+NUM_CONV_TRAIN = 0
+pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
-CHECKPOINT = 'model.ckpt-100002'
+CHECKPOINT = 'model.ckpt-343155'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
@@ -108,7 +108,7 @@ with sess.as_default():
         # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9)
 
         # Create training operation
         if fine_tune:

@@ -28,8 +28,7 @@ FILTER_IDX = 1
 LR = 1
 NUM_STEPS = 200
 
-x = tf.placeholder(tf.float32, shape=[1, 64, 64, 3])
-# x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
+x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())

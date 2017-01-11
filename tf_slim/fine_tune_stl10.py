@@ -13,7 +13,6 @@ from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage_tf
-import numpy as np
 
 slim = tf.contrib.slim
 

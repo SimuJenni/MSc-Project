@@ -13,10 +13,23 @@ slim = tf.contrib.slim
 
 
 def deprocess_image(x):
-    x += 1.0
-    x *= 255/2.
+    x -= x.mean()
+    x /= (x.std() + 1e-5)
+    x *= 0.1
+
+    # clip to [0, 1]
+    x += 0.5
+    x = np.clip(x, 0, 1)
+
+    # convert to RGB array
+    x *= 255
     x = np.clip(x, 0, 255).astype('uint8')
     return x
+
+    # x += 1.0
+    # x *= 255/2.
+    # x = np.clip(x, 0, 255).astype('uint8')
+    # return x
 
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
@@ -66,4 +79,4 @@ for i, f in enumerate(FILTERS):
     imgs[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 montage_img = montage(imgs)
-scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d.png' % (LAYER))
+scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_new.png' % (LAYER))

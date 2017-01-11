@@ -56,5 +56,5 @@ with tf.Session() as sess:
         x += var_grad_val * LR
 
     img = x.eval()
-    img = deprocess_image(img)
+    img = deprocess_image(np.squeeze(img))
     imsave('%s_filter_%d.png' % (LAYER_IDX, FILTER_IDX), img)

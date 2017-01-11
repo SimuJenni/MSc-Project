@@ -40,13 +40,13 @@ with tf.Session() as sess:
     saver.restore(sess, ckpt.model_checkpoint_path)
 
     loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
-    optimizer = tf.train.GradientDescentOptimizer(0.1).minimize(loss, var_list=[x])
+    optimizer = tf.train.GradientDescentOptimizer(1).minimize(loss, var_list=[x])
 
     var_grad = tf.gradients(loss, [x])[0]
 
     for i in range(NUM_STEPS):
         _, var_grad_val = sess.run([optimizer, var_grad])
-        x += var_grad_val
+        x -= var_grad_val*LR
         x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
         print(sess.run(loss))
 

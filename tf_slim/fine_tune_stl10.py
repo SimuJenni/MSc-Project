@@ -58,7 +58,7 @@ with sess.as_default():
                                                               output_width=TARGET_SHAPE[1],
                                                               augment_color=True,
                                                               resize_side_min=96,
-                                                              resize_side_max=112)
+                                                              resize_side_max=120)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(
@@ -108,7 +108,7 @@ with sess.as_default():
         # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.9, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.9, epsilon=1e-4)
 
         # Create training operation
         if fine_tune:

@@ -26,7 +26,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LAYER_IDX = 3
 FILTER_IDX = 1
 LR = 1
-NUM_STEPS = 1000
+NUM_STEPS = 200
 
 x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
@@ -41,12 +41,13 @@ with tf.Session() as sess:
 
     loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
     var_grad = tf.gradients(loss, [x])[0]
-    # var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
+    var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
 
     for i in range(NUM_STEPS):
         var_grad_val = sess.run(var_grad)
         x += var_grad_val * LR
         x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+        print(sess.run(loss))
 
     img = x.eval()
     print(img.shape)

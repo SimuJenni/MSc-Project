@@ -109,7 +109,7 @@ with sess.as_default():
         # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5, epsilon=1e-4)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5, epsilon=1e-5)
 
         # Create training operation
         if fine_tune:

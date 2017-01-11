@@ -46,7 +46,7 @@ with tf.Session() as sess:
     var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
 
     for i in range(NUM_STEPS):
-        var_grad_val = sess.run([optimizer, var_grad])
+        _, var_grad_val = sess.run([optimizer, var_grad])
         x += var_grad_val * LR
         x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
         print(sess.run(loss))

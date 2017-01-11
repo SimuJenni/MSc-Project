@@ -28,7 +28,8 @@ FILTER_IDX = 1
 LR = 1
 NUM_STEPS = 200
 
-x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
+x = tf.placeholder(tf.float32, shape=[1, 64, 64, 3])
+# x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
@@ -40,11 +41,13 @@ with tf.Session() as sess:
     saver.restore(sess, ckpt.model_checkpoint_path)
 
     loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
+    optimizer = tf.train.MomentumOptimizer(0.1, 0.).minimize(loss)
+
     var_grad = tf.gradients(loss, [x])[0]
     var_grad /= (tf.sqrt(tf.reduce_mean(tf.square(var_grad))) + 1e-5)
 
     for i in range(NUM_STEPS):
-        var_grad_val = sess.run(var_grad)
+        var_grad_val = sess.run([optimizer, var_grad])
         x += var_grad_val * LR
         x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
         print(sess.run(loss))

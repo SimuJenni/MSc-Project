@@ -68,7 +68,7 @@ with sess.as_default():
             summary_ops.append(op)
 
         summary_ops.append(tf.image_summary('images/generator', montage(gen_rec, 8, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 8, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/ground-truth', montage(imgs_test, 8, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/cartoons', montage(toons_test, 8, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage(edges_test, 8, 16), max_images=1))

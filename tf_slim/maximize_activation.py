@@ -22,7 +22,7 @@ def deprocess_image(x):
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 3
+LAYER_IDX = 2
 FILTER_IDX = 0
 LR = 1
 NUM_STEPS = 1000
@@ -42,16 +42,16 @@ with tf.Session() as sess:
     loss = tf.reduce_mean(layers[LAYER_IDX][:, :, :, FILTER_IDX])
     opt = tf.train.GradientDescentOptimizer(learning_rate=LR)
     grads_and_vars = opt.compute_gradients(loss, var_list=[x])
-    modded_grads_and_vars = [(-gv[0]/(tf.sqrt(tf.reduce_mean(tf.square(gv[0]))) + 1e-5), gv[1]) for gv in grads_and_vars]
+    modded_grads_and_vars = [(l2decay*x-gv[0]/(tf.sqrt(tf.reduce_mean(tf.square(gv[0]))) + 1e-5), gv[1]) for gv in grads_and_vars]
     train_op = opt.apply_gradients(modded_grads_and_vars)
 
 
     for i in range(NUM_STEPS):
         sess.run([train_op])
-        #if not i % 100:
         with tf.control_dependencies([train_op]):
-            x *= (1. - l2decay)
             x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+            if not i % 100:
+                print(sess.run(loss))
 
     img = x.eval()
     img = deprocess_image(np.squeeze(img))

@@ -39,7 +39,7 @@ LAYER_IDX = 3
 FILTER_IDX = 10
 LR = 6
 NUM_STEPS = 200
-l2decay = 0.0001
+l2decay = 0.001
 
 x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=10), name='x')
 

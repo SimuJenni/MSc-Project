@@ -3,7 +3,7 @@ import os
 
 from ToonNet import VAEGAN, discriminator
 from constants import LOG_DIR
-from datasets import stl10
+from datasets import imagenet
 from tensorflow.python.ops.clip_ops import clip_by_value
 
 from scipy.misc import imsave
@@ -29,16 +29,16 @@ def deprocess_image(x):
     return x
 
 
-data = stl10
-model = VAEGAN(num_layers=4, batch_size=1, data_size=1, num_epochs=1)
+data = imagenet
+model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LAYER_IDX = 2
+LAYER_IDX = 3
 FILTER_IDX = 0
 LR = 1
 NUM_STEPS = 500
 l2decay = 0.0001
 
-x = tf.Variable(tf.random_uniform([1, 64, 64, 3], minval=-1.0, maxval=1.0), name='x')
+x = tf.Variable(tf.random_uniform([1, 128, 128, 3], minval=-1.0, maxval=1.0), name='x')
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())

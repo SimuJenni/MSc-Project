@@ -23,7 +23,6 @@ def deprocess_image(x):
 
     # convert to RGB array
     x *= 255
-    x = x.transpose((1, 2, 0))
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
@@ -56,5 +55,7 @@ with tf.Session() as sess:
         x += var_grad_val * LR
 
     img = x.eval()
+    print(img.shape)
     img = deprocess_image(np.squeeze(img))
+
     imsave('%s_filter_%d.png' % (LAYER_IDX, FILTER_IDX), img)

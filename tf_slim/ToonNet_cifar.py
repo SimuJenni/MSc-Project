@@ -19,7 +19,7 @@ class VAEGAN:
             data_size: Number of training images in the dataset
             num_epochs: Number of epochs used for training
         """
-        self.name = 'AEGAN_noDist'
+        self.name = 'AEGAN_normalGAN'
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.data_size = data_size
@@ -48,8 +48,8 @@ class VAEGAN:
         gen_dist, gen_mu, gen_logvar, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         enc_dist, enc_mu, enc_logvar, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = decoder(enc_mu, num_layers=self.num_layers, reuse=reuse, training=training)
-        dec_gen = decoder(gen_mu, num_layers=self.num_layers, reuse=True, training=training)
+        dec_im = decoder(enc_dist, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         # disc_in = merge(merge(dec_gen, dec_im), merge(dec_im, dec_gen), dim=0)
         disc_in = merge(dec_im, dec_gen, dim=0)

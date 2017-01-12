@@ -39,7 +39,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(50):
+        for j in range(200):
             tmp = x.eval()
             tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             sess.run(x.assign(tmp))
@@ -55,7 +55,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 1
 LR = 1
-FILTERS = [i for i in range(64)]
+FILTERS = [i for i in range(16)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):
@@ -66,6 +66,6 @@ for i, f in enumerate(FILTERS):
     imgs[i], losses[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 print(losses)
-imgs = [x for (y,x) in sorted(zip(losses,imgs))]
+imgs = [x for (y,x) in sorted(zip(losses, imgs))]
 montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new.png' % (LAYER))

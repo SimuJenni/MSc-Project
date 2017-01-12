@@ -59,7 +59,7 @@ with sess.as_default():
                                                               output_width=TARGET_SHAPE[1],
                                                               augment_color=True,
                                                               resize_side_min=96,
-                                                              resize_side_max=112)
+                                                              resize_side_max=104)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(

@@ -6,19 +6,18 @@ import tensorflow as tf
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
-from datasets import cifar10
+from datasets import imagenet
 from preprocess import preprocess_toon_test
-from utils import montage_tf
+from utils import montage_tf, weights_montage
 
 slim = tf.contrib.slim
 
 # Setup
-data = cifar10
-model = VAEGAN(num_layers=3, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'])
-TARGET_SHAPE = [32, 32, 3]
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings/'.format(data.NAME, model.name))
-LOG_PATH = os.path.join(LOG_DIR, '{}_{}_new_settings_recon_test/'.format(data.NAME, model.name))
+data = imagenet
+model = VAEGAN(num_layers=5, batch_size=56, data_size=data.SPLITS_TO_SIZES['train'])
+TARGET_SHAPE = [128, 128, 3]
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
+LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
 
@@ -33,18 +32,18 @@ with sess.as_default():
         with tf.device('/cpu:0'):
             # Get test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Pre-process data
             img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
+                                                                  resize_side=128)
             # Make batches
             imgs_test, edges_test, toons_test = tf.train.batch(
                 [img_test, edge_test, toon_test],
-                batch_size=model.batch_size, num_threads=4)
+                batch_size=model.batch_size, num_threads=1)
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
@@ -56,7 +55,6 @@ with sess.as_default():
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'accuracy': slim.metrics.streaming_accuracy(preds_test, labels_disc),
             'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
             'MSE-generator': slim.metrics.streaming_mean_squared_error(gen_rec, imgs_test),
         })
@@ -68,15 +66,18 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 8, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 8, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 7, 8), max_images=1))
+        with tf.variable_scope('discriminator', reuse=True):
+            weights_disc_1 = slim.variable('conv_1/conv_1_1/weights')
+        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),
+                                            max_images=1))
 
-        num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=num_eval_steps,
+                                        num_evals=1,
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops))

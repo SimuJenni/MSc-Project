@@ -13,23 +13,23 @@ slim = tf.contrib.slim
 
 
 def deprocess_image(x):
-    x -= x.mean()
-    x /= (x.std() + 1e-5)
-    x *= 0.15
-
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
-
-    # convert to RGB array
-    x *= 255
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
-
-    # x += 1.0
-    # x *= 255/2.
+    # x -= x.mean()
+    # x /= (x.std() + 1e-5)
+    # x *= 0.15
+    #
+    # # clip to [0, 1]
+    # x += 0.5
+    # x = np.clip(x, 0, 1)
+    #
+    # # convert to RGB array
+    # x *= 255
     # x = np.clip(x, 0, 255).astype('uint8')
     # return x
+
+    x += 1.0
+    x *= 255/2.
+    x = np.clip(x, 0, 255).astype('uint8')
+    return x
 
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
@@ -54,7 +54,9 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         for j in range(200):
             sess.run([train_op])
             with tf.control_dependencies([train_op]):
-                x = clip_by_value(x, clip_value_min=-1., clip_value_max=1.)
+                tmp = x.eval()
+                tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
+                sess.run(x.assign(tmp))
 
         img = x.eval()
         img = deprocess_image(np.squeeze(img))
@@ -66,7 +68,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 5
 LR = 80
-FILTERS = [10+i for i in range(36)]
+FILTERS = [10+i for i in range(4)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):
@@ -79,4 +81,4 @@ for i, f in enumerate(FILTERS):
 print(losses)
 imgs = [x for (y,x) in sorted(zip(losses,imgs))]
 montage_img = montage(imgs)
-scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test.png' % (LAYER))
+scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new.png' % (LAYER))

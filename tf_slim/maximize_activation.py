@@ -56,7 +56,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(200):
+        for j in range(300):
             tmp = x.eval()
             tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             sess.run(x.assign(tmp))
@@ -72,7 +72,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 5
 LR = 1
-FILTERS = [10+i for i in range(1)]
+FILTERS = [i for i in range(9)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

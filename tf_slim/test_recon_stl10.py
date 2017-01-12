@@ -16,7 +16,6 @@ slim = tf.contrib.slim
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=200, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [64, 64, 3]
-RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
@@ -40,7 +39,7 @@ with sess.as_default():
             img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
+                                                                  resize_side=64)
             # Make batches
             imgs_test, edges_test, toons_test = tf.train.batch(
                 [img_test, edge_test, toon_test],

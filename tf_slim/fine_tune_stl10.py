@@ -31,7 +31,7 @@ pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 CHECKPOINT = 'model.ckpt-125001'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_more/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_more2/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -59,7 +59,7 @@ with sess.as_default():
                                                               output_width=TARGET_SHAPE[1],
                                                               augment_color=True,
                                                               resize_side_min=96,
-                                                              resize_side_max=104)
+                                                              resize_side_max=112)
 
             # Make batches
             imgs_train, edges_train, labels_train = tf.train.batch(

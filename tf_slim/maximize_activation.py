@@ -54,8 +54,8 @@ model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 3
-LR = 1
-FILTERS = [i for i in range(16)]
+LR = 8
+FILTERS = [i for i in range(1)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):
@@ -68,4 +68,4 @@ for i, f in enumerate(FILTERS):
 print(losses)
 imgs = [x for (y,x) in sorted(zip(losses, imgs))]
 montage_img = montage(imgs)
-scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new.png' % (LAYER))
+scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new1.png' % (LAYER))

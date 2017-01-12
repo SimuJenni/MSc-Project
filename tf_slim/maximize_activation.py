@@ -33,7 +33,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         saver = tf.train.Saver(var_list=vars)
         saver.restore(sess, ckpt.model_checkpoint_path)
 
-        loss = -tf.reduce_mean(layers[layer_id - 1][:, :, :, filter_id])
+        loss = -tf.reduce_sum(layers[layer_id - 1][:, :, :, filter_id])
         loss += 0.0001*tf.reduce_sum(tf.square(x))
         opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
         train_op = opt.minimize(loss, var_list=[x])
@@ -54,7 +54,7 @@ model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 3
-LR = 8
+LR = 10
 FILTERS = [i for i in range(1)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]

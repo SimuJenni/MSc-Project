@@ -62,8 +62,8 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 3
-LR = 10
+LAYER = 4
+LR = 40
 FILTERS = [10+i for i in range(36)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]

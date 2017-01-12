@@ -31,7 +31,7 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = data.get_split('test')
+            test_set = data.get_split('validation')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 

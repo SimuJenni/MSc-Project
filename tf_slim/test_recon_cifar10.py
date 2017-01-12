@@ -67,11 +67,11 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 2, 32), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 8, 32), max_images=1))
         #summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 2, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 2, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 2, 32), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 8, 32), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 8, 32), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 8, 32), max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=1,

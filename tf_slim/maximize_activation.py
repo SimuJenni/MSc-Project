@@ -33,7 +33,7 @@ def deprocess_image(x):
 
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
-    x = tf.Variable(tf.random_normal([1, 224, 224, 3], stddev=2), name='x')
+    x = tf.Variable(tf.random_normal([1, 192, 192, 3], stddev=2), name='x')
     with tf.Session() as sess:
 
         sess.run(tf.initialize_all_variables())
@@ -62,9 +62,9 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 2
-LR = 2
-FILTERS = [20+i for i in range(9)]
+LAYER = 1
+LR = 1
+FILTERS = [10+i for i in range(36)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

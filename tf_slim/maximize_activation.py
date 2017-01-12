@@ -39,7 +39,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(20):
+        for j in range(1000):
             tmp = x.eval()
             tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             sess.run(x.assign(tmp))

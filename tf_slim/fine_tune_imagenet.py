@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=100)
+model = VAEGAN(num_layers=num_layers, batch_size=128, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=60)
 TARGET_SHAPE = [192, 192, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
@@ -103,12 +103,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        # boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        # values = [0.0002, 0.0001, 0.00005]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),  np.int64(num_train_steps * 0.75)]
+        values = [0.001, 0.0005, 0.0002, 0.0001]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
         if fine_tune:
@@ -149,7 +149,7 @@ with sess.as_default():
         # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        #tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
@@ -167,5 +167,5 @@ with sess.as_default():
         # Start training
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
-                            save_summaries_secs=60, save_interval_secs=600,
+                            save_summaries_secs=300, save_interval_secs=600,
                             log_every_n_steps=100)

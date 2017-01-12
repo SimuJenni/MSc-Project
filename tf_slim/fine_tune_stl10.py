@@ -21,10 +21,11 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 4
+NUM_CONV_TRAIN = 5
+LR = 0.0002
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-100002'
@@ -103,12 +104,11 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        # boundaries = [np.int64(num_train_steps * 0.33), np.int64(num_train_steps * 0.66)]
-        # values = [0.0002, 0.0001, 0.00005]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+                                  LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.9, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
         if fine_tune:
@@ -149,7 +149,7 @@ with sess.as_default():
         # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        # tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)

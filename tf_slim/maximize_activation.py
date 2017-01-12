@@ -34,7 +34,9 @@ def deprocess_image(x):
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
     x = tf.Variable(tf.random_normal([1, 192, 192, 3], stddev=2), name='x')
-    with tf.Session() as sess:
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
+
+    with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
         sess.run(tf.initialize_all_variables())
 

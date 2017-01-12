@@ -13,27 +13,9 @@ slim = tf.contrib.slim
 
 
 def deprocess_image(x):
-    # x -= x.mean()
-    # x /= (x.std() + 1e-5)
-    # x *= 0.15
-    #
-    # # clip to [0, 1]
-    # x += 0.5
-    # x = np.clip(x, 0, 1)
-    #
-    # # convert to RGB array
-    # x *= 255
-    # x = np.clip(x, 0, 255).astype('uint8')
-    # return x
-
-    # x += 1.0
-    # x *= 255/2.
-    # x = np.clip(x, 0, 255).astype('uint8')
-
     x -= np.min(x)
     x = 255*x/np.max(x)
     x = np.clip(x, 0, 255).astype('uint8')
-
     return x
 
 
@@ -44,6 +26,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
         sess.run(tf.initialize_all_variables())
+        sess.run(x.assign(tf.random_normal([1, 192, 192, 3], stddev=2)))
 
         _, _, layers = discriminator(x, training=False, train_fc=False, reuse=reuse)
         vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
@@ -56,7 +39,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(300):
+        for j in range(200):
             tmp = x.eval()
             tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             sess.run(x.assign(tmp))
@@ -70,9 +53,9 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 5
+LAYER = 1
 LR = 1
-FILTERS = [i for i in range(9)]
+FILTERS = [i for i in range(36)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

@@ -15,20 +15,20 @@ slim = tf.contrib.slim
 def deprocess_image(x):
     x /= np.std(x)
     x += 0.5
-    x *= 0.5
+    x *= 0.25
     x *= 255
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
 
 def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
-    x = tf.Variable(tf.random_normal([1, 192, 192, 3], stddev=2), name='x')
+    x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
 
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
         sess.run(tf.initialize_all_variables())
-        sess.run(x.assign(tf.random_normal([1, 192, 192, 3], stddev=2)))
+        sess.run(x.assign(tf.random_normal([1, 128, 128, 3], stddev=0.25)))
 
         _, _, layers = discriminator(x, training=False, train_fc=False, reuse=reuse)
         vars = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
@@ -41,7 +41,7 @@ def max_activity_img(layer_id, filter_id, lr, ckpt, reuse=None):
         train_op = opt.minimize(loss, var_list=[x])
         print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, filter_id, lr))
 
-        for j in range(200):
+        for j in range(100):
             tmp = x.eval()
             tmp = clip_by_value(tmp, clip_value_min=-1., clip_value_max=1.)
             sess.run(x.assign(tmp))
@@ -57,7 +57,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 2
 LR = 1
-FILTERS = [i for i in range(16)]
+FILTERS = [i for i in range(4)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

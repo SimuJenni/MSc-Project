@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 def deprocess_image(x):
     x /= np.std(x)
     x += 0.5
-    #x *= 0.5
+    x *= 0.5
     x *= 255
     x = np.clip(x, 0, 255).astype('uint8')
     return x

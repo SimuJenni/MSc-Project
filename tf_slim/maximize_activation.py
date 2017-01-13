@@ -25,7 +25,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
     imgs = [None for i in range(num_filters)]
     losses = [0. for i in range(num_filters)]
     x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.2)
 
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
@@ -60,7 +60,7 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 2
+LAYER = 3
 LR = 1
 
 imgs, losses = max_activity_img(LAYER, 16, LR, ckpt)

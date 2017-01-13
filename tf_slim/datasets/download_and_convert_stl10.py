@@ -98,8 +98,9 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
         labels = read_labels(label_filename)
 
     if subset:
-        images = images[subset]
-        labels = labels[subset]
+        for index in sorted(subset, reverse=True):
+            del images[index]
+            del labels[index]
 
     num_images = images.shape[0]
 

@@ -60,21 +60,12 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1, data_size=1, num_epochs=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
-LAYER = 1
+LAYER = 2
 LR = 1
-# FILTERS = [i for i in range(36)]
-# imgs = [None for i in FILTERS]
-# losses = [0. for i in FILTERS]
-# for i, f in enumerate(FILTERS):
-#     if i == 0:
-#         reuse = None
-#     else:
-#         reuse = True
-#     imgs[i], losses[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
 imgs, losses = max_activity_img(LAYER, 16, LR, ckpt)
-
 print(losses)
+
 imgs = [x for (y,x) in sorted(zip(losses, imgs))]
 montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new1.png' % (LAYER))

@@ -99,6 +99,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
 
     if subset:
         for index in sorted(subset, reverse=True):
+            images = np.delete(arr, subset, axis=0)
             del images[index]
             del labels[index]
 

@@ -248,7 +248,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=tf.nn.relu, training=training)):   #TODO:?
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)
@@ -274,7 +274,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         An argscope
     """
     batch_norm_params = {
-        'is_training': training,    #TODO:?
+        'is_training': True,
         'decay': 0.999,
         'epsilon': 0.001,
         'center': False,

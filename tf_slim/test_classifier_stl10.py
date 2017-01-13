@@ -17,12 +17,12 @@ data = stl10
 model = VAEGAN(num_layers=4, batch_size=1000, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = 96
-NUM_CONV_TRAIN = 0
+NUM_CONV_TRAIN = 2
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_more/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_nogradweights/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_more/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_nogradweights/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

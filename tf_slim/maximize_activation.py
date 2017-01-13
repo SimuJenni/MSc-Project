@@ -13,8 +13,10 @@ slim = tf.contrib.slim
 
 
 def deprocess_image(x):
-    x -= np.min(x)
-    x = 255*x/np.max(x)
+    x /= np.std(x)
+    x += 0.5
+    x *= 0.25
+    x *= 255
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
@@ -55,7 +57,7 @@ MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 ckpt = tf.train.get_checkpoint_state(MODLE_DIR)
 LAYER = 5
 LR = 1
-FILTERS = [i for i in range(16)]
+FILTERS = [i for i in range(4)]
 imgs = [None for i in FILTERS]
 losses = [0. for i in FILTERS]
 for i, f in enumerate(FILTERS):

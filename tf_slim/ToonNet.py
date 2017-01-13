@@ -251,9 +251,9 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, 0.9, is_training=training)
-            # net = slim.fully_connected(net, 4096, scope='fc2')     #TODO:?
-            # net = slim.dropout(net, 0.9, is_training=training)
+            #net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.fully_connected(net, 4096, scope='fc2')     #TODO:?
+            #net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -274,7 +274,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         An argscope
     """
     batch_norm_params = {
-        'is_training': training,    #TODO:?
+        'is_training': True,    #TODO:?
         'decay': 0.999,
         'epsilon': 0.001,
         'center': False,

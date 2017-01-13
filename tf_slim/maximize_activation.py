@@ -72,7 +72,7 @@ LR = 1
 #         reuse = True
 #     imgs[i], losses[i] = max_activity_img(LAYER, f, LR, ckpt, reuse=reuse)
 
-imgs, losses = max_activity_img(LAYER, 25, LR, ckpt)
+imgs, losses = max_activity_img(LAYER, 16, LR, ckpt)
 
 print(losses)
 imgs = [x for (y,x) in sorted(zip(losses, imgs))]

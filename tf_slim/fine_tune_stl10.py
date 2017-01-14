@@ -27,13 +27,13 @@ TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 2
 TRAIN_SET = 'train_fold_3'
-LR = 0.0002
-pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
+#pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
+pre_trained_grad_weight = [0.3 * 0.3 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-125000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(data.NAME, model.name, net_type,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new/'.format(data.NAME, model.name, net_type,
                                                                                     NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -59,7 +59,7 @@ with sess.as_default():
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
-                                                  augment_color=True,
+                                                 # augment_color=True,
                                                   resize_side_min=96,
                                                   resize_side_max=104)
 
@@ -109,7 +109,9 @@ with sess.as_default():
         #                           LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.0002, 0.0001, 0.00005, 0.000025, 0.00001]
+        #values = [0.0002, 0.0001, 0.00005, 0.000025, 0.00001]
+        values = [0.001, 0.0003, 0.0001, 0.00003, 0.00001]
+
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

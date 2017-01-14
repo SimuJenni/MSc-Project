@@ -20,9 +20,9 @@ RESIZE_SIZE = 96
 NUM_CONV_TRAIN = 2
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_2/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_3/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_2/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_3/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -46,9 +46,9 @@ with sess.as_default():
 
             # Pre-process data
             img_test = preprocess_finetune_test(img_test,
-                                                           output_height=TARGET_SHAPE[0],
-                                                           output_width=TARGET_SHAPE[1],
-                                                           resize_side=RESIZE_SIZE)
+                                                output_height=TARGET_SHAPE[0],
+                                                output_width=TARGET_SHAPE[1],
+                                                resize_side=RESIZE_SIZE)
             # Make batches
             imgs_test, labels_test = tf.train.batch(
                 [img_test, label_test],

@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_cifar import VAEGAN
+from ToonNet_cifar_maxpool import VAEGAN
 from constants import LOG_DIR
 from datasets import cifar10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -21,14 +21,15 @@ fine_tune = True
 net_type = 'discriminator'
 data = cifar10
 num_layers = 3
-model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=150)
+model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=300)
 TARGET_SHAPE = [32, 32, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
 TEST_WHILE_TRAIN = False
+LR = 0.0002
 NUM_CONV_TRAIN = 0
 pre_trained_grad_weight = 0.1
 
-CHECKPOINT = 'model.ckpt-14550'
+CHECKPOINT = 'model.ckpt-29102'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
@@ -58,7 +59,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=RESIZE_SIZE,
-                                                                      resize_side_max=int(RESIZE_SIZE * 1.5))
+                                                                      resize_side_max=40)
 
             # Make batches
             imgs_train, edges_train, toons_train, labels_train = tf.train.batch(
@@ -103,12 +104,11 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        # boundaries = [np.int64(num_train_steps*0.25), np.int64(num_train_steps*0.5), np.int64(num_train_steps*0.75)]
-        # values = [0.001, 0.001 * 100. ** (-1. / 3.), 0.001 * 100 ** (-2. / 3.), 0.001 * 100 ** (-3. / 3.)]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+                                  LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
         trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
@@ -144,7 +144,7 @@ with sess.as_default():
         # Gather all summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        # tf.scalar_summary('learning rate', learning_rate)
+        tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 

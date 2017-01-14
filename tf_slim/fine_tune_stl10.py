@@ -24,15 +24,15 @@ num_layers = 4
 model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 5
+NUM_CONV_TRAIN = 3
 LR = 0.0002
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 
-CHECKPOINT = 'model.ckpt-125001'
+CHECKPOINT = 'model.ckpt-150000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_more/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_300/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

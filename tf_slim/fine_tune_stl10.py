@@ -64,10 +64,9 @@ with sess.as_default():
                                                   resize_side_max=104)
 
             # Make batches
-            imgs_train, labels_train = tf.train.batch(
-                [img_train, label_train],
-                # batch_size=model.batch_size, num_threads=8,
-                capacity=4 * model.batch_size)
+            imgs_train, labels_train = tf.train.batch([img_train, label_train],
+                                                      batch_size=model.batch_size, num_threads=8,
+                                                      capacity=4 * model.batch_size)
 
             if TEST_WHILE_TRAIN:
                 # Get test-data

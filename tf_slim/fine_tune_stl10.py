@@ -29,7 +29,6 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'train_fold_1'
 LR = 0.0002
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
-pre_trained_grad_weight = [1 for i in range(NUM_CONV_TRAIN)]
 
 
 CHECKPOINT = 'model.ckpt-125000'

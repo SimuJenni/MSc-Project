@@ -73,12 +73,12 @@ with sess.as_default():
                 test_set = data.get_split('test')
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
-                img_test, edge_test = preprocess_finetune_test(img_test,
-                                                               output_height=TARGET_SHAPE[0],
-                                                               output_width=TARGET_SHAPE[1],
-                                                               resize_side=96)
-                imgs_test, edges_test, labels_test = tf.train.batch(
-                    [img_test, edge_test, label_test],
+                img_test = preprocess_finetune_test(img_test,
+                                                    output_height=TARGET_SHAPE[0],
+                                                    output_width=TARGET_SHAPE[1],
+                                                    resize_side=96)
+                imgs_test, labels_test = tf.train.batch(
+                    [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)
 
         # Get predictions

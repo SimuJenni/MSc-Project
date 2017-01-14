@@ -18,7 +18,7 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = True
-net_type = 'encoder'
+net_type = 'discriminator'
 data = cifar10
 num_layers = 3
 model = VAEGAN(num_layers=num_layers, batch_size=512, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=150)

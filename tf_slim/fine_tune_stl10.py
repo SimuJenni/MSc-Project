@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 2
-TRAIN_SET = 'train_fold_2'
+TRAIN_SET = 'train_fold_3'
 LR = 0.0002
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
@@ -138,7 +138,8 @@ with sess.as_default():
             grad_multipliers = None
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
+                                                 global_step=global_step, gradient_multipliers=grad_multipliers,
+                                                 summarize_gradients=True)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
         print(grad_multipliers)

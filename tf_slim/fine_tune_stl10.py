@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sys
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -106,8 +107,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
-                                  LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
+        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+        #                           LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.0002, 0.0001, 0.00005, 0.000025, 0.00001]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)

@@ -20,9 +20,9 @@ RESIZE_SIZE = 96
 NUM_CONV_TRAIN = 2
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_1/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_1/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -42,20 +42,20 @@ with sess.as_default():
             # Get test-data
             test_set = data.get_split('test')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-            [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
+            [img_test, label_test] = provider.get(['image', 'label'])
 
             # Pre-process data
-            img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
+            img_test = preprocess_finetune_test(img_test,
                                                            output_height=TARGET_SHAPE[0],
                                                            output_width=TARGET_SHAPE[1],
                                                            resize_side=RESIZE_SIZE)
             # Make batches
-            imgs_test, edges_test, labels_test = tf.train.batch(
-                [img_test, edge_test, label_test],
+            imgs_test, labels_test = tf.train.batch(
+                [img_test, label_test],
                 batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, training=False,
+        preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
 
         # Compute predicted label for accuracy

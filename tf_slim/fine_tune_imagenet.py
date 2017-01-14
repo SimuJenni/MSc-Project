@@ -32,7 +32,7 @@ CHECKPOINT = 'model.ckpt-457541'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_new/'.format(data.NAME, model.name,
-                                                                                 net_type, NUM_CONV_TRAIN))
+                                                                                     net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -51,37 +51,33 @@ with sess.as_default():
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
-            [img_train, edge_train, label_train] = provider.get(['image', 'edges', 'label'])
+            [img_train, label_train] = provider.get(['image', 'label'])
 
             # Pre-process data
-            img_train, edge_train = preprocess_finetune_train(img_train, edge_train,
-                                                              output_height=TARGET_SHAPE[0],
-                                                              output_width=TARGET_SHAPE[1],
-                                                              resize_side_min=192,
-                                                              resize_side_max=224)
+            img_train = preprocess_finetune_train(img_train,
+                                                  output_height=TARGET_SHAPE[0],
+                                                  output_width=TARGET_SHAPE[1],
+                                                  resize_side_min=192,
+                                                  resize_side_max=224)
 
             # Make batches
-            imgs_train, edges_train, labels_train = tf.train.batch(
-                [img_train, edge_train, label_train],
-                batch_size=model.batch_size, num_threads=8,
-                capacity=4 * model.batch_size)
+            imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
+                                                      num_threads=8, capacity=4 * model.batch_size)
 
             if TEST_WHILE_TRAIN:
                 # Get test-data
                 test_set = data.get_split('test')
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-                [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
-                img_test, edge_test = preprocess_finetune_test(img_test, edge_test,
-                                                               output_height=TARGET_SHAPE[0],
-                                                               output_width=TARGET_SHAPE[1],
-                                                               resize_side=192)
-                imgs_test, edges_test, labels_test = tf.train.batch(
-                    [img_test, edge_test, label_test],
-                    batch_size=model.batch_size, num_threads=4)
+                [img_test, label_test] = provider.get(['image', 'label'])
+                img_test = preprocess_finetune_test(img_test,
+                                                    output_height=TARGET_SHAPE[0],
+                                                    output_width=TARGET_SHAPE[1],
+                                                    resize_side=192)
+                imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
+                                                        num_threads=4)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type,
-                                       fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
 
         # Define the loss
         loss_scope = 'train_loss'
@@ -103,7 +99,8 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),  np.int64(num_train_steps * 0.75)]
+        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
+                      np.int64(num_train_steps * 0.75)]
         values = [0.001, 0.0005, 0.0002, 0.0001]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
@@ -138,7 +135,7 @@ with sess.as_default():
         sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, reuse=True,
+            preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
                                           training=False, fine_tune=fine_tune, type=net_type)
             test_loss = slim.losses.softmax_cross_entropy(preds_test,
                                                           slim.one_hot_encoding(labels_test, data.NUM_CLASSES))

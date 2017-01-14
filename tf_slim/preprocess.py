@@ -474,7 +474,7 @@ def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resi
     return image, edge, cartoon
 
 
-def preprocess_finetune_train(image, edge, output_height, output_width, augment_color=False,
+def preprocess_finetune_train(image, output_height, output_width, augment_color=False,
                               resize_side_min=_RESIZE_SIDE_MIN, resize_side_max=_RESIZE_SIDE_MAX):
 
     # Compute zoom side-size
@@ -482,14 +482,12 @@ def preprocess_finetune_train(image, edge, output_height, output_width, augment_
 
     # Resize/zoom
     image = _aspect_preserving_resize(image, resize_side)
-    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
 
     # Select random crops
-    [image, edge] = _random_crop([image, edge], output_height, output_width)
+    [image] = _random_crop([image], output_height, output_width)
 
     # Resize to output size
     image.set_shape([output_height, output_width, 3])
-    edge.set_shape([output_height, output_width, 1])
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
@@ -502,33 +500,28 @@ def preprocess_finetune_train(image, edge, output_height, output_width, augment_
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * 2. - 1.
-    edge = tf.to_float(edge) / 255.
 
     # Flip left-right
     p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
     image = _flip_lr(image, p)
-    edge = _flip_lr(edge, p)
 
-    return image, edge
+    return image
 
 
-def preprocess_finetune_test(image, edge, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
+def preprocess_finetune_test(image, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
     # Resize/zoom
     image = _aspect_preserving_resize(image, resize_side)
-    edge = _aspect_preserving_resize(edge, resize_side, num_channels=1)
 
     # Select random crops
-    [image, edge] = _central_crop([image, edge], output_height, output_width)
+    [image] = _central_crop([image], output_height, output_width)
 
     # Resize to output size
     image.set_shape([output_height, output_width, 3])
-    edge.set_shape([output_height, output_width, 1])
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.
-    edge = tf.to_float(edge) / 255.
 
-    return image, edge
+    return image
 
 
 def preprocess_image(image, output_height, output_width, is_training=False,

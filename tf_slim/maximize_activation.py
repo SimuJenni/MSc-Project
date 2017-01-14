@@ -43,7 +43,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
             loss += 0.0001*tf.reduce_sum(tf.square(x))
             opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
             train_op = opt.minimize(loss, var_list=[x])
-            print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, f, lr))
+            print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, 4*f, lr))
 
             for j in range(200):
                 tmp = x.eval()

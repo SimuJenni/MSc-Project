@@ -74,6 +74,7 @@ with sess.as_default():
             op = tf.scalar_summary(metric_name, metric_value)
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
+        summary_ops.append(tf.histogram_summary('lables', label_test))
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

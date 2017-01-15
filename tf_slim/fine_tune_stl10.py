@@ -160,8 +160,6 @@ with sess.as_default():
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
 
-        tf.histogram_summary('labels', labels_train)
-
         # Handle initialisation
         init_fn = None
         if fine_tune:

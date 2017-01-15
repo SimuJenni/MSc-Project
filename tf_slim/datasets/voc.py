@@ -13,22 +13,22 @@ SPLITS_TO_SIZES = {'train': 2501, 'val': 2510, 'trainval': 5011, 'test': 4952}
 
 NUM_CLASSES = 20
 
-NAME = 'stl10'
+NAME = 'voc2007'
 
-MIN_SIZE = 96
+MIN_SIZE = 128
 
-_FILE_PATTERN = 'stl10_%s.tfrecord'
+_FILE_PATTERN = 'voc2007_%s.tfrecord'
 
 _ITEMS_TO_DESCRIPTIONS = {
-    'image': 'A [96 x 96 x 3] color image.',
-    'label': 'A single integer between 0 and 9 or -1 for unlabeled',
-    'cartoon': 'A [96 x 96 x 3] cartooned image.',
-    'edges': 'A [96 x 96 x 1] edge map.'
+    'image': 'A color image.',
+    'label': 'A single integer between 0 and 19 or -1 for unlabeled',
+    'cartoon': 'A cartooned image.',
+    'edges': 'An edge map.'
 }
 
 
 def get_split(split_name, dataset_dir=STL10_TF_DATADIR, file_pattern=None, reader=None):
-    """Gets a dataset tuple with instructions for reading stl10.
+    """Gets a dataset tuple with instructions for reading voc2007.
     Args:
       split_name: A train/test split name.
       dataset_dir: The base directory of the dataset sources.
@@ -55,8 +55,6 @@ def get_split(split_name, dataset_dir=STL10_TF_DATADIR, file_pattern=None, reade
     keys_to_features = {
         'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
         'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
-        'image/height': tf.FixedLenFeature((), tf.int64, default_value=96),
-        'image/width': tf.FixedLenFeature((), tf.int64, default_value=96),
         'class/label': tf.FixedLenFeature(
             [], tf.int64, default_value=tf.zeros([], dtype=tf.int64)),
         'edges/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
@@ -66,12 +64,10 @@ def get_split(split_name, dataset_dir=STL10_TF_DATADIR, file_pattern=None, reade
     }
 
     items_to_handlers = {
-        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format', shape=[96, 96, 3], channels=3),
-        'height': slim.tfexample_decoder.Tensor('image/height'),
-        'width': slim.tfexample_decoder.Tensor('image/width'),
+        'image': slim.tfexample_decoder.Image('image/encoded', 'image/format', channels=3),
         'label': slim.tfexample_decoder.Tensor('class/label'),
-        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format', shape=[96, 96, 1], channels=1),
-        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format', shape=[96, 96, 3], channels=3),
+        'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format', channels=1),
+        'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format', channels=3),
     }
 
     decoder = slim.tfexample_decoder.TFExampleDecoder(

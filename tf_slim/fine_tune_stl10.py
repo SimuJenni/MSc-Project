@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=400)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
@@ -61,7 +61,7 @@ with sess.as_default():
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=True,
                                                   resize_side_min=96,
-                                                  resize_side_max=112) #104
+                                                  resize_side_max=120)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],

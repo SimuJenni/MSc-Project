@@ -16,9 +16,10 @@ from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
+data = stl10
 
 
-def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, train_set, net_type='discriminator',
+def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_set, net_type='discriminator',
                     fine_tune=True, test=False):
 
     model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=400)
@@ -172,4 +173,4 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
 for fold in range(10):
     for c in range(6):
-        fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold))
+        fine_tune_model(4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold))

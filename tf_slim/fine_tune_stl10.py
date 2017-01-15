@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=800)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=600)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
@@ -113,7 +113,7 @@ with sess.as_default():
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
         if fine_tune:

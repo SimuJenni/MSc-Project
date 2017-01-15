@@ -26,13 +26,13 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'train_fold_3'
+TRAIN_SET = 'train_fold_0'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-125000'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new/'.format(data.NAME, model.name, net_type,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(data.NAME, model.name, net_type,
                                                                                     NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -58,9 +58,9 @@ with sess.as_default():
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
-                                                 # augment_color=True,
+                                                  augment_color=True,
                                                   resize_side_min=96,
-                                                  resize_side_max=96) #104
+                                                  resize_side_max=112) #104
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],

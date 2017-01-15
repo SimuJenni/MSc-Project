@@ -10,21 +10,16 @@ NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 class VAEGAN:
-    def __init__(self, num_layers, batch_size, data_size, num_epochs=100):
+    def __init__(self, num_layers, batch_size):
         """Initialises an AEGAN using the provided paramters.
 
         Args:
             num_layers: The number of convolutional down/upsampling layers to be used.
             batch_size: The batch-size used during training (used to generate training labels)
-            data_size: Number of training images in the dataset
-            num_epochs: Number of epochs used for training
         """
         self.name = 'AEGAN_normalGAN'
         self.num_layers = num_layers
         self.batch_size = batch_size
-        self.data_size = data_size
-        self.num_ep = num_epochs
-        self.num_steps = num_epochs * data_size / batch_size
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the AEGAN with the given inputs.

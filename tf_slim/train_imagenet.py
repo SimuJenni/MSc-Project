@@ -18,7 +18,8 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-model = VAEGAN(num_layers=5, batch_size=56, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=25)
+num_epochs = 25
+model = VAEGAN(num_layers=5, batch_size=56)
 TARGET_SHAPE = [128, 128, 3]
 LR = 0.0002
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
@@ -111,9 +112,7 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, num_train_steps / 2),
-        #                           LR - LR * (2*tf.cast(global_step, tf.float32)/num_train_steps-1.0), LR)
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)

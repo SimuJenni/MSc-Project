@@ -75,13 +75,13 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
                         batch_size=model.batch_size, num_threads=1)
 
             # Get predictions
-            preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type,
+            preds_train = model.classifier(imgs_train, None, stl10.NUM_CLASSES, type=net_type,
                                            fine_tune=fine_tune)
 
             # Define the loss
             loss_scope = 'train_loss'
             train_loss = slim.losses.softmax_cross_entropy(preds_train,
-                                                           slim.one_hot_encoding(labels_train, data.NUM_CLASSES),
+                                                           slim.one_hot_encoding(labels_train, stl10.NUM_CLASSES),
                                                            scope=loss_scope)
             train_losses = slim.losses.get_losses(loss_scope)
             train_losses += slim.losses.get_regularization_losses(loss_scope)

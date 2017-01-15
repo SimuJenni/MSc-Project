@@ -98,10 +98,11 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
         labels = read_labels(label_filename)
 
     if subset:
-        images = np.delete(images, subset, axis=0)
         if test_fold:
+            images = images[subset]
             labels = labels[subset]
         else:
+            images = np.delete(images, subset, axis=0)
             labels = np.delete(labels, subset, axis=0)
 
     num_images = images.shape[0]

@@ -117,7 +117,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
                 edges = auto_canny(image)[:, :, None]
                 cartoon = cartoonify(image)
                 if label_filename:
-                    label = labels[j]
+                    label = labels[j]-1     # labels should be 0 indexed!
                 else:
                     label = -1
 
@@ -176,11 +176,11 @@ def run():
     if not os.path.exists(STL10_TF_DATADIR):
         os.mkdir(STL10_TF_DATADIR)
 
-    unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
-    unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
-    with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
-        num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
-    print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
+    # unlabeled_train_filename = os.path.join(STL10_DATADIR, 'stl10_binary/unlabeled_X.bin')
+    # unlabeled_train_tf_file = os.path.join(STL10_TF_DATADIR, 'stl10_train_unlabeled.tfrecord')
+    # with tf.python_io.TFRecordWriter(unlabeled_train_tf_file) as tfrecord_writer:
+    #     num_written = _add_to_tfrecord(unlabeled_train_filename, tfrecord_writer)
+    # print('Wrote {} images to {}'.format(num_written, unlabeled_train_tf_file))
 
     fold_indx_file = os.path.join(STL10_DATADIR, 'stl10_binary/fold_indices.txt')
     with open(fold_indx_file) as f:

@@ -54,6 +54,7 @@ with sess.as_default():
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
 
+
             # Pre-process data
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],

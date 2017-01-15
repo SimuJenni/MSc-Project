@@ -16,20 +16,20 @@ from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
-data = stl10
 
 
 def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_set, net_type='discriminator',
                     fine_tune=True, test=False):
 
-    model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=400)
+    model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=stl10.SPLITS_TO_SIZES['train'], num_epochs=400)
     pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
-    model_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, checkpoint))
+    model_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(stl10.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(data.NAME, model.name, net_type,
-                                                                                        num_conv_train, train_set))
+        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(stl10.NAME, model.name,
+                                                                                        net_type, num_conv_train,
+                                                                                        train_set))
     else:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+        save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(stl10.NAME, model.name))
 
     sess = tf.Session()
     tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -42,7 +42,7 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
             with tf.device('/cpu:0'):
 
                 # Get the training dataset
-                train_set = data.get_split(train_set)
+                train_set = stl10.get_split(train_set)
                 provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                           common_queue_capacity=32 * model.batch_size,
                                                                           common_queue_min=4 * model.batch_size)
@@ -63,7 +63,7 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
 
                 if test:
                     # Get test-data
-                    test_set = data.get_split('test')
+                    test_set = stl10.get_split('test')
                     provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                     [img_test, label_test] = provider.get(['image', 'label'])
                     img_test = preprocess_finetune_test(img_test,
@@ -97,7 +97,7 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
                 total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
             # Define learning parameters
-            num_train_steps = (data.SPLITS_TO_SIZES[train_set] / model.batch_size) * model.num_ep
+            num_train_steps = (stl10.SPLITS_TO_SIZES[train_set] / model.batch_size) * model.num_ep
             boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                           np.int64(num_train_steps * 0.75)]
             values = [0.0002, 0.0001, 0.00005, 0.000025]
@@ -139,7 +139,7 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
                 preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
                                               training=False, fine_tune=fine_tune, type=net_type)
                 test_loss = slim.losses.softmax_cross_entropy(preds_test,
-                                                              slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
+                                                              slim.one_hot_encoding(labels_test, stl10.NUM_CLASSES))
                 preds_test = tf.argmax(preds_test, 1)
                 tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
                 tf.scalar_summary('losses/test loss', test_loss)

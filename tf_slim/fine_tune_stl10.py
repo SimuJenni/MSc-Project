@@ -22,7 +22,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = stl10
 num_layers = 4
-model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=1000)
+model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_SIZES['train'], num_epochs=800)
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
@@ -106,9 +106,9 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * model.num_ep
         # learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
         #                           LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
-        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.0002, 0.0001, 0.00005, 0.000025, 0.00001]
+        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
+                      np.int64(num_train_steps * 0.75)]
+        values = [0.0002, 0.0001, 0.00005, 0.000025]
 
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

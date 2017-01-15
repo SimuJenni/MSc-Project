@@ -95,7 +95,7 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
             # Define learning parameters
-            num_train_steps = (data.SPLITS_TO_SIZES[train_set] / model.batch_size) * model.num_ep
+            num_train_steps = (data.SPLITS_TO_SIZES[train_set_id] / model.batch_size) * model.num_ep
             boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                           np.int64(num_train_steps * 0.75)]
             values = [0.0002, 0.0001, 0.00005, 0.000025]

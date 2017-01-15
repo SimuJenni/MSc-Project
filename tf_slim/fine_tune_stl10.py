@@ -136,7 +136,7 @@ def fine_tune_model(num_layers, num_conv_train, target_shape, checkpoint, train_
             sys.stdout.flush()
 
             if test:
-                preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
+                preds_test = model.classifier(imgs_test, None, stl10.NUM_CLASSES, reuse=True,
                                               training=False, fine_tune=fine_tune, type=net_type)
                 test_loss = slim.losses.softmax_cross_entropy(preds_test,
                                                               slim.one_hot_encoding(labels_test, stl10.NUM_CLASSES))

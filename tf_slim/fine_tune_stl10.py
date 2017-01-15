@@ -158,6 +158,6 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-for fold in range(10):
+for fold in range(5, 10):
     for c in range(6):
         fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)

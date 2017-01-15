@@ -52,6 +52,7 @@ with sess.as_default():
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
+            label_train -= data.LABEL_OFFSET
 
             # Pre-process data
             img_train = preprocess_finetune_train(img_train,
@@ -69,6 +70,7 @@ with sess.as_default():
                 test_set = data.get_split('test')
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
                 [img_test, label_test] = provider.get(['image', 'label'])
+                label_test -= data.LABEL_OFFSET
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1],

@@ -13,6 +13,8 @@ NUM_CLASSES = 1000
 
 MIN_SIZE = 256
 
+LABEL_OFFSET = 1
+
 NAME = 'imagenet'
 
 SPLITS_TO_SIZES = {

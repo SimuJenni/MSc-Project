@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
-from datasets import stl10
+from datasets import imagenet
 from preprocess import preprocess_finetune_test
 
 slim = tf.contrib.slim
@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 # Setup
 finetuned = True
 net_type = 'discriminator'
-data = stl10
+data = imagenet
 model = VAEGAN(num_layers=4, batch_size=500, data_size=data.SPLITS_TO_SIZES['train'])
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = max(TARGET_SHAPE[0], data.MIN_SIZE)
@@ -44,6 +44,7 @@ with sess.as_default():
             test_set = data.get_split('test')
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
             [img_test, edge_test, label_test] = provider.get(['image', 'edges', 'label'])
+            label_test -= data.LABEL_OFFSET
 
             # Pre-process data
             img_test, edge_test = preprocess_finetune_test(img_test, edge_test,

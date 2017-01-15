@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256, data_size=data.SPLITS_TO_S
 TARGET_SHAPE = [96, 96, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'train_fold_0'
+TRAIN_SET = 'train_fold_1'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-150002'
@@ -159,6 +159,8 @@ with sess.as_default():
         tf.scalar_summary('losses/training loss', train_loss)
         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+
+        tf.histogram_summary('labels', labels_train)
 
         # Handle initialisation
         init_fn = None

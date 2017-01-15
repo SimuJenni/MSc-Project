@@ -49,7 +49,6 @@ with sess.as_default():
                                                 output_height=TARGET_SHAPE[0],
                                                 output_width=TARGET_SHAPE[1],
                                                 resize_side=RESIZE_SIZE)
-            print(sess.run(label_test.eval()))
             # Make batches
             imgs_test, labels_test = tf.train.batch(
                 [img_test, label_test],

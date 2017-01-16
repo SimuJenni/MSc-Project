@@ -24,7 +24,7 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
     pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
     model_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(data.NAME, model.name, net_type,
+        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_400/'.format(data.NAME, model.name, net_type,
                                                                                         num_conv_train, train_set_id))
     else:
         save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -158,6 +158,9 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-for fold in range(5, 10):
-    for c in range(6):
-        fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)
+# for fold in range(5, 10):
+#     for c in range(6):
+#         fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)
+
+for fold in range(10):
+    fine_tune_model(stl10, 4, 3, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 400)

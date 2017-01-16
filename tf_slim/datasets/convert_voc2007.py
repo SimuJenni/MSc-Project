@@ -13,6 +13,8 @@ import tensorflow as tf
 from constants import VOC2007_TF_DATADIR, VOC2007_SRC_DIR
 
 from tf_slim.datasets import dataset_utils
+import cv2
+
 
 # The names of the classes.
 _CLASS_NAMES = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
@@ -69,8 +71,9 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 image = misc.imread(img_path)
                 im_shape = np.shape(image)
 
-                if np.min(im_shape) < 144:
-                    image = misc.imresize(image, 144./np.min(im_shape))
+                if np.min(im_shape) < 144.:
+                    image = cv2.resize(image, fx=144./np.min(im_shape), fy=144./np.min(im_shape),
+                                       interpolation=cv2.INTER_CUBIC)
 
                 edges = auto_canny(image)[:, :, None]
                 cartoon = cartoonify(image, num_donw_samp=1)

@@ -11,7 +11,11 @@ slim = tf.contrib.slim
 
 SPLITS_TO_SIZES = {'train_unlabeled': 100000, 'train': 5000, 'test': 8000, 'train_fold_0': 4000, 'train_fold_1': 4000,
                    'train_fold_2': 4000, 'train_fold_3': 4000, 'train_fold_4': 4000, 'train_fold_5': 4000,
-                   'train_fold_6': 4000, 'train_fold_7': 4000, 'train_fold_8': 4000, 'train_fold_9': 4000}
+                   'train_fold_6': 4000, 'train_fold_7': 4000, 'train_fold_8': 4000, 'train_fold_9': 4000,
+                   'test_fold_0': 1000, 'test_fold_1': 1000, 'test_fold_2': 1000, 'test_fold_3': 1000,
+                   'test_fold_4': 1000, 'test_fold_5': 1000,'test_fold_6': 1000, 'test_fold_7': 1000,
+                   'test_fold_8': 1000, 'test_fold_9': 1000
+                   }
 
 NUM_CLASSES = 10
 

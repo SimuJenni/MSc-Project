@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [128, 128, 3]
 num_ep = 400
-TEST_WHILE_TRAIN = False
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
@@ -104,7 +104,6 @@ with sess.as_default():
         boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                       np.int64(num_train_steps * 0.75)]
         values = [0.0002, 0.0001, 0.00005, 0.000025]
-
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
@@ -141,11 +140,10 @@ with sess.as_default():
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
                                           training=False, fine_tune=fine_tune, type=net_type)
-            test_loss = slim.losses.softmax_cross_entropy(preds_test,
-                                                          slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
-            precisions, _ = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
-                                                                           [0.1*i for i in range(11)])
-            tf.scalar_summary('test/map', tf.reduce_mean(precisions))
+            test_loss = slim.losses.sigmoid_cross_entropy(preds_test, labels_test)
+            # precisions, _ = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
+            #                                                                [0.1*i for i in range(11)])
+            # tf.scalar_summary('test/map', tf.reduce_mean(precisions))
             tf.scalar_summary('losses/test loss', test_loss)
 
         # Gather all summaries
@@ -157,9 +155,6 @@ with sess.as_default():
 
         tf.histogram_summary('lables', labels_train)
         tf.histogram_summary('predictions', preds_train)
-        precisions, _ = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
-                                                                       [0.1*i for i in range(11)])
-        tf.scalar_summary('train/map', tf.reduce_mean(precisions))
 
         # Handle initialisation
         init_fn = None

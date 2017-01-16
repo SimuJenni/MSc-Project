@@ -58,8 +58,8 @@ with sess.as_default():
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
-                                                  resize_side_min=192,
-                                                  resize_side_max=224)
+                                                  resize_side_min=160,
+                                                  resize_side_max=192)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,

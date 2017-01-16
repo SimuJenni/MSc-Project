@@ -17,7 +17,7 @@ data = stl10
 model = VAEGAN(num_layers=4, batch_size=1000)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = 96
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 3
 
 for fold in range(10):
     if finetuned:

@@ -74,11 +74,10 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir, max_im_dim=192):
                 w = np.size(img, 1)
                 if w > h:
                     pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
-                    image = cv2.resize(pic, (max_im_dim, max_im_dim * w // h), interpolation=cv2.INTER_CUBIC)
+                    image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
                 else:
                     pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
-                    image = cv2.resize(pic, (max_im_dim * h // w, max_im_dim), interpolation=cv2.INTER_CUBIC)
-                    print(label.tolist())
+                    image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
 
                 # Encode the images
                 image_str = coder.encode_jpeg(image)

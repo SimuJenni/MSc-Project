@@ -54,8 +54,8 @@ with sess.as_default():
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
-            [img_train, label_train, height, width] = provider.get(['image', 'label', 'height', 'width'])
-            img_train.set_shape([height.eval(session=sess), width.eval(session=sess), 3])
+            [img_train, label_train] = provider.get(['image', 'label', 'height', 'width'])
+            img_train.set_shape([img_train.get_shape()[0], img_train.get_shape()[1], 3])
 
             # Pre-process data
             img_train = preprocess_finetune_train(img_train,

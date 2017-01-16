@@ -131,7 +131,7 @@ def _is_cmyk(filename):
     return filename.split('/')[-1] in blacklist
 
 
-def _process_image(filename, coder, max_im_dim=128):
+def _process_image(filename, coder, max_im_dim=144):
     """Process a single image file.
 
     Args:
@@ -165,10 +165,10 @@ def _process_image(filename, coder, max_im_dim=128):
 
     if w > h:
         pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
-        image = cv2.resize(pic, (max_im_dim, max_im_dim * w // h), interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
     else:
         pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
-        image = cv2.resize(pic, (max_im_dim * h // w, max_im_dim), interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
 
     # Check that image converted to RGB
     assert len(image.shape) == 3

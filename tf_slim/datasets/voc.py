@@ -55,8 +55,9 @@ def get_split(split_name, dataset_dir=VOC2007_TF_DATADIR, file_pattern=None, rea
     keys_to_features = {
         'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
         'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
-        'class/label': tf.FixedLenFeature(
-            [20], tf.int64, default_value=tf.zeros([20], dtype=tf.int64)),
+        'image/height': tf.FixedLenFeature((), tf.int64),
+        'image/width': tf.FixedLenFeature((), tf.int64),
+        'class/label': tf.FixedLenFeature([20], tf.int64, default_value=tf.zeros([20], dtype=tf.int64)),
         'edges/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
         'edges/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
         'cartoon/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
@@ -65,6 +66,8 @@ def get_split(split_name, dataset_dir=VOC2007_TF_DATADIR, file_pattern=None, rea
 
     items_to_handlers = {
         'image': slim.tfexample_decoder.Image('image/encoded', 'image/format', channels=3),
+        'height': slim.tfexample_decoder.Tensor('image/height'),
+        'width': slim.tfexample_decoder.Tensor('image/width'),
         'label': slim.tfexample_decoder.Tensor('class/label'),
         'edges': slim.tfexample_decoder.Image('edges/encoded', 'edges/format', channels=1),
         'cartoon': slim.tfexample_decoder.Image('cartoon/encoded', 'cartoon/format', channels=3),

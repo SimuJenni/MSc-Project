@@ -368,7 +368,7 @@ def _aspect_preserving_resize(image, smallest_side, num_channels=3):
     resized_image = tf.cond(tf.rank(resized_image) < 3,
                             fn1=lambda: tf.expand_dims(resized_image, 2),
                             fn2=lambda: resized_image)
-    resized_image.set_shape([new_height.eval(), new_width.eval(), num_channels])
+    resized_image.set_shape([None, None, num_channels])
     return resized_image
 
 
@@ -393,7 +393,6 @@ def preprocess_for_train(image,
     """
     resize_side = tf.random_uniform(
         [], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
-
     image = _aspect_preserving_resize(image, resize_side)
     image = _random_crop([image], output_height, output_width)[0]
     image.set_shape([output_height, output_width, 3])

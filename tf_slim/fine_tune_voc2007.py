@@ -23,7 +23,7 @@ net_type = 'discriminator'
 data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
-TARGET_SHAPE = [128, 128, 3]
+TARGET_SHAPE = [160, 160, 3]
 num_ep = 400
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
@@ -54,15 +54,16 @@ with sess.as_default():
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
-            [img_train, label_train] = provider.get(['image', 'label'])
+            [img_train, label_train, height, width] = provider.get(['image', 'label', 'height', 'width'])
+            img_train.set_shape([height, width, 3])
 
             # Pre-process data
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=True,
-                                                  resize_side_min=128,
-                                                  resize_side_max=144)
+                                                  resize_side_min=160,
+                                                  resize_side_max=192)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],

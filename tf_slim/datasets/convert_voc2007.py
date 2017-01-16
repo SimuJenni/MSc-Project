@@ -7,7 +7,6 @@ import sys
 import xml.etree.ElementTree as ET
 from scipy import misc
 
-from cartooning import auto_canny, cartoonify
 import numpy as np
 import tensorflow as tf
 from constants import VOC2007_TF_DATADIR, VOC2007_SRC_DIR
@@ -70,10 +69,10 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 # Get image, edge-map and cartooned image
                 image = misc.imread(img_path)
                 im_shape = np.shape(image)
-
-                if np.min(im_shape[:2]) < 162.:
-                    image = cv2.resize(image, (0, 0), fx=162./np.min(im_shape[:2]), fy=162./np.min(im_shape[:2]))
-
+                if np.min(im_shape[:2]) < 192.:
+                    image = cv2.resize(image, (0, 0),
+                                       fx=np.ceil(192./np.min(im_shape[:2])),
+                                       fy=np.ceil(192./np.min(im_shape[:2])))
                 # Encode the images
                 image_str = coder.encode_jpeg(image)
 

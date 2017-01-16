@@ -88,7 +88,6 @@ with sess.as_default():
 
         # Define the loss
         loss_scope = 'train_loss'
-        slim.losses.sigmoid_cross_entropy()
         train_loss = slim.losses.sigmoid_cross_entropy(preds_train, labels_train, scope=loss_scope)
         train_losses = slim.losses.get_losses(loss_scope)
         train_losses += slim.losses.get_regularization_losses(loss_scope)

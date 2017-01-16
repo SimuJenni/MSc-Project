@@ -60,13 +60,13 @@ with sess.as_default():
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'precisions': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test, [0.1*i for i in range(11)]),
+            'mean-average precision': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test, [0.1*i for i in range(11)]),
         })
 
         # Create the summary ops such that they also print out to std output:
         summary_ops = []
         for metric_name, metric_value in names_to_values.iteritems():
-            op = tf.scalar_summary(metric_name, metric_value)
+            op = tf.scalar_summary(metric_name, tf.reduce_mean(metric_value))
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 

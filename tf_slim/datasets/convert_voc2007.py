@@ -72,7 +72,8 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 im_shape = np.shape(image)
 
                 if np.min(im_shape) < 144.:
-                    image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape), fy=144./np.min(im_shape))
+                    print(im_shape)
+                    # image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape), fy=144./np.min(im_shape))
 
                 edges = auto_canny(image)[:, :, None]
                 cartoon = cartoonify(image, num_donw_samp=1)

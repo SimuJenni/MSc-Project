@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
-from datasets import stl10, voc
+from datasets import voc
 from preprocess import preprocess_finetune_test
 
 slim = tf.contrib.slim
@@ -20,10 +20,10 @@ RESIZE_SIZE = 128
 NUM_CONV_TRAIN = 3
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_trainval_{}/'.format(
-        data.NAME, model.name, net_type, NUM_CONV_TRAIN, stl10.NAME))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_trainval_{}/'.format(
-        data.NAME, model.name, net_type, NUM_CONV_TRAIN, stl10.NAME))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_trainval_stl/'.format(
+        data.NAME, model.name, net_type, NUM_CONV_TRAIN))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_trainval_stl/'.format(
+        data.NAME, model.name, net_type, NUM_CONV_TRAIN))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_eval/'.format(data.NAME, model.name))

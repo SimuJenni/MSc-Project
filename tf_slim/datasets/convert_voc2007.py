@@ -48,7 +48,7 @@ def _parse_xml(xml_file, data_path):
     return image_path, label
 
 
-def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
+def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir, max_im_dim=192):
     with open(image_ids_file) as f:
         img_ids = f.readlines()
 
@@ -67,17 +67,23 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 sys.stdout.flush()
 
                 # Get image, edge-map and cartooned image
-                image = misc.imread(img_path)
-                im_shape = np.shape(image)
-                if np.min(im_shape[:2]) < 192.:
-                    image = cv2.resize(image, (0, 0),
-                                       fx=np.ceil(192./np.min(im_shape[:2])),
-                                       fy=np.ceil(192./np.min(im_shape[:2])))
+                img = misc.imread(img_path)
+
+                # Resize the image
+                h = np.size(img, 0)
+                w = np.size(img, 1)
+                if w > h:
+                    pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
+                    image = cv2.resize(pic, (max_im_dim, max_im_dim * w // h), interpolation=cv2.INTER_CUBIC)
+                else:
+                    pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
+                    image = cv2.resize(pic, (max_im_dim * h // w, max_im_dim), interpolation=cv2.INTER_CUBIC)
+
                 # Encode the images
                 image_str = coder.encode_jpeg(image)
 
                 # Buil example
-                example = dataset_utils.image_to_tfexample(image_str, 'jpg', im_shape[0], im_shape[1], label.tolist())
+                example = dataset_utils.image_to_tfexample(image_str, 'jpg', max_im_dim, max_im_dim, label.tolist())
                 tfrecord_writer.write(example.SerializeToString())
 
 

@@ -55,7 +55,6 @@ with sess.as_default():
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
-            img_train.set_shape([img_train.get_shape()[0], img_train.get_shape()[1], 3])
 
             # Pre-process data
             img_train = preprocess_finetune_train(img_train,
@@ -78,7 +77,7 @@ with sess.as_default():
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1],
-                                                    resize_side=144)
+                                                    resize_side=160)
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)

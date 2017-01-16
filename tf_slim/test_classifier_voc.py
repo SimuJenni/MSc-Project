@@ -58,9 +58,6 @@ with sess.as_default():
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
 
-        # Compute predicted label for accuracy
-        preds_test = tf.argmax(preds_test, 1)
-
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
             'precisions': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test, [0.1*i for i in range(11)]),

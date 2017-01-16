@@ -70,10 +70,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 # Get image, edge-map and cartooned image
                 image = misc.imread(img_path)
                 im_shape = np.shape(image)
-
-                if np.min(im_shape[:2]) < 144.:
-                    print(im_shape)
-                    image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape), fy=144./np.min(im_shape))
+                image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape[:2]), fy=144./np.min(im_shape[:2]))
 
                 edges = auto_canny(image)[:, :, None]
                 cartoon = cartoonify(image, num_donw_samp=1)

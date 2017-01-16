@@ -10,6 +10,7 @@ from scipy import misc
 from cartooning import auto_canny, cartoonify
 import numpy as np
 import tensorflow as tf
+from constants import VOC2007_TF_DATADIR, VOC2007_SRC_DIR
 
 from tf_slim.datasets import dataset_utils
 
@@ -96,7 +97,7 @@ def _get_output_filename(dataset_dir, split_name):
     return '%s/voc2007_%s.tfrecord' % (dataset_dir, split_name)
 
 
-def run(target_dir, source_dir):
+def run(target_dir=VOC2007_TF_DATADIR, source_dir=VOC2007_SRC_DIR):
     """Runs the conversion operation.
     Args:
       target_dir: The dataset directory where the dataset is stored.
@@ -134,3 +135,6 @@ def run(target_dir, source_dir):
     dataset_utils.write_label_file(labels_to_class_names, target_dir)
 
     print('\nFinished converting the VOC2007 dataset!')
+
+if __name__ == '__main__':
+    run()

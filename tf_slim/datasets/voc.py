@@ -57,7 +57,7 @@ def get_split(split_name, dataset_dir=VOC2007_TF_DATADIR, file_pattern=None, rea
         'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
         'image/height': tf.FixedLenFeature((), tf.int64),
         'image/width': tf.FixedLenFeature((), tf.int64),
-        'class/label': tf.FixedLenFeature([20], tf.int64, default_value=tf.zeros([20], dtype=tf.int64)),
+        'image/class/label': tf.FixedLenFeature([20], tf.int64, default_value=tf.zeros([20], dtype=tf.int64)),
         'edges/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
         'edges/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
         'cartoon/encoded': tf.FixedLenFeature((), tf.string, default_value=''),

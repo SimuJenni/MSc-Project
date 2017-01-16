@@ -78,6 +78,7 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir, max_im_dim=192):
                 else:
                     pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
                     image = cv2.resize(pic, (max_im_dim * h // w, max_im_dim), interpolation=cv2.INTER_CUBIC)
+                    print(label.tolist())
 
                 # Encode the images
                 image_str = coder.encode_jpeg(image)

@@ -153,7 +153,9 @@ with sess.as_default():
         tf.scalar_summary('losses/training loss', train_loss)
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
 
-        tf.histogram_summary('lables', labels_train)
+        zero = tf.constant(0, dtype=tf.float32)
+        where = tf.not_equal(labels_train, zero)
+        tf.histogram_summary('lables', tf.where(where))
         tf.histogram_summary('predictions', preds_train)
 
         # Handle initialisation

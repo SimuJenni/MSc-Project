@@ -71,8 +71,8 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 image = misc.imread(img_path)
                 im_shape = np.shape(image)
 
-                if np.min(im_shape[:2]) < 144.:
-                    image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape[:2]), fy=144./np.min(im_shape[:2]))
+                if np.min(im_shape[:2]) < 162.:
+                    image = cv2.resize(image, (0, 0), fx=162./np.min(im_shape[:2]), fy=162./np.min(im_shape[:2]))
 
                 # Encode the images
                 image_str = coder.encode_jpeg(image)

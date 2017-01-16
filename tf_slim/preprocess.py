@@ -368,7 +368,7 @@ def _aspect_preserving_resize(image, smallest_side, num_channels=3):
     resized_image = tf.cond(tf.rank(resized_image) < 3,
                             fn1=lambda: tf.expand_dims(resized_image, 2),
                             fn2=lambda: resized_image)
-    resized_image.set_shape([None, None, num_channels])
+    resized_image.set_shape([new_height, new_width, num_channels])
     return resized_image
 
 
@@ -407,8 +407,7 @@ def preprocess_for_eval(image, output_height, output_width, resize_side):
     Args:
       image: A `Tensor` representing an image of arbitrary size.
       output_height: The height of the image after preprocessing.
-      output_width: The width of the image after preprocessing.        num_train_steps = (imagenet.SPLITS_TO_SIZES['train'] / BATCH_SIZE) * NUM_EP
-
+      output_width: The width of the image after preprocessing.
       resize_side: The smallest side of the image for aspect-preserving resizing.
     Returns:
       A preprocessed image.

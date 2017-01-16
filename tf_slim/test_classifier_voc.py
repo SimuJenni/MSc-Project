@@ -66,8 +66,8 @@ with sess.as_default():
         # Create the summary ops such that they also print out to std output:
         summary_ops = []
         for metric_name, metric_value in names_to_values.iteritems():
-            op = tf.scalar_summary(metric_name, tf.reduce_mean(tf.reduce_mean(metric_value)))
-            op = tf.Print(op, [metric_value], metric_name)
+            op = tf.scalar_summary(metric_name, tf.reduce_mean(metric_value))
+            op = tf.Print(op, [metric_value], metric_name, summarize=30)
             summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)

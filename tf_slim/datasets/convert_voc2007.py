@@ -70,19 +70,15 @@ def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir):
                 # Get image, edge-map and cartooned image
                 image = misc.imread(img_path)
                 im_shape = np.shape(image)
-                image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape[:2]), fy=144./np.min(im_shape[:2]))
 
-                edges = auto_canny(image)[:, :, None]
-                cartoon = cartoonify(image, num_donw_samp=1)
+                if np.min(im_shape[:2]) < 144.:
+                    image = cv2.resize(image, (0, 0), fx=144./np.min(im_shape[:2]), fy=144./np.min(im_shape[:2]))
 
                 # Encode the images
                 image_str = coder.encode_jpeg(image)
-                cartoon_str = coder.encode_jpeg(cartoon)
-                edge_str = coder.encode_jpeg(edges)
 
                 # Buil example
-                example = dataset_utils.cartooned_example(image_str, cartoon_str, edge_str, 'jpg', im_shape[0],
-                                                          im_shape[1], label.tolist())
+                example = dataset_utils.image_to_tfexample(image_str, 'jpg', im_shape[0], im_shape[1], label.tolist())
                 tfrecord_writer.write(example.SerializeToString())
 
 

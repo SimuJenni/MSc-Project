@@ -14,10 +14,10 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = voc
-model = VAEGAN(num_layers=4, batch_size=500)
+model = VAEGAN(num_layers=5, batch_size=500)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 0
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_trainval_stl/'.format(

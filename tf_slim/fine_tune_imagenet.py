@@ -23,7 +23,7 @@ fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=256)
+model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0

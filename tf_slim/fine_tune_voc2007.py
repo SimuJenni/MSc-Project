@@ -24,7 +24,7 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [160, 160, 3]
-num_ep = 100
+num_ep = 400
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'train'
@@ -171,5 +171,5 @@ with sess.as_default():
         # Start training
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
-                            save_summaries_secs=60, save_interval_secs=600,
+                            save_summaries_secs=60, save_interval_secs=180,
                             log_every_n_steps=100)

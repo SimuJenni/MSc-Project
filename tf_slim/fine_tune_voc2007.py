@@ -27,8 +27,8 @@ TARGET_SHAPE = [160, 160, 3]
 num_ep = 200
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'train'
-TEST_SET = 'trainval'
+TRAIN_SET = 'trainval'
+TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'

@@ -14,6 +14,7 @@ from datasets import imagenet
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
+from constants import IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
 
@@ -48,7 +49,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split('train')
+            train_set = data.get_split('train', dataset_dir=IMAGENET_SMALL_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=32 * model.batch_size,
                                                                       common_queue_min=4 * model.batch_size)

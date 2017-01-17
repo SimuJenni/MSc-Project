@@ -27,7 +27,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
-num_epochs = 60
+num_epochs = 30
 pre_trained_grad_weight = [1 for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'

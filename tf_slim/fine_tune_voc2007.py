@@ -24,11 +24,11 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [160, 160, 3]
-num_ep = 400
+num_ep = 100
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'trainval'
-TEST_SET = 'test'
+TRAIN_SET = 'train'
+TEST_SET = 'val'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'

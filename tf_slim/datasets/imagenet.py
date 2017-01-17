@@ -5,7 +5,7 @@ from __future__ import print_function
 import os
 
 import tensorflow as tf
-from constants import IMAGENET_TF_DATADIR
+from constants import IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
 
@@ -33,7 +33,7 @@ _ITEMS_TO_DESCRIPTIONS = {
 }
 
 
-def get_split(split_name, dataset_dir=IMAGENET_TF_DATADIR, reader=None):
+def get_split(split_name, dataset_dir=IMAGENET_SMALL_TF_DATADIR, reader=None):
     """Gets a dataset tuple with instructions for reading ImageNet.
     Args:
       split_name: A train/test split name.

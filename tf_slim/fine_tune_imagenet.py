@@ -18,14 +18,15 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
-TARGET_SHAPE = [160, 160, 3]
+TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
+num_epochs = 60
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-571927'
@@ -58,8 +59,8 @@ with sess.as_default():
             img_train = preprocess_finetune_train(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
-                                                  resize_side_min=160,
-                                                  resize_side_max=192)
+                                                  resize_side_min=144,
+                                                  resize_side_max=128)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
@@ -74,7 +75,7 @@ with sess.as_default():
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1],
-                                                    resize_side=192)
+                                                    resize_side=128)
                 imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
                                                         num_threads=4)
 
@@ -100,7 +101,7 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * 90
+        num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                       np.int64(num_train_steps * 0.75)]
         values = [0.001, 0.0005, 0.0002, 0.0001]

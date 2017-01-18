@@ -17,7 +17,7 @@ data = voc
 model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 
@@ -57,9 +57,9 @@ with sess.as_default():
                                                 output_width=TARGET_SHAPE[1],
                                                 resize_side=RESIZE_SIZE)
             img_train = preprocess_finetune_test(img_train,
-                                                output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1],
-                                                resize_side=RESIZE_SIZE)
+                                                 output_height=TARGET_SHAPE[0],
+                                                 output_width=TARGET_SHAPE[1],
+                                                 resize_side=RESIZE_SIZE)
 
             # Make batches
             imgs_test, labels_test = tf.train.batch(
@@ -73,27 +73,31 @@ with sess.as_default():
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False,
-                                      fine_tune=finetuned, type=net_type, reuse=True)
+                                       fine_tune=finetuned, type=net_type, reuse=True)
 
         # Choose the metrics to compute:
-        names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'precisions_test': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
-                                                                              [0.1*i for i in range(11)]),
-            'precisions_train': slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
-                                                                              [0.1 * i for i in range(11)]),
-        })
+        prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
+                                                                                       [0.01 * i for i in range(101)])
+        prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
+                                                                                     [0.01 * i for i in range(101)])
+        rec_train, update_rec_train = slim.metrics.streaming_recall_at_thresholds(preds_train, labels_train,
+                                                                                  [0.01 * i for i in range(101)])
+        rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
+                                                                                [0.01 * i for i in range(101)])
 
-        # Create the summary ops such that they also print out to std output:
+        map_test = tf.Variable(0)
+        for i in range(11):
+             map_test += tf.max(tf.gather(prec_test, tf.where(tf.greater(rec_test, 0.1*i))))
+        map_test /= 11
+
         summary_ops = []
-        for metric_name, metric_value in names_to_values.iteritems():
-            op = tf.scalar_summary(metric_name, tf.reduce_mean(metric_value))
-            op = tf.Print(op, [metric_value], metric_name, summarize=30)
-            op = tf.Print(op, [tf.reduce_mean(metric_value)], 'MAP_{}'.format(metric_name), summarize=30)
-            summary_ops.append(op)
+        op = tf.scalar_summary('map_test', map_test)
+        op = tf.Print(op, [map_test], 'map_test', summarize=30)
+        summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=20,
-                                        eval_op=names_to_updates.values(),
+                                        eval_op=[update_prec_train, update_prec_test, update_rec_train, update_rec_test],
                                         summary_op=tf.merge_summary(summary_ops))

@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = voc
-model = VAEGAN(num_layers=5, batch_size=500)
+model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [160, 160, 3]
 RESIZE_SIZE = 160
 NUM_CONV_TRAIN = 0

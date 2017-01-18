@@ -17,7 +17,7 @@ data = voc
 model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 
@@ -86,18 +86,23 @@ with sess.as_default():
                                                                                 [0.01 * i for i in range(101)])
 
         map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+        map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
         for i in range(11):
-             map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1*i), tf.float32))
+            map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1*i), tf.float32))
+            map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))
         map_test /= 11
 
         summary_ops = []
         op = tf.scalar_summary('map_test', map_test)
         op = tf.Print(op, [map_test], 'map_test', summarize=30)
         summary_ops.append(op)
+        op = tf.scalar_summary('map_train', map_train)
+        op = tf.Print(op, [map_train], 'map_train', summarize=30)
+        summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
-                                        max_number_of_evaluations=1,
+                                        max_number_of_evaluations=20,
                                         eval_op=[update_prec_train, update_prec_test, update_rec_train, update_rec_test],
                                         summary_op=tf.merge_summary(summary_ops))

@@ -87,7 +87,7 @@ with sess.as_default():
 
         map_test = tf.Variable(0)
         for i in range(11):
-             map_test += tf.max(tf.gather(prec_test, tf.where(tf.greater(rec_test, 0.1*i))))
+             map_test += tf.reduce_max(tf.gather(prec_test, tf.where(tf.greater(rec_test, 0.1*i))))
         map_test /= 11
 
         summary_ops = []

@@ -22,9 +22,9 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=128)
-TARGET_SHAPE = [160, 160, 3]
-num_ep = 60
+model = VAEGAN(num_layers=num_layers, batch_size=192)
+TARGET_SHAPE = [128, 128, 3]
+num_ep = 40
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
 TRAIN_SET = 'train'
@@ -61,8 +61,8 @@ with sess.as_default():
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=True,
-                                                  resize_side_min=160,
-                                                  resize_side_max=176)
+                                                  resize_side_min=128,
+                                                  resize_side_max=144)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
@@ -77,7 +77,7 @@ with sess.as_default():
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1],
-                                                    resize_side=160)
+                                                    resize_side=128)
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)

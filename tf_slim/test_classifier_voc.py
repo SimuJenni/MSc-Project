@@ -17,7 +17,7 @@ data = voc
 model = VAEGAN(num_layers=5, batch_size=500)
 TARGET_SHAPE = [160, 160, 3]
 RESIZE_SIZE = 160
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 2
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_imnet/'.format(

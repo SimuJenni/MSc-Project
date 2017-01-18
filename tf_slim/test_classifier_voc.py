@@ -45,11 +45,13 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
+            label_train = tf.cast(label_train, tf.bool)
 
             # Get test-data
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
+            label_test = tf.cast(label_test, tf.bool)
 
             # Pre-process data
             img_test = preprocess_finetune_test(img_test,
@@ -88,7 +90,7 @@ with sess.as_default():
         for metric_name, metric_value in names_to_values.iteritems():
             op = tf.scalar_summary(metric_name, tf.reduce_mean(metric_value))
             op = tf.Print(op, [metric_value], metric_name, summarize=30)
-            op = tf.Print(op, ['MAP_{}'.format(metric_value)], metric_name, summarize=30)
+            op = tf.Print(op, [tf.reduce_mean(metric_value)], ['MAP_{}'.format(metric_name)], summarize=30)
             summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)

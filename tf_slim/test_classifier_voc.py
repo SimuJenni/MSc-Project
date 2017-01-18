@@ -73,7 +73,7 @@ with sess.as_default():
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False,
-                                      fine_tune=finetuned, type=net_type)
+                                      fine_tune=finetuned, type=net_type, reuse=True)
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({

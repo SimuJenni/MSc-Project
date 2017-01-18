@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [160, 160, 3]
 num_ep = 100
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 3
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
@@ -34,7 +34,7 @@ pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(data.NAME, model.name, net_type,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet_fixLR/'.format(data.NAME, model.name, net_type,
                                                                                     NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -101,13 +101,13 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
-                      np.int64(num_train_steps * 0.75)]
-        values = [0.0002, 0.0001, 0.00005, 0.000025]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
+        #               np.int64(num_train_steps * 0.75)]
+        # values = [0.0002, 0.0001, 0.00005, 0.000025]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
         if fine_tune:

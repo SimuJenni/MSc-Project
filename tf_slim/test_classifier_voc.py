@@ -88,7 +88,7 @@ with sess.as_default():
         for metric_name, metric_value in names_to_values.iteritems():
             op = tf.scalar_summary(metric_name, tf.reduce_mean(metric_value))
             op = tf.Print(op, [metric_value], metric_name, summarize=30)
-            op = tf.Print(op, [tf.reduce_mean(metric_value)], ['MAP_{}'.format(metric_name)], summarize=30)
+            op = tf.Print(op, [tf.reduce_mean(metric_value)], 'MAP_{}'.format(metric_name), summarize=30)
             summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)

@@ -45,13 +45,13 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
-            label_train = tf.cast(label_train, tf.bool)
+            label_train = tf.equal(label_train, tf.constant(1, dtype=tf.int64))
 
             # Get test-data
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
-            label_test = tf.cast(label_test, tf.bool)
+            label_test = tf.equal(label_test, tf.constant(1, dtype=tf.int64))
 
             # Pre-process data
             img_test = preprocess_finetune_test(img_test,

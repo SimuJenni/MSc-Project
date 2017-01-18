@@ -85,7 +85,7 @@ with sess.as_default():
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
                                                                                 [0.01 * i for i in range(101)])
 
-        map_test = tf.Variable(0)
+        map_test = tf.Variable(0, dtype=tf.float32)
         for i in range(11):
              map_test += tf.reduce_max(tf.gather(prec_test, tf.where(tf.greater(rec_test, 0.1*i))))
         map_test /= 11

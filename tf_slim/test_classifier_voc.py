@@ -87,7 +87,7 @@ with sess.as_default():
 
         map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
         for i in range(11):
-             map_test += tf.reduce_max(prec_test * tf.greater(rec_test, 0.1*i))
+             map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1*i), tf.float32))
         map_test /= 11
 
         summary_ops = []

@@ -17,7 +17,7 @@ data = voc
 model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 3
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 

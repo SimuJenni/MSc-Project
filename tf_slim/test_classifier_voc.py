@@ -91,6 +91,7 @@ with sess.as_default():
             map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1*i), tf.float32))
             map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))
         map_test /= 11
+        map_train /= 11
 
         summary_ops = []
         op = tf.scalar_summary('map_test', map_test)

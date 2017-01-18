@@ -85,7 +85,7 @@ with sess.as_default():
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
                                                                                 [0.01 * i for i in range(101)])
 
-        map_test = tf.Variable(0, dtype=tf.float32)
+        map_test = tf.get_local_variable(0, dtype=tf.float32)
         for i in range(11):
              map_test += tf.reduce_max(tf.gather(prec_test, tf.where(tf.greater(rec_test, 0.1*i))))
         map_test /= 11
@@ -98,6 +98,6 @@ with sess.as_default():
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
-                                        max_number_of_evaluations=20,
+                                        max_number_of_evaluations=1,
                                         eval_op=[update_prec_train, update_prec_test, update_rec_train, update_rec_test],
                                         summary_op=tf.merge_summary(summary_ops))

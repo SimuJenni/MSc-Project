@@ -24,7 +24,7 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [160, 160, 3]
-num_ep = 600
+num_ep = 60
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
 TRAIN_SET = 'train'

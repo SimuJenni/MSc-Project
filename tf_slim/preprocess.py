@@ -490,16 +490,11 @@ def preprocess_finetune_train(image, output_height, output_width, augment_color=
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        # image = tf.image.random_brightness(image, max_delta=32. / 255.)
-        # image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
-        # image = tf.image.random_hue(image, max_delta=0.2)
-        # image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
-
-        image = adjust_gamma(image, gamma_min=0.9, gamma_max=1.2)
+        image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
         image = tf.image.random_hue(image, 0.025, seed=None)
         image = tf.image.random_brightness(image, 0.05, seed=None)
-        image = tf.image.random_contrast(image, 0.8, 1.3, seed=None)
-        image = tf.image.random_saturation(image, 0.8, 1.3, seed=None)
+        image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
+        image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
 
     # Scale to [-1, 1]
     image = tf.clip_by_value(image, 0.0, 1.0)

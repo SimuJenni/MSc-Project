@@ -40,10 +40,10 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
             with tf.device('/cpu:0'):
                 # Get the training dataset
                 train_set = data.get_split(train_set_id)
-                provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+                provider_train = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                           common_queue_capacity=32 * batch_size,
                                                                           common_queue_min=4 * batch_size)
-                [img_train, label_train] = provider.get(['image', 'label'])
+                [img_train, label_train] = provider_train.get(['image', 'label'])
 
                 # Pre-process data
                 img_train = preprocess_finetune_train(img_train, output_height=target_shape[0],
@@ -55,8 +55,8 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 if test:
                     # Get test-data
                     test_set = data.get_split(test_set_id)
-                    provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-                    [img_test, label_test] = provider.get(['image', 'label'])
+                    provider_test = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+                    [img_test, label_test] = provider_test.get(['image', 'label'])
                     img_test = preprocess_finetune_test(img_test, output_height=target_shape[0],
                                                         output_width=target_shape[1], resize_side=96)
                     imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=batch_size,

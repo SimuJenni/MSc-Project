@@ -76,13 +76,10 @@ with sess.as_default():
                                       fine_tune=finetuned, type=net_type, reuse=True)
 
         # Choose the metrics to compute:
-        labels_train_bool = tf.greater(labels_train, 0)
-        labels_test_bool = tf.greater(labels_test, 0)
-
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'precisions_test': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test_bool,
+            'precisions_test': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
                                                                               [0.1*i for i in range(11)]),
-            'precisions_train': slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train_bool,
+            'precisions_train': slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
                                                                               [0.1 * i for i in range(11)]),
         })
 

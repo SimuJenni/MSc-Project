@@ -45,13 +45,11 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
-            label_train = tf.equal(label_train, tf.constant(1, dtype=tf.int64))
 
             # Get test-data
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
-            label_test = tf.equal(label_test, tf.constant(1, dtype=tf.int64))
 
             # Pre-process data
             img_test = preprocess_finetune_test(img_test,
@@ -78,10 +76,13 @@ with sess.as_default():
                                       fine_tune=finetuned, type=net_type, reuse=True)
 
         # Choose the metrics to compute:
+        labels_train_bool = tf.equal(labels_train, tf.constant(1, dtype=tf.int64))
+        labels_test_bool = tf.equal(labels_test, tf.constant(1, dtype=tf.int64))
+
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            'precisions_test': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
+            'precisions_test': slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test_bool,
                                                                               [0.1*i for i in range(11)]),
-            'precisions_train': slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
+            'precisions_train': slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train_bool,
                                                                               [0.1 * i for i in range(11)]),
         })
 

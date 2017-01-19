@@ -54,11 +54,11 @@ with sess.as_default():
 
             # Pre-process data
             im_list_train = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
-                             tf.tile(img_train, 10)]
+                             tf.tile(img_train, [10, 1, 1, 1])]
             im_list_test = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
-                            tf.tile(img_test, 10)]
-            label_list_train = tf.tile(label_train, 10)
-            label_list_test = tf.tile(label_test, 10)
+                            tf.tile(img_test, [10, 1, 1, 1])]
+            label_list_train = tf.tile(label_train, [10, 1, 1, 1])
+            label_list_test = tf.tile(label_test, [10, 1, 1, 1])
 
             # Make batches
             imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),

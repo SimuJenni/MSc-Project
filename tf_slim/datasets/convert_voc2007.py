@@ -44,7 +44,6 @@ def _parse_xml(xml_file, data_path):
             obj_name = item[0].text
             obj_num = _CLASS_NUM[obj_name]
             label[obj_num] = 1
-    print(label)
 
     return image_path, label
 

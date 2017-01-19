@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = voc
-model = VAEGAN(num_layers=5, batch_size=100)
+model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 160
 NUM_CONV_TRAIN = 3
@@ -46,11 +46,13 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
+            label_train = tf.reshape(label_train, [1, 20])
 
             # Get test-data
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
+            label_test = tf.reshape(label_test, [1, 20])
 
             # Pre-process data
             img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
@@ -99,7 +101,7 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('auc_test', auc_test)
         op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
-        op = tf.Print(op, [labels_test], 'lables_test', summarize=30)
+        op = tf.Print(op, [label_test], 'lables_test', summarize=30)
         summary_ops.append(op)
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_train, 3, 3), max_images=1))

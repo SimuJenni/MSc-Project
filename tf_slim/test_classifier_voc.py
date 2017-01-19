@@ -53,6 +53,9 @@ with sess.as_default():
             [img_test, label_test] = test_provider.get(['image', 'label'])
 
             # Pre-process data
+            img_train = tf.expand_dims(img_train, 0)
+            img_test = tf.expand_dims(img_test, 0)
+
             img_train = tf.tile(img_train, [10, 1, 1, 1])
             img_test = tf.tile(img_test, [10, 1, 1, 1])
 

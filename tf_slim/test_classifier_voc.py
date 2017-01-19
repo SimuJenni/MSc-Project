@@ -68,7 +68,7 @@ with sess.as_default():
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
 
         # Choose the metrics to compute:
-        thresholds = [0.005 * i for i in range(201)]
+        thresholds = [0.002 * i for i in range(500)]
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
                                                                                        thresholds, name='prec_train')
         prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
@@ -77,8 +77,10 @@ with sess.as_default():
                                                                                   thresholds, name='rec_train')
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
                                                                                 thresholds, name='rec_test')
-        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR', name='auc_test')
-        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR', name='auc_train')
+        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR', name='auc_test',
+                                                               num_thresholds=500)
+        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR', name='auc_train',
+                                                                 num_thresholds=500)
 
         map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_test')
         map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_train')

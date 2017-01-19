@@ -68,7 +68,7 @@ with sess.as_default():
 
             if TEST_WHILE_TRAIN:
                 # Get test-data
-                test_set = data.get_split('test')
+                test_set = data.get_split(TEST_SET)
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
                 img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0],
@@ -136,7 +136,6 @@ with sess.as_default():
             preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
                                           training=False, fine_tune=fine_tune, type=net_type)
             test_loss = slim.losses.sigmoid_cross_entropy(preds_test, labels_test)
-
             tf.scalar_summary('losses/test loss', test_loss)
 
         # Gather all summaries
@@ -145,11 +144,6 @@ with sess.as_default():
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
-
-        zero = tf.constant(0, dtype=tf.int64)
-        where = tf.not_equal(labels_train, zero)
-        tf.histogram_summary('lables', tf.where(where))
-        tf.histogram_summary('predictions', preds_train)
 
         # Handle initialisation
         init_fn = None

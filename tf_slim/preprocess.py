@@ -404,7 +404,7 @@ def preprocess_finetune_train(image, output_height, output_width, augment_color=
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = augment_color(image)
+        image = dist_color(image)
 
     # Scale to [-1, 1]
     image = tf.clip_by_value(image, 0.0, 1.0)
@@ -433,14 +433,14 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     return image
 
 
-def preprocess_voc(image, output_height, output_width, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
+def preprocess_voc(image, output_height, output_width, augment_color=True, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
     # Select random crops
     image = distort_image(image, output_height, output_width, aspect_ratio_range, area_range)
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = augment_color(image)
+        image = dist_color(image)
 
     # Scale to [-1, 1]
     image = tf.clip_by_value(image, 0.0, 1.0)
@@ -471,7 +471,7 @@ def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_ra
     return distorted_image
 
 
-def augment_color(image):
+def dist_color(image):
     image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
     image = tf.image.random_hue(image, 0.025, seed=None)
     image = tf.image.random_brightness(image, 0.05, seed=None)

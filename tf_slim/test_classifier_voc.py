@@ -55,7 +55,7 @@ with sess.as_default():
             # Pre-process data
             img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
             img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[1.0, 1.0],
-                                      area_range=[1.0, 1.0])
+                                      area_range=[1.0, 1.0], augment_color=False)
 
             # Make batches
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)
@@ -100,7 +100,8 @@ with sess.as_default():
         op = tf.scalar_summary('auc_test', auc_test)
         op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
         summary_ops.append(op)
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1))
+        summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
+        summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_train, 3, 3), max_images=1))
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

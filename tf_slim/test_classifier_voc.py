@@ -68,24 +68,23 @@ with sess.as_default():
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
 
         # Choose the metrics to compute:
+        thresholds = [0.005 * i for i in range(201)]
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
-                                                                                       [0.01 * i for i in range(101)])
+                                                                                       thresholds, name='prec_train')
         prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
-                                                                                     [0.01 * i for i in range(101)])
+                                                                                     thresholds, name='prec_test')
         rec_train, update_rec_train = slim.metrics.streaming_recall_at_thresholds(preds_train, labels_train,
-                                                                                  [0.01 * i for i in range(101)])
+                                                                                  thresholds, name='rec_train')
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
-                                                                                [0.01 * i for i in range(101)])
-        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR')
-        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR')
+                                                                                thresholds, name='rec_test')
+        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR', name='auc_test')
+        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR', name='auc_train')
 
-        map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-        map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+        map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_test')
+        map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_train')
         for i in range(11):
-            map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32))
-            map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))
-        map_test /= 11
-        map_train /= 11
+            map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32))/11
+            map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))/11
 
         summary_ops = []
         op = tf.scalar_summary('map_test', map_test)
@@ -99,12 +98,11 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('auc_test', auc_test)
         op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
-        op = tf.Print(op, [label_test], 'lables_test', summarize=30)
         summary_ops.append(op)
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
 
-        num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
+        num_eval_steps = int(data.SPLITS_TO_SIZES[TEST_SET] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=20,

@@ -102,7 +102,7 @@ with sess.as_default():
         op = tf.Print(op, [label_test], 'lables_test', summarize=30)
         summary_ops.append(op)
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
-        summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_train, 3, 3), max_images=1))
+        summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

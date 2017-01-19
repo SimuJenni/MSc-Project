@@ -99,6 +99,7 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('auc_test', auc_test)
         op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
+        op = tf.Print(op, [labels_test], 'lables_test', summarize=30)
         summary_ops.append(op)
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_train, 3, 3), max_images=1))

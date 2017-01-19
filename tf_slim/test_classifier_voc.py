@@ -97,7 +97,7 @@ with sess.as_default():
             for i in range(11):
                 ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32)) / 11
                 ap_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32)) / 11
-                
+
             map_test += ap_test/20
             map_train += ap_train/20
 
@@ -108,6 +108,13 @@ with sess.as_default():
             op = tf.Print(op, [ap_train], 'map_train_{}'.format(c), summarize=30)
             summary_ops.append(op)
             update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test])
+
+        op = tf.scalar_summary('map_test', map_test)
+        op = tf.Print(op, [map_test], 'map_test', summarize=30)
+        summary_ops.append(op)
+        op = tf.scalar_summary('map_train', map_train)
+        op = tf.Print(op, [map_train], 'map_train', summarize=30)
+        summary_ops.append(op)
 
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))

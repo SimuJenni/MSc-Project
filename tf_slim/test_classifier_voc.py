@@ -89,10 +89,6 @@ with sess.as_default():
                 class_pred_train, class_label_train, thresholds)
             rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
                 class_pred_test, class_label_test, thresholds)
-            auc_test, update_auc_test = slim.metrics.streaming_auc(
-                class_pred_test, class_label_test, curve='PR', num_thresholds=200)
-            auc_train, update_auc_train = slim.metrics.streaming_auc(
-                class_pred_train, class_label_train, curve='PR', num_thresholds=200)
 
             map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
             map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
@@ -106,14 +102,7 @@ with sess.as_default():
             op = tf.scalar_summary('map_train_{}'.format(c), map_train)
             op = tf.Print(op, [map_train], 'map_train_{}'.format(c), summarize=30)
             summary_ops.append(op)
-            op = tf.scalar_summary('auc_train_{}'.format(c), auc_train)
-            op = tf.Print(op, [auc_train], 'auc_train_{}'.format(c), summarize=30)
-            summary_ops.append(op)
-            op = tf.scalar_summary('auc_test_{}'.format(c), auc_test)
-            op = tf.Print(op, [auc_test], 'auc_test_{}'.format(c), summarize=30)
-            summary_ops.append(op)
-            update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test, update_auc_test,
-                               update_auc_train])
+            update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test])
 
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))

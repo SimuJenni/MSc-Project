@@ -23,12 +23,12 @@ net_type = 'discriminator'
 data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=192)
-TARGET_SHAPE = [128, 128, 3]
-num_ep = 600
-TEST_WHILE_TRAIN = False
+TARGET_SHAPE = [160, 160, 3]
+num_ep = 800
+TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'train'
-TEST_SET = 'val'
+TRAIN_SET = 'trainval'
+TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'
@@ -61,8 +61,8 @@ with sess.as_default():
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=True,
-                                                  resize_side_min=128,
-                                                  resize_side_max=144)
+                                                  resize_side_min=160,
+                                                  resize_side_max=192)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
@@ -77,7 +77,7 @@ with sess.as_default():
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1],
-                                                    resize_side=128)
+                                                    resize_side=160)
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)

@@ -67,40 +67,52 @@ with sess.as_default():
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
 
-        # Choose the metrics to compute:
-        thresholds = [0.002 * i for i in range(500)]
-        prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
-                                                                                       thresholds, name='prec_train')
-        prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(preds_test, labels_test,
-                                                                                     thresholds, name='prec_test')
-        rec_train, update_rec_train = slim.metrics.streaming_recall_at_thresholds(preds_train, labels_train,
-                                                                                  thresholds, name='rec_train')
-        rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
-                                                                                thresholds, name='rec_test')
-        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR', name='auc_test',
-                                                               num_thresholds=500)
-        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR', name='auc_train',
-                                                                 num_thresholds=500)
-
-        map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_test')
-        map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES], name='map_train')
-        for i in range(11):
-            map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32))/11
-            map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))/11
-
         summary_ops = []
-        op = tf.scalar_summary('map_test', map_test)
-        op = tf.Print(op, [map_test], 'map_test', summarize=30)
-        summary_ops.append(op)
-        op = tf.scalar_summary('map_train', map_train)
-        op = tf.Print(op, [map_train], 'map_train', summarize=30)
-        summary_ops.append(op)
-        op = tf.scalar_summary('auc_train', auc_train)
-        op = tf.Print(op, [auc_train], 'auc_train', summarize=30)
-        summary_ops.append(op)
-        op = tf.scalar_summary('auc_test', auc_test)
-        op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
-        summary_ops.append(op)
+        update_ops = []
+        thresholds = [0.01 * i for i in range(101)]
+
+        for c in range(20):
+            class_pred_train = tf.slice(preds_train, [0, c], size=[model.batch_size, 20])
+            class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 20])
+
+            class_label_train = tf.slice(labels_train, [0, c], size=[model.batch_size, 20])
+            class_label_test = tf.slice(labels_test, [0, c], size=[model.batch_size, 20])
+
+            # Choose the metrics to compute:
+            prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(
+                class_pred_train, class_label_train, thresholds)
+            prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            rec_train, update_rec_train = slim.metrics.streaming_recall_at_thresholds(
+                class_pred_train, class_label_train, thresholds)
+            rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            auc_test, update_auc_test = slim.metrics.streaming_auc(
+                class_pred_test, class_label_test, curve='PR', num_thresholds=200)
+            auc_train, update_auc_train = slim.metrics.streaming_auc(
+                class_pred_train, class_label_train, curve='PR', num_thresholds=200)
+
+            map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            for i in range(11):
+                map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32))/11
+                map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))/11
+
+            op = tf.scalar_summary('map_test_{}'.format(c), map_test)
+            op = tf.Print(op, [map_test], 'map_test_{}'.format(c), summarize=30)
+            summary_ops.append(op)
+            op = tf.scalar_summary('map_train_{}'.format(c), map_train)
+            op = tf.Print(op, [map_train], 'map_train_{}'.format(c), summarize=30)
+            summary_ops.append(op)
+            op = tf.scalar_summary('auc_train_{}'.format(c), auc_train)
+            op = tf.Print(op, [auc_train], 'auc_train_{}'.format(c), summarize=30)
+            summary_ops.append(op)
+            op = tf.scalar_summary('auc_test_{}'.format(c), auc_test)
+            op = tf.Print(op, [auc_test], 'auc_test_{}'.format(c), summarize=30)
+            summary_ops.append(op)
+            update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test, update_auc_test,
+                               update_auc_train])
+
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
 
@@ -108,6 +120,5 @@ with sess.as_default():
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=20,
-                                        eval_op=[update_prec_train, update_prec_test, update_rec_train,
-                                                 update_rec_test, update_auc_test, update_auc_train],
+                                        eval_op=update_ops,
                                         summary_op=tf.merge_summary(summary_ops))

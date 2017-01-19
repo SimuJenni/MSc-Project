@@ -76,6 +76,8 @@ with sess.as_default():
                                                                                   [0.01 * i for i in range(101)])
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
                                                                                 [0.01 * i for i in range(101)])
+        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test)
+        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train)
 
         map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
         map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
@@ -91,8 +93,14 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('map_train', map_train)
         op = tf.Print(op, [map_train], 'map_train', summarize=30)
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(op)
+        op = tf.scalar_summary('auc_train', auc_train)
+        op = tf.Print(op, [auc_train], 'auc_train', summarize=30)
+        summary_ops.append(op)
+        op = tf.scalar_summary('auc_test', auc_test)
+        op = tf.Print(op, [auc_test], 'auc_test', summarize=30)
+        summary_ops.append(op)
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1))
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

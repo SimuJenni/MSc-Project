@@ -72,11 +72,11 @@ with sess.as_default():
         thresholds = [0.01 * i for i in range(101)]
 
         for c in range(20):
-            class_pred_train = tf.slice(preds_train, [0, c], size=[model.batch_size, 20])
-            class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 20])
+            class_pred_train = tf.slice(preds_train, [0, c], size=[model.batch_size, 1])
+            class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 1])
 
-            class_label_train = tf.slice(labels_train, [0, c], size=[model.batch_size, 20])
-            class_label_test = tf.slice(labels_test, [0, c], size=[model.batch_size, 20])
+            class_label_train = tf.slice(labels_train, [0, c], size=[model.batch_size, 1])
+            class_label_test = tf.slice(labels_test, [0, c], size=[model.batch_size, 1])
 
             # Choose the metrics to compute:
             prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(

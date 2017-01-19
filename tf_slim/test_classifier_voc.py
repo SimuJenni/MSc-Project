@@ -60,8 +60,8 @@ with sess.as_default():
                              tf.split(0, 10, img_train)]
             im_list_test = [preprocess_voc(tf.squeeze(im), output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
                             tf.split(0, 10, img_train)]
-            label_list_train = tf.split(0, 10, tf.tile(label_train, [10, 1, 1, 1]))
-            label_list_test = tf.split(0, 10, tf.tile(label_test, [10, 1, 1, 1]))
+            label_list_train = tf.split(0, 10, tf.tile(label_train, [10]))
+            label_list_test = tf.split(0, 10, tf.tile(label_test, [10]))
 
             # Make batches
             imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),

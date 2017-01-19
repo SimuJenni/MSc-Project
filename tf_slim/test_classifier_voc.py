@@ -53,34 +53,19 @@ with sess.as_default():
             [img_test, label_test] = test_provider.get(['image', 'label'])
 
             # Pre-process data
-            img_train = tf.expand_dims(img_train, 0)
-            img_test = tf.expand_dims(img_test, 0)
-
-            img_train = tf.tile(img_train, [10, 1, 1, 1])
-            img_test = tf.tile(img_test, [10, 1, 1, 1])
-
-            im_list_train = [preprocess_voc(tf.squeeze(im), output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
-                             tf.split(0, 10, img_train)]
-            im_list_test = [preprocess_voc(tf.squeeze(im), output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
-                            tf.split(0, 10, img_train)]
-            label_list_train = tf.split(0, 10, tf.tile(label_train, [10]))
-            label_list_test = tf.split(0, 10, tf.tile(label_test, [10]))
+            img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
+            img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[1.0, 1.0],
+                                      area_range=[1.0, 1.0])
 
             # Make batches
-            imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),
-                                                         batch_size=model.batch_size)
-            imgs_train, labels_train = tf.train.batch_join(zip(im_list_train, label_list_train),
-                                                           batch_size=model.batch_size)
+            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)
+            imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size)
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                       type=net_type, weight_decay=0.0001, bn_decay=0.99)
-        preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99)
-        preds_train = tf.reduce_mean(preds_train, reduction_indices=0, keep_dims=True)
-        labels_train = tf.reduce_mean(labels_train, reduction_indices=0, keep_dims=True)
-        labels_test = tf.reduce_mean(labels_test, reduction_indices=0, keep_dims=True)
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,

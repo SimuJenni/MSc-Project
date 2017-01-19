@@ -71,10 +71,10 @@ with sess.as_default():
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                       type=net_type, weight_decay=0.0001, bn_decay=0.99)
-        preds_test = tf.reduce_mean(preds_test, axis=0, keep_dims=True)
+        preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99)
-        preds_train = tf.reduce_mean(preds_train, axis=0, keep_dims=True)
+        preds_train = tf.reduce_mean(preds_train, reduction_indices=0, keep_dims=True)
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,

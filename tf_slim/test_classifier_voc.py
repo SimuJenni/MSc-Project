@@ -73,6 +73,8 @@ with sess.as_default():
         update_ops = []
         thresholds = [0.01 * i for i in range(101)]
 
+        map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+        map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
         for c in range(20):
             class_pred_train = tf.slice(preds_train, [0, c], size=[model.batch_size, 1])
             class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 1])
@@ -90,17 +92,20 @@ with sess.as_default():
             rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
                 class_pred_test, class_label_test, thresholds)
 
-            map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-            map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            ap_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
             for i in range(11):
-                map_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32))/11
-                map_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32))/11
+                ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32)) / 11
+                ap_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32)) / 11
+                
+            map_test += ap_test/20
+            map_train += ap_train/20
 
-            op = tf.scalar_summary('map_test_{}'.format(c), map_test)
-            op = tf.Print(op, [map_test], 'map_test_{}'.format(c), summarize=30)
+            op = tf.scalar_summary('map_test_{}'.format(c), ap_test)
+            op = tf.Print(op, [ap_test], 'map_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
-            op = tf.scalar_summary('map_train_{}'.format(c), map_train)
-            op = tf.Print(op, [map_train], 'map_train_{}'.format(c), summarize=30)
+            op = tf.scalar_summary('map_train_{}'.format(c), ap_train)
+            op = tf.Print(op, [ap_train], 'map_train_{}'.format(c), summarize=30)
             summary_ops.append(op)
             update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test])
 

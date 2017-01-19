@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [128, 128, 3]
 num_ep = 400
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 5
+NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
@@ -57,9 +57,8 @@ with sess.as_default():
             [img_train, label_train] = provider.get(['image', 'label'])
 
             # Pre-process data
-            img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0],
-                                                  output_width=TARGET_SHAPE[1],
-                                                  augment_color=True)
+            img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                       augment_color=True)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
@@ -71,14 +70,14 @@ with sess.as_default():
                 test_set = data.get_split(TEST_SET)
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
-                img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0],
-                                                    output_width=TARGET_SHAPE[1])
+                img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune,
+                                       weight_decay=0.0001)
 
         # Define the loss
         loss_scope = 'train_loss'

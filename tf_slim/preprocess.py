@@ -458,6 +458,7 @@ def distort_image(image, height, width):
 
     # Crop the image to the specified bounding box.
     distorted_image = tf.slice(image, bbox_begin, bbox_size)
+    distorted_image = tf.expand_dims(distorted_image, 0)
     resized_image = tf.image.resize_bilinear(distorted_image, [height, width], align_corners=False)
     distorted_image = tf.squeeze(resized_image)
     distorted_image.set_shape([height, width, 3])

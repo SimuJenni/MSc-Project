@@ -439,10 +439,7 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
 
 def preprocess_voc(image, output_height, output_width):
     # Select random crops
-    [image] = _central_crop([image], output_height, output_width)
-
-    # Resize to output size
-    image.set_shape([output_height, output_width, 3])
+    image = distort_image(image, output_height, output_width)
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.

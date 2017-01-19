@@ -71,7 +71,7 @@ class VAEGAN:
         return slim.one_hot_encoding(labels, 2)
 
     def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True,
-                   bn_decay=0.95, weight_decay=0.00001):
+                   bn_decay=0.95, weight_decay=0.00001, keep_prob=0.9):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
 
         Args:
@@ -103,7 +103,7 @@ class VAEGAN:
         else:
             raise ('Wrong type!')
         model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation,
-                           weight_decay=weight_decay, bn_decay=bn_decay)
+                           weight_decay=weight_decay, bn_decay=bn_decay, keep_prob=keep_prob)
         return model
 
 
@@ -232,7 +232,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
 
 
 def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.relu, weight_decay=0.00001,
-               bn_decay=0.95):
+               bn_decay=0.95, keep_prob=0.9):
     """Builds a classifier on top of inputs consisting of 3 fully connected layers.
 
     Args:
@@ -250,9 +250,9 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
                                               bn_decay=bn_decay)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.dropout(net, keep_prob, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.dropout(net, keep_prob, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,

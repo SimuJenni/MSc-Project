@@ -84,7 +84,7 @@ with sess.as_default():
 
         # Get predictions
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune,
-                                       weight_decay=0.0001, bn_decay=0.99)
+                                       weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
 
         # Define the loss
         loss_scope = 'train_loss'

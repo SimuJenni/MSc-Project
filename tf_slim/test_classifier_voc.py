@@ -63,9 +63,9 @@ with sess.as_default():
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-                                      type=net_type, weight_decay=0.0001, bn_decay=0.99)
+                                      type=net_type, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-                                       type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99)
+                                       type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,

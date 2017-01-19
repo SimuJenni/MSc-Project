@@ -75,6 +75,9 @@ with sess.as_default():
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99)
         preds_train = tf.reduce_mean(preds_train, reduction_indices=0, keep_dims=True)
+        labels_train = tf.reduce_mean(labels_train, reduction_indices=0, keep_dims=True)
+        labels_test = tf.reduce_mean(labels_test, reduction_indices=0, keep_dims=True)
+
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,
@@ -100,7 +103,7 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('map_train', map_train)
         op = tf.Print(op, [map_train], 'map_train', summarize=30)
-        tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1)
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1))
         summary_ops.append(op)
 
         num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)

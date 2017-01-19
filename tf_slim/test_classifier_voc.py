@@ -56,9 +56,9 @@ with sess.as_default():
             img_train = tf.tile(img_train, [10, 1, 1, 1])
             img_test = tf.tile(img_test, [10, 1, 1, 1])
 
-            im_list_train = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
+            im_list_train = [preprocess_voc(tf.squeeze(im), output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
                              tf.split(0, 10, img_train)]
-            im_list_test = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
+            im_list_test = [preprocess_voc(tf.squeeze(im), output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
                             tf.split(0, 10, img_train)]
             label_list_train = tf.split(0, 10, tf.tile(label_train, [10, 1, 1, 1]))
             label_list_test = tf.split(0, 10, tf.tile(label_test, [10, 1, 1, 1]))

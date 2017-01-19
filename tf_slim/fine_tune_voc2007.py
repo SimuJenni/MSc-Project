@@ -22,9 +22,9 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=192)
+model = VAEGAN(num_layers=num_layers, batch_size=160)
 TARGET_SHAPE = [160, 160, 3]
-num_ep = 800
+num_ep = 600
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'

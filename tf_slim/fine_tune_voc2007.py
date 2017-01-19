@@ -27,8 +27,8 @@ TARGET_SHAPE = [128, 128, 3]
 num_ep = 600
 TEST_WHILE_TRAIN = True
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'trainval'
-TEST_SET = 'test'
+TRAIN_SET = 'train'
+TEST_SET = 'val'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'
@@ -83,8 +83,8 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type,
-                                       fine_tune=fine_tune)
+        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune,
+                                       weight_decay=0.00005)
 
         # Define the loss
         loss_scope = 'train_loss'

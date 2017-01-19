@@ -18,8 +18,8 @@ model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
 NUM_CONV_TRAIN = 3
-TRAIN_SET = 'trainval'
-TEST_SET = 'test'
+TRAIN_SET = 'train'
+TEST_SET = 'val'
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
@@ -71,9 +71,9 @@ with sess.as_default():
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
-                                      fine_tune=finetuned, type=net_type)
+                                      fine_tune=finetuned, type=net_type, weight_decay=0.00005)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False,
-                                       fine_tune=finetuned, type=net_type, reuse=True)
+                                       fine_tune=finetuned, type=net_type, reuse=True, weight_decay=0.00005)
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,

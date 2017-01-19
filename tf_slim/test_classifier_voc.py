@@ -63,9 +63,9 @@ with sess.as_default():
                 im_list_test.append(preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
 
             # Make batches
-            imgs_test, labels_test = tf.train.batch_join([im_list_test, label_list_test],
+            imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),
                                                          batch_size=model.batch_size)
-            imgs_train, labels_train = tf.train.batch_join([im_list_train, label_list_train],
+            imgs_train, labels_train = tf.train.batch_join(zip(im_list_train, label_list_train),
                                                            batch_size=model.batch_size)
 
         # Get predictions

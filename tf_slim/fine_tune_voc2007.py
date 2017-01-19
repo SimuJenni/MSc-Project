@@ -12,7 +12,7 @@ from tensorflow.python.framework import ops
 from ToonNet import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
-from preprocess import preprocess_finetune_train, preprocess_finetune_test
+from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 num_ep = 1000
-TEST_WHILE_TRAIN = True
+TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'train'
 TEST_SET = 'val'
@@ -57,12 +57,9 @@ with sess.as_default():
             [img_train, label_train] = provider.get(['image', 'label'])
 
             # Pre-process data
-            img_train = preprocess_finetune_train(img_train,
-                                                  output_height=TARGET_SHAPE[0],
+            img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
-                                                  augment_color=True,
-                                                  resize_side_min=128,
-                                                  resize_side_max=144)
+                                                  augment_color=True)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
@@ -74,10 +71,8 @@ with sess.as_default():
                 test_set = data.get_split('test')
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
-                img_test = preprocess_finetune_test(img_test,
-                                                    output_height=TARGET_SHAPE[0],
-                                                    output_width=TARGET_SHAPE[1],
-                                                    resize_side=128)
+                img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0],
+                                                    output_width=TARGET_SHAPE[1])
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],
                     batch_size=model.batch_size, num_threads=1)

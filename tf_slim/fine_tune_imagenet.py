@@ -19,16 +19,15 @@ from constants import IMAGENET_SMALL_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 0
+NUM_CONV_TRAIN = 1
 num_epochs = 30
-pre_trained_grad_weight = [1 for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -113,29 +112,22 @@ with sess.as_default():
 
         # Create training operation
         if fine_tune:
-            grad_multipliers = {}
             var2train = []
             for i in range(NUM_CONV_TRAIN):
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
                                                    exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
-                for v in vs:
-                    grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
             vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
-            for v in vs:
-                grad_multipliers[v.op.name] = 1.0
         else:
             var2train = tf.trainable_variables()
-            grad_multipliers = None
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, gradient_multipliers=grad_multipliers)
+                                                 global_step=global_step)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
-        print(grad_multipliers)
         sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
@@ -159,11 +151,16 @@ with sess.as_default():
         init_fn = None
         if fine_tune:
             # Specify the layers of your model you want to exclude
-            variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
-                                             ops.GraphKeys.GLOBAL_STEP])
-            print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
-            init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
+            var2restore = []
+            for i in range(NUM_CONV_TRAIN):
+                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i+1)],
+                                                   exclude=['discriminator/fully_connected'])
+                var2restore += vs
+            # variables_to_restore = slim.get_variables_to_restore(
+            #     include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
+            #                                  ops.GraphKeys.GLOBAL_STEP])
+            print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
+            init_fn = assign_from_checkpoint_fn(MODEL_PATH, var2restore, ignore_missing_vars=True)
 
         # Start training
         slim.learning.train(train_op, SAVE_DIR,

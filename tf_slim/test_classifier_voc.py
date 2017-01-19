@@ -53,14 +53,12 @@ with sess.as_default():
             [img_test, label_test] = test_provider.get(['image', 'label'])
 
             # Pre-process data
-            im_list_train = []
-            im_list_test = []
-            label_list_train = [label_train for i in range(10)]
-            label_list_test = [label_test for i in range(10)]
-
-            for i in range(10):
-                im_list_test.append(preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
-                im_list_train.append(preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
+            im_list_train = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
+                             tf.tile(img_train, 10)]
+            im_list_test = [preprocess_voc(im, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]) for im in
+                            tf.tile(img_test, 10)]
+            label_list_train = tf.tile(label_train, 10)
+            label_list_test = tf.tile(label_test, 10)
 
             # Make batches
             imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),
@@ -77,7 +75,6 @@ with sess.as_default():
         preds_train = tf.reduce_mean(preds_train, reduction_indices=0, keep_dims=True)
         labels_train = tf.reduce_mean(labels_train, reduction_indices=0, keep_dims=True)
         labels_test = tf.reduce_mean(labels_test, reduction_indices=0, keep_dims=True)
-
 
         # Choose the metrics to compute:
         prec_train, update_prec_train = slim.metrics.streaming_precision_at_thresholds(preds_train, labels_train,

@@ -94,8 +94,8 @@ with sess.as_default():
             ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
             ap_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
             for i in range(11):
-                ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater(rec_test, 0.1 * i), tf.float32)) / 11
-                ap_train += tf.reduce_max(prec_train * tf.cast(tf.greater(rec_train, 0.1 * i), tf.float32)) / 11
+                ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 11
+                ap_train += tf.reduce_max(prec_train * tf.cast(tf.greater_equal(rec_train, 0.1 * i), tf.float32)) / 11
 
             map_test += ap_test/20
             map_train += ap_train/20

@@ -66,6 +66,8 @@ with sess.as_default():
                                       type=net_type, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
                                        type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
+        preds_test = tf.nn.sigmoid(preds_test)
+        preds_train = tf.nn.sigmoid(preds_train)
 
         summary_ops = []
         update_ops = []

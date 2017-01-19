@@ -65,8 +65,6 @@ for fold in range(10):
             # Choose the metrics to compute:
             names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
                 'accuracy': slim.metrics.streaming_accuracy(preds_test, labels_test),
-                'precision': slim.metrics.streaming_precision(preds_test, labels_test),
-                'recall': slim.metrics.streaming_recall(preds_test, labels_test),
             })
 
             # Create the summary ops such that they also print out to std output:

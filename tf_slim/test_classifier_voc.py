@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = voc
-model = VAEGAN(num_layers=5, batch_size=10)
+model = VAEGAN(num_layers=5, batch_size=100)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 160
 NUM_CONV_TRAIN = 3
@@ -76,8 +76,8 @@ with sess.as_default():
                                                                                   [0.01 * i for i in range(101)])
         rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(preds_test, labels_test,
                                                                                 [0.01 * i for i in range(101)])
-        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test)
-        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train)
+        auc_test, update_auc_test = slim.metrics.streaming_auc(preds_test, labels_test, curve='PR')
+        auc_train, update_auc_train = slim.metrics.streaming_auc(preds_train, labels_train, curve='PR')
 
         map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
         map_train = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
@@ -107,5 +107,5 @@ with sess.as_default():
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=20,
                                         eval_op=[update_prec_train, update_prec_test, update_rec_train,
-                                                 update_rec_test],
+                                                 update_rec_test, update_auc_test, update_auc_train],
                                         summary_op=tf.merge_summary(summary_ops))

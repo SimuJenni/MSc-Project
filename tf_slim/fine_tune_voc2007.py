@@ -24,9 +24,9 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
-num_ep = 400
+num_ep = 100
 TEST_WHILE_TRAIN = True
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 5
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
@@ -78,8 +78,7 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune,
-                                       keep_prob=0.5)
+        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
 
         # Define the loss
         loss_scope = 'train_loss'

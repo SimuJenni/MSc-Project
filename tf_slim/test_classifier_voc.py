@@ -17,8 +17,7 @@ net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=200)
 TARGET_SHAPE = [128, 128, 3]
-RESIZE_SIZE = 160
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 5
 TRAIN_SET = 'train'
 TEST_SET = 'val'
 
@@ -101,11 +100,11 @@ with sess.as_default():
             map_test += ap_test/20
             map_train += ap_train/20
 
-            op = tf.scalar_summary('map_test_{}'.format(c), ap_test)
-            op = tf.Print(op, [ap_test], 'map_test_{}'.format(c), summarize=30)
+            op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
+            op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
-            op = tf.scalar_summary('map_train_{}'.format(c), ap_train)
-            op = tf.Print(op, [ap_train], 'map_train_{}'.format(c), summarize=30)
+            op = tf.scalar_summary('ap_train_{}'.format(c), ap_train)
+            op = tf.Print(op, [ap_train], 'ap_train_{}'.format(c), summarize=30)
             summary_ops.append(op)
             update_ops.append([update_prec_train, update_prec_test, update_rec_train, update_rec_test])
 

@@ -450,7 +450,6 @@ def preprocess_voc(image, output_height, output_width):
 def distort_image(image, height, width):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
-        bounding_boxes=[],
         aspect_ratio_range=[0.75, 1.33],
         area_range=[0.75, 1.0],
         use_image_if_no_bounding_boxes=True)

@@ -60,7 +60,7 @@ with sess.as_default():
 
             for i in range(10):
                 im_list_test.append(preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
-                im_list_test.append(preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
+                im_list_train.append(preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1]))
 
             # Make batches
             imgs_test, labels_test = tf.train.batch_join(zip(im_list_test, label_list_test),

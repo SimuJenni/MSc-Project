@@ -404,11 +404,7 @@ def preprocess_finetune_train(image, output_height, output_width, augment_color=
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
-        image = tf.image.random_hue(image, 0.025, seed=None)
-        image = tf.image.random_brightness(image, 0.05, seed=None)
-        image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
-        image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
+        image = augment_color(image)
 
     # Scale to [-1, 1]
     image = tf.clip_by_value(image, 0.0, 1.0)
@@ -437,22 +433,32 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     return image
 
 
-def preprocess_voc(image, output_height, output_width):
+def preprocess_voc(image, output_height, output_width, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
     # Select random crops
-    image = distort_image(image, output_height, output_width)
+    image = distort_image(image, output_height, output_width, aspect_ratio_range, area_range)
+
+    # Color and contrast augmentation
+    image = tf.to_float(image) / 255.
+    if augment_color:
+        image = augment_color(image)
 
     # Scale to [-1, 1]
-    image = tf.to_float(image) * (2. / 255.) - 1.
+    image = tf.clip_by_value(image, 0.0, 1.0)
+    image = tf.to_float(image) * 2. - 1.
+
+    # Flip left-right
+    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+    image = _flip_lr(image, p)
 
     return image
 
 
-def distort_image(image, height, width):
+def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
         [[[0, 0, 1, 1]]],
-        aspect_ratio_range=[0.75, 1.33],
-        area_range=[0.75, 1.0],
+        aspect_ratio_range=aspect_ratio_range,
+        area_range=area_range,
         use_image_if_no_bounding_boxes=True)
     bbox_begin, bbox_size, distort_bbox = sample_distorted_bounding_box
 
@@ -462,8 +468,16 @@ def distort_image(image, height, width):
     resized_image = tf.image.resize_bilinear(distorted_image, [height, width], align_corners=False)
     distorted_image = tf.squeeze(resized_image)
     distorted_image.set_shape([height, width, 3])
-
     return distorted_image
+
+
+def augment_color(image):
+    image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
+    image = tf.image.random_hue(image, 0.025, seed=None)
+    image = tf.image.random_brightness(image, 0.05, seed=None)
+    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
+    image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
+    return image
 
 
 def preprocess_image(image, output_height, output_width, is_training=False,

@@ -24,14 +24,14 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [128, 128, 3]
-num_ep = 5000
+num_ep = 400
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
-CHECKPOINT = 'model.ckpt-671500'
+CHECKPOINT = 'model.ckpt-150002'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(stl10.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(

@@ -50,11 +50,11 @@ with sess.as_default():
                                                                   output_width=TARGET_SHAPE[1],
                                                                   resize_side=RESIZE_SIZE)
             # Make batches
-            imgs_test, edges_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
+            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
                                                                 num_threads=1)
 
         # Get predictions
-        preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, training=False,
+        preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
 
         # Compute predicted label for accuracy

@@ -440,7 +440,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True, aspec
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image)
+        image = dist_color(image, d_hue=0.1, d_bright=0.1)
 
     # Scale to [-1, 1]
     image = tf.clip_by_value(image, 0.0, 1.0)
@@ -471,10 +471,10 @@ def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_ra
     return distorted_image
 
 
-def dist_color(image):
+def dist_color(image, d_hue=0.025, d_bright=0.05):
     image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
-    image = tf.image.random_hue(image, 0.025, seed=None)
-    image = tf.image.random_brightness(image, 0.05, seed=None)
+    image = tf.image.random_hue(image, d_hue, seed=None)
+    image = tf.image.random_brightness(image, d_bright, seed=None)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
     image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
     return image

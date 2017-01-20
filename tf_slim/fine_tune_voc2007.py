@@ -11,7 +11,7 @@ from tensorflow.python.framework import ops
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
-from datasets import voc, stl10
+from datasets import voc, imagenet
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 
@@ -31,10 +31,10 @@ TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
-CHECKPOINT = 'model.ckpt-150002'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(stl10.NAME, model.name, CHECKPOINT))
+CHECKPOINT = 'model.ckpt-671500'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -58,7 +58,7 @@ with sess.as_default():
 
             # Pre-process data
             img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                       augment_color=True, aspect_ratio_range=[0.7, 1.4], area_range=[0.2, 1.0])
+                                       augment_color=True, aspect_ratio_range=[0.5, 1.5], area_range=[0.1, 1.0])
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],

@@ -22,9 +22,9 @@ TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -49,7 +49,7 @@ with sess.as_default():
             imgs_train_t = tf.tile(tf.expand_dims(img_train, dim=0), [10, 1, 1, 1])
             imgs_train_p = tf.unpack(imgs_train_t, axis=0, num=10)
             imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[0.7, 1.4],
-                                           area_range=[0.2, 1.0], augment_color=False) for im in imgs_train_p]
+                                           area_range=[0.25, 1.0], augment_color=False) for im in imgs_train_p]
             imgs_train = tf.pack(imgs_train_p, axis=0)
 
             # Get test-data
@@ -60,16 +60,8 @@ with sess.as_default():
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[0.7, 1.4],
-                                          area_range=[0.2, 1.0], augment_color=False) for im in imgs_test_p]
+                                          area_range=[0.25, 1.0], augment_color=False) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
-
-            # # Pre-process data
-            # img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
-            # img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1])
-
-            # # Make batches
-            # imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)
-            # imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size)
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,

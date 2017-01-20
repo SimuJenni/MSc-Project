@@ -45,7 +45,7 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
-            labels_train = tf.tile(tf.expand_dims(label_train, axis=0), [10, 1])
+            labels_train = tf.tile(tf.expand_dims(label_train, dim=0), [10, 1])
             imgs_train_t = tf.tile(img_train, [10, 1, 1, 1])
             imgs_train_p = tf.unpack(imgs_train_t, axis=0, num=10)
             imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_train_p]
@@ -55,7 +55,7 @@ with sess.as_default():
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
-            labels_test = tf.tile(tf.expand_dims(label_test, axis=0), [10, 1])
+            labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(img_test, [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]

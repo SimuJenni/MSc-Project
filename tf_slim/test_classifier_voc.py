@@ -77,8 +77,8 @@ with sess.as_default():
         preds_test = tf.nn.sigmoid(preds_test)
         preds_train = tf.nn.sigmoid(preds_train)
 
-        preds_test = tf.reduce_mean(preds_test, axis=0, keep_dims=True)
-        preds_train = tf.reduce_mean(preds_train, axis=0, keep_dims=True)
+        preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
+        preds_train = tf.reduce_mean(preds_train, reduction_indices=0, keep_dims=True)
 
         summary_ops = []
         update_ops = []

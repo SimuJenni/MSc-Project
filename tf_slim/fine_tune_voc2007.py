@@ -11,7 +11,7 @@ from tensorflow.python.framework import ops
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
-from datasets import voc, imagenet
+from datasets import voc, stl10
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 
@@ -32,9 +32,9 @@ TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
 CHECKPOINT = 'model.ckpt-671500'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(stl10.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -76,8 +76,7 @@ with sess.as_default():
                     batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune,
-                                       weight_decay=0.0001)
+        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
 
         # Define the loss
         loss_scope = 'train_loss'

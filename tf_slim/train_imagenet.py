@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import VAEGAN
+from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -18,8 +18,8 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-num_epochs = 30
-model = VAEGAN(num_layers=5, batch_size=56)
+num_epochs = 50
+model = VAEGAN(num_layers=5, batch_size=128)
 TARGET_SHAPE = [128, 128, 3]
 LR = 0.0002
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
@@ -47,7 +47,7 @@ with sess.as_default():
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
                                                                       resize_side_min=128,
-                                                                      resize_side_max=144)
+                                                                      resize_side_max=160)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,

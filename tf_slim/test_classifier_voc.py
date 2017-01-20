@@ -12,7 +12,7 @@ from utils import montage_tf
 slim = tf.contrib.slim
 
 # Setup
-finetuned = True
+finetuned = False
 net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=1)

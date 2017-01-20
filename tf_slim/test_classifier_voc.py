@@ -47,7 +47,7 @@ with sess.as_default():
             [img_train, label_train] = train_provider.get(['image', 'label'])
             labels_train = tf.tile(label_train, [10])
             imgs_train_t = tf.tile(img_train, [10, 1, 1, 1])
-            imgs_train_p = tf.unpack(imgs_train_t, axis=0)
+            imgs_train_p = tf.unpack(imgs_train_t, axis=0, num=10)
             imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_train_p]
             imgs_train = tf.pack(imgs_train_p, axis=0)
 
@@ -57,7 +57,7 @@ with sess.as_default():
             [img_test, label_test] = test_provider.get(['image', 'label'])
             labels_test = tf.tile(label_test, [10])
             imgs_test_t = tf.tile(img_test, [10, 1, 1, 1])
-            imgs_test_p = tf.unpack(imgs_test_t, axis=0)
+            imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 

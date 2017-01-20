@@ -47,7 +47,7 @@ class VAEGAN:
         dec_gen = decoder(gen_dist, num_layers=self.num_layers, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
-        disc_out, _, _ = discriminator(disc_in, reuse=reuse, num_out=2, training=training)
+        disc_out, _ = discriminator(disc_in, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
 
     def disc_labels(self):
@@ -95,7 +95,7 @@ class VAEGAN:
             gen_in = merge(img, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
-            _, model, _ = discriminator(img, reuse=reuse, num_out=num_classes,
+            _, model = discriminator(img, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False, weight_decay=weight_decay, bn_decay=bn_decay)
             activation = lrelu
         elif type == 'encoder':

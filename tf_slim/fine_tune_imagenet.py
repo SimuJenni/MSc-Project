@@ -33,7 +33,7 @@ CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
-                                                                                     net_type, NUM_CONV_TRAIN))
+                                                                                 net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -153,7 +153,7 @@ with sess.as_default():
             # Specify the layers of your model you want to exclude
             var2restore = []
             for i in range(NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i+1)],
+                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i + 1)],
                                                    exclude=['discriminator/fully_connected'])
                 var2restore += vs
             # variables_to_restore = slim.get_variables_to_restore(

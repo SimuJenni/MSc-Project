@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = voc
-model = VAEGAN(num_layers=5, batch_size=200)
+model = VAEGAN(num_layers=5, batch_size=1)
 TARGET_SHAPE = [128, 128, 3]
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
@@ -45,19 +45,29 @@ with sess.as_default():
             train_set = data.get_split(TRAIN_SET)
             train_provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1, shuffle=False)
             [img_train, label_train] = train_provider.get(['image', 'label'])
+            labels_train = tf.tile(label_train, [10, 1])
+            imgs_train_t = tf.tile(img_train, [10, 1, 1, 1])
+            imgs_train_p = tf.unpack(imgs_train_t, axis=0)
+            imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_train_p]
+            imgs_train = tf.pack(imgs_train_p, axis=0)
 
             # Get test-data
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
+            labels_test = tf.tile(label_test, [10, 1])
+            imgs_test_t = tf.tile(img_test, [10, 1, 1, 1])
+            imgs_test_p = tf.unpack(imgs_test_t, axis=0)
+            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
+            imgs_test = tf.pack(imgs_test_p, axis=0)
 
-            # Pre-process data
-            img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
-            img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1])
+            # # Pre-process data
+            # img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
+            # img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1])
 
-            # Make batches
-            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)
-            imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size)
+            # # Make batches
+            # imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)
+            # imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size)
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
@@ -112,6 +122,7 @@ with sess.as_default():
         summary_ops.append(op)
         op = tf.scalar_summary('map_train', map_train)
         op = tf.Print(op, [map_train], 'map_train', summarize=30)
+
         summary_ops.append(op)
 
         summary_ops.append(tf.image_summary('images/train', montage_tf(imgs_train, 3, 3), max_images=1))

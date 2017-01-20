@@ -53,8 +53,7 @@ with sess.as_default():
 
             # Pre-process data
             img_train = preprocess_voc(img_train, TARGET_SHAPE[0], TARGET_SHAPE[1])
-            img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[1.0, 1.0],
-                                      area_range=[1.0, 1.0], augment_color=False)
+            img_test = preprocess_voc(img_test, TARGET_SHAPE[0], TARGET_SHAPE[1])
 
             # Make batches
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size)

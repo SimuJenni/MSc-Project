@@ -62,9 +62,9 @@ with sess.as_default():
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-                                      type=net_type, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
+                                      type=net_type)
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-                                       type=net_type, reuse=True, weight_decay=0.0001, bn_decay=0.99, keep_prob=0.5)
+                                       type=net_type, reuse=True)
         preds_test = tf.nn.sigmoid(preds_test)
         preds_train = tf.nn.sigmoid(preds_train)
 
@@ -121,6 +121,6 @@ with sess.as_default():
         num_eval_steps = int(data.SPLITS_TO_SIZES[TEST_SET] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
-                                        max_number_of_evaluations=20,
+                                        max_number_of_evaluations=100,
                                         eval_op=update_ops,
                                         summary_op=tf.merge_summary(summary_ops))

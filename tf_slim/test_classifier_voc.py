@@ -48,7 +48,7 @@ with sess.as_default():
             labels_train = tf.tile(tf.expand_dims(label_train, dim=0), [10, 1])
             imgs_train_t = tf.tile(tf.expand_dims(img_train, dim=0), [10, 1, 1, 1])
             imgs_train_p = tf.unpack(imgs_train_t, axis=0, num=10)
-            imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_train_p]
+            imgs_train_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_train_p]
             imgs_train = tf.pack(imgs_train_p, axis=0)
 
             # Get test-data
@@ -58,7 +58,7 @@ with sess.as_default():
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
+            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
             # # Pre-process data
@@ -76,6 +76,9 @@ with sess.as_default():
                                        type=net_type, reuse=True)
         preds_test = tf.nn.sigmoid(preds_test)
         preds_train = tf.nn.sigmoid(preds_train)
+
+        preds_test = tf.reduce_mean(preds_test, axis=0, keep_dims=True)
+        preds_train = tf.reduce_mean(preds_train, axis=0, keep_dims=True)
 
         summary_ops = []
         update_ops = []
@@ -130,7 +133,7 @@ with sess.as_default():
 
         num_eval_steps = int(data.SPLITS_TO_SIZES[TEST_SET] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=num_eval_steps,
+                                        num_evals=10,
                                         max_number_of_evaluations=100,
                                         eval_op=update_ops,
                                         summary_op=tf.merge_summary(summary_ops))

@@ -24,8 +24,8 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [128, 128, 3]
-num_ep = 400
-TEST_WHILE_TRAIN = True
+num_ep = 5000
+TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
@@ -58,7 +58,7 @@ with sess.as_default():
 
             # Pre-process data
             img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                       augment_color=True)
+                                       augment_color=True, aspect_ratio_range=[0.7, 1.4], area_range=[0.3, 1.0])
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
@@ -100,7 +100,7 @@ with sess.as_default():
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
         if fine_tune:

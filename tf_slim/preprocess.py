@@ -453,7 +453,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True, aspec
     return image
 
 
-def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_range=[0.5, 1.0]):
+def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
         [[[0, 0, 1, 1]]],

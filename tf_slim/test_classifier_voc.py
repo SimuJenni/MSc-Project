@@ -135,7 +135,7 @@ with sess.as_default():
 
         num_eval_steps = int(data.SPLITS_TO_SIZES[TEST_SET] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=10,
+                                        num_evals=num_eval_steps,
                                         max_number_of_evaluations=100,
                                         eval_op=update_ops,
                                         summary_op=tf.merge_summary(summary_ops))

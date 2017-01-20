@@ -26,7 +26,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 num_epochs = 30
 
 CHECKPOINT = 'model.ckpt-671500'
@@ -156,9 +156,6 @@ with sess.as_default():
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i + 1)],
                                                    exclude=['discriminator/fully_connected'])
                 var2restore += vs
-            # variables_to_restore = slim.get_variables_to_restore(
-            #     include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
-            #                                  ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, var2restore, ignore_missing_vars=True)
 

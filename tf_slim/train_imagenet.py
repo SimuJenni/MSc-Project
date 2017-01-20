@@ -118,7 +118,6 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
 
         # Handle summaries
-        # tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.scalar_summary('losses/disc-loss generator', dL_gen)
         tf.scalar_summary('losses/l2 generator', l2_gen)

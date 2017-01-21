@@ -19,7 +19,7 @@ data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
 num_epochs = 30
-model = VAEGAN(num_layers=5, batch_size=80)
+model = VAEGAN(num_layers=5, batch_size=96)
 TARGET_SHAPE = [128, 128, 3]
 LR = 0.0002
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
@@ -38,8 +38,8 @@ with sess.as_default():
             # Get the training dataset
             train_set = data.get_split(TRAIN_SET_NAME, dataset_dir=IMAGENET_SMALL_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                      common_queue_capacity=32 * model.batch_size,
-                                                                      common_queue_min=4 * model.batch_size)
+                                                                      common_queue_capacity=8 * model.batch_size,
+                                                                      common_queue_min=2 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
@@ -51,7 +51,7 @@ with sess.as_default():
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
-                                                                  capacity=4 * model.batch_size)
+                                                                  capacity=2 * model.batch_size)
             if TEST:
                 # Get test-data
                 test_set = data.get_split(TEST_SET_NAME)

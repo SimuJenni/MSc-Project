@@ -58,6 +58,7 @@ class VAEGAN:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        labels.set_shape((None,))
         return slim.one_hot_encoding(labels, 2)
 
     def gen_labels(self):
@@ -68,6 +69,7 @@ class VAEGAN:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
+        labels.set_shape((None,))
         return slim.one_hot_encoding(labels, 2)
 
     def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True,

@@ -56,7 +56,6 @@ with sess.as_default():
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-            #'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
             'MSE-generator': slim.metrics.streaming_mean_squared_error(gen_rec, imgs_test),
         })
 
@@ -68,7 +67,6 @@ with sess.as_default():
             summary_ops.append(op)
 
         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 8, 32), max_images=1))
-        #summary_ops.append(tf.image_summary('images/ae', montage(img_rec, 1, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 8, 32), max_images=1))
         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 8, 32), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 8, 32), max_images=1))

@@ -7,7 +7,6 @@ import sys
 import xml.etree.ElementTree as ET
 from scipy import misc
 
-import cv2
 import numpy as np
 import tensorflow as tf
 from constants import VOC2007_TF_DATADIR, VOC2007_SRC_DIR

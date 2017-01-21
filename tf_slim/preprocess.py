@@ -433,7 +433,8 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     return image
 
 
-def preprocess_voc(image, output_height, output_width, augment_color=True, aspect_ratio_range=[0.75, 1.33], area_range=[0.75, 1.0]):
+def preprocess_voc(image, output_height, output_width, augment_color=True, aspect_ratio_range=[0.75, 1.33],
+                   area_range=[0.75, 1.0]):
     # Select random crops
     image = distort_image(image, output_height, output_width, aspect_ratio_range, area_range)
 

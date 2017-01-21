@@ -38,9 +38,6 @@ def get_split(split_name, dataset_dir=IMAGENET_SMALL_TF_DATADIR, reader=None):
     Args:
       split_name: A train/test split name.
       dataset_dir: The base directory of the dataset sources.
-      file_pattern: The file pattern to use when matching the dataset sources.
-        It is assumed that the pattern contains a '%s' string so that the split
-        name can be inserted.
       reader: The TensorFlow reader type.
     Returns:
       A `Dataset` namedtuple.

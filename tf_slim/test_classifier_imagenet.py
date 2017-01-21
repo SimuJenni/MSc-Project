@@ -46,12 +46,12 @@ with sess.as_default():
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_finetune_test(img_test,  output_height=TARGET_SHAPE[0],
-                                                                  output_width=TARGET_SHAPE[1],
-                                                                  resize_side=RESIZE_SIZE)
+            img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
+                                                output_width=TARGET_SHAPE[1],
+                                                resize_side=RESIZE_SIZE)
             # Make batches
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
-                                                                num_threads=1)
+                                                    num_threads=1)
 
         # Get predictions
         preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,

@@ -1,12 +1,12 @@
 from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.framework import ops
+from tensorflow.python.ops import control_flow_ops
 
-from tf_slim.alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
 from tf_slim.datasets import imagenet
 from tf_slim.preprocess import preprocess_image
+from tf_slim.qhu_code.alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
 from tf_slim.qhu_code.model_edge_advplus_128 import DCGAN
 from tf_slim.utils import get_variables_to_train, assign_from_checkpoint_fn
 

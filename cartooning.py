@@ -8,8 +8,8 @@ def cartoonify(img_rgb, num_donw_samp=2, num_filter=100):
     """Cartoonify an image with bilateral filtering
 
     Args:
-        im: Image as numpy array
-        numDownSamples: Number of down- and up-sampling steps (factor 2)
+        img_rgb: Image as numpy array
+        num_donw_samp: Number of down- and up-sampling steps (factor 2)
         num_filter: Number of times to apply bilateral filtering
 
     Returns:

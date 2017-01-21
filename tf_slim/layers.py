@@ -49,7 +49,7 @@ def add_noise_plane(net, noise_channels, training=True):
 def sample(mu, log_var):
     noise_shape = mu.get_shape().as_list()
     noise = tf.random_normal(shape=noise_shape)
-    samples = math_ops.add(math_ops.mul(math_ops.exp(log_var/2.0), noise), mu)
+    samples = math_ops.add(math_ops.mul(math_ops.exp(log_var / 2.0), noise), mu)
     return samples
 
 

@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 
 # Setup
 data = stl10
-model = VAEGAN(num_layers=4, batch_size=200, data_size=data.SPLITS_TO_SIZES['train'])
+model = VAEGAN(num_layers=4, batch_size=200)
 TARGET_SHAPE = [64, 64, 3]
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
@@ -68,7 +68,7 @@ with sess.as_default():
 
         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 14, 14), max_images=1))
         summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 14, 14), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test,14, 14), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 14, 14), max_images=1))
         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 14, 14), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 14, 14), max_images=1))
         with tf.variable_scope('discriminator', reuse=True):

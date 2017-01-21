@@ -33,7 +33,7 @@ CHECKPOINT = 'model.ckpt-29102'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final_new/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_new/'.format(data.NAME, model.name,
-                                                                                             net_type, NUM_CONV_TRAIN))
+                                                                                     net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -111,7 +111,7 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
-        trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers-i) for i in range(NUM_CONV_TRAIN)]
+        trainable_scopes = ['{}/conv_{}'.format(net_type, num_layers - i) for i in range(NUM_CONV_TRAIN)]
         trainable_scopes += ['fully_connected']
         var2train = slim.get_variables_to_restore(include=trainable_scopes, exclude=['discriminator/fully_connected'])
         var2train = list(set(var2train).intersection(tf.trainable_variables()))

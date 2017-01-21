@@ -17,7 +17,8 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=200, data_size=data.SPLITS_TO_SIZES[TRAIN_SET_NAME], num_epochs=300)
+model = VAEGAN(num_layers=4, batch_size=200)
+num_epochs = 300
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
@@ -110,9 +111,7 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * model.num_ep
-        # learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.8)),
-        #                           LR - LR * (1./0.8 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-6)
@@ -129,15 +128,18 @@ with sess.as_default():
         if TEST:
             img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
                                                             training=False)
-            tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                             max_images=1)
             tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                             max_images=1)
             tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         else:
             tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+            tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                             max_images=1)
             tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
             tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 

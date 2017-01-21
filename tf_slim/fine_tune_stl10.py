@@ -24,8 +24,9 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
     pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
     model_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_400/'.format(data.NAME, model.name, net_type,
-                                                                                        num_conv_train, train_set_id))
+        save_dir = os.path.join(LOG_DIR,
+                                '{}_{}_finetune_{}_Retrain{}_final_{}_400/'.format(data.NAME, model.name, net_type,
+                                                                                   num_conv_train, train_set_id))
     else:
         save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -41,8 +42,8 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 # Get the training dataset
                 train_set = data.get_split(train_set_id)
                 provider_train = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                          common_queue_capacity=32 * batch_size,
-                                                                          common_queue_min=4 * batch_size)
+                                                                                common_queue_capacity=32 * batch_size,
+                                                                                common_queue_min=4 * batch_size)
                 [img_train, label_train] = provider_train.get(['image', 'label'])
 
                 # Pre-process data
@@ -55,7 +56,8 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 if test:
                     # Get test-data
                     test_set = data.get_split(test_set_id)
-                    provider_test = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+                    provider_test = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1,
+                                                                                   shuffle=False)
                     [img_test, label_test] = provider_test.get(['image', 'label'])
                     img_test = preprocess_finetune_test(img_test, output_height=target_shape[0],
                                                         output_width=target_shape[1], resize_side=96)
@@ -158,9 +160,6 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-# for fold in range(5, 10):
-#     for c in range(6):
-#         fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)
-
-for fold in range(10):
-    fine_tune_model(stl10, 4, 3, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 400)
+for fold in range(5, 10):
+    for c in range(6):
+        fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)

@@ -70,8 +70,7 @@ class VAEGAN:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True,
-                   bn_decay=0.95, weight_decay=0.00001, keep_prob=0.9):
+    def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
 
         Args:
@@ -89,21 +88,20 @@ class VAEGAN:
         activation = tf.nn.relu
         if not fine_tune:
             _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False, weight_decay=weight_decay, bn_decay=bn_decay)
+                                        training=training, train_fc=False)
             activation = lrelu
         elif type == 'generator':
             gen_in = merge(img, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False, weight_decay=weight_decay, bn_decay=bn_decay)
+                                        training=training, train_fc=False)
             activation = lrelu
         elif type == 'encoder':
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation,
-                           weight_decay=weight_decay, bn_decay=bn_decay, keep_prob=keep_prob)
+        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
         return model
 
 
@@ -196,8 +194,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
             return net
 
 
-def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True, weight_decay=0.00001,
-                  bn_decay=0.95):
+def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train_fc=True):
     """Builds a discriminator network on top of inputs.
 
     Args:
@@ -212,8 +209,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
     """
     f_dims = DEFAULT_FILTER_DIMS
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
-                                              weight_decay=weight_decay, bn_decay=bn_decay)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             layers = []
             for l in range(0, num_layers):
                 net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l], scope='conv_{}'.format(l + 1))
@@ -231,8 +227,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             return net, encoded, layers
 
 
-def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.relu, weight_decay=0.00001,
-               bn_decay=0.95, keep_prob=0.9):
+def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.relu):
     """Builds a classifier on top of inputs consisting of 3 fully connected layers.
 
     Args:
@@ -246,13 +241,12 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, weight_decay=weight_decay,
-                                              bn_decay=bn_decay)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, keep_prob, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net, keep_prob, is_training=training)
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,
@@ -260,8 +254,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, weight_decay=0.00001,
-                      bn_decay=0.95):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -275,7 +268,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     """
     batch_norm_params = {
         'is_training': training,
-        'decay': bn_decay,
+        'decay': 0.95,
         'epsilon': 0.001,
         'center': False,
     }
@@ -283,7 +276,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         activation_fn=activation,
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params,
-                        weights_regularizer=slim.l2_regularizer(weight_decay)):
+                        weights_regularizer=slim.l2_regularizer(0.00001)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
                             padding=padding):

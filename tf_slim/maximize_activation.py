@@ -9,6 +9,7 @@ from utils import montage
 
 import numpy as np
 import scipy.misc
+
 slim = tf.contrib.slim
 
 
@@ -40,10 +41,10 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
         for f in range(num_filters):
             sess.run(x.assign(tf.random_normal([1, 128, 128, 3], stddev=2)))
             loss = -tf.reduce_sum(layers[layer_id - 1][:, :, :, f])
-            loss += 0.0001*tf.reduce_sum(tf.square(x))
+            loss += 0.0001 * tf.reduce_sum(tf.square(x))
             opt = tf.train.GradientDescentOptimizer(learning_rate=lr)
             train_op = opt.minimize(loss, var_list=[x])
-            print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, 4*f, lr))
+            print('Layer: {} Filter: {} Learning-Rate: {}'.format(layer_id, 4 * f, lr))
 
             for j in range(200):
                 tmp = x.eval()
@@ -56,6 +57,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
             losses[f] = sess.run(loss)
         return imgs, losses
 
+
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=1)
 MODLE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
@@ -66,6 +68,6 @@ LR = 1
 imgs, losses = max_activity_img(LAYER, 16, LR, ckpt)
 print(losses)
 
-imgs = [x for (y,x) in sorted(zip(losses, imgs))]
+imgs = [x for (y, x) in sorted(zip(losses, imgs))]
 montage_img = montage(imgs)
 scipy.misc.toimage(montage_img, cmin=0, cmax=255).save('max_act_%d_test_new1.png' % (LAYER))

@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-from alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
-from datasets import imagenet
-from preprocess import preprocess_image
-from utils import get_variables_to_train
+from tf_slim.datasets import imagenet
+from tf_slim.preprocess import preprocess_image
+from tf_slim.qhu_code.alexnet_v2 import alexnet_v2, alexnet_v2_arg_scope
+from tf_slim.utils import get_variables_to_train
 
 slim = tf.contrib.slim
 

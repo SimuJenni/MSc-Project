@@ -58,7 +58,6 @@ class VAEGAN:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        labels.set_shape((None,))
         return slim.one_hot_encoding(labels, 2)
 
     def gen_labels(self):
@@ -69,7 +68,6 @@ class VAEGAN:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
-        labels.set_shape((None,))
         return slim.one_hot_encoding(labels, 2)
 
     def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True,
@@ -98,7 +96,7 @@ class VAEGAN:
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             _, model = discriminator(img, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False, weight_decay=weight_decay, bn_decay=bn_decay)
+                                     training=training, train_fc=False, weight_decay=weight_decay, bn_decay=bn_decay)
             activation = lrelu
         elif type == 'encoder':
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)

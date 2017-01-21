@@ -115,7 +115,7 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-4)
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)

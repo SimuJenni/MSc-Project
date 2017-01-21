@@ -19,10 +19,10 @@ data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
 num_epochs = 30
-model = VAEGAN(num_layers=5, batch_size=128)
-TARGET_SHAPE = [96, 96, 3]
+model = VAEGAN(num_layers=5, batch_size=80)
+TARGET_SHAPE = [128, 128, 3]
 LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final_96/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 
@@ -46,8 +46,8 @@ with sess.as_default():
             img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
                                                                       output_height=TARGET_SHAPE[0],
                                                                       output_width=TARGET_SHAPE[1],
-                                                                      resize_side_min=128,
-                                                                      resize_side_max=128)
+                                                                      resize_side_min=144,
+                                                                      resize_side_max=144)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,

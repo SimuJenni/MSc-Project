@@ -38,8 +38,8 @@ with sess.as_default():
             # Get the training dataset
             train_set = data.get_split(TRAIN_SET_NAME, dataset_dir=IMAGENET_SMALL_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                      common_queue_capacity=8 * model.batch_size,
-                                                                      common_queue_min=2 * model.batch_size)
+                                                                      common_queue_capacity=4 * model.batch_size,
+                                                                      common_queue_min=1 * model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data

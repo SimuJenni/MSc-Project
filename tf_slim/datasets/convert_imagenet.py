@@ -163,6 +163,7 @@ def _process_image(filename, coder, max_im_dim=256):
     h = np.size(img, 0)
     w = np.size(img, 1)
 
+    # Center
     if w > h:
         pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
         image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)

@@ -5,7 +5,7 @@ import os
 import tensorflow as tf
 
 from ToonNet import VAEGAN
-from constants import LOG_DIR
+from constants import LOG_DIR, IMAGENET_SMALL_TF_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test
 
@@ -18,7 +18,7 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
 TARGET_SHAPE = [128, 128, 3]
 RESIZE_SIZE = 128
-NUM_CONV_TRAIN = 1
+NUM_CONV_TRAIN = 2
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
@@ -40,7 +40,7 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = data.get_split('validation')
+            test_set = data.get_split('validation', dataset_dir=IMAGENET_SMALL_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = provider.get(['image', 'label'])
             label_test -= data.LABEL_OFFSET

@@ -107,7 +107,7 @@ with sess.as_default():
             var2train = []
             for i in range(NUM_CONV_TRAIN):
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
-                                                   exclude=['discriminator/fully_connected'])
+                                                   exclude=['discriminator/fully_connected', 'discriminator/fc1'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
                 for v in vs:
@@ -148,7 +148,7 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
+                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected', 'discriminator/fc1',
                                              ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)

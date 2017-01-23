@@ -9,9 +9,9 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet import VAEGAN
+from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR
-from datasets import voc, stl10
+from datasets import voc, imagenet
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 
@@ -23,16 +23,16 @@ net_type = 'discriminator'
 data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
-TARGET_SHAPE = [128, 128, 3]
+TARGET_SHAPE = [224, 224, 3]
 num_ep = 600
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
-CHECKPOINT = 'model.ckpt-150002'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(stl10.NAME, model.name, CHECKPOINT))
+CHECKPOINT = 'model.ckpt-281568'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))

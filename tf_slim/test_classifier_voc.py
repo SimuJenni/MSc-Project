@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
-from ToonNet_Alex import VAEGAN
+from ToonNet import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
 from preprocess import preprocess_voc
@@ -17,14 +17,14 @@ net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=1)
 TARGET_SHAPE = [128, 128, 3]
-NUM_CONV_TRAIN = 5
+NUM_CONV_TRAIN = 3
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

@@ -112,7 +112,8 @@ with sess.as_default():
                 var2train += vs
                 for v in vs:
                     grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
-            vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected'])
+            vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected',
+                                                                                     'discriminator/fc1'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
             for v in vs:

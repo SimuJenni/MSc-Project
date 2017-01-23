@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
-from ToonNet import VAEGAN
+from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
 from preprocess import preprocess_voc
@@ -12,7 +12,7 @@ from utils import montage_tf
 slim = tf.contrib.slim
 
 # Setup
-finetuned = False
+finetuned = True
 net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=1)

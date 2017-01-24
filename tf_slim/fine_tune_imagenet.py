@@ -19,7 +19,7 @@ from constants import IMAGENET_SMALL_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
@@ -27,7 +27,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 4
-num_epochs = 30
+num_epochs = 40
 
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -108,7 +108,7 @@ with sess.as_default():
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
 
         # Create training operation
         if fine_tune:

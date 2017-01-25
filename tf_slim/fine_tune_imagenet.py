@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet import VAEGAN
+from ToonNet_Alex3 import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_train, preprocess_finetune_test, preprocess_imagenet
@@ -22,19 +22,19 @@ fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=192)
-TARGET_SHAPE = [128, 128, 3]
+model = VAEGAN(num_layers=num_layers, batch_size=256)
+TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 4
-num_epochs = 30
+num_epochs = 90
 
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_aug/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_aug/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -99,11 +99,11 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                       np.int64(num_train_steps * 0.75)]
-        values = [0.001, 0.0005, 0.0002, 0.0001]
+        values = [0.01, 0.001, 0.0001, 0.0001]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Create training operation
         if fine_tune:

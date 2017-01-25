@@ -220,8 +220,10 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            # net = slim.fully_connected(net, 4096, scope='fc1', trainable=train_fc)
-            # net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.fully_connected(net, 4096, scope='fc1')
+            net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.fully_connected(net, 4096, scope='fc2')
+            net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,

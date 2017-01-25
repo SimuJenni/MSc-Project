@@ -99,7 +99,7 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
                       np.int64(num_train_steps * 0.75)]
-        values = [0.01, 0.001, 0.0001, 0.0001]
+        values = [0.001, 0.0005, 0.0002, 0.0001]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

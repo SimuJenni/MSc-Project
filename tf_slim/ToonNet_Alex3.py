@@ -87,8 +87,7 @@ class VAEGAN:
         """
         activation = tf.nn.relu
         if not fine_tune:
-            _, model, _ = discriminator(img, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False)
+            _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
             activation = lrelu
         elif type == 'generator':
             gen_in = merge(img, edge)

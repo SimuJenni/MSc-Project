@@ -6,7 +6,6 @@ import sys
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
-from tensorflow.python.framework import ops
 
 from ToonNet import VAEGAN
 from constants import LOG_DIR
@@ -14,7 +13,7 @@ from datasets import imagenet
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
-from constants import IMAGENET_SMALL_TF_DATADIR
+from constants import IMAGENET_SMALL_TF_DATADIR, IMAGENET_TF_DATADIR
 
 slim = tf.contrib.slim
 
@@ -27,15 +26,15 @@ model = VAEGAN(num_layers=num_layers, batch_size=192)
 TARGET_SHAPE = [128, 128, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 4
-num_epochs = 40
+num_epochs = 30
 
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_aug/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_aug/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -48,7 +47,7 @@ with sess.as_default():
         with tf.device('/cpu:0'):
 
             # Get the training dataset
-            train_set = data.get_split('train', dataset_dir=IMAGENET_SMALL_TF_DATADIR)
+            train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=16 * model.batch_size,
                                                                       common_queue_min=2 * model.batch_size)

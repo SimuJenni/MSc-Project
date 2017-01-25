@@ -454,6 +454,27 @@ def preprocess_voc(image, output_height, output_width, augment_color=True, aspec
     return image
 
 
+def preprocess_imagenet(image, output_height, output_width, augment_color=True, aspect_ratio_range=[0.75, 1.33],
+                   area_range=[0.5, 1.0]):
+    # Select random crops
+    image = distort_image(image, output_height, output_width, aspect_ratio_range, area_range)
+
+    # Color and contrast augmentation
+    image = tf.to_float(image) / 255.
+    if augment_color:
+        image = dist_color(image)
+
+    # Scale to [-1, 1]
+    image = tf.clip_by_value(image, 0.0, 1.0)
+    image = tf.to_float(image) * 2. - 1.
+
+    # Flip left-right
+    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+    image = _flip_lr(image, p)
+
+    return image
+
+
 def distort_image(image, height, width, aspect_ratio_range=[0.75, 1.33], area_range=[0.5, 1.0]):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),

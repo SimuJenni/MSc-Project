@@ -10,7 +10,7 @@ from tensorflow.python.ops import math_ops
 from ToonNet import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_train, preprocess_finetune_test
+from preprocess import preprocess_finetune_train, preprocess_finetune_test, preprocess_imagenet
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
 from constants import IMAGENET_SMALL_TF_DATADIR, IMAGENET_TF_DATADIR
@@ -55,11 +55,7 @@ with sess.as_default():
             label_train -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_train = preprocess_finetune_train(img_train,
-                                                  output_height=TARGET_SHAPE[0],
-                                                  output_width=TARGET_SHAPE[1],
-                                                  resize_side_min=128,
-                                                  resize_side_max=144)
+            img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,

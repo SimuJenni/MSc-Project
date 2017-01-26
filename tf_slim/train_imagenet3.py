@@ -18,7 +18,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-num_epochs = 25
+num_epochs = 50
 model = VAEGAN(num_layers=5, batch_size=128)
 TARGET_SHAPE = [96, 96, 3]
 LR = 0.0002

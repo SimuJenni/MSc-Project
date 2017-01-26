@@ -26,7 +26,7 @@ model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 4
-num_epochs = 90
+num_epochs = 60
 
 CHECKPOINT = 'model.ckpt-671500'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -43,8 +43,6 @@ g = tf.Graph()
 with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
-
-        # with tf.device('/cpu:0'):
 
         # Get the training dataset
         train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)

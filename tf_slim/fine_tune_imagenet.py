@@ -10,10 +10,10 @@ from tensorflow.python.ops import math_ops
 from ToonNet_Alex3 import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_train, preprocess_finetune_test, preprocess_imagenet
+from preprocess import preprocess_finetune_test, preprocess_imagenet
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
-from constants import IMAGENET_SMALL_TF_DATADIR, IMAGENET_TF_DATADIR
+from constants import IMAGENET_TF_DATADIR
 
 slim = tf.contrib.slim
 

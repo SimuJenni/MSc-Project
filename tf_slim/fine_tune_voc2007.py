@@ -126,7 +126,6 @@ with sess.as_default():
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
         print(grad_multipliers)
-        sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
@@ -149,10 +148,10 @@ with sess.as_default():
                 include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected', 'discriminator/fc1',
                                              ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
-            sys.stdout.flush()
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
+        sys.stdout.flush()
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=60, save_interval_secs=180,

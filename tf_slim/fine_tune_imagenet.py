@@ -121,7 +121,6 @@ with sess.as_default():
                                                  global_step=global_step)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
-        sys.stdout.flush()
 
         if TEST_WHILE_TRAIN:
             preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
@@ -153,6 +152,7 @@ with sess.as_default():
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, var2restore, ignore_missing_vars=True)
 
         # Start training
+        sys.stdout.flush()
         slim.learning.train(train_op, SAVE_DIR,
                             init_fn=init_fn, number_of_steps=num_train_steps,
                             save_summaries_secs=300, save_interval_secs=600,

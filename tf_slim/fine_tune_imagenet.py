@@ -145,7 +145,7 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             var2restore = []
-            for i in range(NUM_CONV_TRAIN):
+            for i in range(num_layers-NUM_CONV_TRAIN):
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i + 1)],
                                                    exclude=['discriminator/fully_connected'])
                 var2restore += vs

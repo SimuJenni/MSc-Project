@@ -28,7 +28,7 @@ TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
 num_epochs = 60
 
-CHECKPOINT = 'model.ckpt-500450'
+CHECKPOINT = 'model.ckpt-496688'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,

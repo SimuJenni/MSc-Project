@@ -44,22 +44,21 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # Get the training dataset
         with tf.device('/cpu:0'):
+            # Get the training dataset
             train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=16,
                                                                       common_queue_capacity=8 * model.batch_size,
-                                                                      common_queue_min= model.batch_size)
+                                                                      common_queue_min=model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
             label_train -= data.LABEL_OFFSET
 
-        # Pre-process data
-        with tf.device('/cpu:1'):
+            # Pre-process data
             img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
 
-        # Make batches
-        imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
-                                                  num_threads=16, capacity=4 * model.batch_size)
+            # Make batches
+            imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
+                                                      num_threads=16, capacity=4 * model.batch_size)
 
         if TEST_WHILE_TRAIN:
             # Get test-data

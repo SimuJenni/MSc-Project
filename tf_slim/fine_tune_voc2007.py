@@ -31,7 +31,7 @@ TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 
-CHECKPOINT = 'model.ckpt-352273'
+CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(

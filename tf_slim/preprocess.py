@@ -454,7 +454,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True, aspec
     return image
 
 
-def preprocess_imagenet(image, output_height, output_width, augment_color=True, aspect_ratio_range=[0.75, 1.33],
+def preprocess_imagenet(image, output_height, output_width, augment_color=False, aspect_ratio_range=[0.75, 1.33],
                    area_range=[0.5, 1.0]):
     # Select random crops
     image = distort_image(image, output_height, output_width, aspect_ratio_range, area_range)
@@ -469,8 +469,7 @@ def preprocess_imagenet(image, output_height, output_width, augment_color=True, 
     image = tf.to_float(image) * 2. - 1.
 
     # Flip left-right
-    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
-    image = _flip_lr(image, p)
+    image = tf.image.random_flip_left_right(image)
 
     return image
 

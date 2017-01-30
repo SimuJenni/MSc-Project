@@ -49,7 +49,7 @@ with sess.as_default():
             train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=20 * model.batch_size,
-                                                                      common_queue_min=20 * model.batch_size)
+                                                                      common_queue_min=10 * model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
             label_train -= data.LABEL_OFFSET
 

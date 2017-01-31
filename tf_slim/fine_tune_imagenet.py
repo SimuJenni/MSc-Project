@@ -36,7 +36,7 @@ if fine_tune:
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
-sess = tf.Session()
+sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
 g = tf.Graph()

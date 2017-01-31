@@ -50,9 +50,9 @@ with sess.as_default():
         with tf.device('/cpu:0'):
             # Get the training dataset
             train_set = data.get_split(TRAIN_SET)
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                      common_queue_capacity=32 * model.batch_size,
-                                                                      common_queue_min=4 * model.batch_size)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=12,
+                                                                      common_queue_capacity=12 * model.batch_size,
+                                                                      common_queue_min=model.batch_size)
             [img_train, label_train] = provider.get(['image', 'label'])
 
             # Pre-process data
@@ -61,8 +61,8 @@ with sess.as_default():
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
-                                                      batch_size=model.batch_size, num_threads=8,
-                                                      capacity=4 * model.batch_size)
+                                                      batch_size=model.batch_size, num_threads=12,
+                                                      capacity=6 * model.batch_size)
 
             if TEST_WHILE_TRAIN:
                 # Get test-data

@@ -44,35 +44,35 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # with tf.device('/cpu:0'):
+        with tf.device('/cpu:0'):
 
-        # Get the training dataset
-        train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                  common_queue_capacity=2 * model.batch_size,
-                                                                  common_queue_min=128)
-        [img_train, label_train] = provider.get(['image', 'label'])
-        label_train -= data.LABEL_OFFSET
+            # Get the training dataset
+            train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+                                                                      common_queue_capacity=2 * model.batch_size,
+                                                                      common_queue_min=128)
+            [img_train, label_train] = provider.get(['image', 'label'])
+            label_train -= data.LABEL_OFFSET
 
-        # Pre-process data
-        img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
+            # Pre-process data
+            img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
 
-        # Make batches
-        imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
-                                                  num_threads=32, capacity=model.batch_size)
+            # Make batches
+            imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
+                                                      num_threads=16, capacity=model.batch_size)
 
-        if TEST_WHILE_TRAIN:
-            # Get test-data
-            test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-            [img_test, label_test] = provider.get(['image', 'label'])
-            label_test -= data.LABEL_OFFSET
-            img_test = preprocess_finetune_test(img_test,
-                                                output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1],
-                                                resize_side=128)
-            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
-                                                    num_threads=4)
+            if TEST_WHILE_TRAIN:
+                # Get test-data
+                test_set = data.get_split('test')
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
+                [img_test, label_test] = provider.get(['image', 'label'])
+                label_test -= data.LABEL_OFFSET
+                img_test = preprocess_finetune_test(img_test,
+                                                    output_height=TARGET_SHAPE[0],
+                                                    output_width=TARGET_SHAPE[1],
+                                                    resize_side=128)
+                imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
+                                                        num_threads=4)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)

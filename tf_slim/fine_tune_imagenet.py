@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 2
+NUM_CONV_TRAIN = 1
 num_epochs = 60
 
 CHECKPOINT = 'model.ckpt-600542'
@@ -48,7 +48,7 @@ with sess.as_default():
 
         # Get the training dataset
         train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
                                                                   common_queue_capacity=4 * model.batch_size,
                                                                   common_queue_min=128)
         [img_train, label_train] = provider.get(['image', 'label'])

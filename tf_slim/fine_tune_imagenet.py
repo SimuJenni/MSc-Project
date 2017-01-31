@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 1
+NUM_CONV_TRAIN = 0
 num_epochs = 60
 
 CHECKPOINT = 'model.ckpt-600542'

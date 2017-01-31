@@ -2,9 +2,6 @@ import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
-from tensorflow.python.framework import ops
-from tensorflow.python.ops import math_ops
-from tensorflow.contrib import slim as slim
 import numpy as np
 
 
@@ -177,5 +174,5 @@ def montage(images, gray=False):
                 m[1 + i + i * img_h:1 + i + (i + 1) * img_h,
                 1 + j + j * img_w:1 + j + (j + 1) * img_w] = this_img
     if gray:
-        m = Image.fromarray((m*255).astype(dtype=np.uint8))
+        m = Image.fromarray((m * 255).astype(dtype=np.uint8))
     return m

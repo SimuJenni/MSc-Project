@@ -18,7 +18,7 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
@@ -60,7 +60,7 @@ with sess.as_default():
 
             # Pre-process data
             img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                            augment_color=False)
+                                            augment_color=True)
             images_and_labels.append([img_train, label_train])
 
         # Make batches
@@ -107,7 +107,7 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
+        values = [0.001, 0.0005, 0.0002, 0.0001, 0.0001]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

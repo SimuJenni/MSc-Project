@@ -52,9 +52,9 @@ with sess.as_default():
 
             # Get the training dataset
             train_set = data.get_split(TRAIN_SET)
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
-                                                                      common_queue_capacity=2 * model.batch_size,
-                                                                      common_queue_min=128)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
+                                                                      common_queue_capacity=4 * model.batch_size,
+                                                                      common_queue_min=model.batch_size)
             images_and_labels = []
             for thread_id in range(num_preprocess_threads):
                 # Parse a serialized Example proto to extract the image and metadata.

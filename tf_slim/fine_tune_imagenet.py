@@ -27,6 +27,7 @@ TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 1
 num_epochs = 80
+num_preprocess_threads = 4
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -51,16 +52,22 @@ with sess.as_default():
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                   common_queue_capacity=2*model.batch_size,
                                                                   common_queue_min=model.batch_size)
-        [img_train, label_train] = provider.get(['image', 'label'])
-        label_train -= data.LABEL_OFFSET
+        images_and_labels = []
+        for thread_id in range(num_preprocess_threads):
+            # Parse a serialized Example proto to extract the image and metadata.
+            [img_train, label_train] = provider.get(['image', 'label'])
+            label_train -= data.LABEL_OFFSET
 
-        # Pre-process data
-        img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                        augment_color=False)
+            # Pre-process data
+            img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                            augment_color=False)
+            images_and_labels.append([img_train, label_train])
 
         # Make batches
-        imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
-                                                  num_threads=16, capacity=model.batch_size)
+        imgs_train, labels_train = tf.train.batch_join(
+            images_and_labels,
+            batch_size=model.batch_size,
+            capacity=2 * num_preprocess_threads * model.batch_size)
 
         if TEST_WHILE_TRAIN:
             # Get test-data

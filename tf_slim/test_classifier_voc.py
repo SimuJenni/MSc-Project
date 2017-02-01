@@ -17,7 +17,7 @@ net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=1)
 TARGET_SHAPE = [224, 224, 3]
-NUM_CONV_TRAIN = 4
+NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 

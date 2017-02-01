@@ -27,7 +27,7 @@ TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 4
 num_epochs = 80
-num_preprocess_threads = 8
+num_preprocess_threads = 16
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -60,7 +60,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                                augment_color=False)
+                                                augment_color=True)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches

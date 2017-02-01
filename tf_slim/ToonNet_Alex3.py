@@ -214,7 +214,6 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
             net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
-            # net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
 
             encoded = net
             # Fully connected layers

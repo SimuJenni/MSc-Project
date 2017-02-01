@@ -49,7 +49,7 @@ with sess.as_default():
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[0.5, 1.5],
+            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[0.7, 1.4],
                                           area_range=[0.2, 1.0], augment_color=False) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 

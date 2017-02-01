@@ -17,7 +17,7 @@ class VAEGAN:
             num_layers: The number of convolutional down/upsampling layers to be used.
             batch_size: The batch-size used during training (used to generate training labels)
         """
-        self.name = 'AEGAN_Alex'
+        self.name = 'AEGAN_Alex3'
         self.num_layers = num_layers
         self.batch_size = batch_size
 
@@ -87,8 +87,7 @@ class VAEGAN:
         """
         activation = tf.nn.relu
         if not fine_tune:
-            _, model, _ = discriminator(img, reuse=reuse, num_out=num_classes,
-                                        training=training, train_fc=False)
+            _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
             activation = lrelu
         elif type == 'generator':
             gen_in = merge(img, edge)
@@ -215,12 +214,13 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
             net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
-            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
 
             encoded = net
             # Fully connected layers
             net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096, scope='fc1', trainable=train_fc)
+            net = slim.fully_connected(net, 4096, scope='fc1')
+            net = slim.dropout(net, 0.9, is_training=training)
+            net = slim.fully_connected(net, 4096, scope='fc2')
             net = slim.dropout(net, 0.9, is_training=training)
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
@@ -245,6 +245,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
+            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.9, is_training=training)

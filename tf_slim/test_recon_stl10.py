@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_test

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 
-from ToonNet import VAEGAN, discriminator
+from ToonNet_VGG import VAEGAN, discriminator
 from constants import LOG_DIR
 from datasets import imagenet
 from tensorflow.python.ops.clip_ops import clip_by_value

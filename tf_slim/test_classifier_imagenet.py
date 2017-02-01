@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet import VAEGAN
+from ToonNet_Alex3 import VAEGAN
 from constants import LOG_DIR, IMAGENET_SMALL_TF_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test
@@ -16,7 +16,7 @@ finetuned = False
 net_type = 'discriminator'
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
-TARGET_SHAPE = [128, 128, 3]
+TARGET_SHAPE = [224, 224, 3]
 RESIZE_SIZE = 128
 NUM_CONV_TRAIN = 4
 

@@ -30,6 +30,7 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
+num_preprocess_threads = 8
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
@@ -47,33 +48,38 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # with tf.device('/cpu:0'):
+        with tf.device('/cpu:0'):
 
-        # Get the training dataset
-        train_set = data.get_split(TRAIN_SET)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
-                                                                  common_queue_capacity=2 * model.batch_size,
-                                                                  common_queue_min=128)
-        [img_train, label_train] = provider.get(['image', 'label'])
+            # Get the training dataset
+            train_set = data.get_split(TRAIN_SET)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+                                                                      common_queue_capacity=2 * model.batch_size,
+                                                                      common_queue_min=128)
+            images_and_labels = []
+            for thread_id in range(num_preprocess_threads):
+                # Parse a serialized Example proto to extract the image and metadata.
+                [img_train, label_train] = provider.get(['image', 'label'])
 
-        # Pre-process data
-        img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                   augment_color=True, aspect_ratio_range=[0.5, 1.5], area_range=[0.1, 1.0])
+                # Pre-process data
+                img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                           augment_color=True)
+                images_and_labels.append([img_train, label_train])
 
-        # Make batches
-        imgs_train, labels_train = tf.train.batch([img_train, label_train],
-                                                  batch_size=model.batch_size, num_threads=32,
-                                                  capacity=model.batch_size)
+            # Make batches
+            imgs_train, labels_train = tf.train.batch_join(
+                images_and_labels,
+                batch_size=model.batch_size,
+                capacity=num_preprocess_threads * model.batch_size)
 
-        if TEST_WHILE_TRAIN:
-            # Get test-data
-            test_set = data.get_split(TEST_SET)
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-            [img_test, label_test] = provider.get(['image', 'label'])
-            img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
-            imgs_test, labels_test = tf.train.batch(
-                [img_test, label_test],
-                batch_size=model.batch_size, num_threads=1)
+            if TEST_WHILE_TRAIN:
+                # Get test-data
+                test_set = data.get_split(TEST_SET)
+                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+                [img_test, label_test] = provider.get(['image', 'label'])
+                img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
+                imgs_test, labels_test = tf.train.batch(
+                    [img_test, label_test],
+                    batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)

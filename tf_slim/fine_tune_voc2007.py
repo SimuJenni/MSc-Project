@@ -24,9 +24,9 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [224, 224, 3]
-num_ep = 400
+num_ep = 800
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
@@ -58,7 +58,7 @@ with sess.as_default():
 
         # Pre-process data
         img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                   augment_color=True, aspect_ratio_range=[0.5, 1.5], area_range=[0.2, 1.0])
+                                   augment_color=True, aspect_ratio_range=[0.5, 1.5], area_range=[0.1, 1.0])
 
         # Make batches
         imgs_train, labels_train = tf.train.batch([img_train, label_train],

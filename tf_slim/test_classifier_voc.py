@@ -18,7 +18,7 @@ data = voc
 model = VAEGAN(num_layers=5, batch_size=1)
 # TARGET_SHAPE = [224, 224, 3]
 TARGET_SHAPE = [128, 128, 3]
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
@@ -50,7 +50,7 @@ with sess.as_default():
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], aspect_ratio_range=[0.5, 1.5],
-                                          area_range=[0.2, 1.0], augment_color=True) for im in imgs_test_p]
+                                          area_range=[0.2, 1.0], augment_color=False) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions

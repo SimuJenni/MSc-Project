@@ -48,7 +48,7 @@ with sess.as_default():
 
         # Get the training dataset
         train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                   common_queue_capacity=2*model.batch_size,
                                                                   common_queue_min=model.batch_size)
         [img_train, label_train] = provider.get(['image', 'label'])
@@ -56,11 +56,11 @@ with sess.as_default():
 
         # Pre-process data
         img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                        augment_color=True)
+                                        augment_color=False)
 
         # Make batches
         imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
-                                                  num_threads=8, capacity=model.batch_size)
+                                                  num_threads=16, capacity=model.batch_size)
 
         if TEST_WHILE_TRAIN:
             # Get test-data

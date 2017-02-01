@@ -27,7 +27,7 @@ TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 1
 num_epochs = 80
-num_preprocess_threads = 8
+num_preprocess_threads = 10
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -49,7 +49,7 @@ with sess.as_default():
 
             # Get the training dataset
             train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                       common_queue_capacity=4*model.batch_size,
                                                                       common_queue_min=model.batch_size)
             images_and_labels = []

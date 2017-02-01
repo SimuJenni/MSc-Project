@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_VGG import VAEGAN
+from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test, preprocess_imagenet
@@ -18,21 +18,21 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=256)
-TARGET_SHAPE = [128, 128, 3]
+model = VAEGAN(num_layers=num_layers, batch_size=512)
+TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 2
-num_epochs = 60
+NUM_CONV_TRAIN = 0
+num_epochs = 80
 
-CHECKPOINT = 'model.ckpt-671500'
+CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}/'.format(data.NAME, model.name, net_type,
-                                                                           NUM_CONV_TRAIN))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
+                                                                                 net_type, NUM_CONV_TRAIN))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 

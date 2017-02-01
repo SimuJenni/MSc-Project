@@ -17,7 +17,7 @@ net_type = 'discriminator'
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
 TARGET_SHAPE = [224, 224, 3]
-RESIZE_SIZE = 128
+RESIZE_SIZE = 224
 NUM_CONV_TRAIN = 4
 
 if finetuned:

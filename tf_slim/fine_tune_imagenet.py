@@ -18,15 +18,15 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 4
-num_epochs = 60
+NUM_CONV_TRAIN = 0
+num_epochs = 80
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -55,7 +55,8 @@ with sess.as_default():
         label_train -= data.LABEL_OFFSET
 
         # Pre-process data
-        img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
+        img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                        augment_color=True)
 
         # Make batches
         imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
@@ -97,9 +98,9 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
-                      np.int64(num_train_steps * 0.75)]
-        values = [0.001, 0.0005, 0.0002, 0.0001]
+        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

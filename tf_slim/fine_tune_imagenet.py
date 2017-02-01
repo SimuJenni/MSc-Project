@@ -60,7 +60,7 @@ with sess.as_default():
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=model.batch_size,
-                                                      num_threads=4, capacity=model.batch_size)
+                                                      num_threads=8, capacity=model.batch_size)
 
             if TEST_WHILE_TRAIN:
                 # Get test-data

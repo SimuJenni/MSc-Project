@@ -214,19 +214,20 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
             net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
-
             encoded = net
-            # Fully connected layers
-            net = slim.flatten(net)
-            net = slim.fully_connected(net, 4096, scope='fc1')
-            net = slim.dropout(net, 0.9, is_training=training)
-            net = slim.fully_connected(net, 4096, scope='fc2')
-            net = slim.dropout(net, 0.9, is_training=training)
-            net = slim.fully_connected(net, num_out,
-                                       activation_fn=None,
-                                       normalizer_fn=None,
-                                       biases_initializer=tf.zeros_initializer,
-                                       trainable=train_fc)
+
+            if train_fc:
+                # Fully connected layers
+                net = slim.flatten(net)
+                net = slim.fully_connected(net, 4096, scope='fc1', trainable=train_fc)
+                net = slim.dropout(net, 0.9, is_training=training)
+                net = slim.fully_connected(net, 4096, scope='fc2', trainable=train_fc)
+                net = slim.dropout(net, 0.9, is_training=training)
+                net = slim.fully_connected(net, num_out,
+                                           activation_fn=None,
+                                           normalizer_fn=None,
+                                           biases_initializer=tf.zeros_initializer,
+                                           trainable=train_fc)
             return net, encoded
 
 

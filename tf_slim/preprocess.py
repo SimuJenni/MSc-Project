@@ -418,19 +418,31 @@ def preprocess_finetune_train(image, output_height, output_width, augment_color=
 
 
 def preprocess_finetune_test(image, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
-    # Resize/zoom
-    image = _aspect_preserving_resize(image, resize_side)
 
-    # Select random crops
-    [image] = _central_crop([image], output_height, output_width)
+    # Crop the central region of the image with an area containing 87.5% of
+    # the original image.
+    image = tf.image.central_crop(image, central_fraction=0.875)
 
-    # Resize to output size
-    image.set_shape([output_height, output_width, 3])
-
-    # Scale to [-1, 1]
-    image = tf.to_float(image) * (2. / 255.) - 1.
-
+    # Resize the image to the original height and width.
+    image = tf.expand_dims(image, 0)
+    image = tf.image.resize_bilinear(image, [output_height, output_width],
+                                     align_corners=False)
+    image = tf.squeeze(image, [0])
     return image
+
+    # # Resize/zoom
+    # image = _aspect_preserving_resize(image, resize_side)
+    #
+    # # Select random crops
+    # [image] = _central_crop([image], output_height, output_width)
+    #
+    # # Resize to output size
+    # image.set_shape([output_height, output_width, 3])
+    #
+    # # Scale to [-1, 1]
+    # image = tf.to_float(image) * (2. / 255.) - 1.
+    #
+    # return image
 
 
 def preprocess_voc(image, output_height, output_width, augment_color=True):

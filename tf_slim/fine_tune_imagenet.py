@@ -32,10 +32,10 @@ num_preprocess_threads = 16
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
 
 sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -105,14 +105,17 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
-
+        # boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
+        #               np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
+        # values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
+        boundaries = [i*1e5 for i in range(1, 4)]
+        values = [0.01*0.1**i for i in range(1, 5)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
+        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+
 
         # Create training operation
         if fine_tune:

@@ -18,7 +18,7 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
@@ -107,13 +107,12 @@ with sess.as_default():
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        # values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
-        values = [0.001, 0.0005, 0.0002, 0.0002, 0.0002]
+        values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
 
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
 
         # Create training operation
         if fine_tune:

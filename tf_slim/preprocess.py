@@ -454,7 +454,7 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
 
 def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=[0.05, 1])
+    image = distort_image(image, output_height, output_width, area_range=[0.1, 1])
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.

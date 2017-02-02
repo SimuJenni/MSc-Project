@@ -108,7 +108,7 @@ with sess.as_default():
         # boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
         #               np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         # values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
-        boundaries = [i*1e5 for i in range(1, 4)]
+        boundaries = [i*100000 for i in range(1, 4)]
         values = [0.01*0.1**i for i in range(1, 5)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

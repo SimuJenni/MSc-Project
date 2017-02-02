@@ -18,16 +18,16 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 1
+NUM_CONV_TRAIN = 4
 num_epochs = 80
-num_preprocess_threads = 16
+num_preprocess_threads = 20
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))

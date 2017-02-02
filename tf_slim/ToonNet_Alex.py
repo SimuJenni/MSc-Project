@@ -271,7 +271,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         An argscope
     """
     batch_norm_params = {
-        'is_training': True,
+        'is_training': training,
         'decay': 0.95,
         'epsilon': 0.001,
         'center': False,

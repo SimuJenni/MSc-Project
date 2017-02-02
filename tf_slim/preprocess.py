@@ -428,7 +428,12 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     image = tf.image.resize_bilinear(image, [output_height, output_width],
                                      align_corners=False)
     image = tf.squeeze(image, [0])
+
+    # Resize to output size
     image.set_shape([output_height, output_width, 3])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
 
     return image
 

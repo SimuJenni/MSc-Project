@@ -49,7 +49,7 @@ with sess.as_default():
 
         # Get the training dataset
         train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
+        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4*model.batch_size,
                                                                   common_queue_min=model.batch_size)
         images_and_labels = []
@@ -72,7 +72,7 @@ with sess.as_default():
         if TEST_WHILE_TRAIN:
             # Get test-data
             test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=2)
             [img_test, label_test] = provider.get(['image', 'label'])
             label_test -= data.LABEL_OFFSET
             img_test = preprocess_finetune_test(img_test,

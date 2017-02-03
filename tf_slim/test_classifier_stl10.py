@@ -18,6 +18,7 @@ model = VAEGAN(num_layers=4, batch_size=1000)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = 96
 NUM_CONV_TRAIN = 3
+use_test_set = True
 
 for fold in range(10):
     if finetuned:
@@ -41,8 +42,12 @@ for fold in range(10):
 
             with tf.device('/cpu:0'):
                 # Get test-data
-                # test_set = data.get_split('test_fold_{}'.format(fold))
-                test_set = data.get_split('test'.format(fold))
+                if use_test_set:
+                    test_set = data.get_split('test')
+                    num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
+                else:
+                    test_set = data.get_split('test_fold_{}'.format(fold))
+                    num_eval_steps = int(data.SPLITS_TO_SIZES['test_fold_{}'.format(fold)] / model.batch_size)
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
 
@@ -75,7 +80,6 @@ for fold in range(10):
                 op = tf.Print(op, [metric_value], metric_name)
                 summary_ops.append(op)
 
-            num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
             slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                             num_evals=num_eval_steps,
                                             max_number_of_evaluations=1,

@@ -21,11 +21,11 @@ RESIZE_SIZE = 224
 NUM_CONV_TRAIN = 4
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final/'.format(data.NAME, model.name,
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd/'.format(data.NAME, model.name,
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
     LOG_PATH = MODEL_PATH
 
 print('Evaluating model: {}'.format(MODEL_PATH))

@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_Alex import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_test
@@ -15,8 +15,8 @@ slim = tf.contrib.slim
 
 # Setup
 data = imagenet
-model = VAEGAN(num_layers=5, batch_size=128)
-TARGET_SHAPE = [96, 96, 3]
+model = VAEGAN(num_layers=5, batch_size=56)
+TARGET_SHAPE = [128, 128, 3]
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
@@ -40,7 +40,7 @@ with sess.as_default():
             img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
-                                                                  resize_side=96)
+                                                                  resize_side=128)
             # Make batches
             imgs_test, edges_test, toons_test = tf.train.batch(
                 [img_test, edge_test, toon_test],

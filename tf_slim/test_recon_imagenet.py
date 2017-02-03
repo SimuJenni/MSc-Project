@@ -67,20 +67,19 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:128], 4, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:128], 4, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:128], 4, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:128], 4, 32), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:128], 4, 32), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:60], 5, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:60], 5, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:60], 5, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:60], 5, 12), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:60], 5, 12), max_images=1))
         with tf.variable_scope('discriminator', reuse=True):
-            #weights_disc_1 = slim.variable('conv_1/conv_1_1/weights')
             weights_disc_1 = slim.variable('conv_1/weights')
 
         summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),
                                             max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=2,
+                                        num_evals=1,
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops))

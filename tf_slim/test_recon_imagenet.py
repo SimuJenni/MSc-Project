@@ -15,8 +15,8 @@ slim = tf.contrib.slim
 
 # Setup
 data = imagenet
-model = VAEGAN(num_layers=5, batch_size=128)
-TARGET_SHAPE = [96, 96, 3]
+model = VAEGAN(num_layers=5, batch_size=56)
+TARGET_SHAPE = [128, 128, 3]
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
@@ -40,7 +40,7 @@ with sess.as_default():
             img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
-                                                                  resize_side=96)
+                                                                  resize_side=128)
             # Make batches
             imgs_test, edges_test, toons_test = tf.train.batch(
                 [img_test, edge_test, toon_test],
@@ -67,11 +67,11 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:128], 16, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:128], 16, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:128], 16, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:128], 16, 8), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:128], 16, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:56], 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:56], 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:56], 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:56], 7, 8), max_images=1))
+        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:56], 7, 8), max_images=1))
 
         # with tf.variable_scope('discriminator', reuse=True):
         #     weights_disc_1 = slim.variable('conv_1/weights')

@@ -18,7 +18,7 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
@@ -26,8 +26,8 @@ model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 0
-num_epochs = 80
-num_preprocess_threads = 24
+num_epochs = 90
+num_preprocess_threads = 16
 
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -108,7 +108,7 @@ with sess.as_default():
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         # values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
-        values = [0.01*0.1**i for i in range(4)]
+        values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

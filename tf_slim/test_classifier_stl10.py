@@ -41,7 +41,8 @@ for fold in range(10):
 
             with tf.device('/cpu:0'):
                 # Get test-data
-                test_set = data.get_split('test_fold_{}'.format(fold))
+                # test_set = data.get_split('test_fold_{}'.format(fold))
+                test_set = data.get_split('test'.format(fold))
                 provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
                 [img_test, label_test] = provider.get(['image', 'label'])
 

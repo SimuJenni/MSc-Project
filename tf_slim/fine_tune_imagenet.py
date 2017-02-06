@@ -18,7 +18,7 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5

@@ -18,7 +18,7 @@ from constants import IMAGENET_TF_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
@@ -37,7 +37,7 @@ if fine_tune:
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
 
-sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
 g = tf.Graph()

@@ -437,6 +437,20 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
 
     return image
 
+    # # Resize/zoom
+    # image = _aspect_preserving_resize(image, resize_side)
+    #
+    # # Select random crops
+    # [image] = _central_crop([image], output_height, output_width)
+    #
+    # # Resize to output size
+    # image.set_shape([output_height, output_width, 3])
+    #
+    # # Scale to [-1, 1]
+    # image = tf.to_float(image) * (2. / 255.) - 1.
+    #
+    # return image
+
 
 def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Select random crops
@@ -476,7 +490,7 @@ def preprocess_imagenet(image, output_height, output_width, augment_color=False)
     return image
 
 
-def distort_image(image, height, width, aspect_ratio_range=(0.8, 1.2), area_range=(0.4, 1.0)):
+def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_range=(0.4, 1.0)):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
         [[[0, 0, 1, 1]]],

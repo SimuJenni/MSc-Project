@@ -422,7 +422,7 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     # Crop the central region of the image with an area containing 87.5% of
     # the original image.
     #image = tf.image.central_crop(image, central_fraction=0.875)
-    image = tf.image.central_crop(image, central_fraction=0.875)
+    image = tf.image.central_crop(image, central_fraction=0.85)
 
     # Resize the image to the original height and width.
     image = tf.expand_dims(image, 0)
@@ -460,7 +460,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
 
 def preprocess_imagenet(image, output_height, output_width, augment_color=False):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=(0.7, 0.8), aspect_ratio_range=(0.9, 1.15))
+    image = distort_image(image, output_height, output_width, area_range=(0.6, 0.9), aspect_ratio_range=(0.8, 1.25))
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.

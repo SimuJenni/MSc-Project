@@ -67,7 +67,9 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
     # x_max = tf.reduce_max(weights)
     #
     # weights1 = (weights - x_min) / (x_max - x_min)
+    weights = tf.transpose(weights, perm=[3,0,1,2])
     weights1 = tf.map_fn(lambda img: per_image_standardization(img), weights)
+    weights1 = tf.transpose(weights1, perm=[1,2,3,0])
 
     # pad X and Y
     x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [1, 1], [1, 1]]), mode='CONSTANT')

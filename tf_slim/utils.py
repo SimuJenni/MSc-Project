@@ -18,13 +18,14 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
         Tensor of shape [(Y+2*pad)*grid_Y, (X+2*pad)*grid_X, NumChannels, 1].
     """
 
-    x_min = tf.reduce_min(weights)
-    x_max = tf.reduce_max(weights)
-
-    weights1 = (weights - x_min) / (x_max - x_min)
+    # x_min = tf.reduce_min(weights)
+    # x_max = tf.reduce_max(weights)
+    #
+    # weights1 = (weights - x_min) / (x_max - x_min)
+    weights1 = tf.map_fn(lambda img: tf.image.per_image_standardization(img), weights)
 
     # pad X and Y
-    x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [0, 0], [0, 0]]), mode='CONSTANT')
+    x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [1, 1], [1, 1]]), mode='CONSTANT')
 
     # X and Y dimensions, w.r.t. padding
     Y = weights1.get_shape()[0] + 2 * pad

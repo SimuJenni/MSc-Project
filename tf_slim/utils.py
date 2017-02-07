@@ -71,7 +71,7 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
     weights1 = (weights - x_min) / (x_max - x_min)
 
     # pad X and Y
-    x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [1, 1], [1, 1]]), mode='CONSTANT')
+    x1 = tf.pad(weights1, tf.constant([[pad, pad], [pad, pad], [0, 0], [0, 0]]), mode='CONSTANT')
 
     # X and Y dimensions, w.r.t. padding
     Y = weights1.get_shape()[0] + 2 * pad

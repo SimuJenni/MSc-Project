@@ -63,8 +63,8 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
         Tensor of shape [(Y+2*pad)*grid_Y, (X+2*pad)*grid_X, NumChannels, 1].
     """
 
-    x_min = tf.reduce_min(weights, axis=[0, 1, 2])
-    x_max = tf.reduce_max(weights, axis=[0, 1, 2])
+    x_min = tf.reduce_min(weights, reduction_indices=[0, 1, 2])
+    x_max = tf.reduce_max(weights, reduction_indices=[0, 1, 2])
 
     weights1 = (weights - x_min) / (x_max - x_min)
 

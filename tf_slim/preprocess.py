@@ -460,7 +460,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
 
 def preprocess_imagenet(image, output_height, output_width, augment_color=False):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=(0.4, 1.0))
+    image = distort_image(image, output_height, output_width, area_range=(0.7, 0.8), aspect_ratio_range=(0.9, 1.15))
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.

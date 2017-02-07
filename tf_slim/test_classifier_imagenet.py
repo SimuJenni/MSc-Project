@@ -49,7 +49,7 @@ with sess.as_default():
             # img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
             #                                     output_width=TARGET_SHAPE[1],
             #                                     resize_side=RESIZE_SIZE)
-            img_train = preprocess_imagenet(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+            img_test = preprocess_imagenet(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
                                             augment_color=False)
 
             # Make batches

@@ -7,7 +7,7 @@ import tensorflow as tf
 from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_test
+from preprocess import preprocess_finetune_test, preprocess_imagenet
 
 slim = tf.contrib.slim
 
@@ -46,9 +46,12 @@ with sess.as_default():
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1],
-                                                resize_side=RESIZE_SIZE)
+            # img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
+            #                                     output_width=TARGET_SHAPE[1],
+            #                                     resize_side=RESIZE_SIZE)
+            img_train = preprocess_imagenet(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                            augment_color=False)
+
             # Make batches
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
                                                     num_threads=1)

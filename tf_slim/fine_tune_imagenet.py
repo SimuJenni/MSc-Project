@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 TEST_WHILE_TRAIN = False
-NUM_CONV_TRAIN = 1
+NUM_CONV_TRAIN = 4
 num_epochs = 90
 num_preprocess_threads = 16
 
@@ -112,7 +112,7 @@ with sess.as_default():
         #               np.int64(num_steps_90 * 0.6), np.int64(num_steps_90 * 0.8)]
         # values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
         # lr_step = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
-        # tf.select(tf.greater_equal(global_step, num_steps_90),
+        # learning_rate = tf.select(tf.greater_equal(global_step, num_steps_90),
         #           (1-(global_step-num_steps_90)/(num_train_steps-num_steps_90)) * 0.01 * 250. ** (-1.),
         #           lr_step)
 

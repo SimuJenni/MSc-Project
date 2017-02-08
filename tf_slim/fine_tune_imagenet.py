@@ -104,11 +104,23 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
+
+        # num_steps_90 = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * 90
+        # num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
+        #
+        # boundaries = [np.int64(num_steps_90 * 0.2), np.int64(num_steps_90 * 0.4),
+        #               np.int64(num_steps_90 * 0.6), np.int64(num_steps_90 * 0.8)]
+        # values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
+        # lr_step = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # tf.select(tf.greater_equal(global_step, num_steps_90),
+        #           (1-(global_step-num_steps_90)/(num_train_steps-num_steps_90)) * 0.01 * 250. ** (-1.),
+        #           lr_step)
+
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        # values = [0.001, 0.0005, 0.0002, 0.0001, 0.00005]
-        values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
+        values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
+                  0.01 * 250. ** (-1.)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

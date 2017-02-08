@@ -419,9 +419,9 @@ def preprocess_finetune_train(image, output_height, output_width, augment_color=
 
 def preprocess_finetune_test(image, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
 
-    # Crop the central region of the image with an area containing 87.5% of
+    # Crop the central region of the image with an area containing 85% of
     # the original image.
-    image = tf.image.central_crop(image, central_fraction=0.875)
+    image = tf.image.central_crop(image, central_fraction=0.85)
 
     # Resize the image to the original height and width.
     image = tf.expand_dims(image, 0)

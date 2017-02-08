@@ -59,7 +59,7 @@ with sess.as_default():
                                       type=net_type)
 
         # Compute predicted label for accuracy
-        preds_test = tf.argmax(preds_test, 1)
+        preds_test = tf.argmax(tf.nn.softmax(preds_test), 1)
 
         # Choose the metrics to compute:
         names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({

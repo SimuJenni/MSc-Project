@@ -2,52 +2,7 @@ import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.training import saver as tf_saver
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import ops
-from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import gen_nn_ops
-from tensorflow.python.ops import math_ops
 import numpy as np
-
-
-def per_image_standardization(image):
-  """Linearly scales `image` to have zero mean and unit norm.
-
-  This op computes `(x - mean) / adjusted_stddev`, where `mean` is the average
-  of all values in image, and
-  `adjusted_stddev = max(stddev, 1.0/sqrt(image.NumElements()))`.
-
-  `stddev` is the standard deviation of all values in `image`. It is capped
-  away from zero to protect against division by 0 when handling uniform images.
-
-  Args:
-    image: 3-D tensor of shape `[height, width, channels]`.
-
-  Returns:
-    The standardized image with same shape as `image`.
-
-  Raises:
-    ValueError: if the shape of 'image' is incompatible with this function.
-  """
-  image = ops.convert_to_tensor(image, name='image')
-  num_pixels = math_ops.reduce_prod(array_ops.shape(image))
-
-  image = math_ops.cast(image, dtype=dtypes.float32)
-  image_mean = math_ops.reduce_mean(image)
-
-  variance = (math_ops.reduce_mean(math_ops.square(image)) -
-              math_ops.square(image_mean))
-  variance = gen_nn_ops.relu(variance)
-  stddev = math_ops.sqrt(variance)
-
-  # Apply a minimum normalization that protects us against uniform images.
-  min_stddev = math_ops.rsqrt(math_ops.cast(num_pixels, dtypes.float32))
-  pixel_value_scale = math_ops.maximum(stddev, min_stddev)
-  pixel_value_offset = image_mean
-
-  image = math_ops.sub(image, pixel_value_offset)
-  image = math_ops.div(image, pixel_value_scale)
-  return image
 
 
 def weights_montage(weights, grid_Y, grid_X, pad=1):
@@ -65,8 +20,6 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
 
     x_min = tf.reduce_min(weights, reduction_indices=[0, 1, 2])
     x_max = tf.reduce_max(weights, reduction_indices=[0, 1, 2])
-    # x_min = tf.reduce_min(weights)
-    # x_max = tf.reduce_max(weights)
 
     weights1 = (weights - x_min) / (x_max - x_min)
 

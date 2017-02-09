@@ -333,7 +333,8 @@ def preprocess_for_eval(image, output_height, output_width, resize_side):
     return _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
 
 
-def preprocess_toon_train(image, edge, cartoon, output_height, output_width, resize_side_min=_RESIZE_SIDE_MIN,
+def preprocess_toon_train(image, edge, cartoon, output_height, output_width,
+                          resize_side_min=_RESIZE_SIDE_MIN,
                           resize_side_max=_RESIZE_SIDE_MAX):
     # Compute zoom side-size
     resize_side = tf.random_uniform([], minval=resize_side_min, maxval=resize_side_max + 1, dtype=tf.int32)
@@ -460,6 +461,25 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
 def preprocess_imagenet(image, output_height, output_width, augment_color=False):
     # Select random crops
     image = distort_image(image, output_height, output_width, area_range=(0.6, 0.9), aspect_ratio_range=(0.8, 1.25))
+
+    # Color and contrast augmentation
+    image = tf.to_float(image) / 255.
+    if augment_color:
+        image = dist_color(image)
+
+    # Scale to [-1, 1]
+    image = tf.clip_by_value(image, 0.0, 1.0)
+    image = tf.to_float(image) * 2. - 1.
+
+    # Flip left-right
+    image = tf.image.random_flip_left_right(image)
+
+    return image
+
+
+def preprocess_imagenet_256(image, output_height, output_width, augment_color=False):
+    # Select random crops
+    image = tf.random_crop(image, size=(output_height, output_width, 3))
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.

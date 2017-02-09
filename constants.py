@@ -9,7 +9,7 @@ IMG_DIR = os.path.join(DATA_DIR, 'img/')
 LOG_DIR = os.path.join(DATA_DIR, 'logs/')
 
 # Directories for cartooned datasets
-#IMAGENET_TF_DATADIR = os.path.join(DATA_DIR, 'imagenet-TFRecords/')
+IMAGENET_TF_256_DATADIR = os.path.join(DATA_DIR, 'imagenet-TFRecords/')
 IMAGENET_TF_DATADIR = '/data/cvg/imagenet/imagenet_tfrecords/'
 IMAGENET_SMALL_TF_DATADIR = os.path.join(DATA_DIR, 'imagenet-small-TFRecords/')
 VOC2007_TF_DATADIR = os.path.join(DATA_DIR, 'voc2007-TFRecords/')

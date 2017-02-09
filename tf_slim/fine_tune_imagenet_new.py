@@ -10,21 +10,19 @@ from tensorflow.python.ops import math_ops
 from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_test, preprocess_imagenet
+from preprocess import preprocess_imagenet_256
 from utils import assign_from_checkpoint_fn, montage_tf
-import numpy as np
-from constants import IMAGENET_TF_DATADIR
+from constants import IMAGENET_TF_256_DATADIR
 
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
-TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 1
 num_epochs = 90
 num_preprocess_threads = 16
@@ -32,10 +30,10 @@ num_preprocess_threads = 16
 CHECKPOINT = 'model.ckpt-600542'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd256/'.format(data.NAME, model.name,
                                                                                  net_type, NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -48,7 +46,7 @@ with sess.as_default():
         # with tf.device('/cpu:0'):
 
         # Get the training dataset
-        train_set = data.get_split('train', dataset_dir=IMAGENET_TF_DATADIR)
+        train_set = data.get_split('train', dataset_dir=IMAGENET_TF_256_DATADIR)
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4*model.batch_size,
                                                                   common_queue_min=model.batch_size)
@@ -59,8 +57,8 @@ with sess.as_default():
             label_train -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_train = preprocess_imagenet(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                            augment_color=False)
+            img_train = preprocess_imagenet_256(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                                augment_color=False)
             images_and_labels.append([img_train, label_train])
 
         # Make batches
@@ -68,19 +66,6 @@ with sess.as_default():
             images_and_labels,
             batch_size=model.batch_size,
             capacity=num_preprocess_threads * model.batch_size)
-
-        if TEST_WHILE_TRAIN:
-            # Get test-data
-            test_set = data.get_split('test')
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=2)
-            [img_test, label_test] = provider.get(['image', 'label'])
-            label_test -= data.LABEL_OFFSET
-            img_test = preprocess_finetune_test(img_test,
-                                                output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1],
-                                                resize_side=128)
-            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,
-                                                    num_threads=8)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
@@ -104,28 +89,11 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
-
-        # num_steps_90 = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * 90
-        # num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        #
-        # boundaries = [np.int64(num_steps_90 * 0.2), np.int64(num_steps_90 * 0.4),
-        #               np.int64(num_steps_90 * 0.6), np.int64(num_steps_90 * 0.8)]
-        # values = [0.01, 0.01 * 250.**(-1. / 4.), 0.01 * 250**(-2. / 4.), 0.01 * 250**(-3. / 4.), 0.01 * 250. ** (-1.)]
-        # lr_step = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
-        # learning_rate = tf.select(tf.greater_equal(global_step, num_steps_90),
-        #           (1-(global_step-num_steps_90)/(num_train_steps-num_steps_90)) * 0.01 * 250. ** (-1.),
-        #           lr_step)
-
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
-                      np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
-        values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
-                  0.01 * 250. ** (-1.)]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.00001)
 
         # Define optimizer
-        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, epsilon=1e-5)
-        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
 
         # Create training operation
         if fine_tune:
@@ -145,15 +113,6 @@ with sess.as_default():
                                                  global_step=global_step)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
-
-        if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
-                                          training=False, fine_tune=fine_tune, type=net_type)
-            test_loss = slim.losses.softmax_cross_entropy(preds_test,
-                                                          slim.one_hot_encoding(labels_test, data.NUM_CLASSES))
-            preds_test = tf.argmax(preds_test, 1)
-            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-            tf.scalar_summary('losses/test loss', test_loss)
 
         # Gather all summaries
         for variable in slim.get_model_variables():

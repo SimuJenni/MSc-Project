@@ -485,9 +485,9 @@ def preprocess_imagenet_256(image, output_height, output_width, augment_color=Fa
     image = tf.to_float(image) / 255.
     if augment_color:
         image = dist_color(image)
+        image = tf.clip_by_value(image, 0.0, 1.0)
 
     # Scale to [-1, 1]
-    image = tf.clip_by_value(image, 0.0, 1.0)
     image = tf.to_float(image) * 2. - 1.
 
     # Flip left-right

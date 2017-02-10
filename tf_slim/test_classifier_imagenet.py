@@ -7,7 +7,7 @@ import tensorflow as tf
 from ToonNet_Alex import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_test
+from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test
 
 slim = tf.contrib.slim
 
@@ -21,11 +21,11 @@ RESIZE_SIZE = 224
 NUM_CONV_TRAIN = 0
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd/'.format(data.NAME, model.name,
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd256/'.format(data.NAME, model.name,
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
     LOG_PATH = MODEL_PATH
 
 print('Evaluating model: {}'.format(MODEL_PATH))
@@ -46,9 +46,8 @@ with sess.as_default():
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1],
-                                                resize_side=RESIZE_SIZE)
+            img_test = preprocess_imagenet_256_test(img_test, output_height=TARGET_SHAPE[0],
+                                                    output_width=TARGET_SHAPE[1])
 
             # Make batches
             imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=model.batch_size,

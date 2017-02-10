@@ -430,6 +430,7 @@ def preprocess_finetune_test(image, output_height, output_width, resize_side=_RE
     #                                  align_corners=False)
     # image = tf.squeeze(image, [0])
 
+    image.set_shape([256, 256, 3])
     image = tf.image.resize_image_with_crop_or_pad(image, output_height, output_width)
 
     # Resize to output size

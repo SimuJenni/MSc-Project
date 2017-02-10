@@ -5,14 +5,14 @@ import os
 import tensorflow as tf
 
 from ToonNet_Alex import VAEGAN
-from constants import LOG_DIR, IMAGENET_TF_DATADIR
+from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test
 
 slim = tf.contrib.slim
 
 # Setup
-finetuned = True
+finetuned = False
 net_type = 'discriminator'
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
@@ -25,7 +25,7 @@ if finetuned:
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
     LOG_PATH = MODEL_PATH
 
 print('Evaluating model: {}'.format(MODEL_PATH))
@@ -40,7 +40,7 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = data.get_split('validation', dataset_dir=IMAGENET_TF_DATADIR)
+            test_set = data.get_split('validation', dataset_dir=IMAGENET_TF_256_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = provider.get(['image', 'label'])
             label_test -= data.LABEL_OFFSET

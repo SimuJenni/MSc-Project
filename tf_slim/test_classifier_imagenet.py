@@ -25,7 +25,7 @@ if finetuned:
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd/'.format(data.NAME, model.name))
     LOG_PATH = MODEL_PATH
 
 print('Evaluating model: {}'.format(MODEL_PATH))

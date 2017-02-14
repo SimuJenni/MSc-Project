@@ -11,6 +11,7 @@ from preprocess import preprocess_toon_train, preprocess_toon_test
 from tf_slim.utils import get_variables_to_train
 from utils import montage_tf
 from constants import IMAGENET_SMALL_TF_DATADIR
+import numpy as np
 
 slim = tf.contrib.slim
 
@@ -18,7 +19,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-num_epochs = 60
+num_epochs = 80
 model = VAEGAN(num_layers=5, batch_size=128)
 TARGET_SHAPE = [96, 96, 3]
 LR = 0.0002
@@ -113,6 +114,9 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
+        boundaries = [np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.875)]
+        values = [0.0002, 0.00005, 0.00001]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-4)

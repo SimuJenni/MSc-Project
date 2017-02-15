@@ -43,29 +43,29 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        with tf.device('/cpu:0'):
+        # with tf.device('/cpu:0'):
 
-            # Get the training dataset
-            train_set = data.get_split('train', dataset_dir=IMAGENET_TF_256_DATADIR)
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
-                                                                      common_queue_capacity=4*model.batch_size,
-                                                                      common_queue_min=model.batch_size)
-            images_and_labels = []
-            for thread_id in range(num_preprocess_threads):
-                # Parse a serialized Example proto to extract the image and metadata.
-                [img_train, label_train] = provider.get(['image', 'label'])
-                label_train -= data.LABEL_OFFSET
+        # Get the training dataset
+        train_set = data.get_split('train', dataset_dir=IMAGENET_TF_256_DATADIR)
+        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+                                                                  common_queue_capacity=4*model.batch_size,
+                                                                  common_queue_min=model.batch_size)
+        images_and_labels = []
+        for thread_id in range(num_preprocess_threads):
+            # Parse a serialized Example proto to extract the image and metadata.
+            [img_train, label_train] = provider.get(['image', 'label'])
+            label_train -= data.LABEL_OFFSET
 
-                # Pre-process data
-                img_train = preprocess_imagenet_256(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                                    augment_color=False)
-                images_and_labels.append([img_train, label_train])
+            # Pre-process data
+            img_train = preprocess_imagenet_256(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                                augment_color=False)
+            images_and_labels.append([img_train, label_train])
 
-            # Make batches
-            imgs_train, labels_train = tf.train.batch_join(
-                images_and_labels,
-                batch_size=model.batch_size,
-                capacity=num_preprocess_threads * model.batch_size)
+        # Make batches
+        imgs_train, labels_train = tf.train.batch_join(
+            images_and_labels,
+            batch_size=model.batch_size,
+            capacity=num_preprocess_threads * model.batch_size)
 
         # Get predictions
         preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)

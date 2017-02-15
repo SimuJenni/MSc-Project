@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 # Setup
 data = imagenet
-model = VAEGAN(num_layers=5, batch_size=58)
+model = VAEGAN(num_layers=5, batch_size=56)
 TARGET_SHAPE = [128, 128, 3]
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))

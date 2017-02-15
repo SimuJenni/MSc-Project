@@ -75,7 +75,7 @@ with sess.as_default():
 
         with tf.variable_scope('discriminator', reuse=True):
             weights_disc_1 = slim.variable('conv_1/weights')
-        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
+        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 6, 16),
                                             max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,

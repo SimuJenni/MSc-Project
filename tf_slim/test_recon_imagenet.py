@@ -73,10 +73,10 @@ with sess.as_default():
         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:56], 7, 8), max_images=1))
         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:56], 7, 8), max_images=1))
 
-        with tf.variable_scope('discriminator', reuse=True):
-            weights_disc_1 = slim.variable('conv_1/weights')
-        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
-                                            max_images=1))
+        # with tf.variable_scope('discriminator', reuse=True):
+        #     weights_disc_1 = slim.variable('conv_1/weights')
+        # summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
+        #                                     max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=3,

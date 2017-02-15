@@ -17,17 +17,17 @@ from constants import IMAGENET_TF_256_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
-NUM_CONV_TRAIN = 1
+NUM_CONV_TRAIN = 0
 num_epochs = 90
 num_preprocess_threads = 16
 
-CHECKPOINT = 'model.ckpt-600542'
+CHECKPOINT = 'model.ckpt-800721'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd256/'.format(data.NAME, model.name,

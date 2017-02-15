@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_Alex import VAEGAN
+from ToonNet_Alex_comp import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test
@@ -40,13 +40,13 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = data.get_split('validation', dataset_dir=IMAGENET_TF_DATADIR)
+            test_set = data.get_split('validation', dataset_dir=IMAGENET_TF_256_DATADIR)
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = provider.get(['image', 'label'])
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_finetune_test(img_test, output_height=TARGET_SHAPE[0],
+            img_test = preprocess_imagenet_256_test(img_test, output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1])
 
             # Make batches

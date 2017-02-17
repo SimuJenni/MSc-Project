@@ -18,7 +18,6 @@ slim = tf.contrib.slim
 
 # Setup
 fine_tune = False
-net_type = 'discriminator'
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
@@ -30,10 +29,10 @@ num_preprocess_threads = 16
 CHECKPOINT = 'model.ckpt-800721'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd256/'.format(data.NAME, model.name,
-                                                                                 net_type, NUM_CONV_TRAIN))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256/'.format(data.NAME, model.name,
+                                                                                      NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -68,7 +67,7 @@ with sess.as_default():
             capacity=num_preprocess_threads * model.batch_size)
 
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
+        preds_train = model.build_classifier(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'

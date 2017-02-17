@@ -70,14 +70,12 @@ class VAEGAN:
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def classifier(self, img, edge, num_classes, type='generator', reuse=None, training=True, fine_tune=True):
+    def build_classifier(self, img, num_classes, reuse=None, training=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
 
         Args:
             img: Input image
-            edge: Edge map
             num_classes: Number of output classes
-            type: Type of network to build on. One of {'generator', 'encoder', 'discriminator'}
             reuse: Whether to reuse already defined variables.
             training: Whether in train or test mode
             fine_tune: If False, builds classifier using encoder (used to compare to supervised training)
@@ -85,22 +83,15 @@ class VAEGAN:
         Returns:
             Output logits from the classifier
         """
-        activation = tf.nn.relu
-        if not fine_tune:
+        trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
+        activation = lrelu
+
+        with slim.arg_scope([slim.fully_connected, slim.conv2d],
+                            biases_initializer=tf.constant_initializer(0.1)):
             _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
-            activation = lrelu
-        elif type == 'generator':
-            gen_in = merge(img, edge)
-            _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
-        elif type == 'discriminator':
-            _, model = discriminator(img, reuse=reuse, num_out=num_classes,
-                                     training=training, train_fc=False)
-            activation = lrelu
-        elif type == 'encoder':
-            _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
-        else:
-            raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
+            with slim.arg_scope([slim.fully_connected],
+                                weights_initializer=trunc_normal(0.005)):
+                model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
         return model
 
 

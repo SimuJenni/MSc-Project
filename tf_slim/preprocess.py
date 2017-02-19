@@ -511,6 +511,25 @@ def preprocess_imagenet_256(image, output_height, output_width, augment_color=Fa
     return image
 
 
+def preprocess_imagenet_musub(image, output_height, output_width, augment_color=False):
+    # Select random crops
+    image = tf.random_crop(image, size=(output_height, output_width, 3))
+
+    # Color and contrast augmentation
+    if augment_color:
+        image = dist_color(image)
+
+    # Scale to [-1, 1]
+    image = _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
+    image = tf.to_float(image) * 2. / 255.
+    image = tf.clip_by_value(image, -1., 1.)
+
+    # Flip left-right
+    image = tf.image.random_flip_left_right(image)
+
+    return image
+
+
 def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_range=(0.2, 1.0)):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),

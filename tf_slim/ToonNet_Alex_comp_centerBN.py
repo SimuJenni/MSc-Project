@@ -86,12 +86,10 @@ class VAEGAN:
         trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
         activation = lrelu
 
-        with slim.arg_scope([slim.fully_connected, slim.conv2d],
-                            biases_initializer=tf.constant_initializer(0.1)):
-            _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
-            with slim.arg_scope([slim.fully_connected],
-                                weights_initializer=trunc_normal(0.005)):
-                model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
+        _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
+        with slim.arg_scope([slim.fully_connected],
+                            weights_initializer=trunc_normal(0.005)):
+            model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
         return model
 
 
@@ -110,7 +108,7 @@ def generator(net, num_layers=5, reuse=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     num_layers = min(num_layers, 4)
     with tf.variable_scope('generator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
             net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
             for l in range(0, num_layers):
                 net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
@@ -144,7 +142,7 @@ def encoder(net, num_layers=5, reuse=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     num_layers = min(num_layers, 4)
     with tf.variable_scope('encoder', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
             net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
             for l in range(0, num_layers):
                 net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
@@ -176,7 +174,7 @@ def decoder(net, num_layers=5, reuse=None, training=True):
     f_dims = DEFAULT_FILTER_DIMS
     num_layers = min(num_layers, 4)
     with tf.variable_scope('decoder', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+        with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
             for l in range(0, num_layers):
                 net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
             net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),
@@ -211,9 +209,9 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
                 # Fully connected layers
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1', trainable=train_fc)
-                net = slim.dropout(net, 0.9, is_training=training)
+                net = slim.dropout(net, 0.8, is_training=training)
                 net = slim.fully_connected(net, 4096, scope='fc2', trainable=train_fc)
-                net = slim.dropout(net, 0.9, is_training=training)
+                net = slim.dropout(net, 0.8, is_training=training)
                 net = slim.fully_connected(net, num_out,
                                            activation_fn=None,
                                            normalizer_fn=None,
@@ -250,7 +248,8 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
     return net
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0001):
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
+                      w_reg=0.0001):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -266,7 +265,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'is_training': training,
         'decay': 0.95,
         'epsilon': 0.001,
-        'center': True,
+        'center': center,
     }
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,

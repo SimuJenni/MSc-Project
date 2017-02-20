@@ -91,7 +91,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.00001)
+        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer
         optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)

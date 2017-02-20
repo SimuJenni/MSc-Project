@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_Alex_comp_relu import VAEGAN
+from ToonNet_Alex_comp_0001 import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, preprocess_imagenet_musub_test
@@ -25,7 +25,7 @@ if finetuned:
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit_musub/'.format(data.NAME, model.name))
     LOG_PATH = MODEL_PATH
 
 print('Evaluating model: {}'.format(MODEL_PATH))

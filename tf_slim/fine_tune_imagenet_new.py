@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp_0001 import VAEGAN
+from ToonNet_Alex_comp import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_imagenet_musub
@@ -23,8 +23,8 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 NUM_CONV_TRAIN = 0
-num_epochs = 90
-num_preprocess_threads = 8
+num_epochs = 100
+num_preprocess_threads = 16
 
 CHECKPOINT = 'model.ckpt-800721'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -32,7 +32,7 @@ if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256/'.format(data.NAME, model.name,
                                                                                       NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit_musub/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -89,7 +89,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.00001)
+        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer
         optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)

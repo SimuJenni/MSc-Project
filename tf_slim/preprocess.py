@@ -520,7 +520,7 @@ def preprocess_imagenet_musub(image, output_height, output_width, augment_color=
         image = dist_color(image)
 
     # Scale to [-1, 1]
-    image = _mean_image_subtraction(image, [_R_MEAN, _G_MEAN, _B_MEAN])
+    image = _mean_image_subtraction(tf.to_float(image), [_R_MEAN, _G_MEAN, _B_MEAN])
     image = tf.to_float(image) * 2. / 255.
     image = tf.clip_by_value(image, -1., 1.)
 

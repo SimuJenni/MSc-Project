@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp import VAEGAN
+from ToonNet_Alex_comp_relu import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_imagenet_musub
@@ -23,8 +23,8 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
 TARGET_SHAPE = [224, 224, 3]
 NUM_CONV_TRAIN = 0
-num_epochs = 100
-num_preprocess_threads = 16
+num_epochs = 90
+num_preprocess_threads = 8
 
 CHECKPOINT = 'model.ckpt-800721'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
@@ -56,8 +56,10 @@ with sess.as_default():
             label_train -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_train = preprocess_imagenet_musub(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                                augment_color=False)
+            img_train = preprocess_imagenet_musub(img_train,
+                                                  output_height=TARGET_SHAPE[0],
+                                                  output_width=TARGET_SHAPE[1],
+                                                  augment_color=False)
             images_and_labels.append([img_train, label_train])
 
         # Make batches
@@ -89,7 +91,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_epochs
-        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.0)
+        learning_rate = tf.train.polynomial_decay(0.02, global_step, num_train_steps, end_learning_rate=0.00001)
 
         # Define optimizer
         optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)

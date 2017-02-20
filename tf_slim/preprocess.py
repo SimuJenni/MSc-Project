@@ -453,6 +453,20 @@ def preprocess_imagenet_256_test(image, output_height, output_width):
     return image
 
 
+def preprocess_imagenet_musub_test(image, output_height, output_width):
+
+    image.set_shape([256, 256, 3])
+    image = tf.image.resize_image_with_crop_or_pad(image, output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+
+    # Scale to [-1, 1]
+    image = _mean_image_subtraction(tf.to_float(image), [_R_MEAN, _G_MEAN, _B_MEAN])
+    image = tf.to_float(image) * 2. / 255.
+
+    return image
+
 
 def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Select random crops
@@ -522,7 +536,6 @@ def preprocess_imagenet_musub(image, output_height, output_width, augment_color=
     # Scale to [-1, 1]
     image = _mean_image_subtraction(tf.to_float(image), [_R_MEAN, _G_MEAN, _B_MEAN])
     image = tf.to_float(image) * 2. / 255.
-    image = tf.clip_by_value(image, -1., 1.)
 
     # Flip left-right
     image = tf.image.random_flip_left_right(image)

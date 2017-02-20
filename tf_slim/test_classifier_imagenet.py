@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_Alex_comp_relu import VAEGAN
+from ToonNet_Alex_comp import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, preprocess_imagenet_musub_test

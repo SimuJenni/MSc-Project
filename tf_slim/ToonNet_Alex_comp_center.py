@@ -17,7 +17,7 @@ class VAEGAN:
             num_layers: The number of convolutional down/upsampling layers to be used.
             batch_size: The batch-size used during training (used to generate training labels)
         """
-        self.name = 'AEGAN_Alex_comp'
+        self.name = 'AEGAN_Alex_comp_center'
         self.num_layers = num_layers
         self.batch_size = batch_size
 
@@ -197,7 +197,7 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
         Resulting logits
     """
     with tf.variable_scope('discriminator', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training, center=True)):
             net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1')
             net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
             net = slim.conv2d(net, 256, kernel_size=[5, 5], scope='conv_2')
@@ -236,7 +236,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=True)):
             net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')

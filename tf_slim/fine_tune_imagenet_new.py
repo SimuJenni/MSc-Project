@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp_centerBN import VAEGAN
+from ToonNet_Alex_comp_center import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_imagenet_musub
@@ -32,7 +32,7 @@ if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256/'.format(data.NAME, model.name,
                                                                                       NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)

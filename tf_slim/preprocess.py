@@ -562,7 +562,7 @@ def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_ra
 
 
 def dist_color(image, d_hue=0.025, d_bright=0.05):
-    image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
+    # image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
     image = tf.image.random_hue(image, d_hue, seed=None)
     image = tf.image.random_brightness(image, d_bright, seed=None)
     image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)

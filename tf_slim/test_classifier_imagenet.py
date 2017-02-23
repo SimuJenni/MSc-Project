@@ -46,7 +46,7 @@ with sess.as_default():
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_imagenet_256_test(img_test, output_height=TARGET_SHAPE[0],
+            img_test = preprocess_imagenet_musub_test(img_test, output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1])
 
             # Make batches

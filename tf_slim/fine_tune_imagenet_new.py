@@ -10,7 +10,7 @@ from tensorflow.python.ops import math_ops
 from ToonNet_Alex_comp_centerBN import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_imagenet_musub
+from preprocess import preprocess_imagenet
 from utils import assign_from_checkpoint_fn, montage_tf
 from constants import IMAGENET_TF_256_DATADIR
 
@@ -32,7 +32,7 @@ if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256/'.format(data.NAME, model.name,
                                                                                       NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_newinit/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_nomusub/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -56,7 +56,7 @@ with sess.as_default():
             label_train -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_train = preprocess_imagenet_musub(img_train,
+            img_train = preprocess_imagenet(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=False)

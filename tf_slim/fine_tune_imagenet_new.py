@@ -10,7 +10,7 @@ from tensorflow.python.ops import math_ops
 from ToonNet_Alex_comp_centerBN import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_imagenet
+from preprocess import preprocess_imagenet_256
 from utils import assign_from_checkpoint_fn, montage_tf
 from constants import IMAGENET_TF_256_DATADIR
 
@@ -56,7 +56,7 @@ with sess.as_default():
             label_train -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_train = preprocess_imagenet(img_train,
+            img_train = preprocess_imagenet_256(img_train,
                                                   output_height=TARGET_SHAPE[0],
                                                   output_width=TARGET_SHAPE[1],
                                                   augment_color=False)

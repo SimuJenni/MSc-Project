@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp_centerBN import VAEGAN
+from ToonNet_Alex_comp_centerBN_relu import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_imagenet_256
@@ -100,7 +100,7 @@ with sess.as_default():
         if fine_tune:
             var2train = []
             for i in range(NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
+                vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(5 - i)],
                                                    exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
@@ -129,7 +129,7 @@ with sess.as_default():
             # Specify the layers of your model you want to exclude
             var2restore = []
             for i in range(num_layers-NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, i + 1)],
+                vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(i + 1)],
                                                    exclude=['discriminator/fully_connected'])
                 var2restore += vs
             print('Variables to restore: {}'.format([v.op.name for v in var2restore]))

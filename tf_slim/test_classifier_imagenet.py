@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_Alex_comp_centerBN import VAEGAN
+from ToonNet_Alex_comp_centerBN_relu import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
 from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, preprocess_imagenet_musub_test
@@ -46,7 +46,7 @@ with sess.as_default():
             label_test -= data.LABEL_OFFSET
 
             # Pre-process data
-            img_test = preprocess_imagenet_musub_test(img_test, output_height=TARGET_SHAPE[0],
+            img_test = preprocess_imagenet_256_test(img_test, output_height=TARGET_SHAPE[0],
                                                     output_width=TARGET_SHAPE[1])
 
             # Make batches

@@ -455,8 +455,13 @@ def preprocess_imagenet_256_test(image, output_height, output_width):
 
 def preprocess_imagenet_musub_test(image, output_height, output_width):
 
-    image.set_shape([256, 256, 3])
-    image = tf.image.resize_image_with_crop_or_pad(image, output_height, output_width)
+    # image.set_shape([256, 256, 3])
+    # image = tf.image.resize_image_with_crop_or_pad(image, output_height, output_width)
+
+    image = tf.image.central_crop(image, central_fraction=0.85)
+    image = tf.expand_dims(image, 0)
+    image = tf.image.resize_bilinear(image, [output_height, output_width], align_corners=False)
+    image = tf.squeeze(image, [0])
 
     # Resize to output size
     image.set_shape([output_height, output_width, 3])

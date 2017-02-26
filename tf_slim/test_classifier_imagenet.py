@@ -12,7 +12,7 @@ from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, p
 slim = tf.contrib.slim
 
 # Setup
-finetuned = False
+finetuned = True
 net_type = 'discriminator'
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
@@ -21,7 +21,7 @@ RESIZE_SIZE = 224
 NUM_CONV_TRAIN = 0
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_sgd256/'.format(data.NAME, model.name,
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256_nomusub/'.format(data.NAME, model.name,
                                                                                    net_type, NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:

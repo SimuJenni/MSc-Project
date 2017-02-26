@@ -26,7 +26,7 @@ NUM_CONV_TRAIN = 0
 num_epochs = 90
 num_preprocess_threads = 16
 
-CHECKPOINT = 'model.ckpt-800721'
+CHECKPOINT = 'model.ckpt-800722'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256_nomusub/'.format(data.NAME, model.name,

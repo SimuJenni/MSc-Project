@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import sys
 
 import tensorflow as tf
 
@@ -21,6 +22,7 @@ MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
 LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final_recon_test/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
+sys.stdout.flush()
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)

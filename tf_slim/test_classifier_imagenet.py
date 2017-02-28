@@ -12,7 +12,7 @@ from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, p
 slim = tf.contrib.slim
 
 # Setup
-finetuned = True
+finetuned = False
 net_type = 'discriminator'
 data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)

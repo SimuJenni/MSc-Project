@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp_centerBN_relu import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_imagenet_256
@@ -17,7 +17,7 @@ from constants import IMAGENET_TF_256_DATADIR
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 data = imagenet
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=256)
@@ -29,10 +29,10 @@ num_preprocess_threads = 16
 CHECKPOINT = 'model.ckpt-800722'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256_nomusub/'.format(data.NAME, model.name,
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final/'.format(data.NAME, model.name,
                                                                                               NUM_CONV_TRAIN))
 else:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_sgd256_nomusub/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)

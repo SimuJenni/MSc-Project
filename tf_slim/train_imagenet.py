@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_comp_centerBN import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -19,7 +19,7 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-num_epochs = 80
+num_epochs = 90
 model = VAEGAN(num_layers=5, batch_size=128)
 TARGET_SHAPE = [96, 96, 3]
 LR = 0.0002
@@ -114,12 +114,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
-        boundaries = [np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.875)]
-        values = [0.0002, 0.00005, 0.00001]
+        boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.9)]
+        values = [0.0002, 0.0001, 0.00005, 0.000025]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-4)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-4)
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
@@ -168,7 +168,7 @@ with sess.as_default():
         # Start training
         slim.learning.train(train_op_ae + train_op_gen + train_op_disc,
                             SAVE_DIR,
-                            save_summaries_secs=300,
+                            save_summaries_secs=600,
                             save_interval_secs=3000,
                             log_every_n_steps=100,
                             number_of_steps=num_train_steps)

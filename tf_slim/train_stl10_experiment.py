@@ -7,7 +7,7 @@ from tensorflow.python.ops import math_ops
 from ToonNet_VGGv2 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_finetune_train
+from preprocess import preprocess_imagenet_256
 from tf_slim.utils import get_variables_to_train
 from utils import montage_tf
 
@@ -41,11 +41,9 @@ with sess.as_default():
             [img_train] = provider.get(['image'])
 
             # Preprocess data
-            img_train = preprocess_finetune_train(img_train,
-                                                  output_height=TARGET_SHAPE[0],
-                                                  output_width=TARGET_SHAPE[1],
-                                                  resize_side_min=96,
-                                                  resize_side_max=96)
+            img_train = preprocess_imagenet_256(img_train,
+                                                output_height=TARGET_SHAPE[0],
+                                                output_width=TARGET_SHAPE[1])
             # Make batches
             imgs_train = tf.train.batch([img_train],
                                         batch_size=model.batch_size, num_threads=8,

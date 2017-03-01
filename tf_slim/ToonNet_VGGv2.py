@@ -56,7 +56,7 @@ class VAEGAN:
         noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
         disc_in = merge(img, noise_img, dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
-        return disc_out
+        return disc_out, noise_img
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

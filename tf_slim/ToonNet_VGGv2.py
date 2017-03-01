@@ -52,7 +52,7 @@ class VAEGAN:
 
     def experiment_net(self, img, num_train_steps, reuse=None, training=True):
         noise_shape = img.get_shape()
-        noise_img = img + noise_amount(num_train_steps) * tf.random_normal(shape=noise_shape)
+        noise_img = img * tf.random_normal(shape=noise_shape, stddev=0.2*noise_amount(num_train_steps))
         noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
         disc_in = merge(img, noise_img, dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)

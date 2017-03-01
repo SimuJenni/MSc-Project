@@ -55,7 +55,7 @@ class VAEGAN:
         # noise_img = img + tf.random_normal(shape=noise_shape, stddev=0.2*noise_amount(num_train_steps))
         # noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
 
-        scale = (0.75-0.7*noise_amount(num_train_steps)) * 255.
+        scale = (0.5-0.49*noise_amount(num_train_steps)) * 255.
         noise_img = 0.5*img + 0.5
         noise_img = tf.to_float(tf.floor(noise_img * scale))
         noise_img = 2.*noise_img/scale-1.0

@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=500)
+model = VAEGAN(num_layers=4, batch_size=400)
 num_epochs = 200
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
@@ -77,7 +77,7 @@ with sess.as_default():
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-6)
+        optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)

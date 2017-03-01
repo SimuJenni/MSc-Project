@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=200)
+model = VAEGAN(num_layers=4, batch_size=500)
 num_epochs = 200
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
@@ -31,33 +31,32 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        with tf.device('/cpu:0'):
+        # with tf.device('/cpu:0'):
 
-            # Get the training dataset
-            train_set = data.get_split(TRAIN_SET_NAME)
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                      common_queue_capacity=32 * model.batch_size,
-                                                                      common_queue_min=4 * model.batch_size)
-            [img_train] = provider.get(['image'])
+        # Get the training dataset
+        train_set = data.get_split(TRAIN_SET_NAME)
+        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+                                                                  common_queue_capacity=32 * model.batch_size,
+                                                                  common_queue_min=4 * model.batch_size)
+        [img_train] = provider.get(['image'])
 
-            # Preprocess data
-            img_train = preprocess_finetune_train(img_train,
-                                                  output_height=TARGET_SHAPE[0],
-                                                  output_width=TARGET_SHAPE[1],
-                                                  resize_side_min=96,
-                                                  resize_side_max=96)
-            # Make batches
-            imgs_train = tf.train.batch([img_train],
-                                        batch_size=model.batch_size, num_threads=8,
-                                        capacity=4 * model.batch_size)
+        # Preprocess data
+        img_train = preprocess_finetune_train(img_train,
+                                              output_height=TARGET_SHAPE[0],
+                                              output_width=TARGET_SHAPE[1],
+                                              resize_side_min=96,
+                                              resize_side_max=96)
+        # Make batches
+        imgs_train = tf.train.batch([img_train],
+                                    batch_size=model.batch_size, num_threads=8,
+                                    capacity=4 * model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
-        labels_gen = model.gen_labels()
 
         # Create the model
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
-        disc_out, noise_img = model.experiment_net(imgs_train, num_train_steps)
+        disc_out, noise_imgs = model.experiment_net(imgs_train, num_train_steps)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -84,8 +83,8 @@ with sess.as_default():
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
-        tf.image_summary('images/img', montage_tf(img_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/noise_img', montage_tf(noise_img, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Discriminator training operation
         scopes_disc = 'discriminator'

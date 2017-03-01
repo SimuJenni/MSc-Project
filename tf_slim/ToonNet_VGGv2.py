@@ -51,9 +51,16 @@ class VAEGAN:
         return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
 
     def experiment_net(self, img, num_train_steps, reuse=None, training=True):
-        noise_shape = img.get_shape()
-        noise_img = img * tf.random_normal(shape=noise_shape, stddev=0.2*noise_amount(num_train_steps))
+        # noise_shape = img.get_shape()
+        # noise_img = img + tf.random_normal(shape=noise_shape, stddev=0.2*noise_amount(num_train_steps))
+        # noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
+
+        scale = (1.0-noise_amount(num_train_steps)) * 255
+        noise_img = 0.5*img + 1.0
+        noise_img = tf.round(noise_img * scale)
+        noise_img = 2.*noise_img/scale-1.0
         noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
+
         disc_in = merge(img, noise_img, dim=0)
         disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
         return disc_out, noise_img

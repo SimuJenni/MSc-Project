@@ -31,25 +31,25 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        # with tf.device('/cpu:0'):
+        with tf.device('/cpu:0'):
 
-        # Get the training dataset
-        train_set = data.get_split(TRAIN_SET_NAME)
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
-                                                                  common_queue_capacity=32 * model.batch_size,
-                                                                  common_queue_min=4 * model.batch_size)
-        [img_train] = provider.get(['image'])
+            # Get the training dataset
+            train_set = data.get_split(TRAIN_SET_NAME)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+                                                                      common_queue_capacity=2 * model.batch_size,
+                                                                      common_queue_min=model.batch_size)
+            [img_train] = provider.get(['image'])
 
-        # Preprocess data
-        img_train = preprocess_finetune_train(img_train,
-                                              output_height=TARGET_SHAPE[0],
-                                              output_width=TARGET_SHAPE[1],
-                                              resize_side_min=96,
-                                              resize_side_max=96)
-        # Make batches
-        imgs_train = tf.train.batch([img_train],
-                                    batch_size=model.batch_size, num_threads=8,
-                                    capacity=4 * model.batch_size)
+            # Preprocess data
+            img_train = preprocess_finetune_train(img_train,
+                                                  output_height=TARGET_SHAPE[0],
+                                                  output_width=TARGET_SHAPE[1],
+                                                  resize_side_min=96,
+                                                  resize_side_max=96)
+            # Make batches
+            imgs_train = tf.train.batch([img_train],
+                                        batch_size=model.batch_size, num_threads=8,
+                                        capacity=model.batch_size)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()

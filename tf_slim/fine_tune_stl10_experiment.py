@@ -9,7 +9,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_VGG import VAEGAN
+from ToonNet_VGGv2 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test

@@ -53,7 +53,7 @@ class VAEGAN:
     def experiment_net(self, img, num_train_steps, reuse=None, training=True):
         _, enc, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         noise_shape = enc.get_shape()
-        noise_enc = enc + tf.random_normal(shape=noise_shape, stddev=noise_amount(num_train_steps))
+        noise_enc = enc + tf.random_normal(shape=noise_shape, stddev=noise_amount(num_train_steps)+0.1)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = decoder(enc, num_layers=self.num_layers, reuse=reuse, training=training)

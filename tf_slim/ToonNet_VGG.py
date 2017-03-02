@@ -50,6 +50,19 @@ class VAEGAN:
         disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
 
+    def experiment_net(self, img, num_train_steps, reuse=None, training=True):
+        _, enc, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        noise_shape = enc.get_shape()
+        noise_enc = enc + tf.random_normal(shape=noise_shape, stddev=noise_amount(num_train_steps))
+
+        # Decode both encoded images and generator output using the same decoder
+        dec_im = decoder(enc, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(noise_enc, num_layers=self.num_layers, reuse=True, training=training)
+        # Build input for discriminator (discriminator tries to guess order of real/fake)
+        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
+        return dec_im, dec_gen, disc_out
+
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
 
@@ -283,3 +296,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                     return arg_sc
+
+def noise_amount(decay_steps):
+    rate = math_ops.maximum(1.0 - math_ops.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0,
+                            name='noise_rate')
+    return rate

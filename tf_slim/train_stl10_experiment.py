@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_VGGv2 import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_imagenet_256
@@ -21,7 +21,7 @@ model = VAEGAN(num_layers=4, batch_size=400)
 num_epochs = 200
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_add_gaussian_noise/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_noise_in_feat/'.format(data.NAME, model.name))
 NUM_IMG_SUMMARY = 6
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -54,7 +54,7 @@ with sess.as_default():
 
         # Create the model
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
-        disc_out, noise_imgs = model.experiment_net(imgs_train, num_train_steps)
+        img_rec, noise_imgs, disc_out = model.experiment_net(imgs_train, num_train_steps)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -62,6 +62,13 @@ with sess.as_default():
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
         disc_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
+
+        # Define the losses for AE training
+        ae_loss_scope = 'ae_loss'
+        l2_ae = slim.losses.sum_of_squares(img_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        losses_ae = slim.losses.get_losses(ae_loss_scope)
+        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        ae_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -75,14 +82,17 @@ with sess.as_default():
         if update_ops:
             updates = tf.group(*update_ops)
             disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
+            ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
+        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
         tf.image_summary('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
         tf.image_summary('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Discriminator training operation
         scopes_disc = 'discriminator'
@@ -90,8 +100,14 @@ with sess.as_default():
         train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
                                                       global_step=global_step, summarize_gradients=False)
 
+        # Auto-encoder training operation
+        scopes_ae = 'encoder, decoder'
+        vars2train_ae = get_variables_to_train(trainable_scopes=scopes_ae)
+        train_op_ae = slim.learning.create_train_op(ae_loss, optimizer, variables_to_train=vars2train_ae,
+                                                    global_step=global_step, summarize_gradients=False)
+
         # Start training
-        slim.learning.train(train_op_disc,
+        slim.learning.train(train_op_disc + train_op_ae,
                             SAVE_DIR,
                             save_summaries_secs=300,
                             save_interval_secs=3000,

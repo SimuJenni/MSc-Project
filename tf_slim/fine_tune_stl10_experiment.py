@@ -141,4 +141,4 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-fine_tune_model(stl10, 4, 5, [96, 96, 3], 'model.ckpt-50000', 'train', 256, 200)
+fine_tune_model(stl10, 4, 3, [96, 96, 3], 'model.ckpt-50000', 'train', 256, 400)

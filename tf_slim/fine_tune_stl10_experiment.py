@@ -23,7 +23,7 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
     model = VAEGAN(num_layers=num_layers, batch_size=batch_size)
     model_path = os.path.join(LOG_DIR, '{}_{}_noise_in_feat/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}_400/'.format(data.NAME,
+        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}/'.format(data.NAME,
                                                                                                     model.name,
                                                                                                     net_type,
                                                                                                     num_conv_train,
@@ -135,4 +135,4 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-fine_tune_model(stl10, 4, 3, [96, 96, 3], 'model.ckpt-50000', 'train', 192, 400, fine_tune=False)
+fine_tune_model(stl10, 4, 5, [96, 96, 3], 'model.ckpt-100000', 'train', 192, 400, fine_tune=True)

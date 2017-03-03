@@ -9,7 +9,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_VGGv2 import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_train, preprocess_finetune_test
@@ -22,10 +22,10 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                     net_type='discriminator', fine_tune=True):
     model = VAEGAN(num_layers=num_layers, batch_size=batch_size)
     pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
-    model_path = os.path.join(LOG_DIR, '{}_{}_add_gaussian_noise/{}'.format(data.NAME, model.name, checkpoint))
+    model_path = os.path.join(LOG_DIR, '{}_{}_noise_in_feat/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
         save_dir = os.path.join(LOG_DIR,
-                                '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}_400/'.format(data.NAME, model.name, net_type,
+                                '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}_400/'.format(data.NAME, model.name, net_type,
                                                                                    num_conv_train, train_set_id))
     else:
         save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

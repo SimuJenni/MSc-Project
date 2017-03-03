@@ -4,10 +4,10 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_Alex_stl import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_toon_train, preprocess_toon_test
+from preprocess import preprocess_toon_train
 from tf_slim.utils import get_variables_to_train
 from utils import montage_tf
 

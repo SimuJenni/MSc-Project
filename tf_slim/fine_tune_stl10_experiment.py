@@ -12,7 +12,7 @@ from tensorflow.python.framework import ops
 from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_finetune_train, preprocess_finetune_test
+from preprocess import preprocess_finetune_train
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
@@ -21,12 +21,13 @@ slim = tf.contrib.slim
 def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, train_set_id, batch_size, num_epochs,
                     net_type='discriminator', fine_tune=True):
     model = VAEGAN(num_layers=num_layers, batch_size=batch_size)
-    pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
     model_path = os.path.join(LOG_DIR, '{}_{}_noise_in_feat/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR,
-                                '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}_400/'.format(data.NAME, model.name, net_type,
-                                                                                   num_conv_train, train_set_id))
+        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}_400/'.format(data.NAME,
+                                                                                                    model.name,
+                                                                                                    net_type,
+                                                                                                    num_conv_train,
+                                                                                                    train_set_id))
     else:
         save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -41,14 +42,15 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
             with tf.device('/cpu:0'):
                 # Get the training dataset
                 train_set = data.get_split(train_set_id)
-                provider_train = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+                provider_train = slim.dataset_data_provider.DatasetDataProvider(train_set,
+                                                                                num_readers=8,
                                                                                 common_queue_capacity=32 * batch_size,
                                                                                 common_queue_min=4 * batch_size)
                 [img_train, label_train] = provider_train.get(['image', 'label'])
 
                 # Pre-process data
                 img_train = preprocess_finetune_train(img_train, output_height=target_shape[0],
-                                                      output_width=target_shape[1], augment_color=True,
+                                                      output_width=target_shape[1], augment_color=False,
                                                       resize_side_min=96, resize_side_max=120)
                 # Make batches
                 imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=batch_size,
@@ -87,31 +89,23 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
             # Create training operation
             if fine_tune:
-                grad_multipliers = {}
                 var2train = []
                 for i in range(num_conv_train):
                     vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
                                                        exclude=['discriminator/fully_connected'])
                     vs = list(set(vs).intersection(tf.trainable_variables()))
                     var2train += vs
-                    for v in vs:
-                        grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
                 vs = slim.get_variables_to_restore(include=['fully_connected'],
                                                    exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
-                for v in vs:
-                    grad_multipliers[v.op.name] = 1.0
             else:
                 var2train = tf.trainable_variables()
-                grad_multipliers = None
 
             train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                     global_step=global_step, gradient_multipliers=grad_multipliers,
-                                                     summarize_gradients=True)
+                                                     global_step=global_step, summarize_gradients=True)
             print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
             print('Variables to train: {}'.format([v.op.name for v in var2train]))
-            print(grad_multipliers)
             sys.stdout.flush()
 
             # Gather all summaries

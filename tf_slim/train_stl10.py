@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_VGG import VAEGAN
+from ToonNet_Alex_stl import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train, preprocess_toon_test
@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=200)
+model = VAEGAN(num_layers=4, batch_size=256)
 num_epochs = 300
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
@@ -51,17 +51,6 @@ with sess.as_default():
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
                                                                   capacity=4 * model.batch_size)
-            if TEST:
-                # Get test-data
-                test_set = data.get_split('test')
-                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-                [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
-                img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
-                                                                      output_height=TARGET_SHAPE[0],
-                                                                      output_width=TARGET_SHAPE[1],
-                                                                      resize_side=64)
-                imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
-                                                                   batch_size=model.batch_size, num_threads=4)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -124,24 +113,12 @@ with sess.as_default():
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-
-        if TEST:
-            img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
-                                                            training=False)
-            tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        else:
-            tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                         max_images=1)
+        tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

@@ -11,7 +11,7 @@ from preprocess import preprocess_finetune_test
 slim = tf.contrib.slim
 
 # Setup
-finetuned = True
+finetuned = False
 net_type = 'discriminator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=1000)
@@ -27,7 +27,7 @@ if finetuned:
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_eval/'.format(data.NAME, model.name))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
 print('Evaluating model: {}'.format(MODEL_PATH))
 

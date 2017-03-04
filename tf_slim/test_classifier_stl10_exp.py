@@ -11,7 +11,7 @@ from preprocess import preprocess_finetune_test
 slim = tf.contrib.slim
 
 # Setup
-finetuned = True
+finetuned = False
 net_type = 'discriminator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=500)

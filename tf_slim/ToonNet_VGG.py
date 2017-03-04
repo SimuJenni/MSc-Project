@@ -324,6 +324,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                     return arg_sc
 
+
 def noise_amount(decay_steps):
     rate = math_ops.maximum(1.0 - math_ops.cast(slim.get_global_step(), tf.float32) / decay_steps, 0.0,
                             name='noise_rate')

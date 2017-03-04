@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=256)
+model = VAEGAN(num_layers=4, batch_size=200)
 num_epochs = 200
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002

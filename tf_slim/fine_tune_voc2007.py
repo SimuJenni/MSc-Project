@@ -24,7 +24,7 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=128)
 TARGET_SHAPE = [224, 224, 3]
-num_ep = 800
+num_ep = 1000
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
@@ -87,22 +87,23 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
-        # # Define learning parameters
-        # num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        # Define learning parameters
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
         # boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
         #               np.int64(num_train_steps * 0.75)]
         # values = [0.0002, 0.0001, 0.00005, 0.000025]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
-        #
-        # # Define optimizer
-        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
-
-        # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        learning_rate = tf.train.polynomial_decay(0.01, global_step, num_train_steps, end_learning_rate=0.0)
+        #learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer
-        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+
+        # # Define learning parameters
+        # num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        # learning_rate = tf.train.polynomial_decay(0.01, global_step, num_train_steps, end_learning_rate=0.0)
+        #
+        # # Define optimizer
+        # optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
 
         # Create training operation
         if fine_tune:

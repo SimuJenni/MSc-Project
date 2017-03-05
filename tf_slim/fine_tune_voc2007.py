@@ -61,7 +61,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=False) # TODO: Augment?
+                                           augment_color=True) # TODO: Augment?
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -98,7 +98,7 @@ with sess.as_default():
         # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * num_ep
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
         learning_rate = tf.train.polynomial_decay(0.01, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer

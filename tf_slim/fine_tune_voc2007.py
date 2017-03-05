@@ -9,7 +9,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_Alex import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
@@ -28,14 +28,13 @@ num_ep = 800
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
-TEST_SET = 'test'
-pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
+# pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 num_preprocess_threads = 8
 
-CHECKPOINT = 'model.ckpt-600542'
+CHECKPOINT = 'model.ckpt-900811'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_imnet/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -62,7 +61,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=True)
+                                           augment_color=False) # TODO: Augment?
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -71,18 +70,9 @@ with sess.as_default():
                 batch_size=model.batch_size,
                 capacity=num_preprocess_threads * model.batch_size)
 
-            if TEST_WHILE_TRAIN:
-                # Get test-data
-                test_set = data.get_split(TEST_SET)
-                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-                [img_test, label_test] = provider.get(['image', 'label'])
-                img_test = preprocess_voc(img_test, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1])
-                imgs_test, labels_test = tf.train.batch(
-                    [img_test, label_test],
-                    batch_size=model.batch_size, num_threads=1)
-
         # Get predictions
-        preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
+        # preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
+        preds_train = model.build_classifier(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'
@@ -109,37 +99,32 @@ with sess.as_default():
 
         # Create training operation
         if fine_tune:
-            grad_multipliers = {}
+            # grad_multipliers = {}
             var2train = []
             for i in range(NUM_CONV_TRAIN):
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
                                                    exclude=['discriminator/fully_connected', 'discriminator/fc1'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
-                for v in vs:
-                    grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
+                # for v in vs:
+                #     grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
             vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected',
                                                                                      'discriminator/fc1'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
-            for v in vs:
-                grad_multipliers[v.op.name] = 1.0
+            # for v in vs:
+            #     grad_multipliers[v.op.name] = 1.0
         else:
             var2train = tf.trainable_variables()
             grad_multipliers = None
+
+        grad_multipliers = None # TODO:?
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, gradient_multipliers=grad_multipliers,
                                                  summarize_gradients=True)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
-        print(grad_multipliers)
-
-        if TEST_WHILE_TRAIN:
-            preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
-                                          training=False, fine_tune=fine_tune, type=net_type)
-            test_loss = slim.losses.sigmoid_cross_entropy(preds_test, labels_test)
-            tf.scalar_summary('losses/test loss', test_loss)
 
         # Gather all summaries
         for variable in slim.get_model_variables():

@@ -21,7 +21,7 @@ RESIZE_SIZE = 224
 NUM_CONV_TRAIN = 0
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final_sgd256_nomusub/'.format(data.NAME, model.name,
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final/'.format(data.NAME, model.name,
                                                                                     NUM_CONV_TRAIN))
     LOG_PATH = MODEL_PATH
 else:

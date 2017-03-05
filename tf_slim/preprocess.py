@@ -366,6 +366,30 @@ def preprocess_toon_train(image, edge, cartoon, output_height, output_width,
     return image, edge, cartoon
 
 
+def preprocess_toon_imnet(image, edge, cartoon, output_height, output_width):
+
+    # Select random crops
+    [image, edge, cartoon] = _random_crop([image, edge, cartoon], output_height, output_width)
+
+    # Resize to output size
+    image.set_shape([output_height, output_width, 3])
+    edge.set_shape([output_height, output_width, 1])
+    cartoon.set_shape([output_height, output_width, 3])
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * (2. / 255.) - 1.
+    edge = tf.to_float(edge) / 255.
+    cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
+
+    # Flip left-right
+    p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+    image = _flip_lr(image, p)
+    edge = _flip_lr(edge, p)
+    cartoon = _flip_lr(cartoon, p)
+
+    return image, edge, cartoon
+
+
 def preprocess_toon_test(image, edge, cartoon, output_height, output_width, resize_side=_RESIZE_SIDE_MIN):
     # Resize/zoom
     image = _aspect_preserving_resize(image, resize_side)

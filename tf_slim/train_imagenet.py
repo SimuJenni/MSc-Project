@@ -7,7 +7,7 @@ from tensorflow.python.ops import math_ops
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import imagenet
-from preprocess import preprocess_toon_train, preprocess_toon_test
+from preprocess import preprocess_toon_imnet
 from tf_slim.utils import get_variables_to_train
 from utils import montage_tf
 from constants import IMAGENET_SMALL_TF_DATADIR
@@ -19,12 +19,11 @@ slim = tf.contrib.slim
 data = imagenet
 TRAIN_SET_NAME = 'train'
 TEST_SET_NAME = 'validation'
-num_epochs = 90
+num_epochs = 80
 model = VAEGAN(num_layers=5, batch_size=128)
 TARGET_SHAPE = [96, 96, 3]
 LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-TEST = False
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_80ep/'.format(data.NAME, model.name))
 NUM_IMG_SUMMARY = 6
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -44,26 +43,13 @@ with sess.as_default():
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
-            img_train, edge_train, toon_train = preprocess_toon_train(img_train, edge_train, toon_train,
+            img_train, edge_train, toon_train = preprocess_toon_imnet(img_train, edge_train, toon_train,
                                                                       output_height=TARGET_SHAPE[0],
-                                                                      output_width=TARGET_SHAPE[1],
-                                                                      resize_side_min=144,
-                                                                      resize_side_max=144)
+                                                                      output_width=TARGET_SHAPE[1])
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=model.batch_size, num_threads=8,
                                                                   capacity=model.batch_size)
-            if TEST:
-                # Get test-data
-                test_set = data.get_split(TEST_SET_NAME)
-                provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=4)
-                [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
-                img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
-                                                                      output_height=TARGET_SHAPE[0],
-                                                                      output_width=TARGET_SHAPE[1],
-                                                                      resize_side=96)
-                imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
-                                                                   batch_size=model.batch_size, num_threads=4)
 
         # Get labels for discriminator training
         labels_disc = model.disc_labels()
@@ -114,12 +100,12 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
-        boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.9)]
-        values = [0.0002, 0.0001, 0.00005, 0.000025]
-        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+        # boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.9)]
+        # values = [0.0002, 0.0001, 0.00005, 0.000025]
+        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.5, epsilon=1e-4)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5, epsilon=1e-4)
 
         # Handle summaries
         tf.scalar_summary('losses/discriminator loss', disc_loss)
@@ -128,24 +114,12 @@ with sess.as_default():
         tf.scalar_summary('losses/L2 mu', l2_mu)
         tf.scalar_summary('losses/L2 sigma', l2_sigma)
         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-
-        if TEST:
-            img_rec_test, gen_rec_test, _, _, _ = model.net(imgs_test, toons_test, edges_test, reuse=True,
-                                                            training=False)
-            tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        else:
-            tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
-                             max_images=1)
-            tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-            tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                         max_images=1)
+        tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

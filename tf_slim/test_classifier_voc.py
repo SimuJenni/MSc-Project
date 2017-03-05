@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
-from ToonNet_VGG import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
 from preprocess import preprocess_voc
@@ -16,15 +16,15 @@ finetuned = True
 net_type = 'discriminator'
 data = voc
 model = VAEGAN(num_layers=5, batch_size=1)
-TARGET_SHAPE = [128, 128, 3]
-NUM_CONV_TRAIN = 3
+TARGET_SHAPE = [224, 224, 3]
+NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_stl/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -52,8 +52,9 @@ with sess.as_default():
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions
-        preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-                                      type=net_type)
+        preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
+        # preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
+        #                               type=net_type)
         preds_test = tf.nn.sigmoid(preds_test)
         preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
 

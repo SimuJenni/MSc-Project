@@ -21,9 +21,9 @@ NUM_CONV_TRAIN = 5
 use_test_set = True
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}_400/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}_400/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

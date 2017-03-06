@@ -21,9 +21,9 @@ NUM_CONV_TRAIN = 0
 use_test_set = True
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp2_{}/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_200_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp2_{}/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_200_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

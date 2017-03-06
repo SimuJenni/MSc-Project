@@ -8,7 +8,6 @@ from tensorflow.python.framework import ops
 from tensorflow.python.framework import constant_op
 from tensorflow.python.ops import control_flow_ops
 
-import numpy as np
 
 slim = tf.contrib.slim
 

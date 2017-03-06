@@ -5,9 +5,9 @@ import os
 import tensorflow as tf
 
 from ToonNet_AlexV2 import VAEGAN
-from constants import LOG_DIR, IMAGENET_TF_DATADIR, IMAGENET_TF_256_DATADIR
+from constants import LOG_DIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
-from preprocess import preprocess_finetune_test, preprocess_imagenet_256_test, preprocess_imagenet_musub_test
+from preprocess import preprocess_imagenet_256_test
 
 slim = tf.contrib.slim
 
@@ -54,7 +54,7 @@ with sess.as_default():
                                                     num_threads=1)
 
         # Get predictions
-        preds_test = build_classifier(imgs_test, data.NUM_CLASSES, training=False)
+        preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
 
         # Compute predicted label for accuracy
         preds_test = tf.argmax(tf.nn.softmax(preds_test), 1)

@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import os
 import sys
-import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -25,16 +24,14 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=32)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
-TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
-# pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(NUM_CONV_TRAIN)]
 num_preprocess_threads = 8
 
 CHECKPOINT = 'model.ckpt-900811'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_full_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_new_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -61,7 +58,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=True) # TODO: Augment?
+                                           augment_color=True)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -71,8 +68,7 @@ with sess.as_default():
                 capacity=num_preprocess_threads * model.batch_size)
 
         # Get predictions
-        # preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
-        preds_train = model.build_classifier_voc(imgs_train, data.NUM_CLASSES)
+        preds_train = model.build_classifier(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'
@@ -89,21 +85,10 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        # boundaries = [np.int64(num_train_steps * 0.25), np.int64(num_train_steps * 0.5),
-        #               np.int64(num_train_steps * 0.75)]
-        # values = [0.0002, 0.0001, 0.00005, 0.000025]
-        #learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
         learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
-
-        # # Define learning parameters
-        # num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        # learning_rate = tf.train.polynomial_decay(0.01, global_step, num_train_steps, end_learning_rate=0.0)
-        #
-        # # Define optimizer
-        # optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
 
         # Create training operation
         if fine_tune:
@@ -111,26 +96,19 @@ with sess.as_default():
             var2train = []
             for i in range(NUM_CONV_TRAIN):
                 vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
-                                                   exclude=['discriminator/fully_connected', 'discriminator/fc1'])
+                                                   exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
-                # for v in vs:
-                #     grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
-            vs = slim.get_variables_to_restore(include=['fully_connected'], exclude=['discriminator/fully_connected',
-                                                                                     'discriminator/fc1'])
+            vs = slim.get_variables_to_restore(include=['fully_connected'],
+                                               exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
             var2train += vs
-            # for v in vs:
-            #     grad_multipliers[v.op.name] = 1.0
         else:
             var2train = tf.trainable_variables()
             grad_multipliers = None
 
-        grad_multipliers = None     # TODO:?
-
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                 global_step=global_step, gradient_multipliers=grad_multipliers,
-                                                 summarize_gradients=True)
+                                                 global_step=global_step, summarize_gradients=True)
         print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
 
@@ -145,9 +123,6 @@ with sess.as_default():
         init_fn = None
         if fine_tune:
             # Specify the layers of your model you want to exclude
-            # variables_to_restore = slim.get_variables_to_restore(
-            #     include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected', 'discriminator/fc1',
-            #                                  ops.GraphKeys.GLOBAL_STEP])
             variables_to_restore = slim.get_variables_to_restore(
                 include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
                                              ops.GraphKeys.GLOBAL_STEP])

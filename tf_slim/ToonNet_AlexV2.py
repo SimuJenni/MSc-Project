@@ -87,22 +87,6 @@ class VAEGAN:
         model = classifier(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def build_classifier_voc(self, img, num_classes, reuse=None, training=True):
-        """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
-
-        Args:
-            img: Input image
-            num_classes: Number of output classes
-            reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
-            fine_tune: If False, builds classifier using encoder (used to compare to supervised training)
-
-        Returns:
-            Output logits from the classifier
-        """
-        model, _ = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=True)
-        return model
-
 
 def generator(net, num_layers=5, reuse=None, training=True):
     """Builds a generator with the given inputs. Noise is induced in all convolutional layers.

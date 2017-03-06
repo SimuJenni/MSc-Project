@@ -24,7 +24,7 @@ data = voc
 num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=32)
 TARGET_SHAPE = [224, 224, 3]
-num_ep = 400
+num_ep = 500
 TEST_WHILE_TRAIN = False
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
@@ -34,7 +34,7 @@ num_preprocess_threads = 8
 CHECKPOINT = 'model.ckpt-900811'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_500_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -61,7 +61,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=True) # TODO: Augment?
+                                           augment_color=False) # TODO: Augment?
                 images_and_labels.append([img_train, label_train])
 
             # Make batches

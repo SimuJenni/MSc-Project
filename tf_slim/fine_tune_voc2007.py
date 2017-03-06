@@ -68,7 +68,7 @@ with sess.as_default():
                 capacity=num_preprocess_threads * model.batch_size)
 
         # Get predictions
-        preds_train = model.build_classifier(imgs_train, data.NUM_CLASSES)
+        preds_train = build_classifier(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'

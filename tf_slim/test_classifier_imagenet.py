@@ -54,7 +54,7 @@ with sess.as_default():
                                                     num_threads=1)
 
         # Get predictions
-        preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
+        preds_test = build_classifier(imgs_test, data.NUM_CLASSES, training=False)
 
         # Compute predicted label for accuracy
         preds_test = tf.argmax(tf.nn.softmax(preds_test), 1)

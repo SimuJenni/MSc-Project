@@ -52,7 +52,7 @@ with sess.as_default():
             imgs_test = tf.stack(imgs_test_p, axis=0)
 
         # Get predictions
-        preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
+        preds_test = build_classifier(imgs_test, data.NUM_CLASSES, training=False)
         # preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
         #                               type=net_type)
         preds_test = tf.nn.sigmoid(preds_test)

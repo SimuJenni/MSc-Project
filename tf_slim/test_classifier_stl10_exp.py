@@ -17,7 +17,7 @@ data = stl10
 model = VAEGAN(num_layers=4, batch_size=500)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = 96
-NUM_CONV_TRAIN = 5
+NUM_CONV_TRAIN = 0
 use_test_set = True
 
 if finetuned:

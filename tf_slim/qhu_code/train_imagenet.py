@@ -60,7 +60,7 @@ def Classifier(inputs, fine_tune=False, training=True, reuse=None):
                 net = slim.fully_connected(net, NUM_CLASSES, scope='fc3',
                                            activation_fn=None,
                                            normalizer_fn=None,
-                                           biases_initializer=tf.zeros_initializer)
+                                           biases_initializer=tf.zeros_initializer())
         return net
     else:
         # Train AlexNet
@@ -136,12 +136,12 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=0.001)
 
         # Gather all summaries.
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/train loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.summary.scalar('learning rate', learning_rate)
+        tf.summary.scalar('losses/train loss', train_loss)
+        tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
         if TEST_WHILE_TRAIN:
-            tf.scalar_summary('losses/test loss', test_loss)
-            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+            tf.summary.scalar('losses/test loss', test_loss)
+            tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
 
         # Create training operation
         if FINE_TUNE:
@@ -156,7 +156,7 @@ with sess.as_default():
 
         # Add summaries for variables.
         for variable in var2train:
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            summaries.add(tf.summary.histogram(variable.op.name, variable))
 
         # Handle initialisation
         init_fn = None

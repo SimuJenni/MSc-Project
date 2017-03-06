@@ -63,9 +63,9 @@ with sess.as_default():
         optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
 
         # Gather all summaries.
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/train loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.summary.scalar('learning rate', learning_rate)
+        tf.summary.scalar('losses/train loss', train_loss)
+        tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 
         # Create training operation
         var2train = get_variables_to_train()
@@ -77,7 +77,7 @@ with sess.as_default():
 
         # Add summaries for variables.
         for variable in var2train:
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            summaries.add(tf.summary.histogram(variable.op.name, variable))
 
         # Start training.
         slim.learning.train(train_op, LOG_DIR,

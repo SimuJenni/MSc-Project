@@ -87,7 +87,7 @@ with sess.as_default():
 
         # Add summaries for variables.
         for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            summaries.add(tf.summary.histogram(variable.op.name, variable))
 
         # Handle dependencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -105,16 +105,16 @@ with sess.as_default():
 
         # Handle summaries
         # tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/discriminator loss', disc_loss)
-        tf.scalar_summary('losses/disc-loss generator', dL_gen)
-        tf.scalar_summary('losses/l2 generator', l2_gen)
-        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+        tf.summary.scalar('losses/discriminator loss', disc_loss)
+        tf.summary.scalar('losses/disc-loss generator', dL_gen)
+        tf.summary.scalar('losses/l2 generator', l2_gen)
+        tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+        tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
                          max_images=1)
-        tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Generator training operation
         scopes_gen = 'generator'

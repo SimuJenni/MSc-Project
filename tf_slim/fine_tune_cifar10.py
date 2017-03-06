@@ -104,7 +104,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES['train'] / model.batch_size) * model.num_ep
-        learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+        learning_rate = tf.where(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
                                   LR - LR * (2 * tf.cast(global_step, tf.float32) / num_train_steps - 1.0), LR)
 
         # Define optimizer
@@ -138,15 +138,15 @@ with sess.as_default():
             test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test,
                                                                                             data.NUM_CLASSES))
             preds_test = tf.argmax(preds_test, 1)
-            tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-            tf.scalar_summary('losses/test loss', test_loss)
+            tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+            tf.summary.scalar('losses/test loss', test_loss)
 
         # Gather all summaries
         for variable in slim.get_model_variables():
-            tf.histogram_summary(variable.op.name, variable)
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/training loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+            tf.summary.histogram(variable.op.name, variable)
+        tf.summary.scalar('learning rate', learning_rate)
+        tf.summary.scalar('losses/training loss', train_loss)
+        tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
 
         # Handle initialisation
         init_fn = None

@@ -65,23 +65,23 @@ with sess.as_default():
         # Create the summary ops such that they also print out to std output:
         summary_ops = []
         for metric_name, metric_value in names_to_values.iteritems():
-            op = tf.scalar_summary(metric_name, metric_value)
+            op = tf.summary.scalar(metric_name, metric_value)
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:100], 10, 10), max_images=1))
-        summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:100], 10, 10), max_images=1))
-        summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:100], 10, 10), max_images=1))
-        summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1))
-        summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1))
+        summary_ops.append(tf.summary.image('images/generator', montage_tf(gen_rec[:100], 10, 10), max_images=1))
+        summary_ops.append(tf.summary.image('images/ae', montage_tf(img_rec[:100], 10, 10), max_images=1))
+        summary_ops.append(tf.summary.image('images/ground-truth', montage_tf(imgs_test[:100], 10, 10), max_images=1))
+        summary_ops.append(tf.summary.image('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1))
+        summary_ops.append(tf.summary.image('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1))
 
         with tf.variable_scope('discriminator', reuse=True):
             weights_disc_1 = slim.variable('conv_1/weights')
-        summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
+        summary_ops.append(tf.summary.image('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
                                             max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=6,
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
-                                        summary_op=tf.merge_summary(summary_ops))
+                                        summary_op=tf.summary.merge(summary_ops))

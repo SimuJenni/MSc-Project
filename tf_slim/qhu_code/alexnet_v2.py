@@ -101,7 +101,7 @@ def alexnet_v2(inputs,
             net = slim.conv2d(net, num_classes, [1, 1],
                               activation_fn=None,
                               normalizer_fn=None,
-                              biases_initializer=tf.zeros_initializer,
+                              biases_initializer=tf.zeros_initializer(),
                               scope='fc8')
 
         if spatial_squeeze:

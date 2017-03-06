@@ -45,18 +45,18 @@ with sess.as_default():
             test_set = data.get_split(TEST_SET)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
-            labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
-            imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
-            imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
+            labels_test = tf.tile(tf.expand_dims(label_test, axis=0), [10, 1])
+            imgs_test_t = tf.tile(tf.expand_dims(img_test, axis=0), [10, 1, 1, 1])
+            imgs_test_p = tf.unstack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_test_p]
-            imgs_test = tf.pack(imgs_test_p, axis=0)
+            imgs_test = tf.stack(imgs_test_p, axis=0)
 
         # Get predictions
         preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
         # preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
         #                               type=net_type)
         preds_test = tf.nn.sigmoid(preds_test)
-        preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
+        preds_test = tf.reduce_mean(preds_test, axis=0, keep_dims=True)
 
         summary_ops = []
         update_ops = []
@@ -79,19 +79,19 @@ with sess.as_default():
 
             map_test += ap_test / 20
 
-            op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
+            op = tf.summary.scalar('ap_test_{}'.format(c), ap_test)
             op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
             update_ops.append([update_prec_test, update_rec_test])
 
-        op = tf.scalar_summary('map_test', map_test)
+        op = tf.summary.scalar('map_test', map_test)
         op = tf.Print(op, [map_test], 'map_test', summarize=30)
         summary_ops.append(op)
-        summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
+        summary_ops.append(tf.summary.image('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
 
         num_eval_steps = int(data.SPLITS_TO_SIZES[TEST_SET] / model.batch_size)
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                         num_evals=num_eval_steps,
                                         max_number_of_evaluations=100,
                                         eval_op=update_ops,
-                                        summary_op=tf.merge_summary(summary_ops))
+                                        summary_op=tf.summary.merge(summary_ops))

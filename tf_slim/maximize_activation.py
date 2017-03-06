@@ -30,7 +30,7 @@ def max_activity_img(layer_id, num_filters, lr, ckpt, reuse=None):
 
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
         sess.run(x.assign(tf.random_normal([1, 128, 128, 3], stddev=2)))
 
         _, _, layers = discriminator(x, training=False, train_fc=False, reuse=reuse)

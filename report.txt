@@ -1,0 +1,2947 @@
+================================================================================
+Input tree: 'tf_slim'
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/__init__.py'
+ outputting to 'tf_slim1.0/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_cifar10.py'
+ outputting to 'tf_slim1.0/fine_tune_cifar10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_cifar10.py' Line 107
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.select' to 'tf.where'
+
+    Old:         learning_rate = tf.select(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+                                 ~~~~~~~~~                                                                      
+    New:         learning_rate = tf.where(tf.python.math_ops.greater(global_step, int(num_train_steps * 0.5)),
+                                 ~~~~~~~~                                                                      
+
+'tf_slim/fine_tune_cifar10.py' Line 141
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+    New:             tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/fine_tune_cifar10.py' Line 142
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+    New:             tf.summary.scalar('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/fine_tune_cifar10.py' Line 146
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_cifar10.py' Line 147
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_cifar10.py' Line 148
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+    New:         tf.summary.scalar('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+
+'tf_slim/fine_tune_cifar10.py' Line 149
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+    New:         tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_imagenet.py'
+ outputting to 'tf_slim1.0/fine_tune_imagenet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_imagenet.py' Line 160
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_imagenet.py' Line 161
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_imagenet.py' Line 162
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+    New:         tf.summary.scalar('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+
+'tf_slim/fine_tune_imagenet.py' Line 163
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+    New:         tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/fine_tune_imagenet.py' Line 164
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+
+'tf_slim/fine_tune_imagenet.py' Line 155
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+    New:             tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/fine_tune_imagenet.py' Line 156
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+    New:             tf.summary.scalar('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_imagenet_new.py'
+ outputting to 'tf_slim1.0/fine_tune_imagenet_new.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_imagenet_new.py' Line 120
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_imagenet_new.py' Line 121
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_imagenet_new.py' Line 122
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+    New:         tf.summary.scalar('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+
+'tf_slim/fine_tune_imagenet_new.py' Line 123
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+    New:         tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/fine_tune_imagenet_new.py' Line 124
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_stl10.py'
+ outputting to 'tf_slim1.0/fine_tune_stl10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_stl10.py' Line 133
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:                 tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                         ~~~~~~~~~~~~~~~~~                                                                  
+    New:                 tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                         ~~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/fine_tune_stl10.py' Line 134
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:                 tf.scalar_summary('losses/test loss', test_loss)
+                         ~~~~~~~~~~~~~~~~~                                
+    New:                 tf.summary.scalar('losses/test loss', test_loss)
+                         ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/fine_tune_stl10.py' Line 138
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:                 tf.histogram_summary(variable.op.name, variable)
+                         ~~~~~~~~~~~~~~~~~~~~                             
+    New:                 tf.summary.histogram(variable.op.name, variable)
+                         ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_stl10.py' Line 139
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('learning rate', learning_rate)
+                     ~~~~~~~~~~~~~~~~~                                 
+    New:             tf.summary.scalar('learning rate', learning_rate)
+                     ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_stl10.py' Line 140
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('losses/training loss', train_loss)
+                     ~~~~~~~~~~~~~~~~~                                     
+    New:             tf.summary.scalar('losses/training loss', train_loss)
+                     ~~~~~~~~~~~~~~~~~                                     
+
+'tf_slim/fine_tune_stl10.py' Line 141
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                     ~~~~~~~~~~~~~~~~~                                                                     
+    New:             tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                     ~~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/fine_tune_stl10.py' Line 142
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                    
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                    
+
+'tf_slim/fine_tune_stl10.py' Line 143
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary('lables', labels_train)
+                     ~~~~~~~~~~~~~~~~~~~~                         
+    New:             tf.summary.histogram('lables', labels_train)
+                     ~~~~~~~~~~~~~~~~~~~~                         
+
+'tf_slim/fine_tune_stl10.py' Line 144
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary('predictions', preds_train)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram('predictions', preds_train)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_stl10_experiment.py'
+ outputting to 'tf_slim1.0/fine_tune_stl10_experiment.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 113
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:                 tf.histogram_summary(variable.op.name, variable)
+                         ~~~~~~~~~~~~~~~~~~~~                             
+    New:                 tf.summary.histogram(variable.op.name, variable)
+                         ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 114
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('learning rate', learning_rate)
+                     ~~~~~~~~~~~~~~~~~                                 
+    New:             tf.summary.scalar('learning rate', learning_rate)
+                     ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 115
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('losses/training loss', train_loss)
+                     ~~~~~~~~~~~~~~~~~                                     
+    New:             tf.summary.scalar('losses/training loss', train_loss)
+                     ~~~~~~~~~~~~~~~~~                                     
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 116
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                     ~~~~~~~~~~~~~~~~~                                                                     
+    New:             tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                     ~~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 117
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                    
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                    
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 118
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary('lables', labels_train)
+                     ~~~~~~~~~~~~~~~~~~~~                         
+    New:             tf.summary.histogram('lables', labels_train)
+                     ~~~~~~~~~~~~~~~~~~~~                         
+
+'tf_slim/fine_tune_stl10_experiment.py' Line 119
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary('predictions', preds_train)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram('predictions', preds_train)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/fine_tune_voc2007.py'
+ outputting to 'tf_slim1.0/fine_tune_voc2007.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/fine_tune_voc2007.py' Line 120
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                    
+
+'tf_slim/fine_tune_voc2007.py' Line 117
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+    New:             tf.summary.histogram(variable.op.name, variable)
+                     ~~~~~~~~~~~~~~~~~~~~                             
+
+'tf_slim/fine_tune_voc2007.py' Line 118
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/fine_tune_voc2007.py' Line 119
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+    New:         tf.summary.scalar('losses/training loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                     
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/layers.py'
+ outputting to 'tf_slim1.0/layers.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/layers.py' Line 57
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.select' to 'tf.where'
+
+    Old:     return tf.select(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
+                    ~~~~~~~~~                                                                 
+    New:     return tf.where(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
+                    ~~~~~~~~                                                                 
+
+'tf_slim/layers.py' Line 66
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:     return tf.concat(concat_dim=dim, values=[a, b])
+                              ~~~~~~~~~~~                    
+    New:     return tf.concat(axis=dim, values=[a, b])
+                              ~~~~~                    
+
+'tf_slim/layers.py' Line 62
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.select' to 'tf.where'
+
+    Old:     return tf.select(tf.python.math_ops.greater(rand_vec, p), a, b)
+                    ~~~~~~~~~                                                
+    New:     return tf.where(tf.python.math_ops.greater(rand_vec, p), a, b)
+                    ~~~~~~~~                                                
+
+'tf_slim/layers.py' Line 46
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:     return tf.concat(3, [net, noise_planes], name='add_noise_{}'.format(noise_channels))
+                                                                                                  
+    New:     return tf.concat(axis=3, values=[net, noise_planes], name='add_noise_{}'.format(noise_channels))
+                              ~~~~~   ~~~~~~~                                                                 
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/maximize_activation.py'
+ outputting to 'tf_slim1.0/maximize_activation.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/maximize_activation.py' Line 33
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.initialize_all_variables' to 'tf.global_variables_initializer'
+
+    Old:         sess.run(tf.initialize_all_variables())
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+    New:         sess.run(tf.global_variables_initializer())
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/preprocess.py'
+ outputting to 'tf_slim1.0/preprocess.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/preprocess.py' Line 89
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.pack' to 'tf.stack'
+
+    Old:         tf.pack([crop_height, crop_width, original_shape[2]]))
+                 ~~~~~~~                                                
+    New:         tf.stack([crop_height, crop_width, original_shape[2]]))
+                 ~~~~~~~~                                                
+
+'tf_slim/preprocess.py' Line 234
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:     return tf.concat(2, channels)
+                                           
+    New:     return tf.concat(axis=2, values=channels)
+                              ~~~~~   ~~~~~~~          
+
+'tf_slim/preprocess.py' Line 231
+--------------------------------------------------------------------------------
+
+Added keyword 'axis' to reordered function 'tf.split'
+Added keyword 'num_or_size_splits' to reordered function 'tf.split'
+Added keyword 'value' to reordered function 'tf.split'
+
+    Old:     channels = tf.split(2, num_channels, image)
+                                                         
+    New:     channels = tf.split(axis=2, num_or_size_splits=num_channels, value=image)
+                                 ~~~~~   ~~~~~~~~~~~~~~~~~~~              ~~~~~~       
+
+'tf_slim/preprocess.py' Line 97
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.pack' to 'tf.stack'
+
+    Old:     offsets = tf.to_int32(tf.pack([offset_height, offset_width, 0]))
+                                   ~~~~~~~                                    
+    New:     offsets = tf.to_int32(tf.stack([offset_height, offset_width, 0]))
+                                   ~~~~~~~~                                    
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_classifier_cifar10.py'
+ outputting to 'tf_slim1.0/test_classifier_cifar10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_classifier_cifar10.py' Line 73
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_classifier_cifar10.py' Line 82
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_classifier_imagenet.py'
+ outputting to 'tf_slim1.0/test_classifier_imagenet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_classifier_imagenet.py' Line 70
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_classifier_imagenet.py' Line 79
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_classifier_stl10.py'
+ outputting to 'tf_slim1.0/test_classifier_stl10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_classifier_stl10.py' Line 87
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                             summary_op=tf.merge_summary(summary_ops))
+                                                                ~~~~~~~~~~~~~~~~               
+    New:                                             summary_op=tf.summary.merge(summary_ops))
+                                                                ~~~~~~~~~~~~~~~~               
+
+'tf_slim/test_classifier_stl10.py' Line 79
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:                 op = tf.scalar_summary(metric_name, metric_value)
+                              ~~~~~~~~~~~~~~~~~                            
+    New:                 op = tf.summary.scalar(metric_name, metric_value)
+                              ~~~~~~~~~~~~~~~~~                            
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_classifier_stl10_exp.py'
+ outputting to 'tf_slim1.0/test_classifier_stl10_exp.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_classifier_stl10_exp.py' Line 74
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_classifier_stl10_exp.py' Line 82
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_classifier_voc.py'
+ outputting to 'tf_slim1.0/test_classifier_voc.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_classifier_voc.py' Line 97
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+'tf_slim/test_classifier_voc.py' Line 82
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
+                          ~~~~~~~~~~~~~~~~~                                  
+    New:             op = tf.summary.scalar('ap_test_{}'.format(c), ap_test)
+                          ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/test_classifier_voc.py' Line 48
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'dim' to 'axis'
+
+    Old:             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
+                                                                      ~~~~             
+    New:             labels_test = tf.tile(tf.expand_dims(label_test, axis=0), [10, 1])
+                                                                      ~~~~~             
+
+'tf_slim/test_classifier_voc.py' Line 49
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'dim' to 'axis'
+
+    Old:             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
+                                                                    ~~~~                   
+    New:             imgs_test_t = tf.tile(tf.expand_dims(img_test, axis=0), [10, 1, 1, 1])
+                                                                    ~~~~~                   
+
+'tf_slim/test_classifier_voc.py' Line 50
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.unpack' to 'tf.unstack'
+
+    Old:             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
+                                   ~~~~~~~~~                              
+    New:             imgs_test_p = tf.unstack(imgs_test_t, axis=0, num=10)
+                                   ~~~~~~~~~~                              
+
+'tf_slim/test_classifier_voc.py' Line 52
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.pack' to 'tf.stack'
+
+    Old:             imgs_test = tf.pack(imgs_test_p, axis=0)
+                                 ~~~~~~~                      
+    New:             imgs_test = tf.stack(imgs_test_p, axis=0)
+                                 ~~~~~~~~                      
+
+'tf_slim/test_classifier_voc.py' Line 87
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         op = tf.scalar_summary('map_test', map_test)
+                      ~~~~~~~~~~~~~~~~~                       
+    New:         op = tf.summary.scalar('map_test', map_test)
+                      ~~~~~~~~~~~~~~~~~                       
+
+'tf_slim/test_classifier_voc.py' Line 90
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                            
+    New:         summary_ops.append(tf.summary.image('images/test', montage_tf(imgs_test, 3, 3), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                            
+
+'tf_slim/test_classifier_voc.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'reduction_indices' to 'axis'
+
+    Old:         preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
+                                                         ~~~~~~~~~~~~~~~~~~                   
+    New:         preds_test = tf.reduce_mean(preds_test, axis=0, keep_dims=True)
+                                                         ~~~~~                   
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_preprocess.py'
+ outputting to 'tf_slim1.0/test_preprocess.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_recon_cifar10.py'
+ outputting to 'tf_slim1.0/test_recon_cifar10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_recon_cifar10.py' Line 65
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_recon_cifar10.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+    New:         summary_ops.append(tf.summary.image('images/generator', montage_tf(gen_rec, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+
+'tf_slim/test_recon_cifar10.py' Line 70
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                     
+    New:         summary_ops.append(tf.summary.image('images/ground-truth', montage_tf(imgs_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/test_recon_cifar10.py' Line 71
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                  
+    New:         summary_ops.append(tf.summary.image('images/cartoons', montage_tf(toons_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/test_recon_cifar10.py' Line 72
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                               
+    New:         summary_ops.append(tf.summary.image('images/edges', montage_tf(edges_test, 8, 32), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                               
+
+'tf_slim/test_recon_cifar10.py' Line 78
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_recon_imagenet.py'
+ outputting to 'tf_slim1.0/test_recon_imagenet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_recon_imagenet.py' Line 68
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_recon_imagenet.py' Line 72
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                       
+    New:         summary_ops.append(tf.summary.image('images/generator', montage_tf(gen_rec[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                       
+
+'tf_slim/test_recon_imagenet.py' Line 73
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+    New:         summary_ops.append(tf.summary.image('images/ae', montage_tf(img_rec[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+
+'tf_slim/test_recon_imagenet.py' Line 74
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                            
+    New:         summary_ops.append(tf.summary.image('images/ground-truth', montage_tf(imgs_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                            
+
+'tf_slim/test_recon_imagenet.py' Line 75
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                         
+    New:         summary_ops.append(tf.summary.image('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                         
+
+'tf_slim/test_recon_imagenet.py' Line 76
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                      
+    New:         summary_ops.append(tf.summary.image('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                      
+
+'tf_slim/test_recon_imagenet.py' Line 80
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
+                                    ~~~~~~~~~~~~~~~~                                                                  
+    New:         summary_ops.append(tf.summary.image('images/weights_disc_1', weights_montage(weights_disc_1, 4, 16),
+                                    ~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/test_recon_imagenet.py' Line 87
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/test_recon_stl10.py'
+ outputting to 'tf_slim1.0/test_recon_stl10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/test_recon_stl10.py' Line 65
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/test_recon_stl10.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                 
+    New:         summary_ops.append(tf.summary.image('images/generator', montage_tf(gen_rec, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                 
+
+'tf_slim/test_recon_stl10.py' Line 70
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                          
+    New:         summary_ops.append(tf.summary.image('images/ae', montage_tf(img_rec, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                          
+
+'tf_slim/test_recon_stl10.py' Line 71
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                      
+    New:         summary_ops.append(tf.summary.image('images/ground-truth', montage_tf(imgs_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                      
+
+'tf_slim/test_recon_stl10.py' Line 72
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                   
+    New:         summary_ops.append(tf.summary.image('images/cartoons', montage_tf(toons_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                   
+
+'tf_slim/test_recon_stl10.py' Line 73
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+    New:         summary_ops.append(tf.summary.image('images/edges', montage_tf(edges_test, 14, 14), max_images=1))
+                                    ~~~~~~~~~~~~~~~~                                                                
+
+'tf_slim/test_recon_stl10.py' Line 76
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         summary_ops.append(tf.image_summary('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),
+                                    ~~~~~~~~~~~~~~~~                                                                 
+    New:         summary_ops.append(tf.summary.image('images/weights_disc_1', weights_montage(weights_disc_1, 8, 8),
+                                    ~~~~~~~~~~~~~~~~                                                                 
+
+'tf_slim/test_recon_stl10.py' Line 83
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex.py' Line 258
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_Alex.py' Line 229
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp.py' Line 249
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp.py' Line 220
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp_0001.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp_0001.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp_0001.py' Line 249
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_0001.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp_0001.py' Line 220
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_0001.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp_center.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp_center.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp_center.py' Line 249
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_center.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp_center.py' Line 220
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_center.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp_centerBN.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp_centerBN.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp_centerBN.py' Line 218
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_centerBN.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp_centerBN.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_Alex_comp_centerBN.py' Line 247
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp_centerBN_relu.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp_centerBN_relu.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp_centerBN_relu.py' Line 218
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_centerBN_relu.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp_centerBN_relu.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_Alex_comp_centerBN_relu.py' Line 247
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_comp_relu.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_comp_relu.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_comp_relu.py' Line 250
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_comp_relu.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_comp_relu.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_Alex_comp_relu.py' Line 221
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_Alex_stl.py'
+ outputting to 'tf_slim1.0/ToonNet_Alex_stl.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_Alex_stl.py' Line 241
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_Alex_stl.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_Alex_stl.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_Alex_stl.py' Line 213
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_AlexV2.py'
+ outputting to 'tf_slim1.0/ToonNet_AlexV2.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_AlexV2.py' Line 242
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_AlexV2.py' Line 59
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_AlexV2.py' Line 69
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_AlexV2.py' Line 213
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer,
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer(),
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_cifar.py'
+ outputting to 'tf_slim1.0/ToonNet_cifar.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_cifar.py' Line 65
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_cifar.py' Line 75
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_cifar.py' Line 253
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer,
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer(),
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_cifar.py' Line 281
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_VGG.py'
+ outputting to 'tf_slim1.0/ToonNet_VGG.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_VGG.py' Line 265
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer,
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer(),
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_VGG.py' Line 99
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_VGG.py' Line 109
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_VGG.py' Line 293
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/ToonNet_VGGv2.py'
+ outputting to 'tf_slim1.0/ToonNet_VGGv2.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/ToonNet_VGGv2.py' Line 266
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer)
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer())
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+'tf_slim/ToonNet_VGGv2.py' Line 75
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                               
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                               
+
+'tf_slim/ToonNet_VGGv2.py' Line 85
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'concat_dim' to 'axis'
+
+    Old:         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~~~~~~~                                                              
+    New:         labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                ~~~~~                                                              
+
+'tf_slim/ToonNet_VGGv2.py' Line 238
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                        biases_initializer=tf.zeros_initializer,
+                                                                   ~~~~~~~~~~~~~~~~~~~~  
+    New:                                        biases_initializer=tf.zeros_initializer(),
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_cifar10.py'
+ outputting to 'tf_slim1.0/train_cifar10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_cifar10.py' Line 130
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                               
+    New:             tf.summary.image('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                               
+
+'tf_slim/train_cifar10.py' Line 131
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                        
+    New:             tf.summary.image('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                        
+
+'tf_slim/train_cifar10.py' Line 132
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                               
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                               
+
+'tf_slim/train_cifar10.py' Line 133
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                            
+    New:             tf.summary.image('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                            
+
+'tf_slim/train_cifar10.py' Line 134
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                         
+    New:             tf.summary.image('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                         
+
+'tf_slim/train_cifar10.py' Line 103
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_cifar10.py' Line 136
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+    New:             tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_cifar10.py' Line 137
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                   
+    New:             tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                   
+
+'tf_slim/train_cifar10.py' Line 138
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                                
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                                
+
+'tf_slim/train_cifar10.py' Line 139
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                             
+    New:             tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_cifar10.py' Line 140
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+    New:             tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_cifar10.py' Line 120
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_cifar10.py' Line 121
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+    New:         tf.summary.scalar('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+
+'tf_slim/train_cifar10.py' Line 122
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+    New:         tf.summary.scalar('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/train_cifar10.py' Line 123
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+    New:         tf.summary.scalar('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+
+'tf_slim/train_cifar10.py' Line 124
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+    New:         tf.summary.scalar('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_cifar10.py' Line 125
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_imagenet.py'
+ outputting to 'tf_slim1.0/train_imagenet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_imagenet.py' Line 111
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_imagenet.py' Line 112
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+    New:         tf.summary.scalar('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+
+'tf_slim/train_imagenet.py' Line 113
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+    New:         tf.summary.scalar('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/train_imagenet.py' Line 114
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+    New:         tf.summary.scalar('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+
+'tf_slim/train_imagenet.py' Line 115
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+    New:         tf.summary.scalar('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_imagenet.py' Line 116
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/train_imagenet.py' Line 117
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_imagenet.py' Line 118
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+    New:         tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+
+'tf_slim/train_imagenet.py' Line 119
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+
+'tf_slim/train_imagenet.py' Line 121
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+    New:         tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_imagenet.py' Line 122
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_imagenet.py' Line 91
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_stl10.py'
+ outputting to 'tf_slim1.0/train_stl10.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_stl10.py' Line 110
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_stl10.py' Line 111
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+    New:         tf.summary.scalar('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+
+'tf_slim/train_stl10.py' Line 112
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+    New:         tf.summary.scalar('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/train_stl10.py' Line 113
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+    New:         tf.summary.scalar('losses/L2 mu', l2_mu)
+                 ~~~~~~~~~~~~~~~~~                        
+
+'tf_slim/train_stl10.py' Line 114
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+    New:         tf.summary.scalar('losses/L2 sigma', l2_sigma)
+                 ~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_stl10.py' Line 115
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/train_stl10.py' Line 116
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10.py' Line 117
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+    New:         tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+
+'tf_slim/train_stl10.py' Line 118
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+
+'tf_slim/train_stl10.py' Line 120
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+    New:         tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_stl10.py' Line 121
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10.py' Line 92
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_stl10_exp1.py'
+ outputting to 'tf_slim1.0/train_stl10_exp1.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_stl10_exp1.py' Line 128
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                  
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                  
+
+'tf_slim/train_stl10_exp1.py' Line 130
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                             
+    New:             tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_stl10_exp1.py' Line 131
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+    New:             tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10_exp1.py' Line 111
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_stl10_exp1.py' Line 112
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+    New:         tf.summary.scalar('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+
+'tf_slim/train_stl10_exp1.py' Line 113
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+    New:         tf.summary.scalar('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/train_stl10_exp1.py' Line 126
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+    New:             tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10_exp1.py' Line 118
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                 
+    New:             tf.summary.image('images/generator', montage_tf(gen_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                 
+
+'tf_slim/train_stl10_exp1.py' Line 120
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                        
+    New:             tf.summary.image('images/ae', montage_tf(img_rec_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                        
+
+'tf_slim/train_stl10_exp1.py' Line 121
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                 
+    New:             tf.summary.image('images/ground-truth', montage_tf(imgs_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                     ~~~~~~~~~~~~~~~~                                                                                 
+
+'tf_slim/train_stl10_exp1.py' Line 123
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                            
+    New:             tf.summary.image('images/cartoons', montage_tf(toons_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                            
+
+'tf_slim/train_stl10_exp1.py' Line 124
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                         
+    New:             tf.summary.image('images/edges', montage_tf(edges_test, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                         
+
+'tf_slim/train_stl10_exp1.py' Line 94
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_stl10_exp1.py' Line 127
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                   
+    New:             tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                     ~~~~~~~~~~~~~~~~                                                                                   
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_stl10_exp2.py'
+ outputting to 'tf_slim1.0/train_stl10_exp2.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_stl10_exp2.py' Line 108
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_stl10_exp2.py' Line 109
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+    New:         tf.summary.scalar('losses/disc-loss generator', dL_gen)
+                 ~~~~~~~~~~~~~~~~~                                       
+
+'tf_slim/train_stl10_exp2.py' Line 110
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+    New:         tf.summary.scalar('losses/l2 generator', l2_gen)
+                 ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/train_stl10_exp2.py' Line 111
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/train_stl10_exp2.py' Line 112
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/generator', montage_tf(gen_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10_exp2.py' Line 113
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+    New:         tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+
+'tf_slim/train_stl10_exp2.py' Line 114
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+    New:         tf.summary.image('images/ground-truth', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY),
+                 ~~~~~~~~~~~~~~~~                                                                                  
+
+'tf_slim/train_stl10_exp2.py' Line 116
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+    New:         tf.summary.image('images/cartoons', montage_tf(toons_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_stl10_exp2.py' Line 117
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+    New:         tf.summary.image('images/edges', montage_tf(edges_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                          
+
+'tf_slim/train_stl10_exp2.py' Line 90
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/train_stl10_experiment.py'
+ outputting to 'tf_slim1.0/train_stl10_experiment.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/train_stl10_experiment.py' Line 78
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/train_stl10_experiment.py' Line 91
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+    New:         tf.summary.scalar('losses/discriminator loss', disc_loss)
+                 ~~~~~~~~~~~~~~~~~                                         
+
+'tf_slim/train_stl10_experiment.py' Line 92
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/train_stl10_experiment.py' Line 93
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                       
+    New:         tf.summary.image('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                       
+
+'tf_slim/train_stl10_experiment.py' Line 94
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+    New:         tf.summary.image('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                             
+
+'tf_slim/train_stl10_experiment.py' Line 95
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+    New:         tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+                 ~~~~~~~~~~~~~~~~                                                                                   
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/utils.py'
+ outputting to 'tf_slim1.0/utils.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/utils.py' Line 67
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.unpack' to 'tf.unstack'
+
+    Old:     imgs = tf.unpack(imgs)
+                    ~~~~~~~~~       
+    New:     imgs = tf.unstack(imgs)
+                    ~~~~~~~~~~       
+
+'tf_slim/utils.py' Line 70
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:         img_rows[r] = tf.concat(1, imgs[r * num_w:(r + 1) * num_w])
+                                                                             
+    New:         img_rows[r] = tf.concat(axis=1, values=imgs[r * num_w:(r + 1) * num_w])
+                                         ~~~~~   ~~~~~~~                                 
+
+'tf_slim/utils.py' Line 38
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.pack' to 'tf.stack'
+
+    Old:     x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, channels]))  # 3
+                                 ~~~~~~~                                          
+    New:     x3 = tf.reshape(x2, tf.stack([grid_X, Y * grid_Y, X, channels]))  # 3
+                                 ~~~~~~~~                                          
+
+'tf_slim/utils.py' Line 71
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:     montage = tf.concat(0, img_rows)
+                                              
+    New:     montage = tf.concat(axis=0, values=img_rows)
+                                 ~~~~~   ~~~~~~~          
+
+'tf_slim/utils.py' Line 43
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.pack' to 'tf.stack'
+
+    Old:     x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, channels]))  # 3
+                                 ~~~~~~~                                              
+    New:     x5 = tf.reshape(x4, tf.stack([1, X * grid_X, Y * grid_Y, channels]))  # 3
+                                 ~~~~~~~~                                              
+
+'tf_slim/utils.py' Line 21
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'reduction_indices' to 'axis'
+
+    Old:     x_min = tf.reduce_min(weights, reduction_indices=[0, 1, 2])
+                                            ~~~~~~~~~~~~~~~~~~           
+    New:     x_min = tf.reduce_min(weights, axis=[0, 1, 2])
+                                            ~~~~~           
+
+'tf_slim/utils.py' Line 22
+--------------------------------------------------------------------------------
+
+Renamed keyword argument from 'reduction_indices' to 'axis'
+
+    Old:     x_max = tf.reduce_max(weights, reduction_indices=[0, 1, 2])
+                                            ~~~~~~~~~~~~~~~~~~           
+    New:     x_max = tf.reduce_max(weights, axis=[0, 1, 2])
+                                            ~~~~~           
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/__init__.py'
+ outputting to 'tf_slim1.0/datasets/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/cifar10.py'
+ outputting to 'tf_slim1.0/datasets/cifar10.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/convert_imagenet.py'
+ outputting to 'tf_slim1.0/datasets/convert_imagenet.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/convert_imagenet_toon.py'
+ outputting to 'tf_slim1.0/datasets/convert_imagenet_toon.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/convert_voc2007.py'
+ outputting to 'tf_slim1.0/datasets/convert_voc2007.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/dataset_utils.py'
+ outputting to 'tf_slim1.0/datasets/dataset_utils.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/download_and_convert_cifar10.py'
+ outputting to 'tf_slim1.0/datasets/download_and_convert_cifar10.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/download_and_convert_stl10.py'
+ outputting to 'tf_slim1.0/datasets/download_and_convert_stl10.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/imagenet.py'
+ outputting to 'tf_slim1.0/datasets/imagenet.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/init_datasets.py'
+ outputting to 'tf_slim1.0/datasets/init_datasets.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/stl10.py'
+ outputting to 'tf_slim1.0/datasets/stl10.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/datasets/voc.py'
+ outputting to 'tf_slim1.0/datasets/voc.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/__init__.py'
+ outputting to 'tf_slim1.0/qhu_code/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/alexnet_v2.py'
+ outputting to 'tf_slim1.0/qhu_code/alexnet_v2.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/alexnet_v2.py' Line 104
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                               biases_initializer=tf.zeros_initializer,
+                                                          ~~~~~~~~~~~~~~~~~~~~  
+    New:                               biases_initializer=tf.zeros_initializer(),
+                                                          ~~~~~~~~~~~~~~~~~~~~~~  
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/image_processing.py'
+ outputting to 'tf_slim1.0/qhu_code/image_processing.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/image_processing.py' Line 192
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('image_with_bounding_boxes', image_with_box)
+                     ~~~~~~~~~~~~~~~~                                              
+    New:             tf.summary.image('image_with_bounding_boxes', image_with_box)
+                     ~~~~~~~~~~~~~~~~                                              
+
+'tf_slim/qhu_code/image_processing.py' Line 464
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images', images)
+                 ~~~~~~~~~~~~~~~~                   
+    New:         tf.summary.image('images', images)
+                 ~~~~~~~~~~~~~~~~                   
+
+'tf_slim/qhu_code/image_processing.py' Line 357
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:     bbox = tf.concat(0, [ymin, xmin, ymax, xmax])
+                                                           
+    New:     bbox = tf.concat(axis=0, values=[ymin, xmin, ymax, xmax])
+                              ~~~~~   ~~~~~~~                          
+
+'tf_slim/qhu_code/image_processing.py' Line 230
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('cropped_resized_image',
+                     ~~~~~~~~~~~~~~~~                          
+    New:             tf.summary.image('cropped_resized_image',
+                     ~~~~~~~~~~~~~~~~                          
+
+'tf_slim/qhu_code/image_processing.py' Line 295
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.sub' to 'tf.subtract'
+
+    Old:     image = tf.sub(image, 0.5)
+                     ~~~~~~             
+    New:     image = tf.subtract(image, 0.5)
+                     ~~~~~~~~~~~             
+
+'tf_slim/qhu_code/image_processing.py' Line 296
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.mul' to 'tf.multiply'
+
+    Old:     image = tf.mul(image, 2.0)
+                     ~~~~~~             
+    New:     image = tf.multiply(image, 2.0)
+                     ~~~~~~~~~~~             
+
+'tf_slim/qhu_code/image_processing.py' Line 240
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('final_distorted_image',
+                     ~~~~~~~~~~~~~~~~                          
+    New:             tf.summary.image('final_distorted_image',
+                     ~~~~~~~~~~~~~~~~                          
+
+'tf_slim/qhu_code/image_processing.py' Line 213
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:             tf.image_summary('images_with_distorted_bounding_box',
+                     ~~~~~~~~~~~~~~~~                                       
+    New:             tf.summary.image('images_with_distorted_bounding_box',
+                     ~~~~~~~~~~~~~~~~                                       
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/input_pipeline_rendered_data_vgg.py'
+ outputting to 'tf_slim1.0/qhu_code/input_pipeline_rendered_data_vgg.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/model_edge_advplus_128.py'
+ outputting to 'tf_slim1.0/qhu_code/model_edge_advplus_128.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 192
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_all_summaries' to 'tf.summary.merge_all'
+
+    Old:         summary_op = tf.merge_all_summaries()
+                              ~~~~~~~~~~~~~~~~~~~~~~    
+    New:         summary_op = tf.summary.merge_all()
+                              ~~~~~~~~~~~~~~~~~~~~    
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 193
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.train.SummaryWriter' to 'tf.summary.FileWriter'
+
+    Old:         summary_writer = tf.train.SummaryWriter(config.summary_dir, graph_def=self.sess.graph_def)
+                                  ~~~~~~~~~~~~~~~~~~~~~~                                                     
+    New:         summary_writer = tf.summary.FileWriter(config.summary_dir, graph_def=self.sess.graph_def)
+                                  ~~~~~~~~~~~~~~~~~~~~~                                                     
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 315
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('c_loss', self.c_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+    New:         tf.summary.scalar('c_loss', self.c_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 260
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:         concated = tf.concat(3, [image, sketches])
+                                                             
+    New:         concated = tf.concat(axis=3, values=[image, sketches])
+                                      ~~~~~   ~~~~~~~                    
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 321
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:                 tf.scalar_summary('length_z', length)
+                         ~~~~~~~~~~~~~~~~~                      
+    New:                 tf.summary.scalar('length_z', length)
+                         ~~~~~~~~~~~~~~~~~                      
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 317
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:         tf.histogram_summary('d_h0', self.d_h0)
+                 ~~~~~~~~~~~~~~~~~~~~                     
+    New:         tf.summary.histogram('d_h0', self.d_h0)
+                 ~~~~~~~~~~~~~~~~~~~~                     
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 306
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('generator', self.G)
+                 ~~~~~~~~~~~~~~~~                       
+    New:         tf.summary.image('generator', self.G)
+                 ~~~~~~~~~~~~~~~~                       
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 307
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('sketch', self.sketches)
+                 ~~~~~~~~~~~~~~~~                           
+    New:         tf.summary.image('sketch', self.sketches)
+                 ~~~~~~~~~~~~~~~~                           
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 308
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.image_summary' to 'tf.summary.image'
+
+    Old:         tf.image_summary('images', self.images)
+                 ~~~~~~~~~~~~~~~~                         
+    New:         tf.summary.image('images', self.images)
+                 ~~~~~~~~~~~~~~~~                         
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 181
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.initialize_all_variables' to 'tf.global_variables_initializer'
+
+    Old:         tf.initialize_all_variables().run()
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~          
+    New:         tf.global_variables_initializer().run()
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 310
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('d_loss_real', self.d_loss_real)
+                 ~~~~~~~~~~~~~~~~~                                   
+    New:         tf.summary.scalar('d_loss_real', self.d_loss_real)
+                 ~~~~~~~~~~~~~~~~~                                   
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 311
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('g_loss', self.g_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+    New:         tf.summary.scalar('g_loss', self.g_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 312
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('d_loss', self.d_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+    New:         tf.summary.scalar('d_loss', self.d_loss)
+                 ~~~~~~~~~~~~~~~~~                         
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 281
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.mul' to 'tf.multiply'
+
+    Old:                 z_slices = tf.mul(tf.ones([self.batch_size, self.abstract_size, self.abstract_size, self.z_dim]),
+                                    ~~~~~~                                                                                  
+    New:                 z_slices = tf.multiply(tf.ones([self.batch_size, self.abstract_size, self.abstract_size, self.z_dim]),
+                                    ~~~~~~~~~~~                                                                                  
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 314
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('l2_loss', self.l2_loss)
+                 ~~~~~~~~~~~~~~~~~                           
+    New:         tf.summary.scalar('l2_loss', self.l2_loss)
+                 ~~~~~~~~~~~~~~~~~                           
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 283
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:                 self.abstract_representation = tf.concat(3, [self.abstract_representation, z_slices])
+                                                                                                                
+    New:                 self.abstract_representation = tf.concat(axis=3, values=[self.abstract_representation, z_slices])
+                                                                  ~~~~~   ~~~~~~~                                           
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 316
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:         tf.histogram_summary('abstract_representation', self.abstract_representation)
+                 ~~~~~~~~~~~~~~~~~~~~                                                           
+    New:         tf.summary.histogram('abstract_representation', self.abstract_representation)
+                 ~~~~~~~~~~~~~~~~~~~~                                                           
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 313
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('g_lr', self.g_lr)
+                 ~~~~~~~~~~~~~~~~~                     
+    New:         tf.summary.scalar('g_lr', self.g_lr)
+                 ~~~~~~~~~~~~~~~~~                     
+
+'tf_slim/qhu_code/model_edge_advplus_128.py' Line 309
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('d_loss_fake', self.d_loss_fake)
+                 ~~~~~~~~~~~~~~~~~                                   
+    New:         tf.summary.scalar('d_loss_fake', self.d_loss_fake)
+                 ~~~~~~~~~~~~~~~~~                                   
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/ops.py'
+ outputting to 'tf_slim1.0/qhu_code/ops.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/ops.py' Line 115
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(w.name, w)
+                     ~~~~~~~~~~~~~~~~~~~~             
+    New:             tf.summary.histogram(w.name, w)
+                     ~~~~~~~~~~~~~~~~~~~~             
+
+'tf_slim/qhu_code/ops.py' Line 132
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(matrix.name, matrix)
+                     ~~~~~~~~~~~~~~~~~~~~                       
+    New:             tf.summary.histogram(matrix.name, matrix)
+                     ~~~~~~~~~~~~~~~~~~~~                       
+
+'tf_slim/qhu_code/ops.py' Line 94
+--------------------------------------------------------------------------------
+
+Added keyword 'concat_dim' to reordered function 'tf.concat'
+Added keyword 'values' to reordered function 'tf.concat'
+
+    Old:     return tf.concat(3, [x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])])
+                                                                                                        
+    New:     return tf.concat(axis=3, values=[x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])])
+                              ~~~~~   ~~~~~~~                                                                       
+
+'tf_slim/qhu_code/ops.py' Line 103
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             tf.histogram_summary(w.name, w)
+                     ~~~~~~~~~~~~~~~~~~~~             
+    New:             tf.summary.histogram(w.name, w)
+                     ~~~~~~~~~~~~~~~~~~~~             
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/test_alex.py'
+ outputting to 'tf_slim1.0/qhu_code/test_alex.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/test_alex.py' Line 58
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             op = tf.scalar_summary(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+    New:             op = tf.summary.scalar(metric_name, metric_value)
+                          ~~~~~~~~~~~~~~~~~                            
+
+'tf_slim/qhu_code/test_alex.py' Line 68
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.merge_summary' to 'tf.summary.merge'
+
+    Old:                                         summary_op=tf.merge_summary(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+    New:                                         summary_op=tf.summary.merge(summary_ops))
+                                                            ~~~~~~~~~~~~~~~~               
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/train_AlexNet.py'
+ outputting to 'tf_slim1.0/qhu_code/train_AlexNet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/train_AlexNet.py' Line 80
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/qhu_code/train_AlexNet.py' Line 66
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/qhu_code/train_AlexNet.py' Line 67
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/train loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/train loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/qhu_code/train_AlexNet.py' Line 68
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+    New:         tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+
+
+--------------------------------------------------------------------------------
+Processing file 'tf_slim/qhu_code/train_imagenet.py'
+ outputting to 'tf_slim1.0/qhu_code/train_imagenet.py'
+--------------------------------------------------------------------------------
+
+'tf_slim/qhu_code/train_imagenet.py' Line 139
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+    New:         tf.summary.scalar('learning rate', learning_rate)
+                 ~~~~~~~~~~~~~~~~~                                 
+
+'tf_slim/qhu_code/train_imagenet.py' Line 140
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('losses/train loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                  
+    New:         tf.summary.scalar('losses/train loss', train_loss)
+                 ~~~~~~~~~~~~~~~~~                                  
+
+'tf_slim/qhu_code/train_imagenet.py' Line 141
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:         tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+    New:         tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+                 ~~~~~~~~~~~~~~~~~                                                                     
+
+'tf_slim/qhu_code/train_imagenet.py' Line 143
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+    New:             tf.summary.scalar('losses/test loss', test_loss)
+                     ~~~~~~~~~~~~~~~~~                                
+
+'tf_slim/qhu_code/train_imagenet.py' Line 144
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.scalar_summary' to 'tf.summary.scalar'
+
+    Old:             tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+    New:             tf.summary.scalar('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
+                     ~~~~~~~~~~~~~~~~~                                                                  
+
+'tf_slim/qhu_code/train_imagenet.py' Line 159
+--------------------------------------------------------------------------------
+
+Renamed function 'tf.histogram_summary' to 'tf.summary.histogram'
+
+    Old:             summaries.add(tf.histogram_summary(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+    New:             summaries.add(tf.summary.histogram(variable.op.name, variable))
+                                   ~~~~~~~~~~~~~~~~~~~~                              
+
+'tf_slim/qhu_code/train_imagenet.py' Line 63
+--------------------------------------------------------------------------------
+
+Changed 'tf.zeros_initializer' to 'tf.zeros_initializer()'
+
+    Old:                                            biases_initializer=tf.zeros_initializer)
+                                                                       ~~~~~~~~~~~~~~~~~~~~  
+    New:                                            biases_initializer=tf.zeros_initializer())
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~  
+
+

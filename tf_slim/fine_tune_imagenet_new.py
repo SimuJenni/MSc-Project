@@ -117,11 +117,11 @@ with sess.as_default():
 
         # Gather all summaries
         for variable in slim.get_model_variables():
-            tf.histogram_summary(variable.op.name, variable)
-        tf.scalar_summary('learning rate', learning_rate)
-        tf.scalar_summary('losses/training loss', train_loss)
-        tf.scalar_summary('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-        tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+            tf.summary.histogram(variable.op.name, variable)
+        tf.summary.scalar('learning rate', learning_rate)
+        tf.summary.scalar('losses/training loss', train_loss)
+        tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
+        tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
 
         # Handle initialisation
         init_fn = None

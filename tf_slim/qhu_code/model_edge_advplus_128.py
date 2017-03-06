@@ -178,7 +178,7 @@ class DCGAN(object):
         with tf.control_dependencies([g_optim]):
             g_optim = tf.group(self.bn_assigners)
 
-        tf.initialize_all_variables().run()
+        tf.global_variables_initializer().run()
         if config.continue_from:
             checkpoint_dir = os.path.join(os.path.dirname(config.checkpoint_dir), config.continue_from)
             print('Loading variables from ' + checkpoint_dir)
@@ -189,8 +189,8 @@ class DCGAN(object):
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=self.sess, coord=coord)
         self.make_summary_ops()
-        summary_op = tf.merge_all_summaries()
-        summary_writer = tf.train.SummaryWriter(config.summary_dir, graph_def=self.sess.graph_def)
+        summary_op = tf.summary.merge_all()
+        summary_writer = tf.summary.FileWriter(config.summary_dir, graph_def=self.sess.graph_def)
 
         try:
             # Training
@@ -257,7 +257,7 @@ class DCGAN(object):
         if reuse:
             tf.get_variable_scope().reuse_variables()
 
-        concated = tf.concat(3, [image, sketches])
+        concated = tf.concat(axis=3, values=[image, sketches])
         self.d_h0 = lrelu(conv2d(concated, self.df_dim, name='d_h0_conv'))
         h1 = lrelu(self.d_bn1(conv2d(self.d_h0, self.df_dim*2, name='d_h1_conv')))
         h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv')))
@@ -278,9 +278,9 @@ class DCGAN(object):
             self.abstract_representation = lrelu(self.g_s_bn3(conv2d(self.s2, self.df_dim * 8, name='g_s3_conv')))
             # Size after 4 convolutions with stride 2.
             if self.z_dim:
-                z_slices = tf.mul(tf.ones([self.batch_size, self.abstract_size, self.abstract_size, self.z_dim]),
+                z_slices = tf.multiply(tf.ones([self.batch_size, self.abstract_size, self.abstract_size, self.z_dim]),
                                   tf.reshape(self.z, [self.batch_size, 1, 1, self.z_dim]))
-                self.abstract_representation = tf.concat(3, [self.abstract_representation, z_slices])
+                self.abstract_representation = tf.concat(axis=3, values=[self.abstract_representation, z_slices])
             used_abstract = self.abstract_representation
 
         # if gflag:
@@ -303,22 +303,22 @@ class DCGAN(object):
         #     return self.s0, self.s1, self.s2, self.abstract_representation
 
     def make_summary_ops(self):
-        tf.image_summary('generator', self.G)
-        tf.image_summary('sketch', self.sketches)
-        tf.image_summary('images', self.images)
-        tf.scalar_summary('d_loss_fake', self.d_loss_fake)
-        tf.scalar_summary('d_loss_real', self.d_loss_real)
-        tf.scalar_summary('g_loss', self.g_loss)
-        tf.scalar_summary('d_loss', self.d_loss)
-        tf.scalar_summary('g_lr', self.g_lr)
-        tf.scalar_summary('l2_loss', self.l2_loss)
-        tf.scalar_summary('c_loss', self.c_loss)
-        tf.histogram_summary('abstract_representation', self.abstract_representation)
-        tf.histogram_summary('d_h0', self.d_h0)
+        tf.summary.image('generator', self.G)
+        tf.summary.image('sketch', self.sketches)
+        tf.summary.image('images', self.images)
+        tf.summary.scalar('d_loss_fake', self.d_loss_fake)
+        tf.summary.scalar('d_loss_real', self.d_loss_real)
+        tf.summary.scalar('g_loss', self.g_loss)
+        tf.summary.scalar('d_loss', self.d_loss)
+        tf.summary.scalar('g_lr', self.g_lr)
+        tf.summary.scalar('l2_loss', self.l2_loss)
+        tf.summary.scalar('c_loss', self.c_loss)
+        tf.summary.histogram('abstract_representation', self.abstract_representation)
+        tf.summary.histogram('d_h0', self.d_h0)
         if self.z_dim:
             with tf.variable_scope('z_stats') as scope:
                 length = tf.sqrt(tf.reduce_sum(tf.square(self.z)))
-                tf.scalar_summary('length_z', length)
+                tf.summary.scalar('length_z', length)
 
     def save(self, checkpoint_dir, step):
         if not os.path.exists(checkpoint_dir):

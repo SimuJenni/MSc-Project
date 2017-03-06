@@ -75,7 +75,7 @@ with sess.as_default():
 
         # Add summaries for variables.
         for variable in slim.get_model_variables():
-            summaries.add(tf.histogram_summary(variable.op.name, variable))
+            summaries.add(tf.summary.histogram(variable.op.name, variable))
 
         # Handle dependencies with update_ops (batch-norm)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -88,11 +88,11 @@ with sess.as_default():
         optimizer = tf.train.AdamOptimizer(learning_rate=LR, beta1=0.5, epsilon=1e-5)
 
         # Handle summaries
-        tf.scalar_summary('losses/discriminator loss', disc_loss)
-        tf.scalar_summary('losses/l2 auto-encoder', l2_ae)
-        tf.image_summary('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
-        tf.image_summary('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.scalar('losses/discriminator loss', disc_loss)
+        tf.summary.scalar('losses/l2 auto-encoder', l2_ae)
+        tf.summary.image('images/img', montage_tf(imgs_train, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/noise_img', montage_tf(noise_imgs, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
+        tf.summary.image('images/ae', montage_tf(img_rec, NUM_IMG_SUMMARY, NUM_IMG_SUMMARY), max_images=1)
 
         # Discriminator training operation
         scopes_disc = 'discriminator'

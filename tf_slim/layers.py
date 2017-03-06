@@ -43,7 +43,7 @@ def add_noise_plane(net, noise_channels, training=True):
     if training:
         slim.add_model_variable(biases)
     noise_planes = tf.nn.bias_add(noise_planes, biases)
-    return tf.concat(3, [net, noise_planes], name='add_noise_{}'.format(noise_channels))
+    return tf.concat(axis=3, values=[net, noise_planes], name='add_noise_{}'.format(noise_channels))
 
 
 def sample(mu, log_var):
@@ -54,16 +54,16 @@ def sample(mu, log_var):
 
 
 def ordered_merge(a, b, order):
-    return tf.select(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
+    return tf.where(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
 
 
 def random_select(a, b, p, batch_size):
     rand_vec = tf.random_uniform((batch_size,), minval=0.0, maxval=1.0)
-    return tf.select(tf.python.math_ops.greater(rand_vec, p), a, b)
+    return tf.where(tf.python.math_ops.greater(rand_vec, p), a, b)
 
 
 def merge(a, b, dim=3):
-    return tf.concat(concat_dim=dim, values=[a, b])
+    return tf.concat(axis=dim, values=[a, b])
 
 
 def feature_dropout(net, p):

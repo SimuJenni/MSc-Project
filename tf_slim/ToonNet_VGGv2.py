@@ -72,7 +72,7 @@ class VAEGAN:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+        labels = tf.Variable(tf.concat(axis=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
@@ -82,7 +82,7 @@ class VAEGAN:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+        labels = tf.Variable(tf.concat(axis=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
@@ -235,7 +235,7 @@ def discriminator(net, num_layers=5, reuse=None, num_out=2, training=True, train
             net = slim.fully_connected(net, num_out,
                                        activation_fn=None,
                                        normalizer_fn=None,
-                                       biases_initializer=tf.zeros_initializer,
+                                       biases_initializer=tf.zeros_initializer(),
                                        trainable=train_fc)
             return net, encoded, layers
 
@@ -263,7 +263,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
             net = slim.fully_connected(net, num_classes, scope='fc3',
                                        activation_fn=None,
                                        normalizer_fn=None,
-                                       biases_initializer=tf.zeros_initializer)
+                                       biases_initializer=tf.zeros_initializer())
     return net
 
 

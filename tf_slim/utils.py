@@ -18,8 +18,8 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
         Tensor of shape [(Y+2*pad)*grid_Y, (X+2*pad)*grid_X, NumChannels, 1].
     """
 
-    x_min = tf.reduce_min(weights, reduction_indices=[0, 1, 2])
-    x_max = tf.reduce_max(weights, reduction_indices=[0, 1, 2])
+    x_min = tf.reduce_min(weights, axis=[0, 1, 2])
+    x_max = tf.reduce_max(weights, axis=[0, 1, 2])
 
     weights1 = (weights - x_min) / (x_max - x_min)
 
@@ -35,12 +35,12 @@ def weights_montage(weights, grid_Y, grid_X, pad=1):
     # put NumKernels to the 1st dimension
     x2 = tf.transpose(x1, (3, 0, 1, 2))
     # organize grid on Y axis
-    x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, channels]))  # 3
+    x3 = tf.reshape(x2, tf.stack([grid_X, Y * grid_Y, X, channels]))  # 3
 
     # switch X and Y axes
     x4 = tf.transpose(x3, (0, 2, 1, 3))
     # organize grid on X axis
-    x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, channels]))  # 3
+    x5 = tf.reshape(x4, tf.stack([1, X * grid_X, Y * grid_Y, channels]))  # 3
 
     # back to normal order (not combining with the next step for clarity)
     x6 = tf.transpose(x5, (2, 1, 3, 0))
@@ -64,11 +64,11 @@ def montage_tf(imgs, num_h, num_w):
     Returns:
         A montage of num_h*num_w images
     """
-    imgs = tf.unpack(imgs)
+    imgs = tf.unstack(imgs)
     img_rows = [None] * num_h
     for r in range(num_h):
-        img_rows[r] = tf.concat(1, imgs[r * num_w:(r + 1) * num_w])
-    montage = tf.concat(0, img_rows)
+        img_rows[r] = tf.concat(axis=1, values=imgs[r * num_w:(r + 1) * num_w])
+    montage = tf.concat(axis=0, values=img_rows)
     return tf.expand_dims(montage, 0)
 
 

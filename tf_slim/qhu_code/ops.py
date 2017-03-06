@@ -91,7 +91,7 @@ def conv_cond_concat(x, y):
     """Concatenate conditioning vector on feature map axis."""
     x_shapes = x.get_shape()
     y_shapes = y.get_shape()
-    return tf.concat(3, [x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])])
+    return tf.concat(axis=3, values=[x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])])
 
 def conv2d(input_, output_dim,
            k_h=5, k_w=5, d_h=2, d_w=2, stddev=0.02,
@@ -100,7 +100,7 @@ def conv2d(input_, output_dim,
         w = tf.get_variable('w', [k_h, k_w, input_.get_shape()[-1], output_dim],
                             initializer=tf.truncated_normal_initializer(stddev=stddev))
         if not tf.get_variable_scope().reuse:
-            tf.histogram_summary(w.name, w)
+            tf.summary.histogram(w.name, w)
         conv = tf.nn.conv2d(input_, w, strides=[1, d_h, d_w, 1], padding='SAME')
         return conv
 
@@ -112,7 +112,7 @@ def deconv2d(input_, output_shape,
         w = tf.get_variable('w', [k_h, k_h, output_shape[-1], input_.get_shape()[-1]],
                             initializer=tf.random_normal_initializer(stddev=stddev))
         if not tf.get_variable_scope().reuse:
-            tf.histogram_summary(w.name, w)
+            tf.summary.histogram(w.name, w)
         return tf.nn.conv2d_transpose(input_, w, output_shape=output_shape,
                                       strides=[1, d_h, d_w, 1])
 
@@ -129,7 +129,7 @@ def linear(input_, output_size, scope='Linear', stddev=0.02):
         matrix = tf.get_variable("Matrix", [shape[1], output_size], tf.float32,
                                  tf.random_normal_initializer(stddev=stddev))
         if not tf.get_variable_scope().reuse:
-            tf.histogram_summary(matrix.name, matrix)
+            tf.summary.histogram(matrix.name, matrix)
         return tf.matmul(input_, matrix)
 
 

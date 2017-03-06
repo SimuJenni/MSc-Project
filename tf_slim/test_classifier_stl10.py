@@ -76,7 +76,7 @@ for fold in range(10):
             # Create the summary ops such that they also print out to std output:
             summary_ops = []
             for metric_name, metric_value in names_to_values.iteritems():
-                op = tf.scalar_summary(metric_name, metric_value)
+                op = tf.summary.scalar(metric_name, metric_value)
                 op = tf.Print(op, [metric_value], metric_name)
                 summary_ops.append(op)
 
@@ -84,4 +84,4 @@ for fold in range(10):
                                             num_evals=num_eval_steps,
                                             max_number_of_evaluations=1,
                                             eval_op=names_to_updates.values(),
-                                            summary_op=tf.merge_summary(summary_ops))
+                                            summary_op=tf.summary.merge(summary_ops))

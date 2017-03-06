@@ -61,9 +61,9 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
             # Define the loss
             loss_scope = 'train_loss'
-            train_loss = tf.losses.softmax_cross_entropy(preds_train,
-                                                           slim.one_hot_encoding(labels_train, data.NUM_CLASSES),
-                                                           scope=loss_scope)
+            train_loss = tf.losses.softmax_cross_entropy(slim.one_hot_encoding(labels_train, data.NUM_CLASSES),
+                                                         preds_train,
+                                                         scope=loss_scope)
             train_losses = tf.losses.get_losses(loss_scope)
             train_losses += tf.losses.get_regularization_losses(loss_scope)
             total_train_loss = math_ops.add_n(train_losses, name='total_train_loss')
@@ -103,7 +103,7 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 var2train = tf.trainable_variables()
 
             train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                     global_step=global_step, summarize_gradients=True)
+                                                     global_step=global_step)
             print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
             print('Variables to train: {}'.format([v.op.name for v in var2train]))
             sys.stdout.flush()
@@ -111,8 +111,8 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
             # Gather all summaries
             for variable in slim.get_model_variables():
                 tf.summary.histogram(variable.op.name, variable)
-            tf.summary.scalar('learning rate', learning_rate)
-            tf.summary.scalar('losses/training loss', train_loss)
+            tf.summary.scalar('learning_rate', learning_rate)
+            tf.summary.scalar('losses/training_loss', train_loss)
             tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
             tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_outputs=1)
             tf.summary.histogram('lables', labels_train)

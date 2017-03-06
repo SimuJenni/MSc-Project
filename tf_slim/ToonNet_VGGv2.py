@@ -108,13 +108,14 @@ class VAEGAN:
             gen_in = merge(img, edge)
             _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
+            activation = lrelu
             _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)
         elif type == 'encoder':
             _, _, _, model = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
         else:
             raise ('Wrong type!')
-        model = classifier(model, num_classes, reuse=reuse, training=training)
+        model = classifier(model, num_classes, reuse=reuse, training=training, activation=activation)
         return model
 
 
@@ -254,7 +255,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
         Resulting logits for all the classes
     """
     with tf.variable_scope('fully_connected', reuse=reuse):
-        with slim.arg_scope(toon_net_argscope(activation=activation, training=training)):
+        with slim.arg_scope(toon_net_argscope(activation=activation, training=training, center=False)):
             net = slim.flatten(net)
             net = slim.fully_connected(net, 4096, scope='fc1')
             net = slim.dropout(net, 0.5, is_training=training)
@@ -268,7 +269,7 @@ def classifier(net, num_classes, reuse=None, training=True, activation=tf.nn.rel
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001):
+                      w_reg=0.00001):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:

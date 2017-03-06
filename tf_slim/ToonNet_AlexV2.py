@@ -84,7 +84,7 @@ class VAEGAN:
             Output logits from the classifier
         """
         _, model = discriminator(img, reuse=reuse, num_out=num_classes, training=training, train_fc=False)
-        model = classifier(model, num_classes, reuse=reuse, training=training)
+        model = classifier(model, num_classes, reuse=reuse, training=training, activation=lrelu)
         return model
 
 

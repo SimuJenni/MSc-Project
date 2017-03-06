@@ -61,11 +61,11 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
             # Define the loss
             loss_scope = 'train_loss'
-            train_loss = slim.losses.softmax_cross_entropy(preds_train,
+            train_loss = tf.losses.softmax_cross_entropy(preds_train,
                                                            slim.one_hot_encoding(labels_train, data.NUM_CLASSES),
                                                            scope=loss_scope)
-            train_losses = slim.losses.get_losses(loss_scope)
-            train_losses += slim.losses.get_regularization_losses(loss_scope)
+            train_losses = tf.losses.get_losses(loss_scope)
+            train_losses += tf.losses.get_regularization_losses(loss_scope)
             total_train_loss = math_ops.add_n(train_losses, name='total_train_loss')
 
             # Compute predicted label for accuracy
@@ -114,7 +114,7 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
             tf.summary.scalar('learning rate', learning_rate)
             tf.summary.scalar('losses/training loss', train_loss)
             tf.summary.scalar('accuracy/train', slim.metrics.accuracy(preds_train, labels_train))
-            tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+            tf.summary.image('images/ground-truth', montage_tf(imgs_train, 4, 4), max_outputs=1)
             tf.summary.histogram('lables', labels_train)
             tf.summary.histogram('predictions', preds_train)
 

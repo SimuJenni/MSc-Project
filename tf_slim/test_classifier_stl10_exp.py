@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_VGGv2 import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_finetune_test
@@ -21,9 +21,9 @@ NUM_CONV_TRAIN = 0
 use_test_set = True
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_add_gaussian_noise_{}/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_noise_in_feat_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

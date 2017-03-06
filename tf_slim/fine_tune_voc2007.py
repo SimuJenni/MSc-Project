@@ -34,7 +34,7 @@ num_preprocess_threads = 8
 CHECKPOINT = 'model.ckpt-900811'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_500_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_full_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -61,7 +61,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=False) # TODO: Augment?
+                                           augment_color=True) # TODO: Augment?
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -72,7 +72,7 @@ with sess.as_default():
 
         # Get predictions
         # preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
-        preds_train = model.build_classifier(imgs_train, data.NUM_CLASSES)
+        preds_train = model.build_classifier_voc(imgs_train, data.NUM_CLASSES)
 
         # Define the loss
         loss_scope = 'train_loss'
@@ -126,7 +126,7 @@ with sess.as_default():
             var2train = tf.trainable_variables()
             grad_multipliers = None
 
-        grad_multipliers = None # TODO:?
+        grad_multipliers = None     # TODO:?
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, gradient_multipliers=grad_multipliers,
@@ -145,8 +145,11 @@ with sess.as_default():
         init_fn = None
         if fine_tune:
             # Specify the layers of your model you want to exclude
+            # variables_to_restore = slim.get_variables_to_restore(
+            #     include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected', 'discriminator/fc1',
+            #                                  ops.GraphKeys.GLOBAL_STEP])
             variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected', 'discriminator/fc1',
+                include=[net_type], exclude=['fully_connected', 'discriminator/fully_connected',
                                              ops.GraphKeys.GLOBAL_STEP])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)

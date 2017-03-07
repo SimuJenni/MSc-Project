@@ -12,21 +12,20 @@ from tensorflow.python.framework import ops
 from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_finetune_train, preprocess_finetune_test
+from preprocess import preprocess_finetune_train
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
 
 
 def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, train_set_id, batch_size, num_epochs,
-                    test_set_id='test', net_type='discriminator', fine_tune=True, test=False):
+                    net_type='discriminator', fine_tune=True):
     model = VAEGAN(num_layers=num_layers, batch_size=batch_size)
-    pre_trained_grad_weight = [0.5 * 0.5 ** i for i in range(num_conv_train)]
     model_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
         save_dir = os.path.join(LOG_DIR,
-                                '{}_{}_finetune_{}_Retrain{}_final_{}_400/'.format(data.NAME, model.name, net_type,
-                                                                                   num_conv_train, train_set_id))
+                                '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(data.NAME, model.name, net_type,
+                                                                               num_conv_train, train_set_id))
     else:
         save_dir = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
 
@@ -48,21 +47,11 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
                 # Pre-process data
                 img_train = preprocess_finetune_train(img_train, output_height=target_shape[0],
-                                                      output_width=target_shape[1], augment_color=True,
+                                                      output_width=target_shape[1], augment_color=False,
                                                       resize_side_min=96, resize_side_max=120)
                 # Make batches
                 imgs_train, labels_train = tf.train.batch([img_train, label_train], batch_size=batch_size,
                                                           num_threads=8, capacity=4 * batch_size)
-                if test:
-                    # Get test-data
-                    test_set = data.get_split(test_set_id)
-                    provider_test = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1,
-                                                                                   shuffle=False)
-                    [img_test, label_test] = provider_test.get(['image', 'label'])
-                    img_test = preprocess_finetune_test(img_test, output_height=target_shape[0],
-                                                        output_width=target_shape[1], resize_side=96)
-                    imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=batch_size,
-                                                            num_threads=1)
 
             # Get predictions
             preds_train = model.classifier(imgs_train, None, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
@@ -97,41 +86,24 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
 
             # Create training operation
             if fine_tune:
-                grad_multipliers = {}
                 var2train = []
                 for i in range(num_conv_train):
                     vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
                                                        exclude=['discriminator/fully_connected'])
                     vs = list(set(vs).intersection(tf.trainable_variables()))
                     var2train += vs
-                    for v in vs:
-                        grad_multipliers[v.op.name] = pre_trained_grad_weight[i]
                 vs = slim.get_variables_to_restore(include=['fully_connected'],
                                                    exclude=['discriminator/fully_connected'])
                 vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2train += vs
-                for v in vs:
-                    grad_multipliers[v.op.name] = 1.0
             else:
                 var2train = tf.trainable_variables()
-                grad_multipliers = None
 
             train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
-                                                     global_step=global_step, gradient_multipliers=grad_multipliers,
-                                                     summarize_gradients=True)
+                                                     global_step=global_step, summarize_gradients=True)
             print('Trainable vars: {}'.format([v.op.name for v in tf.trainable_variables()]))
             print('Variables to train: {}'.format([v.op.name for v in var2train]))
-            print(grad_multipliers)
             sys.stdout.flush()
-
-            if test:
-                preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, reuse=True,
-                                              training=False, fine_tune=fine_tune, type=net_type)
-                test_loss = slim.losses.softmax_cross_entropy(preds_test, slim.one_hot_encoding(labels_test,
-                                                                                                data.NUM_CLASSES))
-                preds_test = tf.argmax(preds_test, 1)
-                tf.scalar_summary('accuracy/test', slim.metrics.accuracy(preds_test, labels_test))
-                tf.scalar_summary('losses/test loss', test_loss)
 
             # Gather all summaries
             for variable in slim.get_model_variables():
@@ -160,6 +132,5 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-for fold in range(5, 10):
-    for c in range(6):
-        fine_tune_model(stl10, 4, c, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 256, 200)
+for fold in range(0, 10):
+    fine_tune_model(stl10, 4, 5, [96, 96, 3], 'model.ckpt-150002', 'train_fold_{}'.format(fold), 64, 300)

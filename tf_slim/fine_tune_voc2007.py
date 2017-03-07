@@ -28,7 +28,7 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 num_preprocess_threads = 8
 
-CHECKPOINT = 'model.ckpt-391495'
+CHECKPOINT = 'model.ckpt-413848'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 if fine_tune:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_80ep_{}/'.format(

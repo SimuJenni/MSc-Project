@@ -192,9 +192,9 @@ def discriminator(net, reuse=None, num_out=2, training=True, train_fc=True):
     with tf.variable_scope('discriminator', reuse=reuse):
         with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
             net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='SAME', scope='conv_1')
-            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')
             net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
-            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
+            net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2', padding='SAME')
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
             net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
             net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')

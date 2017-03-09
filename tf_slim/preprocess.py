@@ -495,6 +495,8 @@ def preprocess_imagenet_musub_test(image, output_height, output_width):
 def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Select random crops
     # image = distort_image(image, output_height, output_width, area_range=[0.1, 1.0])
+    image = _aspect_preserving_resize(image, output_height)
+
     image = tf.random_crop(image, size=(output_height, output_width, 3))
 
     # Color and contrast augmentation

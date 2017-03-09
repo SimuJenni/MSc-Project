@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
-from ToonNet_AlexV2_test import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
 from preprocess import preprocess_voc

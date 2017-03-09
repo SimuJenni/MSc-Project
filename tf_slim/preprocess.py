@@ -499,7 +499,7 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image, d_hue=0.05, d_bright=0.1)
+        image = dist_color(image, d_hue=0.025, d_bright=0.1)
         image = tf.clip_by_value(image, 0.0, 1.0)
 
     # Scale to [-1, 1]

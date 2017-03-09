@@ -11,7 +11,7 @@ from tensorflow.python.framework import ops
 from ToonNet_AlexV2_voc import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
-from preprocess import preprocess_voc_new
+from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
 
@@ -22,12 +22,12 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=10)
+model = VAEGAN(num_layers=num_layers, batch_size=64)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
-num_preprocess_threads = 8
+num_preprocess_threads = 4
 
 # CHECKPOINT = 'model.ckpt-565362'
 # MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
@@ -65,7 +65,7 @@ with sess.as_default():
                 [img_train, label_train] = provider.get(['image', 'label'])
 
                 # Pre-process data
-                img_train = preprocess_voc_new(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
                                            augment_color=True)
                 images_and_labels.append([img_train, label_train])
 
@@ -99,24 +99,11 @@ with sess.as_default():
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
 
         # Create training operation
-        if fine_tune:
-            # grad_multipliers = {}
-            var2train = []
-            for i in range(NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
-                                                   exclude=['discriminator/fully_connected'])
-                vs = list(set(vs).intersection(tf.trainable_variables()))
-                var2train += vs
-            vs = slim.get_variables_to_restore(include=['fully_connected'],
-                                               exclude=['discriminator/fully_connected'])
-            vs = list(set(vs).intersection(tf.trainable_variables()))
-            var2train += vs
-        else:
-            var2train = tf.trainable_variables()
-            grad_multipliers = None
+        var2train = tf.trainable_variables()
+        grad_multipliers = None
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, summarize_gradients=True)

@@ -8,11 +8,12 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_AlexV2 import VAEGAN
+from ToonNet_AlexV2_voc import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
+import numpy as np
 
 slim = tf.contrib.slim
 
@@ -21,12 +22,12 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=32)
+model = VAEGAN(num_layers=num_layers, batch_size=64)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
 NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
-num_preprocess_threads = 8
+num_preprocess_threads = 4
 
 CHECKPOINT = 'model.ckpt-800722'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
@@ -84,29 +85,39 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
+        # # Define learning parameters
+        # num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        # learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
+        #
+        # # Define optimizer
+        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
+        num_train_steps = 80000
+        boundaries = [np.int64(10000), np.int64(20000), np.int64(30000), np.int64(40000), np.int64(50000),
+                      np.int64(60000), np.int64(70000)]
+        values = [0.001, 0.0005, 0.00025, 0.000125, 0.0000625, 0.00003125, 0.000015625, 0.0000078125]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True)
 
         # Create training operation
-        if fine_tune:
-            # grad_multipliers = {}
-            var2train = []
-            for i in range(NUM_CONV_TRAIN):
-                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
-                                                   exclude=['discriminator/fully_connected'])
-                vs = list(set(vs).intersection(tf.trainable_variables()))
-                var2train += vs
-            vs = slim.get_variables_to_restore(include=['fully_connected'],
-                                               exclude=['discriminator/fully_connected'])
-            vs = list(set(vs).intersection(tf.trainable_variables()))
-            var2train += vs
-        else:
-            var2train = tf.trainable_variables()
-            grad_multipliers = None
+        # if fine_tune:
+        #     # grad_multipliers = {}
+        #     var2train = []
+        #     for i in range(NUM_CONV_TRAIN):
+        #         vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
+        #                                            exclude=['discriminator/fully_connected'])
+        #         vs = list(set(vs).intersection(tf.trainable_variables()))
+        #         var2train += vs
+        #     vs = slim.get_variables_to_restore(include=['fully_connected'],
+        #                                        exclude=['discriminator/fully_connected'])
+        #     vs = list(set(vs).intersection(tf.trainable_variables()))
+        #     var2train += vs
+        # else:
+        var2train = tf.trainable_variables()
+        grad_multipliers = None
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,
                                                  global_step=global_step, summarize_gradients=True)

@@ -93,7 +93,8 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = 80000
-        boundaries = np.int64([10000, 20000, 30000, 40000, 50000, 60000, 70000])
+        boundaries = [np.int64(10000), np.int64(20000), np.int64(30000), np.int64(40000), np.int64(50000),
+                      np.int64(60000), np.int64(70000)]
         values = [0.001, 0.0005, 0.00025, 0.000125, 0.0000625, 0.00003125, 0.000015625, 0.0000078125]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_AlexV2 import VAEGAN
+from ToonNet_AlexV2_voc import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc_new
@@ -21,7 +21,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=32)
+model = VAEGAN(num_layers=num_layers, batch_size=10)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
 NUM_CONV_TRAIN = 5
@@ -38,7 +38,7 @@ if fine_tune:
     # SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
     #     data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised3_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised4_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -65,7 +65,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc_new(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=False)
+                                           augment_color=True)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -91,11 +91,13 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
+        num_train_steps = 80000
+        boundaries = [10000, 20000, 30000, 40000, 50000, 60000, 70000]
+        values = [0.001, 0.0005, 0.00025, 0.000125, 0.0000625, 0.00003125, 0.000015625, 0.0000078125]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
 
         # Create training operation
         if fine_tune:

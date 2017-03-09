@@ -11,7 +11,7 @@ from tensorflow.python.framework import ops
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
-from preprocess import preprocess_voc
+from preprocess import preprocess_voc_new
 from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
@@ -38,7 +38,7 @@ if fine_tune:
     # SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
     #     data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised2_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised3_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -64,7 +64,7 @@ with sess.as_default():
                 [img_train, label_train] = provider.get(['image', 'label'])
 
                 # Pre-process data
-                img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                img_train = preprocess_voc_new(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
                                            augment_color=False)
                 images_and_labels.append([img_train, label_train])
 

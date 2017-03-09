@@ -28,11 +28,17 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 num_preprocess_threads = 8
 
-CHECKPOINT = 'model.ckpt-800722'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
+# CHECKPOINT = 'model.ckpt-565362'
+# MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
+
+CHECKPOINT = 'model.ckpt-450360'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_80ep_{}/'.format(
+    # SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
+    #     data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
+
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised2_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

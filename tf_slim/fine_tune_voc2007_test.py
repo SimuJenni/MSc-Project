@@ -131,7 +131,7 @@ with sess.as_default():
         if fine_tune:
             # Specify the layers of your model you want to exclude
             variables_to_restore = slim.get_variables_to_restore(
-                include=[net_type, 'fully_connected'])
+                include=[net_type, 'fully_connected'], exclude=['fully_connected/fc3'])
             print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
             init_fn = assign_from_checkpoint_fn(MODEL_PATH, variables_to_restore, ignore_missing_vars=True)
 

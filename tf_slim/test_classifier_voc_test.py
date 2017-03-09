@@ -6,7 +6,7 @@ from tensorflow.python.framework import ops
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
-from preprocess import preprocess_voc
+from preprocess import preprocess_voc_new
 from utils import montage_tf
 
 slim = tf.contrib.slim
@@ -22,9 +22,9 @@ TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised2_{}/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised3_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised2_{}/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_supervised3_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -48,7 +48,7 @@ with sess.as_default():
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_test_p]
+            imgs_test_p = [preprocess_voc_new(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions

@@ -514,9 +514,9 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
 def preprocess_voc_new(image, output_height, output_width, augment_color=True):
     image_height = tf.shape(image)[0]
     image_width = tf.shape(image)[1]
-    min_imsize = np.min([image_height, image_width])
-    new_size = np.random.uniform(min_imsize*0.5, min_imsize*2.0)
-    new_size = np.max([new_size, output_height])
+    min_imsize = tf.minimum(image_height, image_width)
+    new_size = tf.random_uniform([], minval=min_imsize*0.5, maxval=min_imsize*2.0, dtype=tf.int32)
+    new_size = tf.maximum(new_size, output_height)
 
     image = _aspect_preserving_resize(image, new_size)
     image = tf.random_crop(image, size=(output_height, output_width, 3))

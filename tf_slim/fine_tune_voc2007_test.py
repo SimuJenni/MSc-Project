@@ -128,7 +128,7 @@ with sess.as_default():
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', learning_rate)
         tf.scalar_summary('losses/training loss', train_loss)
-        tf.image_summary('images/ground-truth', montage_tf(imgs_train, 4, 4), max_images=1)
+        tf.image_summary('images/ground-truth', montage_tf(imgs_train, 3, 3), max_images=1)
 
         # Handle initialisation
         init_fn = None

@@ -59,8 +59,8 @@ with sess.as_default():
                 [img_train, label_train] = provider.get(['image', 'label'])
 
                 # Pre-process data
-                img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=True)
+                img_train = preprocess_voc_new(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
+                                           augment_color=False)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches

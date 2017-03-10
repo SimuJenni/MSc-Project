@@ -494,12 +494,12 @@ def preprocess_imagenet_musub_test(image, output_height, output_width):
 
 def preprocess_voc(image, output_height, output_width, augment_color=True):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=[0.1, 1.0])
+    image = distort_image(image, output_height, output_width)
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image, d_hue=0.025, d_bright=0.1)
+        image = dist_color(image)
         image = tf.clip_by_value(image, 0.0, 1.0)
 
     # Scale to [-1, 1]
@@ -513,13 +513,12 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
 
 def preprocess_voc_test(image, output_height, output_width, augment_color=False):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=[0.1, 0.7])
+    image = distort_image(image, output_height, output_width, area_range=[0.1, 0.8])
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image, d_hue=0.025, d_bright=0.1)
-        image = tf.clip_by_value(image, 0.0, 1.0)
+        image = dist_color(image)
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * 2. - 1.
@@ -543,7 +542,7 @@ def preprocess_voc_new(image, output_height, output_width, augment_color=True):
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image, d_hue=0.05, d_bright=0.1)
+        image = dist_color(image)
         image = tf.clip_by_value(image, 0.0, 1.0)
 
     # Scale to [-1, 1]
@@ -611,7 +610,7 @@ def preprocess_imagenet_musub(image, output_height, output_width, augment_color=
     return image
 
 
-def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_range=(0.2, 1.0)):
+def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_range=(0.05, 1.0)):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
         [[[0, 0, 1, 1]]],
@@ -629,12 +628,13 @@ def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_ra
     return distorted_image
 
 
-def dist_color(image, d_hue=0.025, d_bright=0.05):
-    # image = adjust_gamma(image, gamma_min=0.8, gamma_max=1.3)
-    image = tf.image.random_hue(image, d_hue, seed=None)
-    image = tf.image.random_brightness(image, d_bright, seed=None)
-    image = tf.image.random_contrast(image, 0.7, 1.4, seed=None)
-    image = tf.image.random_saturation(image, 0.7, 1.4, seed=None)
+def dist_color(image):
+    image = tf.image.random_brightness(image, max_delta=32. / 255.)
+    image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
+    image = tf.image.random_hue(image, max_delta=0.2)
+    image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+    image = tf.clip_by_value(image, 0.0, 1.0)
+
     return image
 
 

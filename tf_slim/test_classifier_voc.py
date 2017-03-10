@@ -6,7 +6,7 @@ from tensorflow.python.framework import ops
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
-from preprocess import preprocess_voc
+from preprocess import preprocess_voc_test
 from utils import montage_tf
 
 slim = tf.contrib.slim
@@ -48,7 +48,7 @@ with sess.as_default():
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_voc(im, TARGET_SHAPE[0], TARGET_SHAPE[1], augment_color=False) for im in imgs_test_p]
+            imgs_test_p = [preprocess_voc_test(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions

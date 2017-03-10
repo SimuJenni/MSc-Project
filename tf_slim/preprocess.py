@@ -511,6 +511,25 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
     return image
 
 
+def preprocess_voc_test(image, output_height, output_width, augment_color=False):
+    # Select random crops
+    image = distort_image(image, output_height, output_width, area_range=[0.1, 0.7])
+
+    # Color and contrast augmentation
+    image = tf.to_float(image) / 255.
+    if augment_color:
+        image = dist_color(image, d_hue=0.025, d_bright=0.1)
+        image = tf.clip_by_value(image, 0.0, 1.0)
+
+    # Scale to [-1, 1]
+    image = tf.to_float(image) * 2. - 1.
+
+    # Flip left-right
+    image = tf.image.random_flip_left_right(image)
+
+    return image
+
+
 def preprocess_voc_new(image, output_height, output_width, augment_color=True):
     image_height = tf.shape(image)[0]
     image_width = tf.shape(image)[1]

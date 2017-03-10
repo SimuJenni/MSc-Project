@@ -11,7 +11,7 @@ from tensorflow.python.framework import ops
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
-from preprocess import preprocess_voc
+from preprocess import preprocess_voc_new
 from utils import assign_from_checkpoint_fn, montage_tf
 import numpy as np
 
@@ -29,11 +29,11 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 num_preprocess_threads = 8
 
-CHECKPOINT = 'model.ckpt-800722'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_80ep/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
+CHECKPOINT = 'model.ckpt-900811'
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_80ep_{}/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -94,7 +94,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = 80000
-        learning_rate = tf.train.polynomial_decay(0.001, global_step, num_train_steps, end_learning_rate=0.0)
+        learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)

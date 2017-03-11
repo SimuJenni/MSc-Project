@@ -610,7 +610,7 @@ def preprocess_imagenet_musub(image, output_height, output_width, augment_color=
     return image
 
 
-def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_range=(0.05, 1.0)):
+def distort_image(image, height, width, aspect_ratio_range=(0.9, 1.1), area_range=(0.05, 1.0)):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),
         [[[0, 0, 1, 1]]],
@@ -632,15 +632,15 @@ def dist_color(image, thread_id):
     color_ordering = thread_id % 2
 
     if color_ordering == 0:
-        image = tf.image.random_brightness(image, max_delta=32. / 255.)
-        image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
-        image = tf.image.random_hue(image, max_delta=0.2)
-        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+        image = tf.image.random_brightness(image, max_delta=16. / 255.)
+        image = tf.image.random_saturation(image, lower=0.7, upper=1.3)
+        image = tf.image.random_hue(image, max_delta=0.1)
+        image = tf.image.random_contrast(image, lower=0.7, upper=1.3)
     elif color_ordering == 1:
-        image = tf.image.random_brightness(image, max_delta=32. / 255.)
-        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
-        image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
-        image = tf.image.random_hue(image, max_delta=0.2)
+        image = tf.image.random_brightness(image, max_delta=16. / 255.)
+        image = tf.image.random_contrast(image, lower=0.7, upper=1.3)
+        image = tf.image.random_saturation(image, lower=0.7, upper=1.3)
+        image = tf.image.random_hue(image, max_delta=0.1)
 
     return image
 

@@ -492,14 +492,14 @@ def preprocess_imagenet_musub_test(image, output_height, output_width):
     return image
 
 
-def preprocess_voc(image, output_height, output_width, augment_color=True):
+def preprocess_voc(image, output_height, output_width, augment_color=True, thread_id=0):
     # Select random crops
     image = distort_image(image, output_height, output_width)
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.
     if augment_color:
-        image = dist_color(image)
+        image = dist_color(image, thread_id)
         image = tf.clip_by_value(image, 0.0, 1.0)
 
     # Scale to [-1, 1]
@@ -628,12 +628,19 @@ def distort_image(image, height, width, aspect_ratio_range=(0.75, 1.33), area_ra
     return distorted_image
 
 
-def dist_color(image):
-    image = tf.image.random_brightness(image, max_delta=32. / 255.)
-    image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
-    image = tf.image.random_hue(image, max_delta=0.2)
-    image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
-    image = tf.clip_by_value(image, 0.0, 1.0)
+def dist_color(image, thread_id):
+    color_ordering = thread_id % 2
+
+    if color_ordering == 0:
+        image = tf.image.random_brightness(image, max_delta=32. / 255.)
+        image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
+        image = tf.image.random_hue(image, max_delta=0.2)
+        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+    elif color_ordering == 1:
+        image = tf.image.random_brightness(image, max_delta=32. / 255.)
+        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+        image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
+        image = tf.image.random_hue(image, max_delta=0.2)
 
     return image
 

@@ -511,9 +511,9 @@ def preprocess_voc(image, output_height, output_width, augment_color=True):
     return image
 
 
-def preprocess_voc_test(image, output_height, output_width, augment_color=False):
+def preprocess_voc_test(image, output_height, output_width, augment_color=True):
     # Select random crops
-    image = distort_image(image, output_height, output_width, area_range=[0.1, 0.8])
+    image = distort_image(image, output_height, output_width, area_range=[0.05, 1.0])
 
     # Color and contrast augmentation
     image = tf.to_float(image) / 255.

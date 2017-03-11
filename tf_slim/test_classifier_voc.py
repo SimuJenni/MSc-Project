@@ -78,7 +78,7 @@ with sess.as_default():
             # for i in range(11):
             #     ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 11
 
-            ap_test, update_map = slim.metrics.streaming_auc(class_pred_test, class_label_test)
+            ap_test, update_map = slim.metrics.streaming_auc(class_pred_test, class_label_test, curve='PR')
             update_ops.append([update_map])
             map_test += tf.to_float(ap_test) / 20.
 

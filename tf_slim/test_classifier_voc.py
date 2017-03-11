@@ -80,7 +80,7 @@ with sess.as_default():
 
             ap_test, update_map = slim.metrics.streaming_sparse_average_precision_at_k(class_pred_test, class_label_test, 1)
             update_ops.append([update_map])
-            map_test += ap_test / 20.
+            map_test += tf.to_float(ap_test) / 20.
 
             op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
             op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)

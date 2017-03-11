@@ -67,22 +67,25 @@ with sess.as_default():
             class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 1])
             class_label_test = tf.slice(labels_test, [0, c], size=[model.batch_size, 1])
 
-            # Choose the metrics to compute:
-            prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
-                class_pred_test, class_label_test, thresholds)
-            rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
-                class_pred_test, class_label_test, thresholds)
+            # # Choose the metrics to compute:
+            # prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
+            #     class_pred_test, class_label_test, thresholds)
+            # rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
+            #     class_pred_test, class_label_test, thresholds)
+            # update_ops.append([update_prec_test, update_rec_test])
+            #
+            # ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            # for i in range(11):
+            #     ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 11
 
-            ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-            for i in range(11):
-                ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 11
-
-            map_test += ap_test / 20
+            ap_test, update_map = slim.metrics.streaming_sparse_average_precision_at_k(class_pred_test, class_label_test, 1)
+            update_ops.append([update_map])
+            map_test += ap_test / 20.
 
             op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
             op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
-            update_ops.append([update_prec_test, update_rec_test])
+
 
         op = tf.scalar_summary('map_test', map_test)
         op = tf.Print(op, [map_test], 'map_test', summarize=30)

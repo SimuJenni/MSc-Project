@@ -12,7 +12,7 @@ slim = tf.contrib.slim
 
 # Setup
 finetuned = True
-net_type = 'generator'
+net_type = 'encoder'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=500)
 TARGET_SHAPE = [96, 96, 3]

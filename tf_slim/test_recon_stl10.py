@@ -46,8 +46,10 @@ with sess.as_default():
                 batch_size=model.batch_size, num_threads=1)
 
         # Create the model
-        img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
-            model.net(imgs_test, toons_test, edges_test)
+        # img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
+        #     model.net(imgs_test, toons_test, edges_test)
+        img_rec, gen_rec, disc_out = \
+            model.experiment_net1(imgs_test, toons_test, edges_test)
         preds_test = tf.argmax(disc_out, 1)
 
         # Get labels for discriminator

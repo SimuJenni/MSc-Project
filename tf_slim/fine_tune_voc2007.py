@@ -25,7 +25,7 @@ num_layers = 5
 model = VAEGAN(num_layers=num_layers, batch_size=32)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
-NUM_CONV_TRAIN = 5
+NUM_CONV_TRAIN = 0
 TRAIN_SET = 'trainval'
 num_preprocess_threads = 8
 

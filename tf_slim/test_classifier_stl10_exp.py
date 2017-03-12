@@ -6,7 +6,7 @@ import tensorflow as tf
 from ToonNet_VGG_exp4 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_finetune_test, preprocess_toon_test
+from preprocess import preprocess_finetune_test, preprocess_finetune_test_edge
 
 slim = tf.contrib.slim
 
@@ -51,7 +51,7 @@ with sess.as_default():
             img_test = preprocess_finetune_test(img_test,
                                                 output_height=TARGET_SHAPE[0],
                                                 output_width=TARGET_SHAPE[1])
-            edge_test = preprocess_finetune_test(edge_test,
+            edge_test = preprocess_finetune_test_edge(edge_test,
                                                 output_height=TARGET_SHAPE[0],
                                                 output_width=TARGET_SHAPE[1])
             # img_train, edge_train, _ = preprocess_toon_test(img_test, edge_test, img_test,

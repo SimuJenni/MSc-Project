@@ -476,7 +476,7 @@ def preprocess_finetune_test_edge(image, output_height, output_width):
     image = tf.squeeze(image, [0])
 
     # Resize to output size
-    image.set_shape([output_height, output_width, 3])
+    image.set_shape([output_height, output_width, 1])
 
     # Scale to [-1, 1]
     image = tf.to_float(image) * (2. / 255.) - 1.

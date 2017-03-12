@@ -67,19 +67,20 @@ with sess.as_default():
             class_pred_test = tf.slice(preds_test, [0, c], size=[model.batch_size, 1])
             class_label_test = tf.slice(labels_test, [0, c], size=[model.batch_size, 1])
 
-            # # Choose the metrics to compute:
-            # prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
-            #     class_pred_test, class_label_test, thresholds)
-            # rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
-            #     class_pred_test, class_label_test, thresholds)
-            # update_ops.append([update_prec_test, update_rec_test])
-            #
-            # ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-            # for i in range(11):
-            #     ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
+            # Choose the metrics to compute:
+            prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            update_ops.append([update_prec_test, update_rec_test])
 
-            ap_test, update_map = slim.metrics.streaming_auc(class_pred_test, class_label_test, curve='PR')
-            update_ops.append([update_map])
+            ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            for i in range(11):
+                ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
+
+            # ap_test, update_map = slim.metrics.streaming_auc(class_pred_test, class_label_test, curve='PR')
+            # update_ops.append([update_map])
+
             map_test += tf.to_float(ap_test) / 20.
 
             op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)

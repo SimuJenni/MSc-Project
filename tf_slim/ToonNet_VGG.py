@@ -119,6 +119,35 @@ class VAEGAN:
         disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
         return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
 
+    def net_exp4(self, img, cartoon, edges, reuse=None, training=True):
+        """Builds the AEGAN with the given inputs.
+
+        Args:
+            img: Placeholder for input images
+            cartoon: Placeholder for cartooned images
+            edges: Placeholder for edge-maps
+            reuse: Whether to reuse already defined variables.
+            training: Whether in train or test mode
+
+        Returns:
+            dec_im: The autoencoded image
+            dec_gen: The reconstructed image from cartoon and edge inputs
+            disc_out: The discriminator output
+            enc_im: Encoding of the image
+            gen_enc: Output of the generator
+        """
+        # Concatenate cartoon and edge for input to generator
+        gen_in = merge(cartoon, edges)
+        _, gen_mu, _, _ = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
+        _, enc_mu, _, _ = encoder(img, num_layers=self.num_layers, reuse=reuse, training=training)
+        # Decode both encoded images and generator output using the same decoder
+        dec_im = decoder(enc_mu, num_layers=self.num_layers, reuse=reuse, training=training)
+        dec_gen = decoder(gen_mu, num_layers=self.num_layers, reuse=True, training=training)
+        # Build input for discriminator (discriminator tries to guess order of real/fake)
+        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_out, _, _ = discriminator(disc_in, num_layers=5, reuse=reuse, num_out=2, training=training)
+        return dec_im, dec_gen, disc_out, _, _, enc_mu, gen_mu, _, _
+
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
 

@@ -190,7 +190,7 @@ class VAEGAN:
             activation = lrelu
         elif type == 'generator':
             gen_in = merge(img, edge)
-            _, _, _, model = generator(gen_in, num_layers=5, reuse=reuse, training=training)
+            _, _, _, model = generator(gen_in, num_layers=self.num_layers, reuse=reuse, training=training)
         elif type == 'discriminator':
             _, model, _ = discriminator(img, num_layers=5, reuse=reuse, num_out=num_classes,
                                         training=training, train_fc=False)

@@ -18,7 +18,7 @@ data = imagenet
 model = VAEGAN(num_layers=5, batch_size=500)
 TARGET_SHAPE = [224, 224, 3]
 RESIZE_SIZE = 224
-NUM_CONV_TRAIN = 3
+NUM_CONV_TRAIN = 4
 
 if finetuned:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain_final/'.format(data.NAME, model.name,

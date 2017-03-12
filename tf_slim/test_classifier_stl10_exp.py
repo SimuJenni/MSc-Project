@@ -6,13 +6,13 @@ import tensorflow as tf
 from ToonNet_VGG_exp4 import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
-from preprocess import preprocess_finetune_test
+from preprocess import preprocess_finetune_test, preprocess_toon_test
 
 slim = tf.contrib.slim
 
 # Setup
 finetuned = True
-net_type = 'discriminator'
+net_type = 'generator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=500)
 TARGET_SHAPE = [96, 96, 3]
@@ -45,19 +45,23 @@ with sess.as_default():
             num_eval_steps = int(data.SPLITS_TO_SIZES['test'] / model.batch_size)
 
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-            [img_test, label_test] = provider.get(['image', 'label'])
+            [img_test, label_test, edge_test] = provider.get(['image', 'label', 'edges'])
 
             # Pre-process data
-            img_test = preprocess_finetune_test(img_test,
-                                                output_height=TARGET_SHAPE[0],
-                                                output_width=TARGET_SHAPE[1])
+            # img_test = preprocess_finetune_test(img_test,
+            #                                     output_height=TARGET_SHAPE[0],
+            #                                     output_width=TARGET_SHAPE[1])
+            img_train, edge_train, _ = preprocess_toon_test(img_test, edge_test, img_test,
+                                                             output_height=TARGET_SHAPE[0],
+                                                             output_width=TARGET_SHAPE[1],
+                                                            resize_side=RESIZE_SIZE)
             # Make batches
-            imgs_test, labels_test = tf.train.batch(
-                [img_test, label_test],
+            imgs_test, labels_test, edges_test = tf.train.batch(
+                [img_test, label_test, edge_test],
                 batch_size=model.batch_size, num_threads=1)
 
         # Get predictions
-        preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False,
+        preds_test = model.classifier(imgs_test, edges_test, data.NUM_CLASSES, training=False,
                                       fine_tune=finetuned, type=net_type)
 
         # Compute predicted label for accuracy

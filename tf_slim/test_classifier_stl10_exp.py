@@ -48,13 +48,16 @@ with sess.as_default():
             [img_test, label_test, edge_test] = provider.get(['image', 'label', 'edges'])
 
             # Pre-process data
-            # img_test = preprocess_finetune_test(img_test,
-            #                                     output_height=TARGET_SHAPE[0],
-            #                                     output_width=TARGET_SHAPE[1])
-            img_train, edge_train, _ = preprocess_toon_test(img_test, edge_test, img_test,
-                                                             output_height=TARGET_SHAPE[0],
-                                                             output_width=TARGET_SHAPE[1],
-                                                            resize_side=RESIZE_SIZE)
+            img_test = preprocess_finetune_test(img_test,
+                                                output_height=TARGET_SHAPE[0],
+                                                output_width=TARGET_SHAPE[1])
+            edge_test = preprocess_finetune_test(edge_test,
+                                                output_height=TARGET_SHAPE[0],
+                                                output_width=TARGET_SHAPE[1])
+            # img_train, edge_train, _ = preprocess_toon_test(img_test, edge_test, img_test,
+            #                                                  output_height=TARGET_SHAPE[0],
+            #                                                  output_width=TARGET_SHAPE[1],
+            #                                                 resize_side=RESIZE_SIZE)
             # Make batches
             imgs_test, labels_test, edges_test = tf.train.batch(
                 [img_test, label_test, edge_test],

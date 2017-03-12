@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 finetuned = True
 net_type = 'discriminator'
 data = stl10
-model = VAEGAN(num_layers=4, batch_size=1000)
+model = VAEGAN(num_layers=4, batch_size=200)
 TARGET_SHAPE = [96, 96, 3]
 RESIZE_SIZE = 96
 NUM_CONV_TRAIN = 3
@@ -22,9 +22,9 @@ use_test_set = True
 
 for fold in range(10):
     if finetuned:
-        MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_{}_400/'.format(
+        MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_{}/'.format(
             data.NAME, model.name, net_type, NUM_CONV_TRAIN, fold))
-        LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_{}_400/'.format(
+        LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_train_fold_{}/'.format(
             data.NAME, model.name, net_type, NUM_CONV_TRAIN, fold))
     else:
         MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -54,8 +54,7 @@ for fold in range(10):
                 # Pre-process data
                 img_test = preprocess_finetune_test(img_test,
                                                     output_height=TARGET_SHAPE[0],
-                                                    output_width=TARGET_SHAPE[1],
-                                                    resize_side=RESIZE_SIZE)
+                                                    output_width=TARGET_SHAPE[1])
                 # Make batches
                 imgs_test, labels_test = tf.train.batch(
                     [img_test, label_test],

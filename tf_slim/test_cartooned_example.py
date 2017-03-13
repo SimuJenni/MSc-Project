@@ -20,12 +20,12 @@ from scipy import misc
 for i in range(1, 4):
 
     slim = tf.contrib.slim
-    img = cv2.imread("cat.jpg")
+    img = cv2.imread("bird.jpg")
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_rgb = cv2.resize(img_rgb, (128, 128))
 
     toon_im = cartoonify(img_rgb, num_donw_samp=2)
-    edge_im = auto_canny(img_rgb, sigma=0.33, blur=3**i)
+    edge_im = auto_canny(img_rgb, sigma=0.5, blur=3**i)
     edge_im = edge_im.astype(dtype=np.uint8)
     edge_im = np.expand_dims(edge_im, 2)
     print(toon_im[:50])

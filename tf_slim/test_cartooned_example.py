@@ -20,7 +20,7 @@ from PIL import Image
 slim = tf.contrib.slim
 
 toon_im = Image.open('toon.jpg')
-edge_im = Image.open('edge_1.jpg').convert('gray')
+edge_im = Image.open('edge_1.jpg').convert('LA')
 
 # Setup
 data = imagenet

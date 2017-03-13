@@ -20,7 +20,7 @@ slim = tf.contrib.slim
 
 toon_im = misc.imread('toon.jpg')
 edge_im = misc.imread('edge_1.jpg', flatten=True)
-#edge_im = np.expand_dims(edge_im, 2)
+edge_im = np.expand_dims(edge_im, 2)
 print(np.shape(toon_im))
 print(np.shape(edge_im))
 

@@ -99,21 +99,19 @@ with sess.as_default():
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
-        # Create training operation
-        # if fine_tune:
-        #     # grad_multipliers = {}
-        #     var2train = []
-        #     for i in range(NUM_CONV_TRAIN):
-        #         vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
-        #                                            exclude=['discriminator/fully_connected'])
-        #         vs = list(set(vs).intersection(tf.trainable_variables()))
-        #         var2train += vs
-        #     vs = slim.get_variables_to_restore(include=['fully_connected'],
-        #                                        exclude=['discriminator/fully_connected'])
-        #     vs = list(set(vs).intersection(tf.trainable_variables()))
-        #     var2train += vs
-        # else:
-        var2train = tf.trainable_variables()
+        if fine_tune:
+            var2train = []
+            for i in range(NUM_CONV_TRAIN):
+                vs = slim.get_variables_to_restore(include=['{}/conv_{}'.format(net_type, 5 - i)],
+                                                   exclude=['discriminator/fully_connected'])
+                vs = list(set(vs).intersection(tf.trainable_variables()))
+                var2train += vs
+            vs = slim.get_variables_to_restore(include=['fully_connected'],
+                                               exclude=['discriminator/fully_connected'])
+            vs = list(set(vs).intersection(tf.trainable_variables()))
+            var2train += vs
+        else:
+            var2train = tf.trainable_variables()
         grad_multipliers = None
 
         train_op = slim.learning.create_train_op(total_train_loss, optimizer, variables_to_train=var2train,

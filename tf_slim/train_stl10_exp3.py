@@ -13,6 +13,8 @@ from utils import montage_tf
 
 slim = tf.contrib.slim
 
+# Real images vs. pseudo-images (full architecture)
+
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'

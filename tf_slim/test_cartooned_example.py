@@ -14,10 +14,13 @@ from datasets import imagenet
 from preprocess import preprocess_toon_test
 from utils import montage_tf
 
+from PIL import Image
+
+
 slim = tf.contrib.slim
 
-toon_im = misc.imread('toon.jpg')
-edge_im = misc.imread('edge_1.jpg', flatten=True)
+toon_im = Image.open('toon.jpg')
+edge_im = Image.open('edge_1.jpg')
 
 # Setup
 data = imagenet

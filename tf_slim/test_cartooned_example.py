@@ -20,7 +20,7 @@ from scipy import misc
 for i in range(1, 4):
 
     slim = tf.contrib.slim
-    img = cv2.imread("dog.jpg")
+    img = cv2.imread("cat.jpg")
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_rgb = cv2.resize(img_rgb, (128, 128))
 

@@ -124,7 +124,7 @@ with sess.as_default():
         # Specify the layers of your model you want to exclude
         variables_to_restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
         print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
-        m_path = os.path.join(LOG_DIR, '{}_{}_exp2/'.format(data.NAME, model.name))
+        m_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, 'model.ckpt-150002'))
 
         init_fn = assign_from_checkpoint_fn(m_path, variables_to_restore, ignore_missing_vars=True)
 

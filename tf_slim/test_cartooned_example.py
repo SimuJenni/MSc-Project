@@ -90,5 +90,4 @@ with sess.as_default():
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops),
-                                        initial_op=[toon, edge],
-                                        initial_op_feed_dict={toon: toon_im, edge: edge_im})
+                                        eval_op_feed_dict={toon: toon_im, edge: edge_im})

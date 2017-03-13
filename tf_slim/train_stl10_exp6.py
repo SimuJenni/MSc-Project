@@ -21,7 +21,7 @@ model = VAEGAN(num_layers=4, batch_size=200)
 num_epochs = 300
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
-SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_exp5/'.format(data.NAME, model.name))
+SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_exp6/'.format(data.NAME, model.name))
 TEST = False
 NUM_IMG_SUMMARY = 6
 
@@ -58,7 +58,7 @@ with sess.as_default():
 
         # Create the model
         img_rec, gen_rec, disc_out, _, _, enc_mu, gen_mu, _, _ = \
-            model.net_exp4(imgs_train, toons_train, edges_train)
+            model.net(imgs_train, toons_train, edges_train)
 
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
@@ -121,10 +121,17 @@ with sess.as_default():
         train_op_disc = slim.learning.create_train_op(disc_loss, optimizer, variables_to_train=vars2train_disc,
                                                       global_step=global_step, summarize_gradients=False)
 
+        # Specify the layers of your model you want to exclude
+        variables_to_restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
+        print('Variables to restore: {}'.format([v.op.name for v in variables_to_restore]))
+        m_path = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(data.NAME, model.name, 'model.ckpt-150002'))
+
+        init_fn = assign_from_checkpoint_fn(m_path, variables_to_restore, ignore_missing_vars=True)
 
         # Start training
         slim.learning.train(train_op_gen + train_op_disc,
                             SAVE_DIR,
+                            init_fn=init_fn,
                             save_summaries_secs=300,
                             save_interval_secs=3000,
                             log_every_n_steps=100,

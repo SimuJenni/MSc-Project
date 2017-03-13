@@ -42,6 +42,7 @@ with sess.as_default():
 
         toon = tf.placeholder(tf.float32, shape=np.shape(toon_im))
         edge = tf.placeholder(tf.float32, shape=np.shape(edge_im))
+        edge = tf.expand_dims(edge, 2)
 
         with tf.device('/cpu:0'):
 

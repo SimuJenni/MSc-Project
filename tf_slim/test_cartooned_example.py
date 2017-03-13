@@ -44,9 +44,9 @@ with sess.as_default():
         global_step = slim.create_global_step()
 
         # toon_in = tf.placeholder(tf.float32, shape=np.shape(toon_im))
-        toon_in = tf.Variable(toon_im, name="toon", trainable=False, expected_shape=np.shape(toon_im))
+        toon_in = tf.constant(toon_im, dtype=tf.float32, shape=np.shape(toon_im), name='toon')
         # edge_in = tf.placeholder(tf.float32, shape=np.shape(edge_im))
-        edge_in = tf.Variable(edge_im, name="edge", trainable=False, expected_shape=np.shape(edge_im))
+        edge_in = tf.constant(edge_im, dtype=tf.float32, shape=np.shape(edge_im), name='edge')
 
 
         with tf.device('/cpu:0'):

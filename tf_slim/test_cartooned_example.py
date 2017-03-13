@@ -19,7 +19,7 @@ from scipy import misc
 slim = tf.contrib.slim
 
 toon_im = misc.imread('toon.jpg')
-edge_im = misc.imread('edge1.jpg', flatten=True)
+edge_im = misc.imread('edge2.jpg', flatten=True)
 edge_im = np.expand_dims(edge_im, 2)
 print(toon_im[:50])
 print(edge_im[:50])

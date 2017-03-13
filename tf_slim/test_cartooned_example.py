@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-from scipy import misc
 import numpy as np
 
 import os
@@ -21,6 +20,10 @@ slim = tf.contrib.slim
 
 toon_im = Image.open('toon.jpg')
 edge_im = Image.open('edge_1.jpg').convert('L')
+edge_im = np.expand_dims(edge_im, 2)
+print(np.shape(toon_im))
+print(np.shape(edge_im))
+
 
 # Setup
 data = imagenet
@@ -42,7 +45,6 @@ with sess.as_default():
 
         toon = tf.placeholder(tf.float32, shape=np.shape(toon_im))
         edge = tf.placeholder(tf.float32, shape=np.shape(edge_im))
-        edge = tf.expand_dims(edge, 2)
 
         with tf.device('/cpu:0'):
 

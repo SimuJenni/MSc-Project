@@ -105,7 +105,7 @@ def process_data(X, num_threads=10, num_downsample=2):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    img = cv2.imread("lena.jpg")
+    img = cv2.imread("face.jpg")
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_rgb = cv2.resize(img_rgb, (128, 128))
 

@@ -27,7 +27,7 @@ for i in range(1, 4):
     toon_im = cartoonify(img_rgb, num_donw_samp=2)
     edge_im = auto_canny(img_rgb, sigma=0.33, blur=3**i)
     edge_im = edge_im.astype(dtype=np.uint8)
-    # edge_im = np.expand_dims(edge_im, 2)
+    edge_im = np.expand_dims(edge_im, 2)
     print(toon_im[:50])
     print(edge_im[:50])
     print(np.shape(toon_im))

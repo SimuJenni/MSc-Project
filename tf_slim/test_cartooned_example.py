@@ -43,13 +43,13 @@ with sess.as_default():
     with g.as_default():
         global_step = slim.create_global_step()
 
-        toon = tf.placeholder(tf.float32, shape=np.shape(toon_im))
-        edge = tf.placeholder(tf.float32, shape=np.shape(edge_im))
+        toon_in = tf.placeholder(tf.float32, shape=np.shape(toon_im))
+        edge_in = tf.placeholder(tf.float32, shape=np.shape(edge_im))
 
         with tf.device('/cpu:0'):
 
             # Pre-process data
-            toon, edge, toon = preprocess_toon_test(toon, edge, toon,
+            toon, edge, toon = preprocess_toon_test(toon_in, edge_in, toon_in,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
                                                                   resize_side=96)
@@ -90,4 +90,4 @@ with sess.as_default():
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops),
-                                        eval_op_feed_dict={toon: toon_im, edge: edge_im})
+                                        eval_op_feed_dict={toon_in: toon_im, edge_in: edge_im})

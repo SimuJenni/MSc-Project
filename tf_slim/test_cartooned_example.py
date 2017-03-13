@@ -91,11 +91,11 @@ for i in range(1, 4):
                 op = tf.Print(op, [metric_value], metric_name)
                 summary_ops.append(op)
 
-            summary_ops.append(tf.image_summary('images/generator', gen_rec[1], max_images=1))
-            summary_ops.append(tf.image_summary('images/ae', gen_rec[1], max_images=1))
-            summary_ops.append(tf.image_summary('images/ground-truth', gen_rec[1], max_images=1))
-            summary_ops.append(tf.image_summary('images/cartoons', gen_rec[1], max_images=1))
-            summary_ops.append(tf.image_summary('images/edges', gen_rec[1], max_images=1))
+            summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec[:100], 1, 1), max_images=1))
+            summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec[:100], 1, 1), max_images=1))
+            summary_ops.append(tf.image_summary('images/ground-truth', montage_tf(imgs_test[:100], 1, 1), max_images=1))
+            summary_ops.append(tf.image_summary('images/cartoons', montage_tf(toons_test[:100], 1, 1), max_images=1))
+            summary_ops.append(tf.image_summary('images/edges', montage_tf(edges_test[:100], 1, 1), max_images=1))
 
             slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
                                             num_evals=1,

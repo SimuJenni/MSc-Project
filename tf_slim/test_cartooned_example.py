@@ -17,7 +17,7 @@ from utils import montage_tf
 slim = tf.contrib.slim
 
 toon_im = misc.imread('toon.jpg')
-edge_im = misc.imread('edge_1.jpg')
+edge_im = misc.imread('edge_1.jpg', flatten=True)
 
 # Setup
 data = imagenet

@@ -105,12 +105,12 @@ def process_data(X, num_threads=10, num_downsample=2):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    img = cv2.imread("face.jpg")
+    img = cv2.imread("lena.jpg")
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_rgb = cv2.resize(img_rgb, (144, 144))
+    img_rgb = cv2.resize(img_rgb, (128, 128))
 
     cartoon = cartoonify(img_rgb, num_donw_samp=2)
-    img_edge = auto_canny(img_rgb, sigma=0.99, blur=3)
+    img_edge = auto_canny(img_rgb, sigma=0.33, blur=3)
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
     img_edge = img_edge.astype(dtype=np.uint8)
     print(img_edge.shape)
@@ -134,5 +134,5 @@ if __name__ == '__main__':
                         top=0.9, bottom=0.05, left=0, right=1)
     plt.show()
 
-    plt.imsave('test_edge.jpg', img_edge)
+    plt.imsave('edge.jpg', img_edge)
     plt.imsave('test_toon.jpg', cartoon)

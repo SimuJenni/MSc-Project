@@ -12,7 +12,7 @@ slim = tf.contrib.slim
 
 # Setup
 finetuned = True
-net_type = 'generator'
+net_type = 'discriminator'
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=500)
 TARGET_SHAPE = [96, 96, 3]
@@ -21,9 +21,9 @@ NUM_CONV_TRAIN = 0
 use_test_set = True
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp1_{}/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp5_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp1_{}/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp5_{}/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, 'train'))
 else:
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))

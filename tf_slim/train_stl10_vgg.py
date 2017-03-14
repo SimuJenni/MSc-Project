@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
-from ToonNet_VGG import VAEGAN
+from ToonNet_VGG_all import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_train
@@ -17,7 +17,7 @@ slim = tf.contrib.slim
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
-model = VAEGAN(num_layers=4, batch_size=200)
+model = VAEGAN(num_layers=4, batch_size=128)
 num_epochs = 200
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002

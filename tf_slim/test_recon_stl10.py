@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from ToonNet_VGG_exp4 import VAEGAN
+from ToonNet_VGG import VAEGAN
 from constants import LOG_DIR
 from datasets import stl10
 from preprocess import preprocess_toon_test
@@ -16,8 +16,8 @@ slim = tf.contrib.slim
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=200)
 TARGET_SHAPE = [64, 64, 3]
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_exp4/'.format(data.NAME, model.name))
-LOG_PATH = os.path.join(LOG_DIR, '{}_{}_exp4/'.format(data.NAME, model.name))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_exp5/'.format(data.NAME, model.name))
+LOG_PATH = os.path.join(LOG_DIR, '{}_{}_exp5/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
 

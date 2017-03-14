@@ -18,7 +18,7 @@ data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'
 TEST_SET_NAME = 'test'
 model = VAEGAN(num_layers=4, batch_size=256)
-num_epochs = 300
+num_epochs = 400
 TARGET_SHAPE = [64, 64, 3]
 LR = 0.0002
 SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))

@@ -53,16 +53,18 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                 #                                       output_width=target_shape[1], augment_color=False,
                 #                                       resize_side_min=96, resize_side_max=120)
                 img_train, edge_train, _ = preprocess_toon_train(img_train, edge_train, img_train,
-                                                                          output_height=target_shape[0],
-                                                                          output_width=target_shape[1],
-                                                                          resize_side_min=96,
-                                                                          resize_side_max=120)
+                                                                 output_height=target_shape[0],
+                                                                 output_width=target_shape[1],
+                                                                 resize_side_min=96,
+                                                                 resize_side_max=120)
                 # Make batches
-                imgs_train, labels_train, edges_train = tf.train.batch([img_train, label_train, edge_train], batch_size=batch_size,
-                                                          num_threads=8, capacity=4 * batch_size)
+                imgs_train, labels_train, edges_train = tf.train.batch([img_train, label_train, edge_train],
+                                                                       batch_size=batch_size,
+                                                                       num_threads=8, capacity=4 * batch_size)
 
             # Get predictions
-            preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type, fine_tune=fine_tune)
+            preds_train = model.classifier(imgs_train, edges_train, data.NUM_CLASSES, type=net_type,
+                                           fine_tune=fine_tune)
 
             # Define the loss
             loss_scope = 'train_loss'

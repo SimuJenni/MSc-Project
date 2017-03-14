@@ -21,9 +21,9 @@ slim = tf.contrib.slim
 def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, train_set_id, batch_size, num_epochs,
                     net_type='discriminator', fine_tune=True):
     model = VAEGAN(num_layers=num_layers, batch_size=batch_size)
-    model_path = os.path.join(LOG_DIR, '{}_{}_exp1/{}'.format(data.NAME, model.name, checkpoint))
+    model_path = os.path.join(LOG_DIR, '{}_{}_exp5/{}'.format(data.NAME, model.name, checkpoint))
     if fine_tune:
-        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp1_{}/'.format(data.NAME,
+        save_dir = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_exp5_{}/'.format(data.NAME,
                                                                                        model.name,
                                                                                        net_type,
                                                                                        num_conv_train,
@@ -140,4 +140,4 @@ def fine_tune_model(data, num_layers, num_conv_train, target_shape, checkpoint, 
                                 log_every_n_steps=100)
 
 
-fine_tune_model(stl10, 4, 0, [96, 96, 3], 'model.ckpt-100000', 'train', 64, 300, fine_tune=True, net_type='generator')
+fine_tune_model(stl10, 4, 0, [96, 96, 3], 'model.ckpt-150000', 'train', 64, 300, fine_tune=True, net_type='generator')

@@ -13,6 +13,8 @@ from utils import montage_tf
 
 slim = tf.contrib.slim
 
+# No randomness in z
+
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'

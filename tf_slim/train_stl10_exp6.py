@@ -13,6 +13,8 @@ from utils import assign_from_checkpoint_fn, montage_tf
 
 slim = tf.contrib.slim
 
+# Pre-trained ¯E and D
+
 # Setup training parameters
 data = stl10
 TRAIN_SET_NAME = 'train_unlabeled'

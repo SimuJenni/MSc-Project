@@ -16,8 +16,8 @@ slim = tf.contrib.slim
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=200)
 TARGET_SHAPE = [64, 64, 3]
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
-LOG_PATH = os.path.join(LOG_DIR, '{}_{}_final/'.format(data.NAME, model.name))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_exp6/'.format(data.NAME, model.name))
+LOG_PATH = os.path.join(LOG_DIR, '{}_{}_exp6/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
 

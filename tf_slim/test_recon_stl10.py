@@ -66,7 +66,7 @@ with sess.as_default():
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
 
-        scale = (0.75 - 0.7 * 0.5) * 255.
+        scale = (0.75 - 0.7 * 0.7) * 255.
         noise_img = 0.5 * imgs_test + 0.5
         noise_img = tf.to_float(tf.floor(noise_img * scale))
         noise_img = 2. * noise_img / scale - 1.0

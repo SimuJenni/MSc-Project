@@ -16,8 +16,8 @@ slim = tf.contrib.slim
 data = stl10
 model = VAEGAN(num_layers=4, batch_size=200)
 TARGET_SHAPE = [64, 64, 3]
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_exp2/'.format(data.NAME, model.name))
-LOG_PATH = os.path.join(LOG_DIR, '{}_{}_exp2/'.format(data.NAME, model.name))
+MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_exp5/'.format(data.NAME, model.name))
+LOG_PATH = os.path.join(LOG_DIR, '{}_{}_exp5/'.format(data.NAME, model.name))
 
 print('Testing model: {}'.format(MODEL_PATH))
 
@@ -65,6 +65,13 @@ with sess.as_default():
             op = tf.scalar_summary(metric_name, metric_value)
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
+
+        scale = (0.75 - 0.7 * 0.5) * 255.
+        noise_img = 0.5 * imgs_test + 0.5
+        noise_img = tf.to_float(tf.floor(noise_img * scale))
+        noise_img = 2. * noise_img / scale - 1.0
+        noise_img = tf.clip_by_value(noise_img, -1.0, 1.0)
+        summary_ops.append(tf.image_summary('images/quant', montage_tf(noise_img, 1, 16), max_images=1))
 
         summary_ops.append(tf.image_summary('images/generator', montage_tf(gen_rec, 1, 16), max_images=1))
         summary_ops.append(tf.image_summary('images/ae', montage_tf(img_rec, 1, 16), max_images=1))

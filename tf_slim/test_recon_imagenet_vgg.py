@@ -42,7 +42,7 @@ with sess.as_default():
             img_test, edge_test, toon_test = preprocess_toon_test(img_test, edge_test, toon_test,
                                                                   output_height=TARGET_SHAPE[0],
                                                                   output_width=TARGET_SHAPE[1],
-                                                                  resize_side=96)
+                                                                  resize_side=128)
             # Make batches
             imgs_test, edges_test, toons_test = tf.train.batch(
                 [img_test, edge_test, toon_test],

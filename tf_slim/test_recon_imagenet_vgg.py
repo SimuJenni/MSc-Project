@@ -81,7 +81,7 @@ with sess.as_default():
         #                                     max_images=1))
 
         slim.evaluation.evaluation_loop('', MODEL_PATH, LOG_PATH,
-                                        num_evals=4,
+                                        num_evals=5,
                                         max_number_of_evaluations=1,
                                         eval_op=names_to_updates.values(),
                                         summary_op=tf.merge_summary(summary_ops))

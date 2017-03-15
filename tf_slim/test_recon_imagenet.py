@@ -50,7 +50,7 @@ with sess.as_default():
 
         # Create the model
         img_rec, gen_rec, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar = \
-            model.net(imgs_test, toons_test, edges_test)
+            model.net(imgs_test, toons_test, edges_test, training=False)
         preds_test = tf.argmax(disc_out, 1)
 
         # Get labels for discriminator

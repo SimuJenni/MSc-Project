@@ -87,7 +87,6 @@ with sess.as_default():
             op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
 
-
         op = tf.scalar_summary('map_test', map_test)
         op = tf.Print(op, [map_test], 'map_test', summarize=30)
         summary_ops.append(op)

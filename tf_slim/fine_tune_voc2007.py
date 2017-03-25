@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_AlexV2_voc import VAEGAN
+from ToonNet_AlexV2_voc2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
@@ -33,7 +33,7 @@ CHECKPOINT = 'model.ckpt-900811'
 MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
 
 if fine_tune:
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_no_bn/'.format(
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_no_bn_2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier/'.format(data.NAME, model.name))
@@ -60,7 +60,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=False, thread_id=thread_id)
+                                           augment_color=True, thread_id=thread_id)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches

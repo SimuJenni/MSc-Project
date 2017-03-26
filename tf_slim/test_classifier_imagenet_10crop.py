@@ -3,9 +3,9 @@ import os
 
 import tensorflow as tf
 from ToonNet_AlexV2 import VAEGAN
-from constants import LOG_DIR
+from constants import LOG_DIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
-from preprocess import preprocess_voc_test
+from preprocess import preprocess_imagenet_256_test
 
 slim = tf.contrib.slim
 
@@ -39,13 +39,15 @@ with sess.as_default():
 
         with tf.device('/cpu:0'):
             # Get test-data
-            test_set = data.get_split(TEST_SET)
-            test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-            [img_test, label_test] = test_provider.get(['image', 'label'])
+            test_set = data.get_split('validation', dataset_dir=IMAGENET_TF_256_DATADIR)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+            [img_test, label_test] = provider.get(['image', 'label'])
+            label_test -= data.LABEL_OFFSET
+
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_voc_test(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
+            imgs_test_p = [preprocess_imagenet_256_test(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions

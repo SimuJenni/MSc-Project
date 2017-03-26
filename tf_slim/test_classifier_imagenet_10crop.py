@@ -44,7 +44,7 @@ with sess.as_default():
             [img_test, label_test] = provider.get(['image', 'label'])
             label_test -= data.LABEL_OFFSET
 
-            labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
+            labels_test = tf.tile(label_test, [10, 1])
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
             imgs_test_p = [preprocess_imagenet_256_test(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]

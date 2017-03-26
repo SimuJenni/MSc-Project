@@ -53,8 +53,6 @@ with sess.as_default():
 
         # Get predictions
         preds_test = model.build_classifier(imgs_test, data.NUM_CLASSES, training=False)
-        # preds_test = model.classifier(imgs_test, None, data.NUM_CLASSES, training=False, fine_tune=finetuned,
-        #                               type=net_type)
         preds_test = tf.nn.sigmoid(preds_test)
         preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
 
@@ -77,9 +75,6 @@ with sess.as_default():
             ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
             for i in range(11):
                 ap_test += tf.reduce_max(prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
-
-            # ap_test, update_map = slim.metrics.streaming_auc(class_pred_test, class_label_test, curve='PR')
-            # update_ops.append([update_map])
 
             map_test += tf.to_float(ap_test) / 20.
 

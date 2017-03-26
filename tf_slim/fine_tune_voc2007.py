@@ -13,7 +13,6 @@ from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
-import numpy as np
 
 slim = tf.contrib.slim
 

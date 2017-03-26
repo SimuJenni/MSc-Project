@@ -5,7 +5,7 @@ import tensorflow as tf
 from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR, IMAGENET_TF_256_DATADIR
 from datasets import imagenet
-from preprocess import preprocess_imagenet_256_test
+from preprocess import preprocess_imagenet_256
 
 slim = tf.contrib.slim
 
@@ -46,7 +46,7 @@ with sess.as_default():
 
             imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
             imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
-            imgs_test_p = [preprocess_imagenet_256_test(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
+            imgs_test_p = [preprocess_imagenet_256(im, TARGET_SHAPE[0], TARGET_SHAPE[1]) for im in imgs_test_p]
             imgs_test = tf.pack(imgs_test_p, axis=0)
 
         # Get predictions

@@ -19,7 +19,7 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = True
+fine_tune = False
 net_type = 'discriminator'
 data = voc
 num_layers = 5

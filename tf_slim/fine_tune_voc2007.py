@@ -14,6 +14,8 @@ from datasets import voc, imagenet
 from preprocess import preprocess_voc
 from utils import assign_from_checkpoint_fn, montage_tf
 
+import numpy as np
+
 slim = tf.contrib.slim
 
 # Setup
@@ -86,7 +88,7 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
-        boundaries = [10000*i for i in range(1, 8)]
+        boundaries = [np.int64(10000*i) for i in range(1, 8)]
         values = [0.001*0.5**i for i in range(8)]
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 

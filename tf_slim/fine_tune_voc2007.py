@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_AlexV2_voc import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
@@ -30,13 +30,14 @@ NUM_CONV_TRAIN = 5
 TRAIN_SET = 'trainval'
 num_preprocess_threads = 8
 
-CHECKPOINT = 'model.ckpt-900811'
-MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
-
 if fine_tune:
+    CHECKPOINT = 'model.ckpt-900811'
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_final/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
+    CHECKPOINT = 'model.ckpt-450360'
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
     SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
 
 sess = tf.Session()

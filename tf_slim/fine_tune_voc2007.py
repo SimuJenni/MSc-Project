@@ -19,7 +19,7 @@ import numpy as np
 slim = tf.contrib.slim
 
 # Setup
-fine_tune = False
+fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
@@ -89,7 +89,7 @@ with sess.as_default():
         # Define learning parameters
         num_train_steps = 80000
         boundaries = [np.int64(10000*i) for i in range(1, 8)]
-        values = [0.001*0.5**i for i in range(0,8)]
+        values = [0.001*0.5**i for i in range(0, 8)]
         print(boundaries)
         print(values)
         sys.stdout.flush()

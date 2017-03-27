@@ -87,7 +87,7 @@ with sess.as_default():
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
         # Define learning parameters
-        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        num_train_steps = 80000
         boundaries = [np.int64(10000*i) for i in range(1, 8)]
         values = [0.001*0.5**i for i in range(0,8)]
         print(boundaries)

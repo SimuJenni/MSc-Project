@@ -3,7 +3,7 @@ import os
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
-from ToonNet_AlexV2_voc import VAEGAN
+from ToonNet_AlexV2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc
 from preprocess import preprocess_voc_test
@@ -22,13 +22,13 @@ TRAIN_SET = 'trainval'
 TEST_SET = 'test'
 
 if finetuned:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings/'.format(
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings/'.format(
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings/'.format(data.NAME, model.name))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
 
 print('Evaluating model: {}'.format(MODEL_PATH))
 

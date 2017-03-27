@@ -27,8 +27,8 @@ if finetuned:
     LOG_PATH = os.path.join(LOG_DIR, '{}_{}_finetune_{}_Retrain{}_final_{}_new_settings2/'.format(
         data.NAME, model.name, net_type, NUM_CONV_TRAIN, TRAIN_SET))
 else:
-    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
-    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
+    MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings/'.format(data.NAME, model.name))
+    LOG_PATH = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings/'.format(data.NAME, model.name))
 
 print('Evaluating model: {}'.format(MODEL_PATH))
 

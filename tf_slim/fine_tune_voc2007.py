@@ -8,7 +8,7 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
-from ToonNet_AlexV2 import VAEGAN
+from ToonNet_AlexV2_voc2 import VAEGAN
 from constants import LOG_DIR
 from datasets import voc, imagenet
 from preprocess import preprocess_voc
@@ -38,7 +38,7 @@ if fine_tune:
 else:
     CHECKPOINT = 'model.ckpt-450360'
     MODEL_PATH = os.path.join(LOG_DIR, '{}_{}_classifier/{}'.format(imagenet.NAME, model.name, CHECKPOINT))
-    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings2/'.format(data.NAME, model.name))
+    SAVE_DIR = os.path.join(LOG_DIR, '{}_{}_classifier_new_settings3/'.format(data.NAME, model.name))
 
 sess = tf.Session()
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -91,10 +91,6 @@ with sess.as_default():
         num_train_steps = 80000
         boundaries = [np.int64(10000*i) for i in range(1, 8)]
         values = [0.001*0.5**i for i in range(0, 8)]
-        print(boundaries)
-        print(values)
-        sys.stdout.flush()
-
         learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer

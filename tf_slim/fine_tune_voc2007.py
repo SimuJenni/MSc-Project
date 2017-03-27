@@ -21,7 +21,7 @@ fine_tune = True
 net_type = 'discriminator'
 data = voc
 num_layers = 5
-model = VAEGAN(num_layers=num_layers, batch_size=32)
+model = VAEGAN(num_layers=num_layers, batch_size=10)
 TARGET_SHAPE = [224, 224, 3]
 num_ep = 500
 NUM_CONV_TRAIN = 5
@@ -59,7 +59,7 @@ with sess.as_default():
 
                 # Pre-process data
                 img_train = preprocess_voc(img_train, output_height=TARGET_SHAPE[0], output_width=TARGET_SHAPE[1],
-                                           augment_color=True, thread_id=thread_id)
+                                           augment_color=False, thread_id=thread_id)
                 images_and_labels.append([img_train, label_train])
 
             # Make batches
@@ -84,19 +84,21 @@ with sess.as_default():
             updates = tf.group(*update_ops)
             total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
 
+        # Define learning parameters
+        num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        boundaries = [10000*i for i in range(1, 8)]
+        values = [0.001*0.5**i for i in range(8)]
+        learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
+
+        # Define optimizer
+        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+
         # # Define learning parameters
-        # num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET] / model.batch_size) * num_ep
+        # num_train_steps = 80000
         # learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
         #
         # # Define optimizer
         # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
-
-        # Define learning parameters
-        num_train_steps = 80000
-        learning_rate = tf.train.polynomial_decay(0.0002, global_step, num_train_steps, end_learning_rate=0.0)
-
-        # Define optimizer
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9)
 
         if fine_tune:
             var2train = []

@@ -44,7 +44,8 @@ class ToonNet_Trainer:
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data
-            img_train, edge_train, toon_train = self.pre_processor.train(img_train, edge_train, toon_train)
+            img_train, edge_train, toon_train = self.pre_processor.process_train_toonnet(img_train, edge_train,
+                                                                                         toon_train)
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=self.model.batch_size,
@@ -65,7 +66,7 @@ class ToonNet_Trainer:
             label_train -= self.dataset.label_offset
 
             # Pre-process data
-            img_train = self.pre_processor.finetune(img_train)
+            img_train = self.pre_processor.process_transfer_train(img_train, thread_id)
             images_and_labels.append([img_train, label_train])
 
         # Make batches

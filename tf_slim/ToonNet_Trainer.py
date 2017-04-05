@@ -104,7 +104,7 @@ class ToonNet_Trainer:
 
         # Compute accuracy
         predictions = tf.argmax(disc_out, 1)
-        tf.scalar_summary('accuracy/discriminator accuracy', slim.metrics.accuracy(predictions, disc_labels))
+        tf.scalar_summary('accuracy/discriminator accuracy', slim.metrics.accuracy(predictions, tf.argmax(disc_labels, 1)))
         return disc_total_loss
 
     def autoencoder_loss(self, imgs_rec, imgs_train):

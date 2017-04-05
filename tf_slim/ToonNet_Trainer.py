@@ -14,25 +14,34 @@ slim = tf.contrib.slim
 
 
 class ToonNet_Trainer:
-    def __init__(self, model, dataset, pre_processor, num_epochs, tag='default'):
+    def __init__(self, model, dataset, pre_processor, num_epochs, optimizer='adam', lr_policy='const', init_lr=0.0002,
+                 tag='default'):
+        self.sess = tf.Session()
+        self.graph = tf.Graph()
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
         self.save_dir = os.path.join(LOG_DIR, '{}_{}_{}/'.format(dataset.name, model.name, tag))
         self.im_per_smry = 4
-        self.global_step = slim.create_global_step()
         self.summaries = {}
         self.pre_processor = pre_processor
-        self.learning_rate = 0.0002
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6)
+        self.opt_type = optimizer
+        self.lr_policy = lr_policy
+        self.init_lr = init_lr
+        with self.sess.as_default():
+            with self.graph.as_default():
+                self.global_step = slim.create_global_step()
 
-    def setup_alex_train(self):
-        self.learning_rate = 0.0002
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6)
+    def optimizer(self):
+        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6),
+                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.9)}
+        return opts[self.opt_type]
 
-    def setup_alex_finetune(self):
-        self.learning_rate_alex()
-        self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.9)
+    def learning_rate(self):
+        policies = {'const': self.init_lr,
+                    'step': self.learning_rate_alex(),
+                    'linear': self.learning_rate_linear(self.init_lr)}
+        return policies[self.lr_policy]
 
     def get_toon_train_batch(self):
         with tf.device('/cpu:0'):
@@ -241,10 +250,8 @@ class ToonNet_Trainer:
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None):
         tf.logging.set_verbosity(tf.logging.DEBUG)
-        sess = tf.Session()
-        g = tf.Graph()
-        with sess.as_default():
-            with g.as_default():
+        with self.sess.as_default():
+            with self.graph.as_default():
                 # Get training batches
                 imgs_train, labels_train = self.get_finetune_batch()
 

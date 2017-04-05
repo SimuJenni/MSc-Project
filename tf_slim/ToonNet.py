@@ -326,8 +326,12 @@ class VGGA:
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
                 layers = []
                 for l in range(0, 5):
-                    net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l],
-                                      scope='conv_{}'.format(l + 1))
+                    if l == 0:
+                        net = slim.conv2d(net, f_dims[l], scope='conv_1_1', normalizer_fn=None)
+                        net = slim.conv2d(net, f_dims[l], scope='conv_1_2')
+                    else:
+                        net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l],
+                                          scope='conv_{}'.format(l + 1))
                     layers.append(net)
                     net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
 

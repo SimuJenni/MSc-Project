@@ -25,7 +25,7 @@ class STL10(Dataset):
     }
 
     def __init__(self):
-        super(STL10, self).__init__()
+        Dataset.__init__(self)
         self.data_dir = STL10_TF_DATADIR
         self.file_pattern = 'stl10_%s.tfrecord'
         self.num_classes = 10

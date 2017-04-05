@@ -16,7 +16,7 @@ class VOC2007(Dataset):
     }
 
     def __init__(self):
-        super(VOC2007, self).__init__()
+        Dataset.__init__(self)
         self.data_dir = VOC2007_TF_DATADIR
         self.file_pattern = 'voc2007_%s.tfrecord'
         self.num_classes = 20

@@ -33,8 +33,8 @@ class ToonNet_Trainer:
                 self.global_step = slim.create_global_step()
 
     def optimizer(self):
-        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6),
-                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.9)}
+        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-6),
+                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
         return opts[self.opt_type]
 
     def learning_rate(self):
@@ -145,7 +145,7 @@ class ToonNet_Trainer:
     def make_train_op(self, loss, vars2train=None, scope=None):
         if scope:
             vars2train = get_variables_to_train(trainable_scopes=scope)
-        train_op = slim.learning.create_train_op(loss, self.optimizer, variables_to_train=vars2train,
+        train_op = slim.learning.create_train_op(loss, self.optimizer(), variables_to_train=vars2train,
                                                  global_step=self.global_step, summarize_gradients=False)
         return train_op
 
@@ -156,7 +156,7 @@ class ToonNet_Trainer:
         # Handle summaries
         for variable in slim.get_model_variables():
             tf.histogram_summary(variable.op.name, variable)
-        tf.scalar_summary('learning rate', self.learning_rate)
+        tf.scalar_summary('learning rate', self.learning_rate())
 
     def make_image_summaries(self, edges_train, img_gen, img_rec, imgs_train, toons_train):
         tf.image_summary('imgs/generator out', montage_tf(img_gen, 1, self.im_per_smry), max_images=1)
@@ -172,11 +172,10 @@ class ToonNet_Trainer:
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
                   0.01 * 250. ** (-1.)]
-        self.learning_rate = tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
+        return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self, init_lr=0.0002):
-        self.learning_rate = tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps(),
-                                                       end_learning_rate=0.0)
+        return tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps(), end_learning_rate=0.0)
 
     def get_variables_to_transfer(self, num_conv):
         var2train = []

@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-slim = tf.contrib.slim
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 
@@ -11,20 +10,29 @@ import numpy as np
 from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn
 from constants import LOG_DIR
 
+slim = tf.contrib.slim
+
 
 class ToonNet_Trainer:
-    def __init__(self, dataset, model, target_shape, num_epochs, tag='default'):
+    def __init__(self, dataset, model, num_epochs, tag='default'):
         self.model = model
         self.dataset = dataset
-        self.target_shape = target_shape
         self.num_epochs = num_epochs
         self.save_dir = os.path.join(LOG_DIR, '{}_{}_{}/'.format(dataset.name, model.name, tag))
         self.im_per_smry = 4
         self.global_step = slim.create_global_step()
         self.summaries = {}
         self.pre_processor = None
-        self.learning_rate = None
-        self.optimizer = None
+        self.learning_rate = 0.0002
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6)
+
+    def setup_alex_train(self):
+        self.learning_rate = 0.0002
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6)
+
+    def setup_alex_finetune(self):
+        self.learning_rate_alex()
+        self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.9)
 
     def get_toon_train_batch(self):
         with tf.device('/cpu:0'):
@@ -147,14 +155,18 @@ class ToonNet_Trainer:
         tf.image_summary('imgs/cartoons', montage_tf(toons_train, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/edge maps', montage_tf(edges_train, 1, self.im_per_smry), max_images=1)
 
-    def learning_rate_step(self):
+    def learning_rate_alex(self):
         # Define learning rate schedule
         num_train_steps = self.num_train_steps()
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
                   0.01 * 250. ** (-1.)]
-        return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
+        self.learning_rate = tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
+
+    def learning_rate_linear(self, init_lr=0.0002):
+        self.learning_rate = tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps(),
+                                                       end_learning_rate=0.0)
 
     def get_variables_to_transfer(self, num_conv):
         var2train = []
@@ -202,10 +214,6 @@ class ToonNet_Trainer:
                 ae_loss = self.autoencoder_loss(img_rec, imgs_train)
                 gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
 
-                # Define optimizer
-                self.learning_rate = 0.0002
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5, epsilon=1e-4)
-
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
                 if update_ops:
@@ -245,10 +253,6 @@ class ToonNet_Trainer:
                 # Compute the loss
                 total_train_loss = self.classification_loss(
                     preds_train, self.dataset.format_labels(labels_train))
-
-                # Define optimizer
-                self.learning_rate = self.learning_rate_step()
-                self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.9)
 
                 # Handle dependencies
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

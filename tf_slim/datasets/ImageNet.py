@@ -1,9 +1,9 @@
 import tensorflow as tf
 
 import Dataset
+from constants import IMAGENET_TF_256_DATADIR, IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
-from constants import IMAGENET_TF_256_DATADIR, IMAGENET_SMALL_TF_DATADIR
 
 
 class ImageNet(Dataset):

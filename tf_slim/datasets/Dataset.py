@@ -60,7 +60,7 @@ class Dataset:
         if not data_dir:
             data_dir = self.data_dir
 
-        tf_record_pattern = os.path.join(data_dir, '%s-*' % split_name)
+        tf_record_pattern = os.path.join(data_dir, self.file_pattern % split_name)
         data_files = tf.gfile.Glob(tf_record_pattern)
         if not data_files:
             print('No files found for dataset at %s' % data_dir)

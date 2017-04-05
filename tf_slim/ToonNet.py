@@ -324,7 +324,6 @@ class VGGA:
         f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
-                layers = []
                 for l in range(0, 5):
                     if l == 0:
                         net = slim.conv2d(net, f_dims[l], scope='conv_1_1', normalizer_fn=None)
@@ -332,7 +331,6 @@ class VGGA:
                     else:
                         net = slim.repeat(net, REPEATS[l], slim.conv2d, num_outputs=f_dims[l],
                                           scope='conv_{}'.format(l + 1))
-                    layers.append(net)
                     net = slim.max_pool2d(net, [2, 2], scope='pool_{}'.format(l + 1))
 
                 encoded = net
@@ -343,4 +341,4 @@ class VGGA:
                                            normalizer_fn=None,
                                            biases_initializer=tf.zeros_initializer,
                                            trainable=with_fc)
-                return net, encoded, layers
+                return net, encoded

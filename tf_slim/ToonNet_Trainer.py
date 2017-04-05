@@ -16,6 +16,7 @@ slim = tf.contrib.slim
 class ToonNet_Trainer:
     def __init__(self, model, dataset, pre_processor, num_epochs, optimizer='adam', lr_policy='const', init_lr=0.0002,
                  tag='default'):
+        tf.logging.set_verbosity(tf.logging.DEBUG)
         self.sess = tf.Session()
         self.graph = tf.Graph()
         self.model = model
@@ -203,11 +204,8 @@ class ToonNet_Trainer:
         return init_fn
 
     def train(self):
-        tf.logging.set_verbosity(tf.logging.DEBUG)
-        sess = tf.Session()
-        g = tf.Graph()
-        with sess.as_default():
-            with g.as_default():
+        with self.sess.as_default():
+            with self.graph.as_default():
                 imgs_train, edges_train, toons_train = self.get_toon_train_batch()
 
                 # Get labels for discriminator training
@@ -248,7 +246,6 @@ class ToonNet_Trainer:
                                     number_of_steps=self.num_train_steps())
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None):
-        tf.logging.set_verbosity(tf.logging.DEBUG)
         with self.sess.as_default():
             with self.graph.as_default():
                 # Get training batches

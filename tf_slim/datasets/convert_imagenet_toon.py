@@ -13,7 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-#TODO: Update documentation
 
 """Converts ImageNet data to TFRecords file format with Example protos.
 

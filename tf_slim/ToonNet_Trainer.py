@@ -48,7 +48,7 @@ class ToonNet_Trainer:
         with tf.device('/cpu:0'):
             # Get the training dataset
             train_set = self.dataset.get_toon_train()
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=2 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])

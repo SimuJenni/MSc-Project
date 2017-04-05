@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-import Dataset
+from Dataset import Dataset
 
 slim = tf.contrib.slim
 from constants import VOC2007_TF_DATADIR

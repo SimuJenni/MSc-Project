@@ -369,7 +369,7 @@ def batch_inputs(data_files, batch_size, train, num_preprocess_threads=None,
     """Contruct batches of training or evaluation examples from the image dataset.
     Args:
       dataset: instance of Dataset class specifying the dataset.
-        See dataset.py for details.
+        See Dataset.py for details.
       batch_size: integer
       train: boolean
       num_preprocess_threads: integer, total number of preprocessing threads

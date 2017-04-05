@@ -89,7 +89,7 @@ class ToonNet:
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out, enc_dist, gen_dist, enc_mu, gen_mu, enc_logvar, gen_logvar
+        return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

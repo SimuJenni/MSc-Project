@@ -17,6 +17,7 @@ class Dataset:
         self.reader = tf.TFRecordReader
         self.label_offset = 0
         self.data_dir = None
+        self.num_classes = None
         self.file_pattern = '%s-*'
 
     def get_trainset(self):
@@ -39,6 +40,9 @@ class Dataset:
 
     def get_split_size(self, split_name):
         return self.SPLITS_TO_SIZES[split_name]
+
+    def format_labels(self, labels):
+        return slim.one_hot_encoding(labels, self.num_classes)
 
     def get_split(self, split_name, data_dir=None):
         """Gets a dataset tuple with instructions for reading ImageNet.

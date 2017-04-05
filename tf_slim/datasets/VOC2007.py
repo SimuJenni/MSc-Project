@@ -41,6 +41,9 @@ class VOC2007(Dataset):
         }
         return items_to_handlers
 
+    def format_labels(self, labels):
+        return labels
+
     def get_trainset(self):
         return self.get_split('trainval')
 

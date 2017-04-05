@@ -9,7 +9,7 @@ from constants import LOG_DIR
 from datasets import imagenet
 from preprocess import preprocess_toon_imnet
 from tf_slim.utils import get_variables_to_train
-from utils import montage_tf
+from utils import montage_tf, get_variables_to_train
 from constants import IMAGENET_SMALL_TF_DATADIR
 import numpy as np
 
@@ -100,9 +100,6 @@ with sess.as_default():
 
         # Define learning parameters
         num_train_steps = (data.SPLITS_TO_SIZES[TRAIN_SET_NAME] / model.batch_size) * num_epochs
-        # boundaries = [np.int64(num_train_steps * 0.5), np.int64(num_train_steps * 0.75), np.int64(num_train_steps * 0.9)]
-        # values = [0.0002, 0.0001, 0.00005, 0.000025]
-        # learning_rate = tf.train.piecewise_constant(global_step, boundaries=boundaries, values=values)
 
         # Define optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5, epsilon=1e-4)

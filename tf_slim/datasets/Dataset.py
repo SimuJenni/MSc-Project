@@ -26,10 +26,10 @@ class Dataset:
     def get_testset(self):
         pass
 
-    def num_train(self):
+    def get_num_train(self):
         pass
 
-    def num_test(self):
+    def get_num_test(self):
         pass
 
     def get_keys_to_features(self):

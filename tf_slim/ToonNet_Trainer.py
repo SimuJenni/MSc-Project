@@ -150,7 +150,7 @@ class ToonNet_Trainer:
         return train_op
 
     def num_train_steps(self):
-        return (self.dataset.num_train / self.model.batch_size) * self.num_epochs
+        return (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
 
     def make_summaries(self):
         # Handle summaries

@@ -66,8 +66,8 @@ class ImageNet(Dataset):
     def get_toon_test(self):
         return self.get_split('validation', data_dir=IMAGENET_SMALL_TF_DATADIR)
 
-    def num_train(self):
+    def get_num_train(self):
         return self.SPLITS_TO_SIZES['train']
 
-    def num_test(self):
+    def get_num_test(self):
         return self.SPLITS_TO_SIZES['validation']

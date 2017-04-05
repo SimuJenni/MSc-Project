@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-import Dataset
+from Dataset import Dataset
 from constants import IMAGENET_TF_256_DATADIR, IMAGENET_SMALL_TF_DATADIR
 
 slim = tf.contrib.slim
@@ -20,7 +20,7 @@ class ImageNet(Dataset):
     }
 
     def __init__(self):
-        super(ImageNet, self).__init__()
+        Dataset.__init__(self)
         self.data_dir = IMAGENET_TF_256_DATADIR
         self.file_pattern = '%s-*'
         self.num_classes = 1000

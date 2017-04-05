@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 
 
 class ToonNet_Trainer:
-    def __init__(self, dataset, model, num_epochs, tag='default'):
+    def __init__(self, model, dataset, pre_processor, num_epochs, tag='default'):
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
@@ -22,7 +22,7 @@ class ToonNet_Trainer:
         self.im_per_smry = 4
         self.global_step = slim.create_global_step()
         self.summaries = {}
-        self.pre_processor = None
+        self.pre_processor = pre_processor
         self.learning_rate = 0.0002
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.5, epsilon=1e-6)
 
@@ -37,7 +37,7 @@ class ToonNet_Trainer:
     def get_toon_train_batch(self):
         with tf.device('/cpu:0'):
             # Get the training dataset
-            train_set = self.dataset.get_toon_train_batch()
+            train_set = self.dataset.get_toon_train()
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
                                                                       common_queue_capacity=2 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)

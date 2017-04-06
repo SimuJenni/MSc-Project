@@ -23,6 +23,9 @@ class Dataset:
     def get_trainset(self):
         pass
 
+    def get_toon_train(self):
+        pass
+
     def get_testset(self):
         pass
 

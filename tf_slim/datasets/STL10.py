@@ -66,6 +66,12 @@ class STL10(Dataset):
     def get_testset(self):
         return self.get_split('test')
 
+    def get_train_fold_id(self, fold_idx):
+        return 'train_fold_{}'.format(fold_idx)
+
+    def get_test_fold_id(self, fold_idx):
+        return 'test_fold_{}'.format(fold_idx)
+
     def get_num_train(self):
         return self.SPLITS_TO_SIZES['train_unlabeled']
 

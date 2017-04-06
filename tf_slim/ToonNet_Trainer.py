@@ -23,6 +23,8 @@ class ToonNet_Trainer:
         self.dataset = dataset
         self.num_epochs = num_epochs
         self.save_dir = os.path.join(LOG_DIR, '{}_{}_{}/'.format(dataset.name, model.name, tag))
+        self.tag = tag
+        self.additional_info = None
         self.im_per_smry = 4
         self.summaries = {}
         self.pre_processor = pre_processor
@@ -32,6 +34,13 @@ class ToonNet_Trainer:
         with self.sess.as_default():
             with self.graph.as_default():
                 self.global_step = slim.create_global_step()
+
+    def get_save_dir(self):
+        if self.additional_info:
+            return os.path.join(LOG_DIR, '{}_{}_{}_{}/'.format(self.dataset.name, self.model.name, self.tag,
+                                                               self.additional_info))
+        else:
+            return os.path.join(LOG_DIR, '{}_{}_{}/'.format(self.dataset.name, self.model.name, self.tag))
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-6),
@@ -63,9 +72,12 @@ class ToonNet_Trainer:
                                                                   capacity=self.model.batch_size)
         return imgs_train, edges_train, toons_train
 
-    def get_finetune_batch(self):
+    def get_finetune_batch(self, dataset_id):
         # Get the training dataset
-        train_set = self.dataset.get_trainset()
+        if dataset_id:
+            train_set = self.dataset.get_trainset()
+        else:
+            train_set = self.dataset.get_split(dataset_id)
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4 * self.model.batch_size,
                                                                   common_queue_min=self.model.batch_size)
@@ -239,17 +251,17 @@ class ToonNet_Trainer:
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
 
                 # Start training
-                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.save_dir,
+                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.save_dir(),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,
                                     number_of_steps=self.num_train_steps())
 
-    def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None):
+    def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None, dataset_id=None):
         with self.sess.as_default():
             with self.graph.as_default():
                 # Get training batches
-                imgs_train, labels_train = self.get_finetune_batch()
+                imgs_train, labels_train = self.get_finetune_batch(dataset_id)
 
                 # Get predictions
                 preds_train = self.model.build_classifier(imgs_train, self.dataset.num_classes)
@@ -273,9 +285,13 @@ class ToonNet_Trainer:
 
                 # Start training
                 sys.stdout.flush()
-                slim.learning.train(train_op, self.save_dir,
+                slim.learning.train(train_op, self.save_dir(),
                                     init_fn=self.make_init_fn(chpt_path, num_conv2init),
                                     number_of_steps=self.num_train_steps(),
                                     save_summaries_secs=300, save_interval_secs=600,
                                     log_every_n_steps=100)
 
+    def finetune_cv(self, chpt_path, num_conv2train=None, num_conv2init=None, num_folds=10):
+        for fold in range(0, num_folds):
+            self.additional_info = 'fold_{}'.format(fold)
+            self.transfer_finetune(chpt_path, num_conv2train, num_conv2init, self.dataset.get_train_fold_id(fold))

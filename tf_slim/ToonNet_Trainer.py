@@ -114,6 +114,8 @@ class ToonNet_Trainer:
         # Compute accuracy
         predictions = tf.argmax(preds_train, 1)
         tf.scalar_summary('accuracy/training accuracy', slim.metrics.accuracy(predictions, tf.argmax(labels_train, 1)))
+        tf.histogram_summary('labels', tf.argmax(labels_train, 1))
+        tf.histogram_summary('predictions', predictions)
         return total_train_loss
 
     def discriminator_loss(self, disc_out, disc_labels):
@@ -280,6 +282,9 @@ class ToonNet_Trainer:
                 if update_ops:
                     updates = tf.group(*update_ops)
                     total_train_loss = control_flow_ops.with_dependencies([updates], total_train_loss)
+
+                # Make summaries
+                self.make_summaries()
 
                 # Create training operation
                 if num_conv2train:

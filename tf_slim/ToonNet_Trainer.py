@@ -301,7 +301,6 @@ class ToonNet_Trainer:
                                     save_summaries_secs=300, save_interval_secs=600,
                                     log_every_n_steps=100)
 
-    def finetune_cv(self, chpt_path, num_conv2train=None, num_conv2init=None, num_folds=10):
-        for fold in range(0, num_folds):
-            self.additional_info = 'fold_{}'.format(fold)
-            self.transfer_finetune(chpt_path, num_conv2train, num_conv2init, self.dataset.get_train_fold_id(fold))
+    def finetune_cv(self, chpt_path, num_conv2train=None, num_conv2init=None, fold=0):
+        self.additional_info = 'fold_{}'.format(fold)
+        self.transfer_finetune(chpt_path, num_conv2train, num_conv2init, self.dataset.get_train_fold_id(fold))

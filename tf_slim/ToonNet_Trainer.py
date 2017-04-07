@@ -113,7 +113,7 @@ class ToonNet_Trainer:
 
         # Compute accuracy
         predictions = tf.argmax(preds_train, 1)
-        tf.scalar_summary('accuracy/training accuracy', slim.metrics.accuracy(predictions, labels_train))
+        tf.scalar_summary('accuracy/training accuracy', slim.metrics.accuracy(predictions, tf.argmax(labels_train, 1)))
         return total_train_loss
 
     def discriminator_loss(self, disc_out, disc_labels):
@@ -265,14 +265,13 @@ class ToonNet_Trainer:
             with self.graph.as_default():
                 # Get training batches
                 imgs_train, labels_train = self.get_finetune_batch(dataset_id)
-                labels_train = self.dataset.format_labels(labels_train)
 
                 # Get predictions
                 preds_train = self.model.build_classifier(imgs_train, self.dataset.num_classes)
 
                 # Compute the loss
                 total_train_loss = self.classification_loss(
-                    preds_train, labels_train)
+                    preds_train, self.dataset.format_labels(labels_train))
 
                 # Handle dependencies
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

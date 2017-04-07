@@ -22,7 +22,6 @@ class ToonNet_Trainer:
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
-        self.save_dir = os.path.join(LOG_DIR, '{}_{}_{}/'.format(dataset.name, model.name, tag))
         self.tag = tag
         self.additional_info = None
         self.im_per_smry = 4
@@ -31,16 +30,18 @@ class ToonNet_Trainer:
         self.opt_type = optimizer
         self.lr_policy = lr_policy
         self.init_lr = init_lr
+        self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
                 self.global_step = slim.create_global_step()
 
     def get_save_dir(self):
+        fname = '{}_{}_{}'.format(self.dataset.name, self.model.name, self.tag)
+        if self.is_finetune:
+            fname = '{}_finetune'.format(fname)
         if self.additional_info:
-            return os.path.join(LOG_DIR, '{}_{}_{}_{}/'.format(self.dataset.name, self.model.name, self.tag,
-                                                               self.additional_info))
-        else:
-            return os.path.join(LOG_DIR, '{}_{}_{}/'.format(self.dataset.name, self.model.name, self.tag))
+            fname = '{}_{}'.format(fname, self.additional_info)
+        return os.path.join(LOG_DIR, '{}/'.format(fname))
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-6),
@@ -216,6 +217,7 @@ class ToonNet_Trainer:
         return init_fn
 
     def train(self):
+        self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
                 imgs_train, edges_train, toons_train = self.get_toon_train_batch()
@@ -258,6 +260,7 @@ class ToonNet_Trainer:
                                     number_of_steps=self.num_train_steps())
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None, dataset_id=None):
+        self.is_finetune = True
         with self.sess.as_default():
             with self.graph.as_default():
                 # Get training batches

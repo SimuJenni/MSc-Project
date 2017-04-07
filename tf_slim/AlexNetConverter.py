@@ -1,29 +1,30 @@
-import tensorflow as tf
 import pickle
 
-from ToonNet import ToonNet
-from datasets.ImageNet import ImageNet
-from ToonNet_Trainer import ToonNet_Trainer
+import tensorflow as tf
+import caffe
+
 from Preprocessor import ImageNetPreprocessor
+from ToonNet import ToonNet
+from ToonNet_Trainer import ToonNet_Trainer
+from datasets.ImageNet import ImageNet
 
 slim = tf.contrib.slim
 
 class AlexNetConverter:
-    def __init__(self, model_dir, model, sess, net_id='discriminator'):
-        self.sess = sess
+    def __init__(self, model_dir, model, net_id='discriminator'):
         self.model = model
         self.net_id = net_id
         self.bn_eps = 0.001
         self.weights_file = '{}/weights_dict'.format(model_dir)
         self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
-    def init_model(self):
+    def init_model(self, sess):
         x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
-        self.sess.run(tf.initialize_all_variables())
+        sess.run(tf.initialize_all_variables())
         model.discriminator.discriminate(x, with_fc=True)
         vars = slim.get_variables_to_restore(include=[self.net_id], exclude=['{}/fully_connected'.format(self.net_id)])
         saver = tf.train.Saver(var_list=vars)
-        saver.restore(self.sess, self.ckpt)
+        saver.restore(sess, self.ckpt)
 
     def get_bn_params(self, layer):
         with tf.variable_scope(self.net_id, reuse=True):
@@ -84,6 +85,6 @@ model_dir = trainer.get_save_dir()
 
 with trainer.sess.as_default():
     with trainer.graph.as_default():
-        converter = AlexNetConverter(model_dir, model, trainer.sess)
-
-
+        converter = AlexNetConverter(model_dir, model)
+        converter.init_model(trainer.sess)
+        converter.extract_and_store()

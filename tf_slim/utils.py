@@ -176,3 +176,8 @@ def montage(images, gray=False):
     if gray:
         m = Image.fromarray((m * 255).astype(dtype=np.uint8))
     return m
+
+
+def get_checkpoint_path(checkpoint_dir):
+    ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
+    return ckpt.model_checkpoint_path

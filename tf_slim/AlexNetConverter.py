@@ -1,7 +1,6 @@
 import pickle
 
 import tensorflow as tf
-import caffe
 
 from Preprocessor import ImageNetPreprocessor
 from ToonNet import ToonNet
@@ -10,21 +9,26 @@ from datasets.ImageNet import ImageNet
 
 slim = tf.contrib.slim
 
+
 class AlexNetConverter:
-    def __init__(self, model_dir, model, net_id='discriminator'):
+    def __init__(self, model_dir, model, ckpt=None, net_id='discriminator'):
         self.model = model
         self.net_id = net_id
         self.bn_eps = 0.001
         self.weights_file = '{}/weights_dict'.format(model_dir)
-        self.ckpt = tf.train.get_checkpoint_state(model_dir)
+        if ckpt:
+            self.ckpt = ckpt
+        else:
+            self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
     def init_model(self, sess):
-        x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
-        sess.run(tf.initialize_all_variables())
-        model.discriminator.discriminate(x, with_fc=True)
-        vars = slim.get_variables_to_restore(include=[self.net_id], exclude=['{}/fully_connected'.format(self.net_id)])
-        saver = tf.train.Saver(var_list=vars)
-        saver.restore(sess, self.ckpt)
+        with sess:
+            x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
+            self.model.discriminator.discriminate(x, with_fc=False)
+            sess.run(tf.global_variables_initializer())
+            vars = slim.get_variables_to_restore(include=[self.net_id], exclude=['{}/fully_connected'.format(self.net_id)])
+            saver = tf.train.Saver(var_list=vars)
+            saver.restore(sess, self.ckpt)
 
     def get_bn_params(self, layer):
         with tf.variable_scope(self.net_id, reuse=True):
@@ -75,12 +79,24 @@ class AlexNetConverter:
         with open(self.weights_file + '.pkl', 'rb') as f:
             return pickle.load(f)
 
+    def load_and_set_caffe_weights(self, proto_path, save_path):
+        import caffe
+        weights_dict = self.load_weights()
+        net = caffe.Net(proto_path, caffe.TEST)
+        print("blobs {}\nparams {}".format(net.blobs.keys(), net.params.keys()))
+        num_conv = self.model.num_layers
+        for l in range(num_conv):
+            net.params['conv{}'.format(l+1)][0].data = self.nhwc2nchw(weights_dict['conv_{}/weights'.format(l+1)])
+            net.params['conv{}'.format(l+1)][1].data = weights_dict['conv_{}/biases'.format(l+1)]
+        net.save(save_path)
+
 
 model = ToonNet(num_layers=5, batch_size=128)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
 trainer = ToonNet_Trainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=80, tag='refactored',
                           lr_policy='const', optimizer='adam')
+
 model_dir = trainer.get_save_dir()
 
 with trainer.sess.as_default():

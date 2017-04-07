@@ -83,7 +83,7 @@ class ToonNet_Trainer:
                                                                   common_queue_capacity=4 * self.model.batch_size,
                                                                   common_queue_min=self.model.batch_size)
         images_and_labels = []
-        for thread_id in range(4):
+        for thread_id in range(8):
             # Parse a serialized Example proto to extract the image and metadata.
             [img_train, label_train] = provider.get(['image', 'label'])
             label_train -= self.dataset.label_offset

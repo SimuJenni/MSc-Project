@@ -31,6 +31,7 @@ class ToonNet_Trainer:
         self.lr_policy = lr_policy
         self.init_lr = init_lr
         self.is_finetune = False
+        self.num_train_steps = None
         with self.sess.as_default():
             with self.graph.as_default():
                 self.global_step = slim.create_global_step()
@@ -165,8 +166,13 @@ class ToonNet_Trainer:
                                                  global_step=self.global_step, summarize_gradients=False)
         return train_op
 
-    def num_train_steps(self):
-        return (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
+    def num_train_steps(self, dataset_id=None):
+        if dataset_id:
+            return self.dataset.get_num_dataset(dataset_id)
+        if self.is_finetune:
+            return (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
+        else:
+            return (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
 
     def make_summaries(self):
         # Handle summaries
@@ -296,7 +302,7 @@ class ToonNet_Trainer:
                 # Start training
                 slim.learning.train(train_op, self.get_save_dir(),
                                     init_fn=self.make_init_fn(chpt_path, num_conv2init),
-                                    number_of_steps=self.num_train_steps(),
+                                    number_of_steps=self.num_train_steps(dataset_id),
                                     save_summaries_secs=300, save_interval_secs=600,
                                     log_every_n_steps=100)
 

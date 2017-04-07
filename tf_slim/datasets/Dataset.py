@@ -32,8 +32,14 @@ class Dataset:
     def get_num_train(self):
         pass
 
+    def get_num_train_toon(self):
+        pass
+
     def get_num_test(self):
         pass
+
+    def get_num_dataset(self, id):
+        return self.SPLITS_TO_SIZES[id]
 
     def get_keys_to_features(self):
         pass

@@ -73,6 +73,9 @@ class STL10(Dataset):
         return 'test_fold_{}'.format(fold_idx)
 
     def get_num_train(self):
+        return self.SPLITS_TO_SIZES['train']
+
+    def get_num_train_toon(self):
         return self.SPLITS_TO_SIZES['train_unlabeled']
 
     def get_num_test(self):

@@ -69,5 +69,8 @@ class ImageNet(Dataset):
     def get_num_train(self):
         return self.SPLITS_TO_SIZES['train']
 
+    def get_num_train_toon(self):
+        return self.SPLITS_TO_SIZES['train']
+
     def get_num_test(self):
         return self.SPLITS_TO_SIZES['validation']

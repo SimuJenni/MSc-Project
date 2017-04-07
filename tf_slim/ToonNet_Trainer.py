@@ -253,7 +253,7 @@ class ToonNet_Trainer:
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
 
                 # Start training
-                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.save_dir(),
+                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.get_save_dir(),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,
@@ -288,7 +288,7 @@ class ToonNet_Trainer:
 
                 # Start training
                 sys.stdout.flush()
-                slim.learning.train(train_op, self.save_dir(),
+                slim.learning.train(train_op, self.get_save_dir(),
                                     init_fn=self.make_init_fn(chpt_path, num_conv2init),
                                     number_of_steps=self.num_train_steps(),
                                     save_summaries_secs=300, save_interval_secs=600,

@@ -203,6 +203,7 @@ class ToonNet_Trainer:
         vs = list(set(vs).intersection(tf.trainable_variables()))
         var2train += vs
         print('Variables to train: {}'.format([v.op.name for v in var2train]))
+        sys.stdout.flush()
         return var2train
 
     def make_init_fn(self, chpt_path, num_conv2init):
@@ -214,6 +215,7 @@ class ToonNet_Trainer:
             var2restore += vs
         init_fn = assign_from_checkpoint_fn(chpt_path, var2restore, ignore_missing_vars=True)
         print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
+        sys.stdout.flush()
         return init_fn
 
     def train(self):
@@ -287,7 +289,6 @@ class ToonNet_Trainer:
                 train_op = self.make_train_op(total_train_loss, vars2train=var2train)
 
                 # Start training
-                sys.stdout.flush()
                 slim.learning.train(train_op, self.get_save_dir(),
                                     init_fn=self.make_init_fn(chpt_path, num_conv2init),
                                     number_of_steps=self.num_train_steps(),

@@ -265,13 +265,14 @@ class ToonNet_Trainer:
             with self.graph.as_default():
                 # Get training batches
                 imgs_train, labels_train = self.get_finetune_batch(dataset_id)
+                labels_train = self.dataset.format_labels(labels_train)
 
                 # Get predictions
                 preds_train = self.model.build_classifier(imgs_train, self.dataset.num_classes)
 
                 # Compute the loss
                 total_train_loss = self.classification_loss(
-                    preds_train, self.dataset.format_labels(labels_train))
+                    preds_train, labels_train)
 
                 # Handle dependencies
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

@@ -168,11 +168,12 @@ class ToonNet_Trainer:
 
     def num_train_steps(self, dataset_id=None):
         if dataset_id:
-            return self.dataset.get_num_dataset(dataset_id)
-        if self.is_finetune:
-            return (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
+            num_train = self.dataset.get_num_dataset(dataset_id)
+        elif self.is_finetune:
+            num_train = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
         else:
-            return (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
+            num_train = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
+        return num_train
 
     def make_summaries(self):
         # Handle summaries

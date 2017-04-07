@@ -59,6 +59,7 @@ class ToonNet_Trainer:
         with tf.device('/cpu:0'):
             # Get the training dataset
             train_set = self.dataset.get_toon_train()
+            self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=2 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
@@ -78,8 +79,10 @@ class ToonNet_Trainer:
         # Get the training dataset
         if dataset_id:
             train_set = self.dataset.get_trainset()
+            self.num_train_steps = self.dataset.get_num_dataset(dataset_id)
         else:
             train_set = self.dataset.get_split(dataset_id)
+            self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4 * self.model.batch_size,
                                                                   common_queue_min=self.model.batch_size)
@@ -166,15 +169,6 @@ class ToonNet_Trainer:
                                                  global_step=self.global_step, summarize_gradients=False)
         return train_op
 
-    def num_train_steps(self, dataset_id=None):
-        if dataset_id:
-            num_train = self.dataset.get_num_dataset(dataset_id)
-        elif self.is_finetune:
-            num_train = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
-        else:
-            num_train = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
-        return num_train
-
     def make_summaries(self):
         # Handle summaries
         for variable in slim.get_model_variables():
@@ -190,7 +184,7 @@ class ToonNet_Trainer:
 
     def learning_rate_alex(self):
         # Define learning rate schedule
-        num_train_steps = self.num_train_steps()
+        num_train_steps = self.num_train_steps
         boundaries = [np.int64(num_train_steps * 0.2), np.int64(num_train_steps * 0.4),
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
@@ -198,7 +192,7 @@ class ToonNet_Trainer:
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self, init_lr=0.0002):
-        return tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps(), end_learning_rate=0.0)
+        return tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps, end_learning_rate=0.0)
 
     def get_variables_to_transfer(self, num_conv):
         var2train = []
@@ -268,7 +262,7 @@ class ToonNet_Trainer:
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,
-                                    number_of_steps=self.num_train_steps())
+                                    number_of_steps=self.num_train_steps)
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None, dataset_id=None):
         self.is_finetune = True
@@ -303,7 +297,7 @@ class ToonNet_Trainer:
                 # Start training
                 slim.learning.train(train_op, self.get_save_dir(),
                                     init_fn=self.make_init_fn(chpt_path, num_conv2init),
-                                    number_of_steps=self.num_train_steps(dataset_id),
+                                    number_of_steps=self.num_train_steps,
                                     save_summaries_secs=300, save_interval_secs=600,
                                     log_every_n_steps=100)
 

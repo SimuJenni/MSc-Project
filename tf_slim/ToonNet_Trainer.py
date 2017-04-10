@@ -268,6 +268,8 @@ class ToonNet_Trainer:
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None, dataset_id=None):
         print('Restoring from: {}'.format(chpt_path))
+        if not self.additional_info:
+            self.additional_info = 'conv_{}'.format(num_conv2train)
         self.is_finetune = True
         with self.sess.as_default():
             with self.graph.as_default():
@@ -305,5 +307,5 @@ class ToonNet_Trainer:
                                     log_every_n_steps=100)
 
     def finetune_cv(self, chpt_path, num_conv2train=None, num_conv2init=None, fold=0):
-        self.additional_info = 'fold_{}'.format(fold)
+        self.additional_info = 'conv_{}_fold_{}'.format(num_conv2train, fold)
         self.transfer_finetune(chpt_path, num_conv2train, num_conv2init, self.dataset.get_train_fold_id(fold))

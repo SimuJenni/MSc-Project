@@ -74,8 +74,7 @@ class ToonNet_Tester:
         tf.image_summary('imgs/cartoons', montage_tf(toons_train, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/edge maps', montage_tf(edges_train, 1, self.im_per_smry), max_images=1)
 
-    def test_classifier(self, model_path, num_conv_trained=None, dataset_id=None):
-        print('Restoring from: {}'.format(model_path))
+    def test_classifier(self, num_conv_trained=None, dataset_id=None):
         self.additional_info = 'conv_{}'.format(num_conv_trained)
         with self.sess.as_default():
             with self.graph.as_default():
@@ -95,14 +94,13 @@ class ToonNet_Tester:
                 summary_ops = self.make_summaries(names_to_values)
 
                 # Start evaluation
-                slim.evaluation.evaluation_loop('', model_path, self.get_save_dir(),
+                slim.evaluation.evaluation_loop('', self.get_save_dir(), self.get_save_dir(),
                                                 num_evals=self.num_eval_steps,
                                                 max_number_of_evaluations=1,
                                                 eval_op=names_to_updates.values(),
                                                 summary_op=tf.merge_summary(summary_ops))
 
-    def test_classifier_voc(self, model_path, num_conv_trained=None):
-        print('Restoring from: {}'.format(model_path))
+    def test_classifier_voc(self, num_conv_trained=None):
         self.additional_info = 'conv_{}'.format(num_conv_trained)
         with self.sess.as_default():
             with self.graph.as_default():
@@ -121,7 +119,7 @@ class ToonNet_Tester:
                 summary_ops.append(op)
 
                 # Start evaluation
-                slim.evaluation.evaluation_loop('', model_path, self.get_save_dir(),
+                slim.evaluation.evaluation_loop('', self.get_save_dir(), self.get_save_dir(),
                                                 num_evals=self.num_eval_steps,
                                                 max_number_of_evaluations=100,
                                                 eval_op=update_ops,
@@ -162,3 +160,8 @@ class ToonNet_Tester:
             op = tf.Print(op, [metric_value], metric_name)
             summary_ops.append(op)
         return summary_ops
+
+    def test_classifier_cv(self, num_conv_trained=None, fold=0):
+        self.additional_info = 'conv_{}_fold_{}'.format(num_conv_trained, fold)
+        self.test_classifier(num_conv_trained)
+

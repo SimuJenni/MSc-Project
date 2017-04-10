@@ -98,9 +98,11 @@ trainer = ToonNet_Trainer(model=model, dataset=data, pre_processor=preprocessor,
                           lr_policy='const', optimizer='adam')
 
 model_dir = trainer.get_save_dir()
+model_dir = '../../test_converter'
+ckpt = '../../test_converter/model.ckpt-450360'
 
 with trainer.sess.as_default():
     with trainer.graph.as_default():
-        converter = AlexNetConverter(model_dir, model)
+        converter = AlexNetConverter(model_dir, model, ckpt=ckpt)
         converter.init_model(trainer.sess)
         converter.extract_and_store()

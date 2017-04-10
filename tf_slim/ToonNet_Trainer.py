@@ -78,10 +78,10 @@ class ToonNet_Trainer:
     def get_finetune_batch(self, dataset_id):
         # Get the training dataset
         if dataset_id:
-            train_set = self.dataset.get_trainset()
+            train_set = self.dataset.get_split(dataset_id)
             self.num_train_steps = self.dataset.get_num_dataset(dataset_id)
         else:
-            train_set = self.dataset.get_split(dataset_id)
+            train_set = self.dataset.get_trainset()
             self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4 * self.model.batch_size,

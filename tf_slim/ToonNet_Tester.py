@@ -101,54 +101,58 @@ class ToonNet_Tester:
                                                 eval_op=names_to_updates.values(),
                                                 summary_op=tf.merge_summary(summary_ops))
 
-    def test_classifier_voc(self, model_path, num_conv_trained=None, dataset_id=None):
+    def test_classifier_voc(self, model_path, num_conv_trained=None):
         print('Restoring from: {}'.format(model_path))
         self.additional_info = 'conv_{}'.format(num_conv_trained)
         with self.sess.as_default():
             with self.graph.as_default():
                 # Get training batches
-                imgs_test, labels_test = self.get_test_batch(dataset_id)
+                imgs_test, labels_test = self.get_random_test_crops()
 
                 # Get predictions
                 preds_test = self.model.build_classifier(imgs_test, self.dataset.num_classes, training=False)
                 preds_test = tf.nn.sigmoid(preds_test)
                 preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
 
-                summary_ops = []
-                update_ops = []
-                thresholds = [0.01 * i for i in range(101)]
-
-                map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-                for c in range(20):
-                    class_pred_test = tf.slice(preds_test, [0, c], size=[self.model.batch_size, 1])
-                    class_label_test = tf.slice(labels_test, [0, c], size=[self.model.batch_size, 1])
-
-                    # Choose the metrics to compute:
-                    prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
-                        class_pred_test, class_label_test, thresholds)
-                    rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
-                        class_pred_test, class_label_test, thresholds)
-                    update_ops.append([update_prec_test, update_rec_test])
-
-                    ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
-                    for i in range(11):
-                        ap_test += tf.reduce_max(
-                            prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
-                    map_test += tf.to_float(ap_test) / 20.
-
-                    op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
-                    op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
-                    summary_ops.append(op)
-
+                # Compute mean Average Precision
+                map_test, summary_ops, update_ops = self.compute_mAP(labels_test, preds_test)
                 op = tf.scalar_summary('map_test', map_test)
                 op = tf.Print(op, [map_test], 'map_test', summarize=30)
                 summary_ops.append(op)
 
+                # Start evaluation
                 slim.evaluation.evaluation_loop('', model_path, self.get_save_dir(),
                                                 num_evals=self.num_eval_steps,
                                                 max_number_of_evaluations=100,
                                                 eval_op=update_ops,
                                                 summary_op=tf.merge_summary(summary_ops))
+
+    def compute_mAP(self, labels_test, preds_test):
+        summary_ops = []
+        update_ops = []
+        thresholds = [0.01 * i for i in range(101)]
+        map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+        for c in range(20):
+            class_pred_test = tf.slice(preds_test, [0, c], size=[self.model.batch_size, 1])
+            class_label_test = tf.slice(labels_test, [0, c], size=[self.model.batch_size, 1])
+
+            # Choose the metrics to compute:
+            prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
+                class_pred_test, class_label_test, thresholds)
+            update_ops.append([update_prec_test, update_rec_test])
+
+            ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+            for i in range(11):
+                ap_test += tf.reduce_max(
+                    prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
+            map_test += tf.to_float(ap_test) / 20.
+
+            op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
+            op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
+            summary_ops.append(op)
+        return map_test, summary_ops, update_ops
 
     def make_summaries(self, names_to_values):
         # Create the summary ops such that they also print out to std output:

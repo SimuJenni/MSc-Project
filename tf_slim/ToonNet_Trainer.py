@@ -60,6 +60,7 @@ class ToonNet_Trainer:
             # Get the training dataset
             train_set = self.dataset.get_toon_train()
             self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
+            print('Number of training steps: {}'.format(self.num_train_steps))
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
                                                                       common_queue_capacity=2 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
@@ -79,10 +80,11 @@ class ToonNet_Trainer:
         # Get the training dataset
         if dataset_id:
             train_set = self.dataset.get_split(dataset_id)
-            self.num_train_steps = self.dataset.get_num_dataset(dataset_id)
+            self.num_train_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size) * self.num_epochs
         else:
             train_set = self.dataset.get_trainset()
             self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
+        print('Number of training steps: {}'.format(self.num_train_steps))
         provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
                                                                   common_queue_capacity=4 * self.model.batch_size,
                                                                   common_queue_min=self.model.batch_size)
@@ -265,6 +267,7 @@ class ToonNet_Trainer:
                                     number_of_steps=self.num_train_steps)
 
     def transfer_finetune(self, chpt_path, num_conv2train=None, num_conv2init=None, dataset_id=None):
+        print('Restoring from: {}'.format(chpt_path))
         self.is_finetune = True
         with self.sess.as_default():
             with self.graph.as_default():

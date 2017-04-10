@@ -57,6 +57,7 @@ class ToonNet_Tester:
         with tf.device('/cpu:0'):
             # Get test-data
             test_set = self.dataset.get_testset()
+            self.num_eval_steps = (self.dataset.get_num_test() / self.model.batch_size)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, label_test] = test_provider.get(['image', 'label'])
             labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])

@@ -1,13 +1,10 @@
 import tensorflow as tf
 
-from tensorflow.python.ops import control_flow_ops
-from tensorflow.python.ops import math_ops
+from tensorflow.python.framework import ops
 
 import os
-import sys
-import numpy as np
 
-from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn
+from utils import montage_tf
 from constants import LOG_DIR
 
 slim = tf.contrib.slim
@@ -42,27 +39,31 @@ class ToonNet_Tester:
             test_set = self.dataset.get_split(dataset_id)
             self.num_eval_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size)
         else:
-            test_set = self.dataset.get_trainset()
-            self.num_eval_steps = (self.dataset.get_num_train() / self.model.batch_size)
+            test_set = self.dataset.get_testset()
+            self.num_eval_steps = (self.dataset.get_num_test() / self.model.batch_size)
         print('Number of evaluation steps: {}'.format(self.num_eval_steps))
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=2,
-                                                                  common_queue_capacity=4 * self.model.batch_size,
-                                                                  common_queue_min=self.model.batch_size)
-        images_and_labels = []
-        for thread_id in range(8):
-            # Parse a serialized Example proto to extract the image and metadata.
-            [img_test, label_test] = provider.get(['image', 'label'])
-            label_test -= self.dataset.label_offset
+        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+        [img_test, label_test] = provider.get(['image', 'label'])
 
-            # Pre-process data
-            img_test = self.pre_processor.process_transfer_train(img_test, thread_id)
-            images_and_labels.append([img_test, label_test])
+        # Pre-process data
+        img_test = self.pre_processor.process_transfer_test(img_test)
 
         # Make batches
-        imgs_test, labels_test = tf.train.batch_join(
-            images_and_labels,
-            batch_size=self.model.batch_size,
-            capacity=4 * self.model.batch_size)
+        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=self.model.batch_size, num_threads=1)
+
+        return imgs_test, labels_test
+
+    def get_random_test_crops(self):
+        with tf.device('/cpu:0'):
+            # Get test-data
+            test_set = self.dataset.get_testset()
+            test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+            [img_test, label_test] = test_provider.get(['image', 'label'])
+            labels_test = tf.tile(tf.expand_dims(label_test, dim=0), [10, 1])
+            imgs_test_t = tf.tile(tf.expand_dims(img_test, dim=0), [10, 1, 1, 1])
+            imgs_test_p = tf.unpack(imgs_test_t, axis=0, num=10)
+            imgs_test_p = [self.pre_processor.process_transfer_test(im) for im in imgs_test_p]
+            imgs_test = tf.pack(imgs_test_p, axis=0)
 
         return imgs_test, labels_test
 
@@ -89,18 +90,71 @@ class ToonNet_Tester:
 
                 # Choose the metrics to compute:
                 names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-                    'accuracy': slim.metrics.streaming_accuracy(preds_test, labels_test),
+                    'accuracy': slim.metrics.streaming_accuracy(preds_test, self.dataset.format_labels(labels_test)),
                 })
+                summary_ops = self.make_summaries(names_to_values)
 
-                # Create the summary ops such that they also print out to std output:
-                summary_ops = []
-                for metric_name, metric_value in names_to_values.iteritems():
-                    op = tf.scalar_summary(metric_name, metric_value)
-                    op = tf.Print(op, [metric_value], metric_name)
-                    summary_ops.append(op)
-
+                # Start evaluation
                 slim.evaluation.evaluation_loop('', model_path, self.get_save_dir(),
                                                 num_evals=self.num_eval_steps,
                                                 max_number_of_evaluations=1,
                                                 eval_op=names_to_updates.values(),
                                                 summary_op=tf.merge_summary(summary_ops))
+
+    def test_classifier_voc(self, model_path, num_conv_trained=None, dataset_id=None):
+        print('Restoring from: {}'.format(model_path))
+        self.additional_info = 'conv_{}'.format(num_conv_trained)
+        with self.sess.as_default():
+            with self.graph.as_default():
+                # Get training batches
+                imgs_test, labels_test = self.get_test_batch(dataset_id)
+
+                # Get predictions
+                preds_test = self.model.build_classifier(imgs_test, self.dataset.num_classes, training=False)
+                preds_test = tf.nn.sigmoid(preds_test)
+                preds_test = tf.reduce_mean(preds_test, reduction_indices=0, keep_dims=True)
+
+                summary_ops = []
+                update_ops = []
+                thresholds = [0.01 * i for i in range(101)]
+
+                map_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+                for c in range(20):
+                    class_pred_test = tf.slice(preds_test, [0, c], size=[self.model.batch_size, 1])
+                    class_label_test = tf.slice(labels_test, [0, c], size=[self.model.batch_size, 1])
+
+                    # Choose the metrics to compute:
+                    prec_test, update_prec_test = slim.metrics.streaming_precision_at_thresholds(
+                        class_pred_test, class_label_test, thresholds)
+                    rec_test, update_rec_test = slim.metrics.streaming_recall_at_thresholds(
+                        class_pred_test, class_label_test, thresholds)
+                    update_ops.append([update_prec_test, update_rec_test])
+
+                    ap_test = tf.Variable(0, dtype=tf.float32, collections=[ops.GraphKeys.LOCAL_VARIABLES])
+                    for i in range(11):
+                        ap_test += tf.reduce_max(
+                            prec_test * tf.cast(tf.greater_equal(rec_test, 0.1 * i), tf.float32)) / 10
+                    map_test += tf.to_float(ap_test) / 20.
+
+                    op = tf.scalar_summary('ap_test_{}'.format(c), ap_test)
+                    op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
+                    summary_ops.append(op)
+
+                op = tf.scalar_summary('map_test', map_test)
+                op = tf.Print(op, [map_test], 'map_test', summarize=30)
+                summary_ops.append(op)
+
+                slim.evaluation.evaluation_loop('', model_path, self.get_save_dir(),
+                                                num_evals=self.num_eval_steps,
+                                                max_number_of_evaluations=100,
+                                                eval_op=update_ops,
+                                                summary_op=tf.merge_summary(summary_ops))
+
+    def make_summaries(self, names_to_values):
+        # Create the summary ops such that they also print out to std output:
+        summary_ops = []
+        for metric_name, metric_value in names_to_values.iteritems():
+            op = tf.scalar_summary(metric_name, metric_value)
+            op = tf.Print(op, [metric_value], metric_name)
+            summary_ops.append(op)
+        return summary_ops

@@ -19,6 +19,7 @@ class Dataset:
         self.data_dir = None
         self.num_classes = None
         self.file_pattern = '%s-*'
+        self.is_multilabel = False
 
     def get_trainset(self):
         pass

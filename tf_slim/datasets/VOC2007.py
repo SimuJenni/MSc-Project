@@ -21,6 +21,7 @@ class VOC2007(Dataset):
         self.file_pattern = 'voc2007_%s.tfrecord'
         self.num_classes = 20
         self.name = 'VOC2007'
+        self.is_multilabel = True
 
     def get_keys_to_features(self):
         keys_to_features = {

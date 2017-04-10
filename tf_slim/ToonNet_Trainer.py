@@ -109,19 +109,22 @@ class ToonNet_Trainer:
     def classification_loss(self, preds_train, labels_train):
         # Define the loss
         loss_scope = 'classification_loss'
-        train_loss = slim.losses.softmax_cross_entropy(preds_train,
-                                                       labels_train,
-                                                       scope=loss_scope)
+        if self.dataset.is_multilabel:
+            train_loss = slim.losses.sigmoid_cross_entropy(preds_train, labels_train, scope=loss_scope)
+        else:
+            train_loss = slim.losses.softmax_cross_entropy(preds_train, labels_train, scope=loss_scope)
         tf.scalar_summary('losses/training loss', train_loss)
         train_losses = slim.losses.get_losses(loss_scope)
         train_losses += slim.losses.get_regularization_losses(loss_scope)
         total_train_loss = math_ops.add_n(train_losses, name='total_train_loss')
 
         # Compute accuracy
-        predictions = tf.argmax(preds_train, 1)
-        tf.scalar_summary('accuracy/training accuracy', slim.metrics.accuracy(predictions, tf.argmax(labels_train, 1)))
-        tf.histogram_summary('labels', tf.argmax(labels_train, 1))
-        tf.histogram_summary('predictions', predictions)
+        if self.dataset.is_multilabel:
+            predictions = tf.argmax(preds_train, 1)
+            tf.scalar_summary('accuracy/training accuracy',
+                              slim.metrics.accuracy(predictions, tf.argmax(labels_train, 1)))
+            tf.histogram_summary('labels', tf.argmax(labels_train, 1))
+            tf.histogram_summary('predictions', predictions)
         return total_train_loss
 
     def discriminator_loss(self, disc_out, disc_labels):

@@ -57,6 +57,7 @@ class ToonNet:
         self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
+        self.vgg_discriminator = vgg_discriminator
         if vgg_discriminator:
             self.discriminator = VGGA()
         else:

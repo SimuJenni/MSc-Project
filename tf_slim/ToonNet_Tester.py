@@ -4,7 +4,7 @@ from tensorflow.python.framework import ops
 
 import os
 
-from utils import montage_tf
+from utils import montage_tf, weights_montage
 from constants import LOG_DIR
 
 slim = tf.contrib.slim
@@ -52,6 +52,22 @@ class ToonNet_Tester:
         imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=self.model.batch_size, num_threads=1)
 
         return imgs_test, labels_test
+
+    def get_toon_test_batch(self):
+        with tf.device('/cpu:0'):
+            # Get the training dataset
+            test_set = self.dataset.get_testset()
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+            [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
+
+            # Preprocess data
+            img_test, edge_test, toon_test = self.pre_processor.process_test_toonnet(img_test, edge_test, toon_test)
+
+            # Make batches
+            imgs_test, edges_test, toons_test = tf.train.batch([img_test, edge_test, toon_test],
+                                                                  batch_size=self.model.batch_size,
+                                                                  num_threads=1)
+        return imgs_test, edges_test, toons_test
 
     def get_random_test_crops(self):
         with tf.device('/cpu:0'):
@@ -154,6 +170,35 @@ class ToonNet_Tester:
             op = tf.Print(op, [ap_test], 'ap_test_{}'.format(c), summarize=30)
             summary_ops.append(op)
         return map_test, summary_ops, update_ops
+
+    def test_reconstruction(self):
+        model_dir = '{}_{}_{}'.format(self.dataset.name, self.model.name, self.tag)
+        with self.sess.as_default():
+            with self.graph.as_default():
+                imgs_test, toons_test, edges_test = self.get_toon_test_batch()
+
+                # Create the model
+                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                    self.model.net(imgs_test, toons_test, edges_test)
+
+                # Create the summary ops such that they also print out to std output:
+                summary_ops = [tf.image_summary('images/generator', montage_tf(img_gen[:100], 10, 10), max_images=1),
+                               tf.image_summary('images/autoencoder', montage_tf(img_rec[:100], 10, 10), max_images=1),
+                               tf.image_summary('images/original', montage_tf(imgs_test[:100], 10, 10), max_images=1),
+                               tf.image_summary('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1),
+                               tf.image_summary('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1)]
+
+                if not self.model.vgg_discriminator:
+                    with tf.variable_scope('discriminator', reuse=True):
+                        weights_disc_1 = slim.variable('conv_1/weights')
+                    summary_ops.append(tf.image_summary('images/weights_disc_1',
+                                                        weights_montage(weights_disc_1, 4, 16),
+                                                        max_images=1))
+
+                slim.evaluation.evaluation_loop('', model_dir, model_dir,
+                                                num_evals=2,
+                                                max_number_of_evaluations=1,
+                                                summary_op=tf.merge_summary(summary_ops))
 
     def make_summaries(self, names_to_values):
         # Create the summary ops such that they also print out to std output:

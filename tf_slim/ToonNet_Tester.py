@@ -77,6 +77,7 @@ class ToonNet_Tester:
 
     def test_classifier(self, num_conv_trained=None, dataset_id=None):
         self.additional_info = 'conv_{}'.format(num_conv_trained)
+        print('Restoring from: {}'.format(self.get_save_dir()))
         with self.sess.as_default():
             with self.graph.as_default():
                 # Get training batches

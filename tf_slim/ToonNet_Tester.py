@@ -180,7 +180,7 @@ class ToonNet_Tester:
 
                 # Create the model
                 img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
-                    self.model.net(imgs_test, toons_test, edges_test)
+                    self.model.net(imgs_test, toons_test, edges_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:
                 summary_ops = [tf.image_summary('images/generator', montage_tf(img_gen[:100], 10, 10), max_images=1),

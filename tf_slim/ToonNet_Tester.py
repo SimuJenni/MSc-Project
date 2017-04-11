@@ -176,7 +176,7 @@ class ToonNet_Tester:
         print('Restoring from: {}'.format(model_dir))
         with self.sess.as_default():
             with self.graph.as_default():
-                imgs_test, toons_test, edges_test = self.get_toon_test_batch()
+                imgs_test, edges_test, toons_test = self.get_toon_test_batch()
 
                 # Create the model
                 img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \

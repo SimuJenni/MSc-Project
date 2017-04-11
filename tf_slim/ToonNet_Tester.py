@@ -185,7 +185,7 @@ class ToonNet_Tester:
                 # Choose the metrics to compute:
                 names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
                     'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
-                    'MSE-generator': slim.metrics.streaming_mean_squared_error(gen_rec, imgs_test),
+                    'MSE-generator': slim.metrics.streaming_mean_squared_error(img_gen, imgs_test),
                 })
 
                 # Create the summary ops such that they also print out to std output:

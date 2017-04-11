@@ -8,5 +8,4 @@ for fold in range(10):
     data = STL10()
     preprocessor = Preprocessor(target_shape=[96, 96, 3])
     tester = ToonNet_Tester(model, data, preprocessor, tag='refactored')
-    tester.test_classifier_voc(num_conv_trained=5)
     tester.test_classifier_cv(num_conv_trained=5, fold=fold)

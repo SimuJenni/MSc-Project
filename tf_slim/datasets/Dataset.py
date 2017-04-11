@@ -30,6 +30,9 @@ class Dataset:
     def get_testset(self):
         pass
 
+    def get_toon_test(self):
+        return self.get_testset()
+
     def get_num_train(self):
         pass
 

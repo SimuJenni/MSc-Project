@@ -56,7 +56,7 @@ class ToonNet_Tester:
     def get_toon_test_batch(self):
         with tf.device('/cpu:0'):
             # Get the training dataset
-            test_set = self.dataset.get_testset()
+            test_set = self.dataset.get_toon_test()
             provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 

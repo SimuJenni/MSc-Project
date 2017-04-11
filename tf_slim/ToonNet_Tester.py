@@ -90,7 +90,7 @@ class ToonNet_Tester:
 
                 # Choose the metrics to compute:
                 names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-                    'accuracy': slim.metrics.streaming_accuracy(preds_test, self.dataset.format_labels(labels_test)),
+                    'accuracy': slim.metrics.streaming_accuracy(preds_test, labels_test),
                 })
                 summary_ops = self.make_summaries(names_to_values)
 

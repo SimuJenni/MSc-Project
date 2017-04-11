@@ -172,7 +172,7 @@ class ToonNet_Tester:
         return map_test, summary_ops, update_ops
 
     def test_reconstruction(self):
-        model_dir = '{}_{}_{}'.format(self.dataset.name, self.model.name, self.tag)
+        model_dir = os.path.join(LOG_DIR, '{}_{}_{}/'.format(self.dataset.name, self.model.name, self.tag))
         print('Restoring from: {}'.format(model_dir))
         with self.sess.as_default():
             with self.graph.as_default():
@@ -181,12 +181,6 @@ class ToonNet_Tester:
                 # Create the model
                 img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
                     self.model.net(imgs_test, toons_test, edges_test)
-
-                # Choose the metrics to compute:
-                names_to_values, names_to_updates = slim.metrics.aggregate_metric_map({
-                    'MSE-ae': slim.metrics.streaming_mean_squared_error(img_rec, imgs_test),
-                    'MSE-generator': slim.metrics.streaming_mean_squared_error(img_gen, imgs_test),
-                })
 
                 # Create the summary ops such that they also print out to std output:
                 summary_ops = [tf.image_summary('images/generator', montage_tf(img_gen[:100], 10, 10), max_images=1),
@@ -204,7 +198,6 @@ class ToonNet_Tester:
 
                 slim.evaluation.evaluation_loop('', model_dir, model_dir,
                                                 num_evals=1,
-                                                eval_op=names_to_updates.values(),
                                                 max_number_of_evaluations=1,
                                                 summary_op=tf.merge_summary(summary_ops))
 

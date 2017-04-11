@@ -76,7 +76,8 @@ class ToonNet_Tester:
         tf.image_summary('imgs/edge maps', montage_tf(edges_train, 1, self.im_per_smry), max_images=1)
 
     def test_classifier(self, num_conv_trained=None, dataset_id=None):
-        self.additional_info = 'conv_{}'.format(num_conv_trained)
+        if not self.additional_info:
+            self.additional_info = 'conv_{}'.format(num_conv_trained)
         print('Restoring from: {}'.format(self.get_save_dir()))
         with self.sess.as_default():
             with self.graph.as_default():

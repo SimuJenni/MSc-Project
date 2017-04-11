@@ -173,6 +173,7 @@ class ToonNet_Tester:
 
     def test_reconstruction(self):
         model_dir = '{}_{}_{}'.format(self.dataset.name, self.model.name, self.tag)
+        print('Restoring from: {}'.format(model_dir))
         with self.sess.as_default():
             with self.graph.as_default():
                 imgs_test, toons_test, edges_test = self.get_toon_test_batch()

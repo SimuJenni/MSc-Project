@@ -6,10 +6,10 @@ layer {
   input_param { shape: { dim: 10 dim: 3 dim: 227 dim: 227 } }
 }
 layer {
-  name: "conv1"
+  name: "Convolution1"
   type: "Convolution"
   bottom: "data"
-  top: "conv1"
+  top: "Convolution1"
   convolution_param {
     num_output: 64
     kernel_size: 11
@@ -17,19 +17,19 @@ layer {
   }
 }
 layer {
-  name: "relu1"
+  name: "ReLU1"
   type: "ReLU"
-  bottom: "conv1"
-  top: "conv1"
+  bottom: "Convolution1"
+  top: "ReLU1"
   relu_param{
     negative_slope: 0.2
   }
 }
 layer {
-  name: "pool1"
+  name: "Pooling1"
   type: "Pooling"
-  bottom: "conv1"
-  top: "pool1"
+  bottom: "ReLU1"
+  top: "Pooling1"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -37,10 +37,10 @@ layer {
   }
 }
 layer {
-  name: "conv2"
+  name: "Convolution2"
   type: "Convolution"
-  bottom: "pool1"
-  top: "conv2"
+  bottom: "Pooling1"
+  top: "Convolution2"
   convolution_param {
     num_output: 192
     pad: 2
@@ -48,19 +48,19 @@ layer {
   }
 }
 layer {
-  name: "relu2"
+  name: "ReLU2"
   type: "ReLU"
-  bottom: "conv2"
-  top: "conv2"
+  bottom: "Convolution2"
+  top: "ReLU2"
   relu_param{
     negative_slope: 0.2
   }
 }
 layer {
-  name: "pool2"
+  name: "Pooling2"
   type: "Pooling"
-  bottom: "conv2"
-  top: "pool2"
+  bottom: "ReLU2"
+  top: "Pooling2"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -68,10 +68,10 @@ layer {
   }
 }
 layer {
-  name: "conv3"
+  name: "Convolution3"
   type: "Convolution"
-  bottom: "pool2"
-  top: "conv3"
+  bottom: "Pooling2"
+  top: "Convolution3"
   convolution_param {
     num_output: 384
     pad: 1
@@ -79,19 +79,19 @@ layer {
   }
 }
 layer {
-  name: "relu3"
+  name: "ReLU3"
   type: "ReLU"
-  bottom: "conv3"
-  top: "conv3"
+  bottom: "Convolution3"
+  top: "ReLU3"
   relu_param{
     negative_slope: 0.2
   }
 }
 layer {
-  name: "conv4"
+  name: "Convolution4"
   type: "Convolution"
-  bottom: "conv3"
-  top: "conv4"
+  bottom: "ReLU3"
+  top: "Convolution4"
   convolution_param {
     num_output: 384
     pad: 1
@@ -99,19 +99,19 @@ layer {
   }
 }
 layer {
-  name: "relu4"
+  name: "ReLU4"
   type: "ReLU"
-  bottom: "conv4"
-  top: "conv4"
+  bottom: "Convolution4"
+  top: "ReLU4"
   relu_param{
     negative_slope: 0.2
   }
 }
 layer {
-  name: "conv5"
+  name: "Convolution5"
   type: "Convolution"
-  bottom: "conv4"
-  top: "conv5"
+  bottom: "ReLU4"
+  top: "Convolution5"
   convolution_param {
     num_output: 256
     pad: 1
@@ -119,19 +119,19 @@ layer {
   }
 }
 layer {
-  name: "relu5"
+  name: "ReLU5"
   type: "ReLU"
-  bottom: "conv5"
-  top: "conv5"
+  bottom: "Convolution5"
+  top: "ReLU5"
   relu_param{
     negative_slope: 0.2
   }
 }
 layer {
-  name: "pool5"
+  name: "Pooling5"
   type: "Pooling"
-  bottom: "conv5"
-  top: "pool5"
+  bottom: "ReLU5"
+  top: "Pooling5"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -141,7 +141,7 @@ layer {
 layer {
   name: "fc6"
   type: "InnerProduct"
-  bottom: "pool5"
+  bottom: "Pooling5"
   top: "fc6"
   inner_product_param {
     num_output: 4096

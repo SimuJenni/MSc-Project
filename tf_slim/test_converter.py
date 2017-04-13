@@ -14,10 +14,10 @@ model_dir = trainer.get_save_dir()
 model_dir = '../../test_converter'
 ckpt = '../../test_converter/model.ckpt-800722'
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt)
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True)
 converter.extract_and_store()
 
 weights_dict = converter.load_weights()
 print(weights_dict.keys())
 
-converter.load_and_set_caffe_weights(proto_path='../alexnet_bn.prototxt', save_dir=model_dir)
+converter.load_and_set_caffe_weights(proto_path='../deploy.prototxt', save_dir=model_dir)

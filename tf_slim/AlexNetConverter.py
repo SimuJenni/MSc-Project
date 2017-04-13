@@ -111,8 +111,8 @@ class AlexNetConverter:
         net.save(save_path)
 
     def transfer(self, l, net, weights_dict):
-        net.params['conv{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
-        net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
+        net.params['Convolution{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
+        net.params['Convolution{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         if not self.remove_bn and l > 0:
-            net.params['conv{}_BN'.format(l + 1)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
-            net.params['conv{}_BN'.format(l + 1)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]
+            net.params['BatchNorm{}'.format(l)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
+            net.params['BatchNorm{}'.format(l)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]

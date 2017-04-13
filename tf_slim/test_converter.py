@@ -1,12 +1,23 @@
-import tensorflow as tf
-
 from ToonNet import ToonNet
-
-slim = tf.contrib.slim
+from datasets.ImageNet import ImageNet
+from Preprocessor import ImageNetPreprocessor
+from ToonNet_Trainer import ToonNet_Trainer
+from AlexNetConverter import AlexNetConverter
 
 model = ToonNet(num_layers=5, batch_size=128)
+data = ImageNet()
+preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
+trainer = ToonNet_Trainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=80, tag='refactored',
+                          lr_policy='const', optimizer='adam')
 
-x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
-net = model.discriminator.discriminate(x, training=False, with_fc=False)
+model_dir = trainer.get_save_dir()
+model_dir = '../../test_converter'
+ckpt = '../../test_converter/model.ckpt-800722'
 
-print('Trainable variables: {}'.format([v.op.name for v in slim.get_variables_to_restore()]))
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt)
+converter.extract_and_store()
+
+weights_dict = converter.load_weights()
+print(weights_dict.keys())
+
+converter.load_and_set_caffe_weights(proto_path='../alexnet_bn.prototxt', save_dir=model_dir)

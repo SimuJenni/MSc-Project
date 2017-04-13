@@ -87,7 +87,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from cartooning import auto_canny, cartoonify
+from cartooning import auto_canny, cartooning
 from tf_slim.datasets.dataset_utils import imagenet_example, ImageCoder
 
 
@@ -180,7 +180,7 @@ def _process_image(filename, coder, max_im_dim=144):
     assert im_edges.shape[2] == 1
 
     # Make cartooned images
-    im_toon = cartoonify(image)
+    im_toon = cartooning(image)
 
     assert im_edges.shape[0] == im_toon.shape[0]
     assert im_edges.shape[0] == image.shape[0]

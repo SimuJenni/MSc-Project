@@ -1,7 +1,7 @@
 import os, sys, tarfile, urllib
 import numpy as np
 from constants import STL10_DATADIR, STL10_TF_DATADIR
-from cartooning import auto_canny, cartoonify
+from cartooning import auto_canny, cartooning
 import dataset_utils
 import tensorflow as tf
 from scipy.misc import imrotate
@@ -119,7 +119,7 @@ def _add_to_tfrecord(data_filename, tfrecord_writer, label_filename=None, augmen
                 # Get image, edge-map and cartooned image
                 image = np.squeeze(images[j])
                 edges = auto_canny(image)[:, :, None]
-                cartoon = cartoonify(image)
+                cartoon = cartooning(image)
                 if label_filename:
                     label = labels[j]-1     # labels should be 0 indexed!
                 else:

@@ -215,16 +215,19 @@ class ToonNetTrainer:
         return var2train
 
     def make_init_fn(self, chpt_path, num_conv2init):
-        # Specify the layers of the model you want to exclude
-        var2restore = []
-        for i in range(num_conv2init):
-            vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(i + 1)],
-                                               exclude=['discriminator/fully_connected'])
-            var2restore += vs
-        init_fn = assign_from_checkpoint_fn(chpt_path, var2restore, ignore_missing_vars=True)
-        print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
-        sys.stdout.flush()
-        return init_fn
+        if num_conv2init == 0:
+            return None
+        else:
+            # Specify the layers of the model you want to exclude
+            var2restore = []
+            for i in range(num_conv2init):
+                vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(i + 1)],
+                                                   exclude=['discriminator/fully_connected'])
+                var2restore += vs
+            init_fn = assign_from_checkpoint_fn(chpt_path, var2restore, ignore_missing_vars=True)
+            print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
+            sys.stdout.flush()
+            return init_fn
 
     def train(self):
         self.is_finetune = False

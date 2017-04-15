@@ -10,7 +10,7 @@ from constants import LOG_DIR
 slim = tf.contrib.slim
 
 
-class ToonNet_Tester:
+class ToonNetTester:
     def __init__(self, model, dataset, pre_processor, tag='default'):
         tf.logging.set_verbosity(tf.logging.DEBUG)
         self.sess = tf.Session()

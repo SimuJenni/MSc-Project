@@ -13,7 +13,7 @@ from constants import LOG_DIR
 slim = tf.contrib.slim
 
 
-class ToonNet_Trainer:
+class ToonNetTrainer:
     def __init__(self, model, dataset, pre_processor, num_epochs, optimizer='adam', lr_policy='const', init_lr=0.0002,
                  tag='default'):
         tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -89,7 +89,7 @@ class ToonNet_Trainer:
                                                                   common_queue_capacity=4 * self.model.batch_size,
                                                                   common_queue_min=self.model.batch_size)
         images_and_labels = []
-        for thread_id in range(8):
+        for thread_id in range(10):
             # Parse a serialized Example proto to extract the image and metadata.
             [img_train, label_train] = provider.get(['image', 'label'])
             label_train -= self.dataset.label_offset

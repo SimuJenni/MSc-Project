@@ -2,7 +2,7 @@ layer {
   name: "Input1"
   type: "Input"
   top: "Input1"
-  input_param { shape: { dim: 10 dim: 3 dim: 224 dim: 224 } }
+  input_param { shape: { dim: 16 dim: 3 dim: 224 dim: 224 } }
 }
 layer {
   name: "Convolution1"

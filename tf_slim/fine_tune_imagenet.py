@@ -4,7 +4,7 @@ from ToonNetTrainer import ToonNetTrainer
 from Preprocessor import ImageNetPreprocessor
 from utils import get_checkpoint_path
 
-model = ToonNet(num_layers=5, batch_size=256)
+model = ToonNet(num_layers=5, batch_size=512)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[224, 224, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=90, tag='refactored',

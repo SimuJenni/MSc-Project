@@ -77,32 +77,33 @@ class ToonNetTrainer:
         return imgs_train, edges_train, toons_train
 
     def get_finetune_batch(self, dataset_id):
-        # Get the training dataset
-        if dataset_id:
-            train_set = self.dataset.get_split(dataset_id)
-            self.num_train_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size) * self.num_epochs
-        else:
-            train_set = self.dataset.get_trainset()
-            self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
-        print('Number of training steps: {}'.format(self.num_train_steps))
-        provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                  common_queue_capacity=4 * self.model.batch_size,
-                                                                  common_queue_min=self.model.batch_size)
-        images_and_labels = []
-        for thread_id in range(10):
-            # Parse a serialized Example proto to extract the image and metadata.
-            [img_train, label_train] = provider.get(['image', 'label'])
-            label_train -= self.dataset.label_offset
+        with tf.device('/cpu:0'):
+            # Get the training dataset
+            if dataset_id:
+                train_set = self.dataset.get_split(dataset_id)
+                self.num_train_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size) * self.num_epochs
+            else:
+                train_set = self.dataset.get_trainset()
+                self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
+            print('Number of training steps: {}'.format(self.num_train_steps))
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+                                                                      common_queue_capacity=4 * self.model.batch_size,
+                                                                      common_queue_min=self.model.batch_size)
+            images_and_labels = []
+            for thread_id in range(8):
+                # Parse a serialized Example proto to extract the image and metadata.
+                [img_train, label_train] = provider.get(['image', 'label'])
+                label_train -= self.dataset.label_offset
 
-            # Pre-process data
-            img_train = self.pre_processor.process_transfer_train(img_train, thread_id)
-            images_and_labels.append([img_train, label_train])
+                # Pre-process data
+                img_train = self.pre_processor.process_transfer_train(img_train, thread_id)
+                images_and_labels.append([img_train, label_train])
 
-        # Make batches
-        imgs_train, labels_train = tf.train.batch_join(
-            images_and_labels,
-            batch_size=self.model.batch_size,
-            capacity=4 * self.model.batch_size)
+            # Make batches
+            imgs_train, labels_train = tf.train.batch_join(
+                images_and_labels,
+                batch_size=self.model.batch_size,
+                capacity=4 * self.model.batch_size)
 
         return imgs_train, labels_train
 
@@ -119,7 +120,7 @@ class ToonNetTrainer:
         total_train_loss = math_ops.add_n(train_losses, name='total_train_loss')
 
         # Compute accuracy
-        if self.dataset.is_multilabel:
+        if not self.dataset.is_multilabel:
             predictions = tf.argmax(preds_train, 1)
             tf.scalar_summary('accuracy/training accuracy',
                               slim.metrics.accuracy(predictions, tf.argmax(labels_train, 1)))

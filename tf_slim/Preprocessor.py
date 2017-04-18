@@ -113,7 +113,7 @@ class ImageNetPreprocessor(Preprocessor):
         Preprocessor.__init__(self, target_shape, augment_color)
 
     def process_transfer_test(self, image):
-        # image.set_shape([256, 256, 3])
+        image.set_shape([256, 256, 3])
         image = tf.image.resize_image_with_crop_or_pad(image, self.target_shape[0], self.target_shape[1])
 
         # Resize to output size

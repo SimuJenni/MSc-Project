@@ -297,10 +297,7 @@ class ToonNetTrainer:
                 self.make_summaries()
 
                 # Create training operation
-                if num_conv2train:
-                    var2train = self.get_variables_to_train(num_conv2train)
-                else:
-                    var2train = tf.trainable_variables()
+                var2train = self.get_variables_to_train(num_conv2train)
                 train_op = self.make_train_op(total_train_loss, vars2train=var2train)
 
                 # Start training

@@ -197,9 +197,9 @@ class ToonNetTrainer:
     def learning_rate_linear(self, init_lr=0.0002):
         return tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps, end_learning_rate=0.0)
 
-    def get_variables_to_transfer(self, num_conv):
+    def get_variables_to_train(self, num_conv_train):
         var2train = []
-        for i in range(num_conv):
+        for i in range(num_conv_train):
             vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(self.model.num_layers - i)],
                                                exclude=['discriminator/fully_connected'])
             vs = list(set(vs).intersection(tf.trainable_variables()))
@@ -298,7 +298,7 @@ class ToonNetTrainer:
 
                 # Create training operation
                 if num_conv2train:
-                    var2train = self.get_variables_to_transfer(num_conv2train)
+                    var2train = self.get_variables_to_train(num_conv2train)
                 else:
                     var2train = tf.trainable_variables()
                 train_op = self.make_train_op(total_train_loss, vars2train=var2train)

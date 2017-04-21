@@ -8,7 +8,7 @@ NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001):
+                      w_reg=0.0001, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -22,8 +22,9 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     Returns:
         An argscope
     """
+    train_bn = training and not fix_bn
     batch_norm_params = {
-        'is_training': training,
+        'is_training': train_bn,
         'decay': 0.95,
         'epsilon': 0.001,
         'center': center,
@@ -46,7 +47,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 class ToonNet:
-    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False):
+    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False):
         """Initialises a ToonNet using the provided parameters.
 
         Args:
@@ -59,9 +60,9 @@ class ToonNet:
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
         if vgg_discriminator:
-            self.discriminator = VGGA()
+            self.discriminator = VGGA(fix_bn=fix_bn)
         else:
-            self.discriminator = AlexNet()
+            self.discriminator = AlexNet(fix_bn=fix_bn)
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the full ToonNet architecture with the given inputs.
@@ -213,7 +214,8 @@ class ToonNet:
 
 
 class AlexNet:
-    def __init__(self, fc_activation=tf.nn.relu):
+    def __init__(self, fc_activation=tf.nn.relu, fix_bn=False):
+        self.fix_bn = fix_bn
         self.fc_activation = fc_activation
 
     def classify(self, net, num_classes, reuse=None, training=True):
@@ -229,7 +231,8 @@ class AlexNet:
             Resulting logits for all the classes
         """
         with tf.variable_scope('fully_connected', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training)):
+            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
+                                                  fix_bn=self.fix_bn)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')
@@ -255,7 +258,8 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+                                                  fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
@@ -282,7 +286,8 @@ class AlexNet:
 
 
 class VGGA:
-    def __init__(self, fc_activation=tf.nn.relu):
+    def __init__(self, fc_activation=tf.nn.relu, fix_bn=False):
+        self.fix_bn = fix_bn
         self.fc_activation = fc_activation
 
     def classify(self, net, num_classes, reuse=None, training=True):
@@ -298,7 +303,8 @@ class VGGA:
             Resulting logits for all the classes
         """
         with tf.variable_scope('fully_connected', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training)):
+            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
+                                                  fix_bn=self.fix_bn)):
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')
                 net = slim.dropout(net, 0.5, is_training=training)
@@ -324,7 +330,8 @@ class VGGA:
         """
         f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+                                                  fix_bn=self.fix_bn)):
                 for l in range(0, 5):
                     if l == 0:
                         net = slim.conv2d(net, f_dims[l], scope='conv_1_1', normalizer_fn=None)

@@ -44,6 +44,7 @@ class ToonNetTester:
         print('Number of evaluation steps: {}'.format(self.num_eval_steps))
         provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
         [img_test, label_test] = provider.get(['image', 'label'])
+        label_test -= self.dataset.label_offset
 
         # Pre-process data
         img_test = self.pre_processor.process_transfer_test(img_test)

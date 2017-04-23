@@ -47,11 +47,13 @@ class AlexNetConverter:
     def get_conv_rm_bn(self, layer):
         weights = self.get_conv_weights(layer)
         if layer == 1:
+            weights /= 127.5
             biases = self.get_conv_biases(layer)
         else:
             moving_mean, moving_variance, beta = self.get_bn_params(layer)
-            weights = weights / tf.sqrt(moving_variance + self.bn_eps)
-            biases = beta - moving_mean / tf.sqrt(moving_variance + self.bn_eps)
+            alpha = tf.rsqrt(moving_variance + self.bn_eps)
+            weights *= alpha
+            biases = beta - moving_mean * alpha
 
         return weights, biases
 
@@ -86,6 +88,7 @@ class AlexNetConverter:
                     weights_dict['conv_{}_BN/mean'.format(l + 1)] = moving_mean.eval()
                     weights_dict['conv_{}_BN/variance'.format(l + 1)] = moving_variance.eval()
                 weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
+                print('conv_{}/weights: {}'.format(l+1, weights.eval().shape))
                 weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
             self.save_weights(weights_dict)
 
@@ -100,19 +103,21 @@ class AlexNetConverter:
     def load_and_set_caffe_weights(self, proto_path, save_dir):
         import caffe
         weights_dict = self.load_weights()
-        net = caffe.Net(proto_path, caffe.TEST)
+        net = caffe.Net(proto_path, caffe.TRAIN)
         print("blobs {}\nparams {}".format(net.blobs.keys(), net.params.keys()))
         num_conv = self.model.num_layers
         for l in range(num_conv):
-            self.transfer(l, net, weights_dict)
+            net = self.transfer(l, net, weights_dict)
 
         save_path = os.path.join(save_dir, 'alexnet_v2.caffemodel')
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
 
     def transfer(self, l, net, weights_dict):
-        net.params['Convolution{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
-        net.params['Convolution{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
+        print('conv{}: {}'.format(l + 1, net.params['conv{}'.format(l + 1)][0].data[:].shape))
+        net.params['conv{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
+        net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         if not self.remove_bn and l > 0:
             net.params['BatchNorm{}'.format(l)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
             net.params['BatchNorm{}'.format(l)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]
+        return net

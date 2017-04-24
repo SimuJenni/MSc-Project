@@ -102,7 +102,7 @@ class ToonNetTrainer:
                                                       batch_size=self.model.batch_size,
                                                       num_threads=8,
                                                       capacity=4*self.model.batch_size)
-            tf.image_summary('imgs/img_preprocessed', img_train, max_images=3)
+            tf.image_summary('imgs/img_preprocessed', imgs_train, max_images=3)
 
         return imgs_train, labels_train
 

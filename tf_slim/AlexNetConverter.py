@@ -21,9 +21,9 @@ class AlexNetConverter:
             self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
     def init_model(self):
-        x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2), name='x')
+        x = tf.Variable(tf.random_normal([1, 128, 128, 3], stddev=2, seed=42), name='x')
         self.model.discriminator.discriminate(x, with_fc=False)
-        self.sess.run(tf.global_variables_initializer())
+        #self.sess.run(tf.global_variables_initializer())
         vars = slim.get_variables_to_restore(include=[self.net_id], exclude=['{}/fully_connected'.format(self.net_id)])
         print('Variables: {}'.format([v.op.name for v in vars]))
         saver = tf.train.Saver(var_list=vars)
@@ -47,8 +47,8 @@ class AlexNetConverter:
     def get_conv_rm_bn(self, layer):
         weights = self.get_conv_weights(layer)
         if layer == 1:
-            weights /= 127.5
             biases = self.get_conv_biases(layer)
+            weights /= 255./2
         else:
             moving_mean, moving_variance, beta = self.get_bn_params(layer)
             alpha = tf.rsqrt(moving_variance + self.bn_eps)
@@ -88,7 +88,6 @@ class AlexNetConverter:
                     weights_dict['conv_{}_BN/mean'.format(l + 1)] = moving_mean.eval()
                     weights_dict['conv_{}_BN/variance'.format(l + 1)] = moving_variance.eval()
                 weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
-                print('conv_{}/weights: {}'.format(l+1, weights.eval().shape))
                 weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
             self.save_weights(weights_dict)
 
@@ -113,8 +112,18 @@ class AlexNetConverter:
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
 
+    def transfer_tf(self, other_model, sess):
+        weights_dict = self.load_weights()
+        with tf.variable_scope(self.net_id, reuse=True):
+            for l in range(other_model.num_layers):
+                weight_assign = slim.variable('conv_{}/weights'.format(l+1)).assign(
+                    weights_dict['conv_{}/weights'.format(l+1)])
+                bias_assign = slim.variable('conv_{}/biases'.format(l+1)).assign(
+                    weights_dict['conv_{}/biases'.format(l+1)])
+                sess.run(weight_assign)
+                sess.run(bias_assign)
+
     def transfer(self, l, net, weights_dict):
-        print('conv{}: {}'.format(l + 1, net.params['conv{}'.format(l + 1)][0].data[:].shape))
         net.params['conv{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
         net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         if not self.remove_bn and l > 0:

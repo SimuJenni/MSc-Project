@@ -93,9 +93,11 @@ class ToonNetTrainer:
             # Parse a serialized Example proto to extract the image and metadata.
             [img_train, label_train] = provider.get(['image', 'label'])
             label_train -= self.dataset.label_offset
+            tf.image_summary('imgs/img', img_train, max_images=3)
 
             # Pre-process data
             img_train = self.pre_processor.process_transfer_train(img_train)
+            tf.image_summary('imgs/img_preprocessed', img_train, max_images=3)
 
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],

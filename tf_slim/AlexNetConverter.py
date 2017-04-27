@@ -69,6 +69,11 @@ class AlexNetConverter:
 
         return weights, biases, moving_mean, moving_variance
 
+    def get_conv(self, layer):
+        weights = self.get_conv_weights(layer)
+        biases = self.get_conv_biases(layer)
+        return weights, biases
+
     def hwcn2nchw(self, input):
         return np.transpose(input, [3, 2, 0, 1])
 
@@ -87,6 +92,17 @@ class AlexNetConverter:
                     weights, biases, moving_mean, moving_variance = self.get_conv_bn(l+1)
                     weights_dict['conv_{}_BN/mean'.format(l + 1)] = moving_mean.eval()
                     weights_dict['conv_{}_BN/variance'.format(l + 1)] = moving_variance.eval()
+                weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
+                weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
+            self.save_weights(weights_dict)
+
+    def extract_and_store_noBN(self):
+        with self.sess:
+            self.init_model()
+            num_conv = self.model.num_layers
+            weights_dict = {}
+            for l in range(num_conv):
+                weights, biases = self.get_conv(l+1)
                 weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
                 weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
             self.save_weights(weights_dict)

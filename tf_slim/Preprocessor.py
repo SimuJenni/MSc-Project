@@ -137,6 +137,35 @@ class ImageNetPreprocessor(Preprocessor):
         return image
 
 
+class ImageNetPreprocessorNoScale(Preprocessor):
+    def __init__(self, target_shape, augment_color=False):
+        Preprocessor.__init__(self, target_shape, augment_color)
+
+    def process_transfer_test(self, image):
+        image.set_shape([256, 256, 3])
+        image = tf.image.resize_image_with_crop_or_pad(image, self.target_shape[0], self.target_shape[1])
+
+        # Resize to output size
+        image.set_shape([self.target_shape[0], self.target_shape[1], 3])
+
+        # Scale to [-1, 1]
+        image = tf.to_float(image) - 127.5
+
+        return image
+
+    def process_transfer_train(self, image, thread_id=0):
+        # Select random crops
+        image = tf.random_crop(image, size=(self.target_shape[0], self.target_shape[1], 3))
+
+        # Scale to [-1, 1]
+        image = tf.to_float(image) - 127.5
+
+        # Flip left-right
+        image = tf.image.random_flip_left_right(image)
+
+        return image
+
+
 def distort_image(image, height, width, aspect_ratio_range=(0.9, 1.1), area_range=(0.1, 1.0)):
     sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
         tf.shape(image),

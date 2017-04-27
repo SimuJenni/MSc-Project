@@ -171,7 +171,7 @@ class ToonNetTrainer:
         if scope:
             vars2train = get_variables_to_train(trainable_scopes=scope)
         train_op = slim.learning.create_train_op(loss, self.optimizer(), variables_to_train=vars2train,
-                                                 global_step=self.global_step, summarize_gradients=True)
+                                                 global_step=self.global_step, summarize_gradients=False)
         return train_op
 
     def make_summaries(self):

@@ -176,7 +176,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
+            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
@@ -208,7 +208,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('encoder', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
+            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
@@ -238,7 +238,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('decoder', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
+            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
                 for l in range(0, num_layers):
                     net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),

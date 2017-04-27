@@ -1,6 +1,6 @@
 from ToonNet_noBN import ToonNet_noBN
 from datasets.ImageNet import ImageNet
-from ToonNetTrainer import ToonNetTrainer
+from ToonNetTrainer_noBN import ToonNetTrainer
 from Preprocessor import ImageNetPreprocessor
 
 

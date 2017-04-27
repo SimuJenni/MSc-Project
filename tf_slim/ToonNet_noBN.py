@@ -117,12 +117,8 @@ class ToonNet_noBN:
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
 
-        # Scale to normal pixel range
-        dec_gen *= 127.
-        dec_im *= 127.
-
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_in = merge(dec_im, dec_gen, dim=0) * 127.5 #TODO: Scaled
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
 
@@ -176,7 +172,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
@@ -208,7 +204,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('encoder', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
@@ -238,7 +234,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('decoder', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 for l in range(0, num_layers):
                     net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),

@@ -4,7 +4,7 @@ from ToonNetTrainer import ToonNetTrainer
 from Preprocessor import ImageNetPreprocessorNoScale
 
 
-model = ToonNet_noBN(num_layers=5, batch_size=192)
+model = ToonNet_noBN(num_layers=5, batch_size=128)
 data = ImageNet()
 preprocessor = ImageNetPreprocessorNoScale(target_shape=[96, 96, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=100, tag='refactored',

@@ -10,9 +10,8 @@ preprocessor = ImageNetPreprocessor(target_shape=[96, 128, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=80, tag='refactored',
                          lr_policy='const', optimizer='adam')
 
-model_dir = trainer.get_save_dir()
 model_dir = '../../test_converter'
-ckpt = '../../test_converter/model.ckpt-800722'
+ckpt = '../../test_converter/model.ckpt-450360'
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True)
 converter.extract_and_store()

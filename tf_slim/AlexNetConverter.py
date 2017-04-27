@@ -48,7 +48,7 @@ class AlexNetConverter:
         weights = self.get_conv_weights(layer)
         if layer == 1:
             biases = self.get_conv_biases(layer)
-            weights /= 255./2
+            # weights /= 255./2
         else:
             moving_mean, moving_variance, beta = self.get_bn_params(layer)
             alpha = tf.rsqrt(moving_variance + self.bn_eps)

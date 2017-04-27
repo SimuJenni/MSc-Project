@@ -7,7 +7,7 @@ REPEATS = [1, 1, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
-def disc_argscope(activation=tf.nn.elu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0001):
+def disc_argscope(activation=tf.nn.elu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0005):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -83,7 +83,7 @@ class ToonNet_noBN:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_{}_elu_noNB_2'.format(tag)
+        self.name = 'ToonNet_{}_elu_noNB'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -114,11 +114,11 @@ class ToonNet_noBN:
         gen_dist, gen_mu, gen_logvar, _ = self.generator(gen_in, reuse=reuse, training=training)
         enc_dist, enc_mu, enc_logvar, _ = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_dist, reuse=reuse, training=training) * 127.5
-        dec_gen = self.decoder(gen_dist, reuse=True, training=training) * 127.5
+        dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
+        dec_gen = self.decoder(gen_dist, reuse=True, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_in = merge(dec_im, dec_gen, dim=0) * 127.5 #TODO: Scaled
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
 
@@ -172,7 +172,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
@@ -204,7 +204,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('encoder', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
@@ -234,7 +234,7 @@ class ToonNet_noBN:
         f_dims = DEFAULT_FILTER_DIMS
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('decoder', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 for l in range(0, num_layers):
                     net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),
@@ -243,7 +243,7 @@ class ToonNet_noBN:
 
 
 class AlexNet:
-    def __init__(self, fc_activation=tf.nn.elu):
+    def __init__(self, fc_activation=lrelu):
         self.fc_activation = fc_activation
 
     def classify(self, net, num_classes, reuse=None, training=True):

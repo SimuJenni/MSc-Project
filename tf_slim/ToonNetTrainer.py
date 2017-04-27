@@ -144,7 +144,7 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = slim.losses.sum_of_squares(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
@@ -156,11 +156,11 @@ class ToonNetTrainer:
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = slim.losses.sum_of_squares(imgs_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
+        gen_ae_loss = tf.contrib.losses.mean_squared_error(imgs_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
-        gen_mu_loss = slim.losses.sum_of_squares(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
+        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
         tf.scalar_summary('losses/mu loss (generator)', gen_mu_loss)
-        gen_var_loss = slim.losses.sum_of_squares(g_var, e_var, scope=gen_loss_scope, weight=3.0)
+        gen_var_loss = tf.contrib.losses.mean_squared_error(g_var, e_var, scope=gen_loss_scope, weight=3.0)
         tf.scalar_summary('losses/var loss (generator)', gen_var_loss)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)

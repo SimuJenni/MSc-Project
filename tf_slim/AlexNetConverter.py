@@ -96,7 +96,7 @@ class AlexNetConverter:
                 weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
             self.save_weights(weights_dict)
 
-    def extract_and_store_noBN(self):
+    def extract_and_store_no_batchnorm(self):
         with self.sess:
             self.init_model()
             num_conv = self.model.num_layers

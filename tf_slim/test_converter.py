@@ -1,4 +1,4 @@
-from ToonNet import ToonNet
+from ToonNet_scaled import ToonNet
 from datasets.ImageNet import ImageNet
 from Preprocessor import ImageNetPreprocessor
 from ToonNetTrainer import ToonNetTrainer
@@ -11,7 +11,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../../test_converter'
-ckpt = '../../test_converter/model.ckpt-450360'
+ckpt = '../../test_converter/model.ckpt-512289'
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True)
 converter.extract_and_store()

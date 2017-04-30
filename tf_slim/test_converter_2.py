@@ -1,4 +1,4 @@
-from ToonNet_noBN import ToonNet as TNnoBN
+from ToonNet_noBN import ToonNet_noBN as TNnoBN
 from ToonNet import ToonNet as TN
 import numpy as np
 

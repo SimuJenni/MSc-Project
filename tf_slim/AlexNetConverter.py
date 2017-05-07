@@ -8,13 +8,15 @@ slim = tf.contrib.slim
 
 
 class AlexNetConverter:
-    def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator'):
+    def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator', scale=1.0, bgr=False):
         self.model = model
+        self.bgr = bgr
         self.sess = sess
         self.net_id = net_id
         self.bn_eps = 0.001
         self.weights_file = '{}/weights_dict'.format(model_dir)
         self.remove_bn = remove_bn
+        self.scale = scale
         if ckpt:
             self.ckpt = ckpt
         else:
@@ -48,7 +50,6 @@ class AlexNetConverter:
         weights = self.get_conv_weights(layer)
         if layer == 1:
             biases = self.get_conv_biases(layer)
-            # weights /= 255./2
         else:
             moving_mean, moving_variance, beta = self.get_bn_params(layer)
             alpha = tf.rsqrt(moving_variance + self.bn_eps)
@@ -140,9 +141,15 @@ class AlexNetConverter:
                 sess.run(bias_assign)
 
     def transfer(self, l, net, weights_dict):
-        net.params['conv{}'.format(l + 1)][0].data[:] = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
+        if l == 0:
+            weights = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)]) / self.scale
+            if self.bgr:
+                weights = weights[:, [2, 1, 0], :, :]   # Trained with RGB but caffe expects BGR!
+        else:
+            weights = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
+        net.params['conv{}'.format(l + 1)][0].data[:] = weights
         net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         if not self.remove_bn and l > 0:
-            net.params['BatchNorm{}'.format(l)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
-            net.params['BatchNorm{}'.format(l)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]
+            net.params['BatchNorm{}'.format(l+1)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
+            net.params['BatchNorm{}'.format(l+1)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]
         return net

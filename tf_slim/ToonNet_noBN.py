@@ -83,7 +83,7 @@ class ToonNet_noBN:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_{}_elu_noNB'.format(tag)
+        self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -118,7 +118,7 @@ class ToonNet_noBN:
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(dec_im, dec_gen, dim=0) * 127.5 #TODO: Scaled
+        disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
 
@@ -285,7 +285,7 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(disc_argscope(padding='SAME', training=training)):
+            with slim.arg_scope(disc_argscope(activation=lrelu, padding='SAME', training=training)):
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')

@@ -1,4 +1,4 @@
-from ToonNet_scaled_lrn import ToonNet
+from ToonNet import ToonNet
 from datasets.ImageNet import ImageNet
 from ToonNetTrainer import ToonNetTrainer
 from Preprocessor import ImageNetPreprocessor

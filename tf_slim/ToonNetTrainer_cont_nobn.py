@@ -7,7 +7,7 @@ import os
 import sys
 import numpy as np
 
-from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn
+from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn, remove_missing
 from constants import LOG_DIR
 
 slim = tf.contrib.slim
@@ -231,11 +231,13 @@ class ToonNetTrainer:
 
     def cont_init_fn(self, chpt_path_all, chpt_path_disc):
         var2restore = slim.get_variables_to_restore(include=['discriminator'])
+        var2restore = remove_missing(var2restore, chpt_path_disc)
         init_assign_op_disc, init_feed_dict_disc = slim.assign_from_checkpoint(chpt_path_disc, var2restore)
         print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
         sys.stdout.flush()
 
         var2restore = slim.get_variables_to_restore(exclude=['discriminator'])
+        var2restore = remove_missing(var2restore, chpt_path_all)
         init_assign_op_all, init_feed_dict_all = slim.assign_from_checkpoint(chpt_path_all, var2restore)
         print('Variables to restore other: {}'.format([v.op.name for v in var2restore]))
         sys.stdout.flush()

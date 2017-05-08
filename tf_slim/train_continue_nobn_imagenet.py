@@ -9,7 +9,7 @@ from constants import LOG_DIR
 model = ToonNet_noBN(num_layers=5, batch_size=128)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
-trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=85, tag='continuation',
+trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=90, tag='continuation',
                          lr_policy='linear', optimizer='adam')
 chpt_dir = os.path.join(LOG_DIR, 'test_convert/')
 all_ckpt = os.path.join(chpt_dir, 'model.ckpt-800722')

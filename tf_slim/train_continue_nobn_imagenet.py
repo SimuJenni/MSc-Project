@@ -13,5 +13,5 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='linear', optimizer='adam')
 chpt_dir = os.path.join(LOG_DIR, 'test_convert/')
 all_ckpt = os.path.join(chpt_dir, 'model.ckpt-800722')
-disc_ckpt = os.path.join(chpt_dir, 'model_transfer')
+disc_ckpt = os.path.join(chpt_dir, 'model_transfer.ckpt')
 trainer.train(all_ckpt, disc_ckpt)

@@ -6,7 +6,7 @@ from datasets.VOC2007 import VOC2007
 
 model = ToonNet_noBN(num_layers=5, batch_size=32)
 data = ImageNet()
-preprocessor = VOCPreprocessor(target_shape=[224, 224, 3])
+preprocessor = VOCPreprocessor(target_shape=[224, 224, 3], augment_color=False)
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=500, tag='continuation',
                          lr_policy='linear', optimizer='adam')
 print(trainer.get_save_dir())

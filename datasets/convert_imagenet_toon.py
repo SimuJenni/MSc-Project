@@ -88,7 +88,7 @@ import numpy as np
 import tensorflow as tf
 
 from cartooning import auto_canny, cartooning
-from tf_slim.datasets.dataset_utils import imagenet_example, ImageCoder
+from datasets.dataset_utils import imagenet_example, ImageCoder
 
 
 def _is_png(filename):

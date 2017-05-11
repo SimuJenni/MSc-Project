@@ -87,7 +87,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from tf_slim.datasets.dataset_utils import image_to_tfexample, ImageCoder
+from datasets.dataset_utils import image_to_tfexample, ImageCoder
 
 
 def _is_png(filename):

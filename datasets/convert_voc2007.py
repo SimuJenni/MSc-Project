@@ -5,14 +5,13 @@ from __future__ import print_function
 import os
 import sys
 import xml.etree.ElementTree as ET
-from scipy import misc
 
 import numpy as np
 import tensorflow as tf
+from scipy import misc
+
 from constants import VOC2007_TF_DATADIR, VOC2007_SRC_DIR
-
-from tf_slim.datasets import dataset_utils
-
+from datasets import dataset_utils
 
 # The names of the classes.
 _CLASS_NAMES = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",

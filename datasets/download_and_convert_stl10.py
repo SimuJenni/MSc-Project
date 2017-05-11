@@ -1,10 +1,15 @@
-import os, sys, tarfile, urllib
+import os
+import sys
+import tarfile
+import urllib
+
 import numpy as np
-from constants import STL10_DATADIR, STL10_TF_DATADIR
-from cartooning import auto_canny, cartooning
-import dataset_utils
 import tensorflow as tf
 from scipy.misc import imrotate
+
+import dataset_utils
+from cartooning import auto_canny, cartooning
+from constants import STL10_DATADIR, STL10_TF_DATADIR
 
 # image shape
 HEIGHT = 96

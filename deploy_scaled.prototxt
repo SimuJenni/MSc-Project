@@ -1,4 +1,5 @@
 name: "AlexNetV2"
+force_backward: true
 layer {
   name: "data"
   type: "Input"
@@ -22,7 +23,7 @@ layer {
   }
   param {
     lr_mult: 2
-    decay_mult: 0
+    decay_mult: 1
   }
   convolution_param {
     num_output: 64
@@ -35,9 +36,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution1"
   top: "Convolution1"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "pool1"
@@ -61,7 +59,7 @@ layer {
   }
   param {
     lr_mult: 2
-    decay_mult: 0
+    decay_mult: 1
   }
   convolution_param {
     num_output: 192
@@ -74,9 +72,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution2"
   top: "Convolution2"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "pool2"
@@ -100,7 +95,7 @@ layer {
   }
   param {
     lr_mult: 2
-    decay_mult: 0
+    decay_mult: 1
   }
   convolution_param {
     num_output: 384
@@ -113,9 +108,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution3"
   top: "Convolution3"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "conv4"
@@ -128,7 +120,7 @@ layer {
   }
   param {
     lr_mult: 2
-    decay_mult: 0
+    decay_mult: 1
   }
   convolution_param {
     num_output: 384
@@ -141,9 +133,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution4"
   top: "Convolution4"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "conv5"
@@ -156,7 +145,7 @@ layer {
   }
   param {
     lr_mult: 2
-    decay_mult: 0
+    decay_mult: 1
   }
   convolution_param {
     num_output: 256
@@ -169,7 +158,113 @@ layer {
   type: "ReLU"
   bottom: "Convolution5"
   top: "Convolution5"
-  relu_param{
-    negative_slope: 0.2
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "Convolution5"
+  top: "Pooling3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
   }
+}
+layer {
+  name: "fc6"
+  type: "InnerProduct"
+  bottom: "Pooling3"
+  top: "InnerProduct1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 4096
+  }
+}
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "InnerProduct1"
+  top: "InnerProduct1"
+}
+layer {
+  name: "drop6"
+  type: "Dropout"
+  bottom: "InnerProduct1"
+  top: "InnerProduct1"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7"
+  type: "InnerProduct"
+  bottom: "InnerProduct1"
+  top: "InnerProduct2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 4096
+  }
+}
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "InnerProduct2"
+  top: "InnerProduct2"
+}
+layer {
+  name: "drop7"
+  type: "Dropout"
+  bottom: "InnerProduct2"
+  top: "InnerProduct2"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc8"
+  type: "InnerProduct"
+  bottom: "InnerProduct2"
+  top: "fc8"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 1
+  }
+  inner_product_param {
+    num_output: 20
+  }
+}
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "fc8"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8"
+  bottom: "label"
+  top: "loss"
 }

@@ -32,6 +32,7 @@ class AlexNetConverter:
         saver.restore(self.sess, self.ckpt)
 
     def get_bn_params(self, layer_id):
+        print('Extracting {}/BatchNorm'.format(layer_id))
         with tf.variable_scope(self.net_id, reuse=True):
             beta = slim.variable('{}/BatchNorm/beta'.format(layer_id))
             moving_mean = slim.variable('{}/BatchNorm/moving_mean'.format(layer_id))
@@ -112,6 +113,34 @@ class AlexNetConverter:
         weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
+    def extract_and_store_bn(self):
+        self.init_model()
+        num_conv = self.model.num_layers
+        weights_dict = {}
+        for l in range(num_conv):
+            if l == 0:
+                weights, biases = self.get_conv(l+1)
+            else:
+                weights = self.get_conv_weights(l+1)
+                moving_mean, moving_variance, beta = self.get_bn_params('conv_{}'.format(l+1))
+                weights_dict['conv_{}_BN/mean'.format(l + 1)] = moving_mean.eval()
+                weights_dict['conv_{}_BN/variance'.format(l + 1)] = moving_variance.eval()
+                weights_dict['conv_{}_BN/beta'.format(l + 1)] = beta.eval()
+                biases = tf.zeros_like(beta)
+            weights_dict['conv_{}/weights'.format(l + 1)] = weights.eval()
+            weights_dict['conv_{}/biases'.format(l + 1)] = biases.eval()
+        self.save_weights(weights_dict)
+
+    def extract_and_store_nobn(self):
+        self.init_model()
+        num_conv = self.model.num_layers
+        weights_dict = {}
+        for l in range(num_conv):
+            weights, biases = self.get_conv(l+1)
+            weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
+            weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
+        self.save_weights(weights_dict)
+
     def save_weights(self, weights_dict):
         with open(self.weights_file + '.pkl', 'wb') as f:
             pickle.dump(weights_dict, f, pickle.HIGHEST_PROTOCOL)
@@ -120,7 +149,7 @@ class AlexNetConverter:
         with open(self.weights_file + '.pkl', 'rb') as f:
             return pickle.load(f)
 
-    def load_and_set_caffe_weights(self, proto_path, save_dir):
+    def load_and_set_caffe_weights(self, proto_path, save_path):
         import caffe
         weights_dict = self.load_weights()
         net = caffe.Net(proto_path, caffe.TEST)
@@ -129,7 +158,6 @@ class AlexNetConverter:
         for l in range(num_conv):
             net = self.transfer(l, net, weights_dict)
 
-        save_path = os.path.join(save_dir, 'alexnet_v2.caffemodel')
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
 
@@ -163,8 +191,12 @@ class AlexNetConverter:
         else:
             weights = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)])
         net.params['conv{}'.format(l + 1)][0].data[:] = weights
-        net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         if not self.remove_bn and l > 0:
+            net.params['BatchNorm{}'.format(l+1)][2].data[:] = 1
             net.params['BatchNorm{}'.format(l+1)][0].data[:] = weights_dict['conv_{}_BN/mean'.format(l + 1)]
             net.params['BatchNorm{}'.format(l+1)][1].data[:] = weights_dict['conv_{}_BN/variance'.format(l + 1)]
+            net.params['Scale{}'.format(l+1)][1].data[:] = weights_dict['conv_{}_BN/beta'.format(l + 1)]
+        else:
+            net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
+
         return net

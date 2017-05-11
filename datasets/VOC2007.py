@@ -8,7 +8,7 @@ from constants import VOC2007_TF_DATADIR
 
 class VOC2007(Dataset):
 
-    SPLITS_TO_SIZES = {'train': 2501, 'val': 2510, 'trainval': 5011, 'eval': 4952}
+    SPLITS_TO_SIZES = {'train': 2501, 'val': 2510, 'trainval': 5011, 'test': 4952}
 
     ITEMS_TO_DESCRIPTIONS = {
         'image': 'A color image.',
@@ -49,10 +49,10 @@ class VOC2007(Dataset):
         return self.get_split('trainval')
 
     def get_testset(self):
-        return self.get_split('eval')
+        return self.get_split('test')
 
     def get_num_train(self):
         return self.SPLITS_TO_SIZES['trainval']
 
     def get_num_test(self):
-        return self.SPLITS_TO_SIZES['eval']
+        return self.SPLITS_TO_SIZES['test']

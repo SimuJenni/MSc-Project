@@ -8,7 +8,7 @@ from constants import STL10_TF_DATADIR
 
 class STL10(Dataset):
 
-    SPLITS_TO_SIZES = {'train_unlabeled': 100000, 'train': 5000, 'test': 8000, 'train_fold_0': 4000,
+    SPLITS_TO_SIZES = {'train_unlabeled': 100000, 'train': 5000, 'eval': 8000, 'train_fold_0': 4000,
                        'train_fold_1': 4000,
                        'train_fold_2': 4000, 'train_fold_3': 4000, 'train_fold_4': 4000, 'train_fold_5': 4000,
                        'train_fold_6': 4000, 'train_fold_7': 4000, 'train_fold_8': 4000, 'train_fold_9': 4000,
@@ -64,7 +64,7 @@ class STL10(Dataset):
         return self.get_split('train_unlabeled')
 
     def get_testset(self):
-        return self.get_split('test')
+        return self.get_split('eval')
 
     def get_train_fold_id(self, fold_idx):
         return 'train_fold_{}'.format(fold_idx)
@@ -79,4 +79,4 @@ class STL10(Dataset):
         return self.SPLITS_TO_SIZES['train_unlabeled']
 
     def get_num_test(self):
-        return self.SPLITS_TO_SIZES['test']
+        return self.SPLITS_TO_SIZES['eval']

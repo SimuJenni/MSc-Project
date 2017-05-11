@@ -83,7 +83,7 @@ def _get_output_filename(dataset_dir, split_name):
     """Creates the output filename.
     Args:
       dataset_dir: The dataset directory where the dataset is stored.
-      split_name: The name of the train/test split.
+      split_name: The name of the train/eval split.
     Returns:
       An absolute file path.
     """
@@ -101,7 +101,7 @@ def run(target_dir=VOC2007_TF_DATADIR, source_dir=VOC2007_SRC_DIR):
     train_filename = _get_output_filename(target_dir, 'train')
     val_filename = _get_output_filename(target_dir, 'val')
     trainval_filename = _get_output_filename(target_dir, 'trainval')
-    testing_filename = _get_output_filename(target_dir, 'test')
+    testing_filename = _get_output_filename(target_dir, 'eval')
 
     # First, process the trainval data:
     with tf.python_io.TFRecordWriter(trainval_filename) as tfrecord_writer:
@@ -118,9 +118,9 @@ def run(target_dir=VOC2007_TF_DATADIR, source_dir=VOC2007_SRC_DIR):
         filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'val.txt')
         _to_tfrecord(filename, tfrecord_writer, source_dir)
 
-    # Process the test data:
+    # Process the eval data:
     with tf.python_io.TFRecordWriter(testing_filename) as tfrecord_writer:
-        filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'test.txt')
+        filename = os.path.join(source_dir, 'VOC2007/ImageSets/Main', 'eval.txt')
         _to_tfrecord(filename, tfrecord_writer, source_dir)
 
     # Finally, write the labels file:

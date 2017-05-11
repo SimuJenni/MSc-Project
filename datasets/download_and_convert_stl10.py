@@ -176,7 +176,7 @@ def run():
     # download data if needed
     download_and_extract()
 
-    # test to check if the whole dataset is read correctly
+    # eval to check if the whole dataset is read correctly
     images = read_all_images(DATA_PATH)
     print(images.shape)
 

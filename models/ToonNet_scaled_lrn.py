@@ -15,7 +15,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         activation: The default activation function
         kernel_size: The default kernel size for convolution layers
         padding: The default border mode
-        training: Whether in train or test mode
+        training: Whether in train or eval mode
         center: Whether to use centering in batchnorm
         w_reg: Parameter for weight-decay
 
@@ -72,7 +72,7 @@ class ToonNet:
             cartoon: Placeholder for cartooned images
             edges: Placeholder for edge-maps
             reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             dec_im: The autoencoded image
@@ -120,7 +120,7 @@ class ToonNet:
             img: Input image
             num_classes: Number of output classes
             reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Output logits from the classifier
@@ -135,7 +135,7 @@ class ToonNet:
         Args:
             net: Input to the generator (i.e. cartooned image and/or edge-map)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Encoding of the input.
@@ -167,7 +167,7 @@ class ToonNet:
         Args:
             net: Input to the encoder (image)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Encoding of the input image.
@@ -197,7 +197,7 @@ class ToonNet:
         Args:
             net: Input to the decoder (output of encoder)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Decoded image with 3 channels.
@@ -225,7 +225,7 @@ class AlexNet:
             net: The input layer to the classifier
             num_classes: Number of output classes
             reuse: Whether to reuse the weights (if already defined earlier)
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Resulting logits for all the classes
@@ -251,7 +251,7 @@ class AlexNet:
         Args:
             net: Input to the discriminator
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
             with_fc: Whether to include fully connected layers (used during unsupervised training)
 
         Returns:
@@ -262,8 +262,10 @@ class AlexNet:
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = tf.nn.lrn(net, depth_radius=2, alpha=2e-05, beta=0.75)
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
+                net = tf.nn.lrn(net, depth_radius=2, alpha=2e-05, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
@@ -296,7 +298,7 @@ class VGGA:
             net: The input layer to the classifier
             num_classes: Number of output classes
             reuse: Whether to reuse the weights (if already defined earlier)
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Resulting logits for all the classes
@@ -321,7 +323,7 @@ class VGGA:
         Args:
             net: Input to the discriminator
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
             with_fc: Whether to include fully connected layers (used during unsupervised training)
 
         Returns:

@@ -1,10 +1,10 @@
-from ToonNet_noBN import ToonNet_noBN
-from datasets.ImageNet import ImageNet
-from ToonNetTrainer_cont_nobn import ToonNetTrainer
-from Preprocessor import ImageNetPreprocessor
 import os
-from constants import LOG_DIR
 
+from Preprocessor import ImageNetPreprocessor
+from ToonNetTrainer_cont_nobn import ToonNetTrainer
+from constants import LOG_DIR
+from datasets.ImageNet import ImageNet
+from models.ToonNet_noBN import ToonNet_noBN
 
 model = ToonNet_noBN(num_layers=5, batch_size=128)
 data = ImageNet()

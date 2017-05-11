@@ -1,12 +1,12 @@
-from ToonNet_noBN import ToonNet_noBN as TNnoBN
-from ToonNet import ToonNet as TN
 import numpy as np
-
 import tensorflow as tf
-from datasets.ImageNet import ImageNet
-from Preprocessor import ImageNetPreprocessor
-from ToonNetTrainer import ToonNetTrainer
+from ToonNet_noBN import ToonNet_noBN as TNnoBN
+
 from AlexNetConverter import AlexNetConverter
+from Preprocessor import ImageNetPreprocessor
+from datasets.ImageNet import ImageNet
+from models.ToonNet import ToonNet as TN
+from train.ToonNetTrainer import ToonNetTrainer
 
 slim = tf.contrib.slim
 

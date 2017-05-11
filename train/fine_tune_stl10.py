@@ -1,7 +1,7 @@
-from ToonNet import ToonNet
-from datasets.STL10 import STL10
-from ToonNetTrainer import ToonNetTrainer
 from Preprocessor import Preprocessor
+from ToonNetTrainer import ToonNetTrainer
+from datasets.STL10 import STL10
+from models.ToonNet import ToonNet
 from utils import get_checkpoint_path
 
 for fold in range(10):

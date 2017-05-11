@@ -72,7 +72,7 @@ class ToonNetTester:
 
     def get_random_test_crops(self):
         with tf.device('/cpu:0'):
-            # Get test-data
+            # Get eval-data
             test_set = self.dataset.get_testset()
             self.num_eval_steps = (self.dataset.get_num_test() / self.model.batch_size)
             test_provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)

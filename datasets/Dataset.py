@@ -60,12 +60,12 @@ class Dataset:
     def get_split(self, split_name, data_dir=None):
         """Gets a dataset tuple with instructions for reading ImageNet.
         Args:
-          split_name: A train/test split name.
+          split_name: A train/eval split name.
           dataset_dir: The base directory of the dataset sources.
         Returns:
           A `Dataset` namedtuple.
         Raises:
-          ValueError: if `split_name` is not a valid train/test split.
+          ValueError: if `split_name` is not a valid train/eval split.
         """
         if split_name not in self.SPLITS_TO_SIZES:
             raise ValueError('split name %s was not recognized.' % split_name)

@@ -1,7 +1,7 @@
-from ToonNet import ToonNet
-from datasets.VOC2007 import VOC2007
-from ToonNetTester import ToonNetTester
 from Preprocessor import VOCPreprocessor
+from ToonNetTester import ToonNetTester
+from datasets.VOC2007 import VOC2007
+from models.ToonNet import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=1)
 data = VOC2007()

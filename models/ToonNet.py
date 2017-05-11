@@ -15,7 +15,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         activation: The default activation function
         kernel_size: The default kernel size for convolution layers
         padding: The default border mode
-        training: Whether in train or test mode
+        training: Whether in train or eval mode
         center: Whether to use centering in batchnorm
         w_reg: Parameter for weight-decay
 
@@ -55,7 +55,7 @@ class ToonNet:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_scaled_{}'.format(tag)
+        self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -72,7 +72,7 @@ class ToonNet:
             cartoon: Placeholder for cartooned images
             edges: Placeholder for edge-maps
             reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             dec_im: The autoencoded image
@@ -89,7 +89,7 @@ class ToonNet:
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(dec_im, dec_gen, dim=0) * 127.5
+        disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
 
@@ -120,7 +120,7 @@ class ToonNet:
             img: Input image
             num_classes: Number of output classes
             reuse: Whether to reuse already defined variables.
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Output logits from the classifier
@@ -135,7 +135,7 @@ class ToonNet:
         Args:
             net: Input to the generator (i.e. cartooned image and/or edge-map)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Encoding of the input.
@@ -167,7 +167,7 @@ class ToonNet:
         Args:
             net: Input to the encoder (image)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Encoding of the input image.
@@ -197,7 +197,7 @@ class ToonNet:
         Args:
             net: Input to the decoder (output of encoder)
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
 
         Returns:
             Decoded image with 3 channels.
@@ -225,7 +225,7 @@ class AlexNet:
             net: The input layer to the classifier
             num_classes: Number of output classes
             reuse: Whether to reuse the weights (if already defined earlier)
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Resulting logits for all the classes
@@ -251,21 +251,20 @@ class AlexNet:
         Args:
             net: Input to the discriminator
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
             with_fc: Whether to include fully connected layers (used during unsupervised training)
 
         Returns:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, fix_bn=self.fix_bn)):
+            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+                                                  fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
-                net = tf.nn.lrn(net, depth_radius=2, alpha=2e-05, beta=0.75)
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
-                net = tf.nn.lrn(net, depth_radius=2, alpha=2e-05, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
@@ -298,7 +297,7 @@ class VGGA:
             net: The input layer to the classifier
             num_classes: Number of output classes
             reuse: Whether to reuse the weights (if already defined earlier)
-            training: Whether in train or test mode
+            training: Whether in train or eval mode
 
         Returns:
             Resulting logits for all the classes
@@ -323,7 +322,7 @@ class VGGA:
         Args:
             net: Input to the discriminator
             reuse: Whether to reuse already defined variables
-            training: Whether in train or test mode.
+            training: Whether in train or eval mode.
             with_fc: Whether to include fully connected layers (used during unsupervised training)
 
         Returns:
@@ -331,7 +330,8 @@ class VGGA:
         """
         f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, fix_bn=self.fix_bn)):
+            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+                                                  fix_bn=self.fix_bn)):
                 for l in range(0, 5):
                     if l == 0:
                         net = slim.conv2d(net, f_dims[l], scope='conv_1_1', normalizer_fn=None)

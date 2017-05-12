@@ -52,6 +52,7 @@ class ToonNetTrainer:
     def learning_rate(self):
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
+                    'voc': self.learning_rate_voc(),
                     'linear': self.learning_rate_linear(self.init_lr)}
         return policies[self.lr_policy]
 
@@ -194,6 +195,13 @@ class ToonNetTrainer:
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
                   0.01 * 250. ** (-1.)]
+        return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
+
+    def learning_rate_voc(self):
+        # Define learning rate schedule
+        num_train_steps = self.num_train_steps
+        boundaries = [np.int64(10000*i) for i in range(1, np.int64(num_train_steps/10000))]
+        values = [self.init_lr*0.5**i for i in range(np.int64(num_train_steps/10000))]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self, init_lr=0.0002):

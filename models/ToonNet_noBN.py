@@ -7,36 +7,7 @@ REPEATS = [1, 1, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
-def disc_argscope(activation=tf.nn.elu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0005):
-    """Defines default parameter values for all the layers used in ToonNet.
-
-    Args:
-        activation: The default activation function
-        kernel_size: The default kernel size for convolution layers
-        padding: The default border mode
-        training: Whether in train or eval mode
-        center: Whether to use centering in batchnorm
-        w_reg: Parameter for weight-decay
-
-    Returns:
-        An argscope
-    """
-    trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
-    with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
-                        activation_fn=activation,
-                        weights_regularizer=slim.l2_regularizer(w_reg),
-                        biases_regularizer=slim.l2_regularizer(w_reg),
-                        biases_initializer=tf.constant_initializer(0.1)):
-        with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
-                            kernel_size=kernel_size,
-                            padding=padding):
-            with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
-                with slim.arg_scope([slim.fully_connected],
-                                    weights_initializer=trunc_normal(0.01)):
-                    return arg_sc
-
-
-def disc_argscope_old(activation=tf.nn.elu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.00001):
+def disc_argscope(activation=tf.nn.elu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0001):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -288,7 +259,7 @@ class AlexNet:
             Resulting logits for all the classes
         """
         with tf.variable_scope('fully_connected', reuse=reuse):
-            with slim.arg_scope(disc_argscope(activation=self.fc_activation, training=training)):
+            with slim.arg_scope(disc_argscope(activation=lrelu, training=training)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')

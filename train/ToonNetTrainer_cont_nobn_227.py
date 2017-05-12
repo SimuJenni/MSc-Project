@@ -244,7 +244,7 @@ class ToonNetTrainer:
 
         # Create an initial assignment function.
         def InitAssignFn(sess):
-            sess.run(tf.global_variables_initializer())
+            #sess.run(tf.global_variables_initializer())
             sess.run(init_assign_op_disc, init_feed_dict_disc)
             sess.run(init_assign_op_all, init_feed_dict_all)
 

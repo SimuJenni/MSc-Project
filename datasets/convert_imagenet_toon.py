@@ -130,7 +130,7 @@ def _is_cmyk(filename):
     return filename.split('/')[-1] in blacklist
 
 
-def _process_image(filename, coder, max_im_dim=144):
+def _process_image(filename, coder, im_size):
     """Process a single image file.
 
     Args:
@@ -164,10 +164,10 @@ def _process_image(filename, coder, max_im_dim=144):
 
     if w > h:
         pic = img[0:h, int(round(w / 2 - h / 2)):int(round(w / 2 - h / 2) + h), :]
-        image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(pic, im_size, interpolation=cv2.INTER_CUBIC)
     else:
         pic = img[int(round(h / 2 - w / 2)):int(round(h / 2 - w / 2) + w), 0:w, :]
-        image = cv2.resize(pic, (max_im_dim, max_im_dim), interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(pic, im_size, interpolation=cv2.INTER_CUBIC)
 
     # Check that image converted to RGB
     assert len(image.shape) == 3
@@ -196,7 +196,7 @@ def _process_image(filename, coder, max_im_dim=144):
 
 
 def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
-                               synsets, labels, humans, num_shards, output_directory):
+                               synsets, labels, humans, num_shards, output_directory, im_size):
     """Processes and saves list of images as TFRecord in 1 thread.
 
     Args:
@@ -239,7 +239,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
             synset = synsets[i]
             human = humans[i]
 
-            image_buffer, height, width, image_sketch, cartoon = _process_image(filename, coder)
+            image_buffer, height, width, image_sketch, cartoon = _process_image(filename, coder, im_size)
 
             example = imagenet_example(filename, image_buffer, image_sketch, cartoon, label,
                                        synset, human,
@@ -263,7 +263,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames,
     sys.stdout.flush()
 
 
-def _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory):
+def _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory, im_size):
     """Process and save list of images as TFRecord of Example protos.
 
     Args:
@@ -300,7 +300,7 @@ def _process_image_files(name, filenames, synsets, labels, humans, num_shards, n
     threads = []
     for thread_index in xrange(len(ranges)):
         args = (coder, thread_index, ranges, name, filenames,
-                synsets, labels, humans, num_shards, output_directory)
+                synsets, labels, humans, num_shards, output_directory, im_size)
         t = threading.Thread(target=_process_image_files_batch, args=args)
         t.start()
         threads.append(t)
@@ -405,7 +405,7 @@ def _find_human_readable_labels(synsets, synset_to_human):
     return humans
 
 
-def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, num_threads, output_directory):
+def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, num_threads, output_directory, im_size):
     """Process a complete data set and save it as a TFRecord.
 
     Args:
@@ -417,7 +417,7 @@ def _process_dataset(name, directory, num_shards, synset_to_human, labels_file, 
     """
     filenames, synsets, labels = _find_image_files(directory, labels_file)
     humans = _find_human_readable_labels(synsets, synset_to_human)
-    _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory)
+    _process_image_files(name, filenames, synsets, labels, humans, num_shards, num_threads, output_directory, im_size)
 
 
 def _build_synset_lookup(imagenet_metadata_file):
@@ -452,8 +452,9 @@ def _build_synset_lookup(imagenet_metadata_file):
     return synset_to_human
 
 
-def run(train_directory, validation_directory, output_directory, train_shards=1024, validation_shards=128, num_threads=8,
-        labels_file='imagenet_lsvrc_2015_synsets.txt', imagenet_metadata_file='imagenet_metadata.txt'):
+def run(train_directory, validation_directory, output_directory, train_shards=1024, validation_shards=128,
+        num_threads=8, labels_file='imagenet_lsvrc_2015_synsets.txt', imagenet_metadata_file='imagenet_metadata.txt',
+        im_size=(144, 144)):
     assert not train_shards % num_threads, (
         'Please make the num_threads commensurate with train_shards')
     assert not validation_shards % num_threads, (
@@ -468,7 +469,7 @@ def run(train_directory, validation_directory, output_directory, train_shards=10
 
     # Run it!
     _process_dataset('validation', validation_directory,
-                     validation_shards, synset_to_human, labels_file, num_threads, output_directory)
+                     validation_shards, synset_to_human, labels_file, num_threads, output_directory, im_size)
 
     _process_dataset('train', train_directory, train_shards,
-                     synset_to_human, labels_file, num_threads, output_directory)
+                     synset_to_human, labels_file, num_threads, output_directory, im_size)

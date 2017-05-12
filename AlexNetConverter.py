@@ -156,7 +156,9 @@ class AlexNetConverter:
         print("blobs {}\nparams {}".format(net.blobs.keys(), net.params.keys()))
         num_conv = self.model.num_layers
         for l in range(num_conv):
-            net = self.transfer(l, net, weights_dict)
+            net = self.transfer_conv(l, net, weights_dict)
+        for l in range(2):
+            net = self.transfer_fc(l, net, weights_dict)
 
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
@@ -183,7 +185,7 @@ class AlexNetConverter:
             sess.run(weight_assign)
             sess.run(bias_assign)
 
-    def transfer(self, l, net, weights_dict):
+    def transfer_conv(self, l, net, weights_dict):
         if l == 0:
             weights = self.hwcn2nchw(weights_dict['conv_{}/weights'.format(l + 1)]) / self.scale
             if self.bgr:
@@ -199,4 +201,9 @@ class AlexNetConverter:
         else:
             net.params['conv{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
 
+        return net
+
+    def transfer_fc(self, l, net, weights_dict):
+        net.params['fc{}'.format(l + 1)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)]
+        net.params['fc{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         return net

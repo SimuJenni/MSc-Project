@@ -258,9 +258,9 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='VALID', training=training,
+            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1',
+                net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='SAME', scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')

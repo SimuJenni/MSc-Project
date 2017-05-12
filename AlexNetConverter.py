@@ -23,7 +23,7 @@ class AlexNetConverter:
             self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
     def init_model(self):
-        x = tf.Variable(tf.random_normal([1, 96, 96, 3], stddev=2, seed=42), name='x')
+        x = tf.Variable(tf.random_normal([1, 224, 224, 3], stddev=2, seed=42), name='x')
         self.model.discriminator.discriminate(x, with_fc=True, training=False)
         self.sess.run(tf.global_variables_initializer())
         vars = slim.get_variables_to_restore(include=[self.net_id])
@@ -204,6 +204,6 @@ class AlexNetConverter:
         return net
 
     def transfer_fc(self, l, net, weights_dict):
-        net.params['fc{}'.format(l + 1)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)]
-        net.params['fc{}'.format(l + 1)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
+        net.params['fc{}'.format(l + 6)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)]
+        net.params['fc{}'.format(l + 6)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
         return net

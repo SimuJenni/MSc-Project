@@ -30,19 +30,19 @@ def load_image(path):
     xx = int((img.shape[1] - short_edge) / 2)
     crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
     # resize to 224, 224
-    resized_img = skimage.transform.resize(crop_img, (227, 227))
+    resized_img = skimage.transform.resize(crop_img, (224, 224))
     return resized_img
 
 
-model = ToonNet(num_layers=5, batch_size=128)
+model = ToonNet(num_layers=5, batch_size=16)
 data = ImageNet()
-preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
+preprocessor = ImageNetPreprocessor(target_shape=[224, 224, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=80, tag='refactored',
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
 proto_path = 'deploy 2.prototxt'
-ckpt = '../test_converter/model.ckpt-800722'
+ckpt = '../test_converter/model.ckpt-38171'
 save_path = os.path.join(model_dir, 'alexnet_v2.caffemodel')
 
 np.random.seed(42)
@@ -60,7 +60,7 @@ converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
 net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
 
 net_caffe.blobs['data'].data[0] = preprocess(img) * 127.5
-assert net_caffe.blobs['data'].data[0].shape == (3, 227, 227)
+assert net_caffe.blobs['data'].data[0].shape == (3, 224, 224)
 # show_caffe_net_input()
 net_caffe.forward()
 result_caffe = net_caffe.blobs['Convolution5'].data[0]

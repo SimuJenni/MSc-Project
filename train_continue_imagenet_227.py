@@ -3,7 +3,7 @@ import os
 from Preprocessor import ImageNetPreprocessor
 from train.ToonNetTrainer_cont_nobn import ToonNetTrainer
 from constants import LOG_DIR
-from datasets.ImageNet import ImageNet
+from datasets.ImageNet_227 import ImageNet
 from models.ToonNet import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=128)

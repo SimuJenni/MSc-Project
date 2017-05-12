@@ -236,7 +236,7 @@ class ToonNetTrainer:
         #print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
         sys.stdout.flush()
 
-        var2restore = slim.get_variables_to_restore(exclude=['discriminator'])
+        var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder', 'generator'])
         var2restore = remove_missing(var2restore, chpt_path_all)
         init_assign_op_all, init_feed_dict_all = slim.assign_from_checkpoint(chpt_path_all, var2restore)
         #print('Variables to restore other: {}'.format([v.op.name for v in var2restore]))

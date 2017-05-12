@@ -1,7 +1,7 @@
 import os
 
 from Preprocessor import ImageNetPreprocessor
-from train.ToonNetTrainer_cont_nobn import ToonNetTrainer
+from train.ToonNetTrainer_cont_nobn_227 import ToonNetTrainer
 from constants import LOG_DIR
 from datasets.ImageNet_227 import ImageNet
 from models.ToonNet import ToonNet

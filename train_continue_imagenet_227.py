@@ -8,8 +8,8 @@ from models.ToonNet import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=128)
 data = ImageNet()
-preprocessor = ImageNetPreprocessor(target_shape=[227, 227, 3])
-trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=30, tag='227',
+preprocessor = ImageNetPreprocessor(target_shape=[224, 224, 3])
+trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=30, tag='224',
                          lr_policy='const', optimizer='adam')
 
 all_ckpt = os.path.join(LOG_DIR, 'imagenet_ToonNet_default_refactored/model.ckpt-800722')

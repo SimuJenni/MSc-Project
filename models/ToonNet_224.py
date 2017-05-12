@@ -272,6 +272,7 @@ class AlexNet:
 
                 if with_fc:
                     # Fully connected layers
+                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)

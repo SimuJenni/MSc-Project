@@ -6,7 +6,7 @@ from constants import LOG_DIR
 from datasets.ImageNet_227 import ImageNet
 from models.ToonNet_224 import ToonNet
 
-model = ToonNet(num_layers=5, batch_size=32)
+model = ToonNet(num_layers=5, batch_size=24)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[224, 224, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=20, tag='224',

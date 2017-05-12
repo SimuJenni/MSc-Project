@@ -266,7 +266,7 @@ class ToonNetTrainer:
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
-                ae_loss = self.autoencoder_loss(img_rec, imgs_train)
+                #ae_loss = self.autoencoder_loss(img_rec, imgs_train)
                 gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
 
                 # Handle dependencies with update_ops (batch-norm)
@@ -274,7 +274,7 @@ class ToonNetTrainer:
                 if update_ops:
                     updates = tf.group(*update_ops)
                     gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
-                    ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
+                    #ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
                     disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
                 # Make summaries
@@ -283,11 +283,11 @@ class ToonNetTrainer:
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')
-                train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
+                #train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
 
                 # Start training
-                slim.learning.train(train_op_ae + train_op_disc+train_op_gen, self.get_save_dir(),
+                slim.learning.train(train_op_disc+train_op_gen, self.get_save_dir(),
                                     init_fn=self.cont_init_fn(chpt_path_all, chpt_path_all_disc),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,

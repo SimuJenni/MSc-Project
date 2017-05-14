@@ -23,8 +23,8 @@ class AlexNetConverter:
             self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
     def init_model(self):
-        x = tf.Variable(tf.random_normal([1, 224, 224, 3], stddev=2, seed=42), name='x')
-        self.model.discriminator.discriminate(x, with_fc=True, training=False)
+        x = tf.Variable(tf.random_normal([1, 227, 227, 3], stddev=2, seed=42), name='x')
+        self.model.discriminator.discriminate(x, with_fc=True, training=False, pad='VALID')
         self.sess.run(tf.global_variables_initializer())
         vars = slim.get_variables_to_restore(include=[self.net_id])
         print('Variables: {}'.format([v.op.name for v in vars]))
@@ -159,6 +159,8 @@ class AlexNetConverter:
             net = self.transfer_conv(l, net, weights_dict)
         for l in range(2):
             net = self.transfer_fc(l, net, weights_dict)
+        net.params['fc8'][0].data[:] = weights_dict['fully_connected/weights'].transpose((1, 0))
+        net.params['fc8'][1].data[:] = weights_dict['fully_connected/biases'].transpose()
 
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
@@ -204,6 +206,13 @@ class AlexNetConverter:
         return net
 
     def transfer_fc(self, l, net, weights_dict):
-        net.params['fc{}'.format(l + 6)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)]
-        net.params['fc{}'.format(l + 6)][1].data[:] = weights_dict['conv_{}/biases'.format(l + 1)]
+        if l == 0:
+            weights = weights_dict['fc{}/weights'.format(l + 1)]
+            weights = weights.reshape(6, 6, 256, 4096)
+            weights = self.hwcn2nchw(weights)
+            weights = weights.reshape(4096, 9216)
+            net.params['fc{}'.format(l + 6)][0].data[:] = weights
+        else:
+            net.params['fc{}'.format(l + 6)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)].transpose((1, 0))
+        net.params['fc{}'.format(l + 6)][1].data[:] = weights_dict['fc{}/biases'.format(l + 1)]
         return net

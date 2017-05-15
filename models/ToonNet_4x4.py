@@ -100,8 +100,8 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,1), dtype=tf.int32),
+                                                             tf.zeros(shape=(self.batch_size,1), dtype=tf.int32)]))
         return labels
 
     def gen_labels(self):
@@ -110,8 +110,8 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,1), dtype=tf.int32),
+                                                             tf.ones(shape=(self.batch_size,1), dtype=tf.int32)]))
         return labels
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):

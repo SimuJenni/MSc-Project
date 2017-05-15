@@ -246,13 +246,13 @@ class ToonNetTrainer:
                 labels_gen = self.model.gen_labels()
 
                 # Create the model
-                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                img_rec, img_gen, disc_out, e_mu, g_mu = \
                     self.model.net(imgs_train, toons_train, edges_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
                 ae_loss = self.autoencoder_loss(img_rec, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
+                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, e_mu)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

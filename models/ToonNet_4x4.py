@@ -90,7 +90,7 @@ class ToonNet:
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = merge(dec_im, dec_gen, dim=0)
+        disc_in = merge(dec_im, dec_gen, dim=0) * 127.5
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 

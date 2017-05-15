@@ -7,7 +7,7 @@ import os
 import sys
 import numpy as np
 
-from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn, remove_missing
+from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn
 from constants import LOG_DIR
 
 slim = tf.contrib.slim
@@ -52,6 +52,7 @@ class ToonNetTrainer:
     def learning_rate(self):
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
+                    'voc': self.learning_rate_voc(),
                     'linear': self.learning_rate_linear(self.init_lr)}
         return policies[self.lr_policy]
 
@@ -130,7 +131,7 @@ class ToonNetTrainer:
     def discriminator_loss(self, disc_out, disc_labels):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = slim.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
+        disc_loss = slim.losses.sigmoid_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         losses_disc = slim.losses.get_losses(disc_loss_scope)
         losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
@@ -144,24 +145,22 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=10)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = slim.losses.get_losses(ae_loss_scope)
         losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels_gen, imgs_gen, imgs_train, g_mu, g_var, e_mu, e_var):
+    def generator_loss(self, disc_out, labels_gen, imgs_gen, imgs_train, g_mu, e_mu):
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        gen_disc_loss = slim.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
+        gen_disc_loss = slim.losses.sigmoid_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = tf.contrib.losses.mean_squared_error(imgs_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
+        gen_ae_loss = tf.contrib.losses.mean_squared_error(imgs_gen, imgs_train, scope=gen_loss_scope, weight=10.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
-        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
+        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/mu loss (generator)', gen_mu_loss)
-        gen_var_loss = tf.contrib.losses.mean_squared_error(g_var, e_var, scope=gen_loss_scope, weight=3.0)
-        tf.scalar_summary('losses/var loss (generator)', gen_var_loss)
         losses_gen = slim.losses.get_losses(gen_loss_scope)
         losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -194,6 +193,13 @@ class ToonNetTrainer:
                       np.int64(num_train_steps * 0.6), np.int64(num_train_steps * 0.8)]
         values = [0.01, 0.01 * 250. ** (-1. / 4.), 0.01 * 250 ** (-2. / 4.), 0.01 * 250 ** (-3. / 4.),
                   0.01 * 250. ** (-1.)]
+        return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
+
+    def learning_rate_voc(self):
+        # Define learning rate schedule
+        num_train_steps = self.num_train_steps
+        boundaries = [np.int64(10000*i) for i in range(1, np.int64(num_train_steps/10000))]
+        values = [self.init_lr*0.5**i for i in range(np.int64(num_train_steps/10000))]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self, init_lr=0.0002):
@@ -229,28 +235,7 @@ class ToonNetTrainer:
             sys.stdout.flush()
             return init_fn
 
-    def cont_init_fn(self, chpt_path_all, chpt_path_disc):
-        var2restore = slim.get_variables_to_restore(include=['discriminator/conv_1', 'discriminator/conv_2', 'discriminator/conv_3', 'discriminator/conv_4', 'discriminator/conv_5'])
-        var2restore = remove_missing(var2restore, chpt_path_disc)
-        init_assign_op_disc, init_feed_dict_disc = slim.assign_from_checkpoint(chpt_path_disc, var2restore)
-        #print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
-        sys.stdout.flush()
-
-        var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder', 'generator'])
-        var2restore = remove_missing(var2restore, chpt_path_all)
-        init_assign_op_all, init_feed_dict_all = slim.assign_from_checkpoint(chpt_path_all, var2restore)
-        #print('Variables to restore other: {}'.format([v.op.name for v in var2restore]))
-        sys.stdout.flush()
-
-        # Create an initial assignment function.
-        def InitAssignFn(sess):
-            #sess.run(tf.global_variables_initializer())
-            sess.run(init_assign_op_disc, init_feed_dict_disc)
-            sess.run(init_assign_op_all, init_feed_dict_all)
-
-        return InitAssignFn
-
-    def train(self, chpt_path_all, chpt_path_all_disc):
+    def train(self):
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
@@ -261,13 +246,13 @@ class ToonNetTrainer:
                 labels_gen = self.model.gen_labels()
 
                 # Create the model
-                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                img_rec, img_gen, disc_out, e_mu, g_mu = \
                     self.model.net(imgs_train, toons_train, edges_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
                 ae_loss = self.autoencoder_loss(img_rec, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
+                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, e_mu)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -287,8 +272,7 @@ class ToonNetTrainer:
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
 
                 # Start training
-                slim.learning.train(train_op_disc+train_op_gen+train_op_ae, self.get_save_dir(),
-                                    init_fn=self.cont_init_fn(chpt_path_all, chpt_path_all_disc),
+                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.get_save_dir(),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,

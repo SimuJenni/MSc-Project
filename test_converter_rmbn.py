@@ -4,11 +4,12 @@ import caffe
 import numpy as np
 import skimage
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
 
 from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet import ToonNet
+from models.ToonNet_224 import ToonNet
 from train.ToonNetTrainer import ToonNetTrainer
 
 
@@ -34,15 +35,15 @@ def load_image(path):
     return resized_img
 
 
-model = ToonNet(num_layers=5, batch_size=128)
+model = ToonNet(num_layers=5, batch_size=16)
 data = ImageNet()
-preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
+preprocessor = ImageNetPreprocessor(target_shape=[227, 227, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=80, tag='refactored',
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
 proto_path = 'deploy 2.prototxt'
-ckpt = '../test_converter/model.ckpt-800722'
+ckpt = '../test_converter/model.ckpt-533810'
 save_path = os.path.join(model_dir, 'alexnet_v2.caffemodel')
 
 np.random.seed(42)
@@ -51,20 +52,22 @@ img = load_image('cat.jpg')
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=127.5, bgr=True)
 with converter.sess:
     converter.extract_and_store()
-    result, _ = model.discriminator.discriminate(tf.constant(img, shape=[1, 227, 227, 3], dtype=tf.float32),
-                                                 with_fc=False, reuse=True, training=False)
-    result_tf = result.eval()
+    net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, 227, 227, 3], dtype=tf.float32),
+                                                    with_fc=True, reuse=True, training=False, pad='VALID')
+    result_tf = net.eval()
 
 converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
 
 net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
 
-net_caffe.blobs['data'].data[0] = preprocess(img) * 127.5
+net_caffe.blobs['data'].data[0] = preprocess(img)*127.5
 assert net_caffe.blobs['data'].data[0].shape == (3, 227, 227)
 # show_caffe_net_input()
 net_caffe.forward()
-result_caffe = net_caffe.blobs['Convolution5'].data[0]
-result_caffe = result_caffe.transpose((1, 2, 0))  # h, w, c -> c, h, w
+result_caffe = net_caffe.blobs['fc8'].data[0]
+#result_caffe = result_caffe.transpose((1, 2, 0))  # h, w, c -> c, h, w
 
+print(result_caffe)
+print(result_tf)
 print(np.linalg.norm(result_tf - result_caffe))
 

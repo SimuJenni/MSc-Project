@@ -184,11 +184,11 @@ class ToonNetTester:
                     self.model.net(imgs_test, toons_test, edges_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:
-                summary_ops = [tf.image_summary('images/generator', montage_tf(img_gen[:100], 10, 10), max_images=1),
-                               tf.image_summary('images/autoencoder', montage_tf(img_rec[:100], 10, 10), max_images=1),
-                               tf.image_summary('images/original', montage_tf(imgs_test[:100], 10, 10), max_images=1),
-                               tf.image_summary('images/cartoons', montage_tf(toons_test[:100], 10, 10), max_images=1),
-                               tf.image_summary('images/edges', montage_tf(edges_test[:100], 10, 10), max_images=1)]
+                summary_ops = [tf.image_summary('images/generator', montage_tf(img_gen[:24], 4, 6), max_images=1),
+                               tf.image_summary('images/autoencoder', montage_tf(img_rec[:24], 4, 6), max_images=1),
+                               tf.image_summary('images/original', montage_tf(imgs_test[:24], 4, 6), max_images=1),
+                               tf.image_summary('images/cartoons', montage_tf(toons_test[:24], 4, 6), max_images=1),
+                               tf.image_summary('images/edges', montage_tf(edges_test[:24], 4, 6), max_images=1)]
 
                 if not self.model.vgg_discriminator:
                     with tf.variable_scope('discriminator', reuse=True):

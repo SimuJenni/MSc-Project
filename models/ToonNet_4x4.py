@@ -2,12 +2,12 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
-DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
-REPEATS = [1, 1, 2, 2, 2]
+DEFAULT_FILTER_DIMS = [32, 64, 128, 256, 512]
+REPEATS = [1, 2, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
+def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME', training=True, center=True,
                       w_reg=0.0001, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
@@ -25,9 +25,10 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.95,
+        'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
+        'scale': True,
     }
     trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -83,15 +84,15 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
-        gen_dist, gen_mu, gen_logvar, _ = self.generator(gen_in, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_logvar, _ = self.encoder(img, reuse=reuse, training=training)
+        gen_dist, gen_mu, _ = self.generator(gen_in, reuse=reuse, training=training)
+        enc_dist, enc_mu, _ = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
+        return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -99,9 +100,9 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,1), dtype=tf.int32),
+                                                             tf.zeros(shape=(self.batch_size,1), dtype=tf.int32)]))
+        return labels
 
     def gen_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -109,9 +110,9 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,1), dtype=tf.int32),
+                                                             tf.ones(shape=(self.batch_size,1), dtype=tf.int32)]))
+        return labels
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
@@ -152,14 +153,12 @@ class ToonNet:
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, 0.1*tf.ones_like(mu))
                 else:
                     net = mu
 
-                return net, mu, log_var, encoded
+                return net, mu, encoded
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.
@@ -183,13 +182,11 @@ class ToonNet:
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, 0.1*tf.ones_like(mu))
                 else:
                     net = mu
-                return net, mu, log_var, encoded
+                return net, mu, encoded
 
     def decoder(self, net, reuse=None, training=True):
         """Builds a decoder on top of net.
@@ -277,7 +274,7 @@ class AlexNet:
                     net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
-                    net = slim.fully_connected(net, 2,
+                    net = slim.fully_connected(net, 1,
                                                activation_fn=None,
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer,

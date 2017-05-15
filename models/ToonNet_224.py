@@ -245,7 +245,7 @@ class AlexNet:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='SAME'):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -260,7 +260,7 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding='VALID', scope='conv_1',
+                net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
@@ -268,15 +268,16 @@ class AlexNet:
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
-                encoded = net
 
                 if with_fc:
                     # Fully connected layers
+                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
+                    encoded = net
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

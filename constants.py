@@ -3,7 +3,7 @@ import os
 NUM_THREADS = 16
 
 # Directories for data, images and models
-DATA_DIR = '/data/cvg/simon/data'
+DATA_DIR = '/Data'
 MODEL_DIR = os.path.join(DATA_DIR, 'models/')
 LOG_DIR = os.path.join(DATA_DIR, 'Logs/ToonNet')
 

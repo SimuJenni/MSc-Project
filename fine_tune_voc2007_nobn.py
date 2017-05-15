@@ -6,11 +6,10 @@ from models.ToonNet_noBN import ToonNet_noBN
 
 model = ToonNet_noBN(num_layers=5, batch_size=32)
 data = ImageNet()
-preprocessor = VOCPreprocessor(target_shape=[227, 227, 3], augment_color=False, area_range=(0.25, 1.0))
+preprocessor = VOCPreprocessor(target_shape=[227, 227, 3], augment_color=False, area_range=(0.2, 1.0))
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=500, tag='continuation',
-                         lr_policy='voc', optimizer='sgd+momentum', init_lr=0.001)
-print(trainer.get_save_dir())
-chpt_path = '/Data/Logs/ToonNet/imagenet_ToonNet_default_continuation/model.ckpt-1162420'
+                         lr_policy='linear', optimizer='sgd+momentum', init_lr=0.001)
+chpt_path = '/Data/Logs/ToonNet/imagenet_ToonNet_default_continuation/model.ckpt-1201081'
 
 trainer.dataset = VOC2007()
 trainer.transfer_finetune(chpt_path, num_conv2train=5, num_conv2init=5)

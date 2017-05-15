@@ -43,7 +43,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 proto_path = 'deploy 2.prototxt'
-ckpt = '../test_converter/model.ckpt-325116'
+ckpt = '../test_converter/model.ckpt-533810'
 save_path = os.path.join(model_dir, 'alexnet_v2.caffemodel')
 
 np.random.seed(42)

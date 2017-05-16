@@ -121,14 +121,16 @@ class ToonNet:
             Encoding of the input.
         """
         f_dims = DEFAULT_FILTER_DIMS
+        num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, self.num_layers):
+                net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
+                for l in range(0, num_layers):
                     net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
                 encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[self.num_layers - 1], scope='conv_mu', activation_fn=None,
+                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
                 if training:
                     net = sample(mu, tf.ones_like(mu))
@@ -149,13 +151,15 @@ class ToonNet:
             Encoding of the input image.
         """
         f_dims = DEFAULT_FILTER_DIMS
+        num_layers = min(self.num_layers, 4)
         with tf.variable_scope('encoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, self.num_layers):
+                net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
+                for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
                 encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[self.num_layers - 1], scope='conv_mu', activation_fn=None,
+                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
                 if training:
                     net = sample(mu, tf.ones_like(mu))

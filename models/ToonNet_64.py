@@ -249,7 +249,7 @@ class AlexNet:
                     net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
-                    net = slim.fully_connected(net, 2,
+                    net = slim.fully_connected(net, 1,
                                                activation_fn=None,
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer,

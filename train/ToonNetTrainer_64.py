@@ -131,48 +131,45 @@ class ToonNetTrainer:
         return total_train_loss
 
     def discriminator_loss(self, disc_out_real, disc_out_fake):
-        with slim.name_scope('discriminator_loss'):
-            # Define loss for discriminator training
-            disc_loss_scope = 'disc_loss'
-            disc_loss_real = slim.losses.sigmoid_cross_entropy(disc_out_real, tf.ones_like(disc_out_real),
-                                                               scope=disc_loss_scope, weight=1.0)
-            tf.scalar_summary('losses/discriminator loss real', disc_loss_real)
+        # Define loss for discriminator training
+        disc_loss_scope = 'disc_loss'
+        disc_loss_real = slim.losses.sigmoid_cross_entropy(disc_out_real, tf.ones_like(disc_out_real),
+                                                           scope=disc_loss_scope, weight=1.0)
+        tf.scalar_summary('losses/discriminator loss real', disc_loss_real)
 
-            disc_loss_fake = slim.losses.sigmoid_cross_entropy(disc_out_fake, tf.zeros_like(disc_out_real),
-                                                               scope=disc_loss_scope, weight=1.0)
-            tf.scalar_summary('losses/discriminator loss fake', disc_loss_fake)
+        disc_loss_fake = slim.losses.sigmoid_cross_entropy(disc_out_fake, tf.zeros_like(disc_out_real),
+                                                           scope=disc_loss_scope, weight=1.0)
+        tf.scalar_summary('losses/discriminator loss fake', disc_loss_fake)
 
-            losses_disc = slim.losses.get_losses(disc_loss_scope)
-            losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
-            disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
-            return disc_total_loss
+        losses_disc = slim.losses.get_losses(disc_loss_scope)
+        losses_disc += slim.losses.get_regularization_losses(disc_loss_scope)
+        disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
+        return disc_total_loss
 
     def autoencoder_loss(self, imgs_rec, imgs_train):
-        with slim.name_scope('autoencoder_loss'):
-            # Define the losses for AE training
-            ae_loss_scope = 'ae_loss'
-            ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
-            tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
-            losses_ae = slim.losses.get_losses(ae_loss_scope)
-            losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
-            ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
-            return ae_total_loss
+        # Define the losses for AE training
+        ae_loss_scope = 'ae_loss'
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
+        losses_ae = slim.losses.get_losses(ae_loss_scope)
+        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
+        return ae_total_loss
 
     def generator_loss(self, disc_out_fake, img_gen, imgs_train, g_mu, e_mu):
-        with slim.name_scope('generator_loss'):
-            # Define the losses for generator training
-            gen_loss_scope = 'gen_loss'
-            gen_loss_fake = slim.losses.sigmoid_cross_entropy(disc_out_fake, tf.ones_like(disc_out_fake),
-                                                              scope=gen_loss_scope, weight=1.0)
-            tf.scalar_summary('losses/discriminator loss (generator)', gen_loss_fake)
-            gen_ae_loss = tf.contrib.losses.mean_squared_error(img_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
-            tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
-            gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
-            tf.scalar_summary('losses/mu loss', gen_mu_loss)
-            losses_gen = slim.losses.get_losses(gen_loss_scope)
-            losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
-            gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
-            return gen_loss
+        # Define the losses for generator training
+        gen_loss_scope = 'gen_loss'
+        gen_loss_fake = slim.losses.sigmoid_cross_entropy(disc_out_fake, tf.ones_like(disc_out_fake),
+                                                          scope=gen_loss_scope, weight=1.0)
+        tf.scalar_summary('losses/discriminator loss (generator)', gen_loss_fake)
+        gen_ae_loss = tf.contrib.losses.mean_squared_error(img_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
+        tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
+        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
+        tf.scalar_summary('losses/mu loss', gen_mu_loss)
+        losses_gen = slim.losses.get_losses(gen_loss_scope)
+        losses_gen += slim.losses.get_regularization_losses(gen_loss_scope)
+        gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
+        return gen_loss
 
     def make_train_op(self, loss, vars2train=None, scope=None):
         if scope:

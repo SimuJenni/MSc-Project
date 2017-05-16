@@ -268,6 +268,7 @@ class AlexNet:
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
+                encoded = net
 
                 if with_fc:
                     # Fully connected layers
@@ -277,7 +278,6 @@ class AlexNet:
                     net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
-                    encoded = net
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

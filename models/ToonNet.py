@@ -29,20 +29,19 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'epsilon': 0.001,
         'center': center,
     }
-    trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
+    he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params,
                         weights_regularizer=slim.l2_regularizer(w_reg),
-                        biases_initializer=tf.constant_initializer(0.1)):
+                        biases_initializer=tf.constant_initializer(0.1),
+                        weights_initializer=he):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
-                    with slim.arg_scope([slim.fully_connected],
-                                        weights_initializer=trunc_normal(0.005)):
                         return arg_sc
 
 

@@ -10,7 +10,7 @@ def lrelu(x, leak=0.2):
 def up_conv2d(net, num_outputs, scope, factor=2):
     in_shape = net.get_shape().as_list()
     net = tf.image.resize_images(net, (factor * in_shape[1], factor * in_shape[2]),
-                                 tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                                 tf.image.ResizeMethod.BILINEAR)
     net = slim.conv2d(net, num_outputs=num_outputs, scope=scope, stride=1)
     return net
 

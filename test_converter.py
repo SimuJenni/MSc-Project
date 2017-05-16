@@ -49,7 +49,7 @@ img = load_image('../cat.jpg')
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True)
 with converter.sess:
-    converter.extract_and_store()
+    converter.extract_and_store_remove_batchnorm()
     result, _ = model.discriminator.discriminate(tf.constant(img, shape=[1, 227, 227, 3], dtype=tf.float32),
                                                  with_fc=False, reuse=True, training=False)
     result_tf = result.eval()

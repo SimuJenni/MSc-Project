@@ -7,8 +7,8 @@ from utils import get_checkpoint_path
 
 model = ToonNet(num_layers=5, batch_size=16, fix_bn=True)
 data = ImageNet()
-preprocessor = VOCPreprocessor(target_shape=[224, 224, 3], augment_color=False)
-trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=250, tag='refactored',
+preprocessor = VOCPreprocessor(target_shape=[228, 228, 3], augment_color=False, area_range=(0.1, 1.0))
+trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=260, tag='refactored',
                          lr_policy='linear', optimizer='adam')
 chpt_path = get_checkpoint_path(trainer.get_save_dir())
 trainer.dataset = VOC2007()

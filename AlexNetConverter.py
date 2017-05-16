@@ -8,7 +8,8 @@ slim = tf.contrib.slim
 
 
 class AlexNetConverter:
-    def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator', scale=1.0, bgr=False):
+    def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator', scale=1.0, bgr=False,
+                 exclude=None):
         self.model = model
         self.bgr = bgr
         self.sess = sess
@@ -17,6 +18,7 @@ class AlexNetConverter:
         self.weights_file = '{}/weights_dict'.format(model_dir)
         self.remove_bn = remove_bn
         self.scale = scale
+        self.exclude = exclude
         if ckpt:
             self.ckpt = ckpt
         else:
@@ -26,9 +28,9 @@ class AlexNetConverter:
         x = tf.Variable(tf.random_normal([1, 227, 227, 3], stddev=2, seed=42), name='x')
         self.model.discriminator.discriminate(x, with_fc=True, training=False, pad='VALID')
         self.sess.run(tf.global_variables_initializer())
-        vars = slim.get_variables_to_restore(include=[self.net_id])
-        print('Variables: {}'.format([v.op.name for v in vars]))
-        saver = tf.train.Saver(var_list=vars)
+        var2restore = slim.get_variables_to_restore(include=[self.net_id], exclude=self.exclude)
+        print('Variables: {}'.format([v.op.name for v in var2restore]))
+        saver = tf.train.Saver(var_list=var2restore)
         saver.restore(self.sess, self.ckpt)
 
     def get_bn_params(self, layer_id):
@@ -93,7 +95,7 @@ class AlexNetConverter:
     def nchw2hwcn(self, input):
         return np.transpose(input, [2, 3, 1, 0])
 
-    def extract_and_store(self):
+    def extract_and_store_remove_batchnorm(self):
         self.init_model()
         num_conv = self.model.num_layers
         weights_dict = {}
@@ -113,7 +115,7 @@ class AlexNetConverter:
         weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
-    def extract_and_store_bn(self):
+    def extract_and_store_keep_batchnorm(self):
         self.init_model()
         num_conv = self.model.num_layers
         weights_dict = {}
@@ -177,7 +179,7 @@ class AlexNetConverter:
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
 
-    def transfer_tf(self, other_model, sess):
+    def load_and_set_tf(self, other_model, sess):
         weights_dict = self.load_weights()
         with tf.variable_scope(self.net_id, reuse=True):
             for l in range(other_model.num_layers):

@@ -27,7 +27,7 @@ if test_nobn:
         result, _ = model.discriminator.discriminate(disc_in, with_fc=True, training=False)
         sess.run(tf.global_variables_initializer())
 
-        converter1.transfer_tf(model, sess)
+        converter1.load_and_set_tf(model, sess)
         print(result.eval())
 
         saver = tf.train.Saver()
@@ -42,7 +42,7 @@ else:
     model_dir = '../test_converter'
     converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1)
     with converter.sess:
-        converter.extract_and_store()
+        converter.extract_and_store_remove_batchnorm()
         result, _ = model.discriminator.discriminate(tf.constant(rand_num, shape=[1, 96, 96, 3]),
                                                      with_fc=True, reuse=True, training=False)
         print(result.eval())

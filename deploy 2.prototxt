@@ -3,7 +3,7 @@ layer {
   name: "data"
   type: "Input"
   top: "data"
-  input_param { shape: { dim: 16 dim: 3 dim: 227 dim: 227 } }
+  input_param { shape: { dim: 16 dim: 3 dim: 224 dim: 224 } }
 }
 layer {
   name: "label"
@@ -28,6 +28,7 @@ layer {
     num_output: 64
     kernel_size: 11
     stride: 4
+    pad: 5
   }
 }
 layer {

@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 class ToonNetTrainer:
     def __init__(self, model, dataset, pre_processor, num_epochs, optimizer='adam', lr_policy='const', init_lr=0.0002,
-                 tag='default'):
+                 tag='default', end_lr=0.0):
         tf.logging.set_verbosity(tf.logging.DEBUG)
         self.sess = tf.Session()
         self.graph = tf.Graph()
@@ -30,6 +30,7 @@ class ToonNetTrainer:
         self.opt_type = optimizer
         self.lr_policy = lr_policy
         self.init_lr = init_lr
+        self.end_lr = end_lr
         self.is_finetune = False
         self.num_train_steps = None
         with self.sess.as_default():
@@ -45,7 +46,7 @@ class ToonNetTrainer:
         return os.path.join(LOG_DIR, '{}/'.format(fname))
 
     def optimizer(self):
-        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-6),
+        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5),
                 'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
         return opts[self.opt_type]
 
@@ -53,7 +54,7 @@ class ToonNetTrainer:
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
                     'voc': self.learning_rate_voc(),
-                    'linear': self.learning_rate_linear(self.init_lr)}
+                    'linear': self.learning_rate_linear()}
         return policies[self.lr_policy]
 
     def get_toon_train_batch(self):
@@ -204,8 +205,9 @@ class ToonNetTrainer:
         values = [self.init_lr*0.5**i for i in range(np.int64(num_train_steps/10000))]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
-    def learning_rate_linear(self, init_lr=0.0002):
-        return tf.train.polynomial_decay(init_lr, self.global_step, self.num_train_steps, end_learning_rate=0.0)
+    def learning_rate_linear(self):
+        return tf.train.polynomial_decay(self.init_lr, self.global_step, self.num_train_steps,
+                                         end_learning_rate=self.end_lr)
 
     def get_variables_to_train(self, num_conv_train):
         var2train = []

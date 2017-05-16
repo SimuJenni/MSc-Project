@@ -131,7 +131,7 @@ class ToonNetTrainer:
         return total_train_loss
 
     def discriminator_loss(self, disc_out_real, disc_out_fake):
-        with tf.name_scope('discriminator_loss'):
+        with slim.name_scope('discriminator_loss'):
             # Define loss for discriminator training
             disc_loss_scope = 'disc_loss'
             disc_loss_real = slim.losses.sigmoid_cross_entropy(disc_out_real, tf.ones_like(disc_out_real),
@@ -148,7 +148,7 @@ class ToonNetTrainer:
             return disc_total_loss
 
     def autoencoder_loss(self, imgs_rec, imgs_train):
-        with tf.name_scope('autoencoder_loss'):
+        with slim.name_scope('autoencoder_loss'):
             # Define the losses for AE training
             ae_loss_scope = 'ae_loss'
             ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
@@ -159,7 +159,7 @@ class ToonNetTrainer:
             return ae_total_loss
 
     def generator_loss(self, disc_out_fake, img_gen, imgs_train, g_mu, e_mu):
-        with tf.name_scope('generator_loss'):
+        with slim.name_scope('generator_loss'):
             # Define the losses for generator training
             gen_loss_scope = 'gen_loss'
             gen_loss_fake = slim.losses.sigmoid_cross_entropy(disc_out_fake, tf.ones_like(disc_out_fake),

@@ -131,7 +131,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[self.num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
                 if training:
-                    net = sample(mu, 0.1*tf.ones_like(mu))
+                    net = sample(mu, tf.ones_like(mu))
                 else:
                     net = mu
 

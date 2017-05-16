@@ -85,8 +85,8 @@ class ToonNet:
         gen_dist, gen_mu, _ = self.generator(gen_in, reuse=reuse, training=training)
         enc_dist, enc_mu, _ = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_dist, reuse=reuse, training=training) * 127.5
-        dec_gen = self.decoder(gen_dist, reuse=True, training=training) * 127.5
+        dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
+        dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Run Discriminator
         disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training, pad='SAME')
         disc_out_fake, _ = self.discriminator.discriminate(dec_im, reuse=True, training=training, pad='SAME')
@@ -104,7 +104,6 @@ class ToonNet:
         Returns:
             Output logits from the classifier
         """
-        img *= 127.5
         _, model = self.discriminator.discriminate(img, reuse=reuse, training=training, with_fc=False)
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
@@ -236,6 +235,7 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
+                net *= 127.5
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')

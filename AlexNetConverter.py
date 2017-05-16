@@ -129,6 +129,18 @@ class AlexNetConverter:
                 biases = tf.zeros_like(beta)
             weights_dict['conv_{}/weights'.format(l + 1)] = weights.eval()
             weights_dict['conv_{}/biases'.format(l + 1)] = biases.eval()
+        for l in range(2):
+            weights = self.get_fc_weights(l+1)
+            moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(l + 1))
+            weights_dict['fc{}_BN/mean'.format(l + 1)] = moving_mean.eval()
+            weights_dict['fc{}_BN/variance'.format(l + 1)] = moving_variance.eval()
+            weights_dict['fc{}_BN/beta'.format(l + 1)] = beta.eval()
+            biases = tf.zeros_like(beta)
+            weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
+            weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
+        weights, biases = self.get_fc()
+        weights_dict['fully_connected/weights'] = weights.eval()
+        weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
     def extract_and_store_nobn(self):
@@ -215,4 +227,9 @@ class AlexNetConverter:
         else:
             net.params['fc{}'.format(l + 6)][0].data[:] = weights_dict['fc{}/weights'.format(l + 1)].transpose((1, 0))
         net.params['fc{}'.format(l + 6)][1].data[:] = weights_dict['fc{}/biases'.format(l + 1)]
+        if not self.remove_bn:
+            net.params['BatchNorm{}'.format(l+6)][2].data[:] = 1
+            net.params['BatchNorm{}'.format(l+6)][0].data[:] = weights_dict['fc{}_BN/mean'.format(l + 1)]
+            net.params['BatchNorm{}'.format(l+6)][1].data[:] = weights_dict['fc{}_BN/variance'.format(l + 1)]
+            net.params['Scale{}'.format(l+6)][1].data[:] = weights_dict['fc{}_BN/beta'.format(l + 1)]
         return net

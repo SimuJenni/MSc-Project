@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from layers import lrelu, up_conv2d, sample, merge, add_noise_plane
 
-DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
+DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 1024]
 REPEATS = [1, 2, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 

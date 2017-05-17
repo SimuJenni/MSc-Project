@@ -89,7 +89,7 @@ class ToonNet:
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Run Discriminator
         disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
-        disc_out_fake, _ = self.discriminator.discriminate(dec_im, reuse=True, training=training)
+        disc_out_fake, _ = self.discriminator.discriminate(dec_gen, reuse=True, training=training)
         return dec_im, dec_gen, disc_out_real, disc_out_fake, enc_mu, gen_mu
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):

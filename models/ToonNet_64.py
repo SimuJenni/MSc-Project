@@ -88,8 +88,8 @@ class ToonNet:
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Run Discriminator
-        disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training, pad='SAME')
-        disc_out_fake, _ = self.discriminator.discriminate(dec_im, reuse=True, training=training, pad='SAME')
+        disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
+        disc_out_fake, _ = self.discriminator.discriminate(dec_im, reuse=True, training=training)
         return dec_im, dec_gen, disc_out_real, disc_out_fake, enc_mu, gen_mu
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
@@ -132,7 +132,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
                 if training:
-                    net = sample(mu, tf.ones_like(mu))
+                    net = sample(mu, 0.1*tf.ones_like(mu))
                 else:
                     net = mu
 
@@ -161,7 +161,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
                 if training:
-                    net = sample(mu, tf.ones_like(mu))
+                    net = sample(mu, 0.1*tf.ones_like(mu))
                 else:
                     net = mu
                 return net, mu, encoded
@@ -250,9 +250,7 @@ class AlexNet:
                     # Fully connected layers
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
-                    net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.dropout(net, 0.8, is_training=training)
                     net = slim.fully_connected(net, 1,
                                                activation_fn=None,
                                                normalizer_fn=None,

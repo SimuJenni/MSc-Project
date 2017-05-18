@@ -60,7 +60,8 @@ with converter.sess:
                                                     pad=converter.pad)
     result_tf = encoded.eval()
 
-converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
+
+converter.load_and_set_tf()
 
 net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
 

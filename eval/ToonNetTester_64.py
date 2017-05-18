@@ -180,7 +180,7 @@ class ToonNetTester:
                 imgs_test, edges_test, toons_test = self.get_toon_test_batch()
 
                 # Create the model
-                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                img_rec, img_gen, disc_out, e_mu, g_mu = \
                     self.model.net(imgs_test, toons_test, edges_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:

@@ -63,7 +63,7 @@ class ToonNet:
         else:
             self.discriminator = AlexNet(fix_bn=fix_bn)
 
-    def net(self, img, cartoon, edges, reuse=None, training=True):
+    def net(self, img, cartoon, edges, reuse=None, training=True, with_fc=True):
         """Builds the full ToonNet architecture with the given inputs.
 
         Args:
@@ -88,8 +88,8 @@ class ToonNet:
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Run Discriminator
-        disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
-        disc_out_fake, _ = self.discriminator.discriminate(dec_gen, reuse=True, training=training)
+        disc_out_real, _ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training, with_fc=with_fc)
+        disc_out_fake, _ = self.discriminator.discriminate(dec_gen, reuse=True, training=training, with_fc=with_fc)
         return dec_im, dec_gen, disc_out_real, disc_out_fake, enc_mu, gen_mu
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):

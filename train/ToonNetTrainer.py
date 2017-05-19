@@ -62,7 +62,7 @@ class ToonNetTrainer:
             train_set = self.dataset.get_toon_train()
             self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=8,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=5,
                                                                       common_queue_capacity=2 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
@@ -73,7 +73,7 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=self.model.batch_size,
-                                                                  num_threads=8,
+                                                                  num_threads=5,
                                                                   capacity=self.model.batch_size)
         return imgs_train, edges_train, toons_train
 
@@ -87,7 +87,7 @@ class ToonNetTrainer:
                 train_set = self.dataset.get_trainset()
                 self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=5,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
                                                                       common_queue_capacity=4 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
 
@@ -101,11 +101,9 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
-                                                      num_threads=5,
-                                                      capacity=4*self.model.batch_size)
-            tf.image_summary('imgs/img_preprocessed', imgs_train, max_images=3)
-
-        return imgs_train, labels_train
+                                                      num_threads=8,
+                                                      capacity=2*self.model.batch_size)
+            return imgs_train, labels_train
 
     def classification_loss(self, preds_train, labels_train):
         # Define the loss

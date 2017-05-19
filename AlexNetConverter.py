@@ -137,7 +137,6 @@ class AlexNetConverter:
             weights_dict['conv_{}/weights'.format(l + 1)] = weights.eval()
             weights_dict['conv_{}/biases'.format(l + 1)] = biases.eval()
         if self.with_fc:
-
             for l in range(2):
                 weights = self.get_fc_weights(l+1)
                 moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(l + 1))
@@ -197,17 +196,18 @@ class AlexNetConverter:
                     weights_dict['conv_{}/biases'.format(l+1)])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
-            for l in range(2):
-                weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
-                    weights_dict['fc{}/weights'.format(l+1)])
-                bias_assign = slim.variable('fc{}/biases'.format(l+1)).assign(
-                    weights_dict['fc{}/biases'.format(l+1)])
+            if self.with_fc:
+                for l in range(2):
+                    weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
+                        weights_dict['fc{}/weights'.format(l+1)])
+                    bias_assign = slim.variable('fc{}/biases'.format(l+1)).assign(
+                        weights_dict['fc{}/biases'.format(l+1)])
+                    sess.run(weight_assign)
+                    sess.run(bias_assign)
+                weight_assign = slim.variable('fully_connected/weights').assign(weights_dict['fully_connected/weights'])
+                bias_assign = slim.variable('fully_connected/biases').assign(weights_dict['fully_connected/biases'])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
-            weight_assign = slim.variable('fully_connected/weights').assign(weights_dict['fully_connected/weights'])
-            bias_assign = slim.variable('fully_connected/biases').assign(weights_dict['fully_connected/biases'])
-            sess.run(weight_assign)
-            sess.run(bias_assign)
 
     def transfer_conv(self, l, net, weights_dict):
         if l == 0:

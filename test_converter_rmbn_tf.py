@@ -10,10 +10,11 @@ from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
 from models.ToonNet import ToonNet
+from models.ToonNet_noBN import ToonNet as TN_nb
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
-im_s = 224
+im_s = 96
 
 def preprocess(img):
     out = np.copy(img)
@@ -58,19 +59,23 @@ with converter.sess:
     net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
                                                     with_fc=converter.with_fc, reuse=True, training=False,
                                                     pad=converter.pad)
-    result_tf = encoded.eval()
+    result_tf_1 = encoded.eval()
 
-converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
+tf.reset_default_graph()
+sess = tf.Session()
+model_nb = TN_nb(num_layers=5, batch_size=16)
 
-net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
-
-net_caffe.blobs['data'].data[0] = preprocess(img)
-assert net_caffe.blobs['data'].data[0].shape == (3, im_s, im_s)
-# show_caffe_net_input()
-net_caffe.forward()
-result_caffe = net_caffe.blobs['Convolution5'].data[0]
-result_caffe = result_caffe.transpose((1, 2, 0))  # h, w, c -> c, h, w
+with sess:
+    net, encoded = model_nb.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
+                                                    with_fc=converter.with_fc, training=False,
+                                                    pad=converter.pad)
+    tf.global_variables_initializer()
+    converter.load_and_set_tf(model_nb, sess)
+    result_tf_2 = encoded.eval()
+    saver = tf.train.Saver()
+    save_path = saver.save(sess, "../test_converter/alexnet_nobn.ckpt")
+    print(save_path)
 
 #print(result_caffe)
 #print(result_tf)
-print(np.linalg.norm(result_tf - result_caffe))
+print(np.linalg.norm(result_tf_1 - result_tf_2))

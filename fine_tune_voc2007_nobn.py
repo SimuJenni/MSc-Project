@@ -2,9 +2,9 @@ from Preprocessor import VOCPreprocessor
 from train.ToonNetTrainer import ToonNetTrainer
 from datasets.ImageNet import ImageNet
 from datasets.VOC2007 import VOC2007
-from models.ToonNet_noBN import ToonNet_noBN
+from models.ToonNet_noBN import ToonNet
 
-model = ToonNet_noBN(num_layers=5, batch_size=32)
+model = ToonNet(num_layers=5, batch_size=32)
 data = ImageNet()
 preprocessor = VOCPreprocessor(target_shape=[224, 224, 3], augment_color=True, area_range=(0.1, 1.0))
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=500, tag='nobn',

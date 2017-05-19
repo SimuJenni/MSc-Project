@@ -9,7 +9,7 @@ slim = tf.contrib.slim
 
 class AlexNetConverter:
     def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator', scale=1.0, bgr=False,
-                 exclude=None):
+                 exclude=None, with_fc=False, pad='VALID', im_size=(224, 224)):
         self.model = model
         self.bgr = bgr
         self.sess = sess
@@ -19,14 +19,17 @@ class AlexNetConverter:
         self.remove_bn = remove_bn
         self.scale = scale
         self.exclude = exclude
+        self.with_fc = with_fc
+        self.pad = pad
+        self.im_size = im_size
         if ckpt:
             self.ckpt = ckpt
         else:
             self.ckpt = tf.train.get_checkpoint_state(model_dir)
 
     def init_model(self):
-        x = tf.Variable(tf.random_normal([1, 227, 227, 3], stddev=2, seed=42), name='x')
-        self.model.discriminator.discriminate(x, with_fc=True, training=False, pad='VALID')
+        x = tf.Variable(tf.random_normal([1, self.im_size[0], self.im_size[1], 3], stddev=2, seed=42), name='x')
+        self.model.discriminator.discriminate(x, with_fc=self.with_fc, training=False, pad=self.pad)
         self.sess.run(tf.global_variables_initializer())
         var2restore = slim.get_variables_to_restore(include=[self.net_id], exclude=self.exclude)
         print('Variables: {}'.format([v.op.name for v in var2restore]))
@@ -72,6 +75,7 @@ class AlexNetConverter:
         weights = self.get_conv_weights(layer)
         moving_mean, moving_variance, beta = self.get_bn_params('conv_{}'.format(layer))
         alpha = tf.rsqrt(moving_variance + self.bn_eps)
+        print('Mean alpha at layer {}: {}'.format(layer, np.mean(alpha.eval())))
         weights *= alpha
         biases = beta - moving_mean * alpha
         return weights, biases
@@ -106,13 +110,14 @@ class AlexNetConverter:
                 weights, biases = self.get_conv_rm_bn(l+1)
             weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
             weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
-        for l in range(2):
-            weights, biases = self.get_fc_rm_bn(l+1)
-            weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
-            weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
-        weights, biases = self.get_fc()
-        weights_dict['fully_connected/weights'] = weights.eval()
-        weights_dict['fully_connected/biases'] = biases.eval()
+        if self.with_fc:
+            for l in range(2):
+                weights, biases = self.get_fc_rm_bn(l+1)
+                weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
+                weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
+            weights, biases = self.get_fc()
+            weights_dict['fully_connected/weights'] = weights.eval()
+            weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
     def extract_and_store_keep_batchnorm(self):
@@ -131,18 +136,19 @@ class AlexNetConverter:
                 biases = tf.zeros_like(beta)
             weights_dict['conv_{}/weights'.format(l + 1)] = weights.eval()
             weights_dict['conv_{}/biases'.format(l + 1)] = biases.eval()
-        for l in range(2):
-            weights = self.get_fc_weights(l+1)
-            moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(l + 1))
-            weights_dict['fc{}_BN/mean'.format(l + 1)] = moving_mean.eval()
-            weights_dict['fc{}_BN/variance'.format(l + 1)] = moving_variance.eval()
-            weights_dict['fc{}_BN/beta'.format(l + 1)] = beta.eval()
-            biases = tf.zeros_like(beta)
-            weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
-            weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
-        weights, biases = self.get_fc()
-        weights_dict['fully_connected/weights'] = weights.eval()
-        weights_dict['fully_connected/biases'] = biases.eval()
+        if self.with_fc:
+            for l in range(2):
+                weights = self.get_fc_weights(l+1)
+                moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(l + 1))
+                weights_dict['fc{}_BN/mean'.format(l + 1)] = moving_mean.eval()
+                weights_dict['fc{}_BN/variance'.format(l + 1)] = moving_variance.eval()
+                weights_dict['fc{}_BN/beta'.format(l + 1)] = beta.eval()
+                biases = tf.zeros_like(beta)
+                weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
+                weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
+            weights, biases = self.get_fc()
+            weights_dict['fully_connected/weights'] = weights.eval()
+            weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
     def extract_and_store_nobn(self):
@@ -171,10 +177,11 @@ class AlexNetConverter:
         num_conv = self.model.num_layers
         for l in range(num_conv):
             net = self.transfer_conv(l, net, weights_dict)
-        for l in range(2):
-            net = self.transfer_fc(l, net, weights_dict)
-        net.params['fc8'][0].data[:] = weights_dict['fully_connected/weights'].transpose((1, 0))
-        net.params['fc8'][1].data[:] = weights_dict['fully_connected/biases'].transpose()
+        if self.with_fc:
+            for l in range(2):
+                net = self.transfer_fc(l, net, weights_dict)
+            net.params['fc8'][0].data[:] = weights_dict['fully_connected/weights'].transpose((1, 0))
+            net.params['fc8'][1].data[:] = weights_dict['fully_connected/biases'].transpose()
 
         print('Saving Caffe model to: {}'.format(save_path))
         net.save(save_path)
@@ -189,17 +196,18 @@ class AlexNetConverter:
                     weights_dict['conv_{}/biases'.format(l+1)])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
-            for l in range(2):
-                weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
-                    weights_dict['fc{}/weights'.format(l+1)])
-                bias_assign = slim.variable('fc{}/biases'.format(l+1)).assign(
-                    weights_dict['fc{}/biases'.format(l+1)])
+            if self.with_fc:
+                for l in range(2):
+                    weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
+                        weights_dict['fc{}/weights'.format(l+1)])
+                    bias_assign = slim.variable('fc{}/biases'.format(l+1)).assign(
+                        weights_dict['fc{}/biases'.format(l+1)])
+                    sess.run(weight_assign)
+                    sess.run(bias_assign)
+                weight_assign = slim.variable('fully_connected/weights').assign(weights_dict['fully_connected/weights'])
+                bias_assign = slim.variable('fully_connected/biases').assign(weights_dict['fully_connected/biases'])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
-            weight_assign = slim.variable('fully_connected/weights').assign(weights_dict['fully_connected/weights'])
-            bias_assign = slim.variable('fully_connected/biases').assign(weights_dict['fully_connected/biases'])
-            sess.run(weight_assign)
-            sess.run(bias_assign)
 
     def transfer_conv(self, l, net, weights_dict):
         if l == 0:

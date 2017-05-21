@@ -6,7 +6,7 @@ from models.ToonNet_64 import ToonNet
 model = ToonNet(num_layers=5, batch_size=256)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[64, 64, 3])
-trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=134, tag='3rd',
+trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=135, tag='3rd',
                          lr_policy='linear', optimizer='adam', init_lr=0.0003, end_lr=0.)
 trainer.train()
 

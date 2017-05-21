@@ -7,7 +7,7 @@ REPEATS = [1, 1, 2, 2, 2]
 NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
-def toon_net_argscope(activation=tf.nn.relu, kernel_size=(4, 4), padding='SAME', training=True, center=True,
+def toon_net_argscope(activation=tf.nn.elu, kernel_size=(4, 4), padding='SAME', training=True, center=True,
                       w_reg=0.0001, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
@@ -213,7 +213,7 @@ class ToonNet:
 
 
 class AlexNet:
-    def __init__(self, fc_activation=tf.nn.relu, fix_bn=False):
+    def __init__(self, fc_activation=tf.nn.elu, fix_bn=False):
         self.fix_bn = fix_bn
         self.fc_activation = fc_activation
 
@@ -257,8 +257,7 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
-                                                  fix_bn=self.fix_bn)):
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')

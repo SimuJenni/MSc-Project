@@ -1,7 +1,7 @@
 from Preprocessor import ImageNetPreprocessor
 from train.ToonNetTrainer_128 import ToonNetTrainer
 from datasets.ImageNet import ImageNet
-from models.ToonNet import ToonNet
+from models.ToonNet_128 import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=64)
 data = ImageNet()

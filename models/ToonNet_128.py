@@ -63,7 +63,7 @@ class ToonNet:
         else:
             self.discriminator = AlexNet(fix_bn=fix_bn)
 
-    def net(self, img, cartoon, edges, reuse=None, training=True):
+    def net(self, img, cartoon, edges, reuse=None, training=True, with_fc=True):
         """Builds the full ToonNet architecture with the given inputs.
 
         Args:
@@ -89,7 +89,7 @@ class ToonNet:
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
-        disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
+        disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training, with_fc=with_fc)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 
     def disc_labels(self):

@@ -6,7 +6,7 @@ from models.ToonNet_noBN import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=32)
 data = ImageNet()
-preprocessor = VOCPreprocessor(target_shape=[224, 224, 3], augment_color=True, area_range=(0.1, 1.0))
+preprocessor = VOCPreprocessor(target_shape=[227, 227, 3], augment_color=True, area_range=(0.2, 1.0))
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=500, tag='nobn',
                          lr_policy='linear', optimizer='sgd+momentum', init_lr=0.001)
 chpt_path = '/Data/Logs/ToonNet/test_convert/alexnet_nobn.ckpt'

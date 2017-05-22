@@ -102,7 +102,7 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
-                                                      num_threads=8,
+                                                      num_threads=10,
                                                       capacity=2*self.model.batch_size)
             return imgs_train, labels_train
 

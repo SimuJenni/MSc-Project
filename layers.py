@@ -7,10 +7,9 @@ def lrelu(x, leak=0.2):
     return tf.maximum(x, leak * x)
 
 
-def up_conv2d(net, num_outputs, scope, factor=2, resize_fun=tf.image.ResizeMethod.BILINEAR):
+def up_conv2d(net, num_outputs, scope, factor=2, resize_fun=tf.image.ResizeMethod.NEAREST_NEIGHBOR):
     in_shape = net.get_shape().as_list()
-    net = tf.image.resize_images(net, (factor * in_shape[1], factor * in_shape[2]),
-                                 tf.image.ResizeMethod.BILINEAR)
+    net = tf.image.resize_images(net, (factor * in_shape[1], factor * in_shape[2]), resize_fun)
     net = slim.conv2d(net, num_outputs=num_outputs, scope=scope, stride=1)
     return net
 

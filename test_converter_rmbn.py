@@ -9,7 +9,7 @@ import tensorflow.contrib.slim as slim
 from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet import ToonNet
+from models.ToonNet_LRN import ToonNet
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
@@ -44,9 +44,9 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy 3.prototxt'
-ckpt = '../test_converter/model.ckpt-800722'
-save_path = os.path.join(model_dir, 'alexnet_v2_test.caffemodel')
+proto_path = 'deploy LRN.prototxt'
+ckpt = '../test_converter/model.ckpt-900814'
+save_path = os.path.join(model_dir, 'alexnet_v2_LRN.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')

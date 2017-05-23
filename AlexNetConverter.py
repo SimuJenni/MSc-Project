@@ -77,8 +77,10 @@ class AlexNetConverter:
         alpha = tf.rsqrt(moving_variance + self.bn_eps)
         print('Min alpha at layer {}: {}'.format(layer, np.min(alpha.eval())))
         print('Max alpha at layer {}: {}'.format(layer, np.max(alpha.eval())))
+        print('Mean alpha at layer {}: {}'.format(layer, np.mean(alpha.eval())))
         weights *= alpha
         biases = beta - moving_mean * alpha
+        print('Max bias at layer {}: {}'.format(layer, np.max(biases.eval())))
         return weights, biases
 
     def get_fc(self, layer=None):

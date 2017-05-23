@@ -206,7 +206,8 @@ class ToonNet:
         with tf.variable_scope('decoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 for l in range(0, num_layers):
-                    net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
+                    net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l),
+                                    resize_fun=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),
                                   activation_fn=tf.nn.tanh, normalizer_fn=None)
                 return net
@@ -262,10 +263,10 @@ class AlexNet:
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
-                net = tf.nn.lrn(net)
+                net = tf.nn.lrn(net, alpha=0.0001, beta=0.75)
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
-                net = tf.nn.lrn(net)
+                net = tf.nn.lrn(net, alpha=0.0001, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')

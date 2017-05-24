@@ -9,7 +9,7 @@ import tensorflow.contrib.slim as slim
 from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet_LRN import ToonNet
+from models.ToonNet import ToonNet
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
@@ -44,14 +44,14 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy LRN.prototxt'
-ckpt = '../test_converter/model.ckpt-900814'
-save_path = os.path.join(model_dir, 'alexnet_v2_LRN.caffemodel')
+proto_path = 'deploy 3.prototxt'
+ckpt = '../test_converter/model.ckpt-450360'
+save_path = os.path.join(model_dir, 'alexnet_v2_sv.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=127.5, bgr=True,
                              pad='SAME', im_size=(im_s, im_s), with_fc=False)
 with converter.sess:
     converter.extract_and_store_remove_batchnorm()
@@ -64,7 +64,7 @@ converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
 
 net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
 
-net_caffe.blobs['data'].data[0] = preprocess(img)
+net_caffe.blobs['data'].data[0] = preprocess(img)*127.5
 assert net_caffe.blobs['data'].data[0].shape == (3, im_s, im_s)
 # show_caffe_net_input()
 net_caffe.forward()

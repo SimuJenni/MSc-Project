@@ -102,8 +102,14 @@ class AlexNetConverter:
     def nchw2hwcn(self, input):
         return np.transpose(input, [2, 3, 1, 0])
 
-    def extract_and_store_remove_batchnorm(self):
+    def extract_and_store(self):
         self.init_model()
+        if self.remove_bn:
+            self.extract_and_store_remove_batchnorm()
+        else:
+            self.extract_and_store_keep_batchnorm()
+
+    def extract_and_store_remove_batchnorm(self):
         num_conv = self.model.num_layers
         weights_dict = {}
         for l in range(num_conv):
@@ -124,7 +130,6 @@ class AlexNetConverter:
         self.save_weights(weights_dict)
 
     def extract_and_store_keep_batchnorm(self):
-        self.init_model()
         num_conv = self.model.num_layers
         weights_dict = {}
         for l in range(num_conv):

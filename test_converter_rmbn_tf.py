@@ -40,6 +40,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 ckpt = '../test_converter/model.ckpt-800722'
+ckpt = '../test_converter/model.ckpt-450360'
 
 np.random.seed(42)
 img = load_image('cat.jpg')
@@ -65,7 +66,7 @@ with sess:
     converter.load_and_set_tf(model_nb, sess)
     result_tf_2 = encoded.eval()
     saver = tf.train.Saver()
-    save_path = saver.save(sess, "../test_converter/alexnet_nobn.ckpt")
+    save_path = saver.save(sess, "../test_converter/alexnet_nobn_sup.ckpt")
     print(save_path)
 
 print(np.linalg.norm(result_tf_1 - result_tf_2))

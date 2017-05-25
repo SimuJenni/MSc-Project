@@ -10,7 +10,7 @@ model = ToonNet(num_layers=5, batch_size=128)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=10, tag='continue_nobn_sgd',
-                         lr_policy='voc', optimizer='sgd+momentum', init_lr=0.0005)
+                         lr_policy='const', optimizer='sgd+momentum', init_lr=0.0002)
 
 all_ckpt = os.path.join(LOG_DIR, 'imagenet_ToonNet_default_refactored/model.ckpt-800722')
 disc_ckpt = os.path.join(LOG_DIR, 'batchnorm_removed/alexnet_nobn.ckpt')

@@ -8,7 +8,7 @@ NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001, fix_bn=False):
+                      w_reg=0.000001, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -34,9 +34,10 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         activation_fn=activation,
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params,
+                        biases_regularizer=slim.l2_regularizer(w_reg),
                         weights_regularizer=slim.l2_regularizer(w_reg),
                         biases_initializer=tf.constant_initializer(0.1),
-                        weights_initializer=he):
+                        weights_initializer=tf.random_normal_initializer(stddev=0.01)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
                             padding=padding):

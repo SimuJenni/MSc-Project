@@ -9,7 +9,7 @@ slim = tf.contrib.slim
 
 class AlexNetConverter:
     def __init__(self, model_dir, model, sess, remove_bn=False, ckpt=None, net_id='discriminator', scale=1.0, bgr=False,
-                 exclude=None, with_fc=False, pad='VALID', im_size=(224, 224)):
+                 exclude=None, with_fc=False, pad='VALID', im_size=(224, 224), use_classifier=True):
         self.model = model
         self.bgr = bgr
         self.sess = sess
@@ -22,6 +22,7 @@ class AlexNetConverter:
         self.with_fc = with_fc
         self.pad = pad
         self.im_size = im_size
+        self.use_classifier = use_classifier
         if ckpt:
             self.ckpt = ckpt
         else:
@@ -29,7 +30,10 @@ class AlexNetConverter:
 
     def init_model(self):
         x = tf.Variable(tf.random_normal([1, self.im_size[0], self.im_size[1], 3], stddev=2, seed=42), name='x')
-        self.model.discriminator.discriminate(x, with_fc=self.with_fc, training=False, pad=self.pad)
+        if self.use_classifier:
+            self.model.
+        else:
+            self.model.discriminator.discriminate(x, with_fc=self.with_fc, training=False, pad=self.pad)
         self.sess.run(tf.global_variables_initializer())
         var2restore = slim.get_variables_to_restore(include=[self.net_id], exclude=self.exclude)
         print('Variables: {}'.format([v.op.name for v in var2restore]))

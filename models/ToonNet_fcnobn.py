@@ -37,7 +37,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         biases_regularizer=slim.l2_regularizer(w_reg),
                         weights_regularizer=slim.l2_regularizer(w_reg),
                         biases_initializer=tf.constant_initializer(0.1),
-                        weights_initializer=tf.random_normal_initializer(stddev=0.01)):
+                        weights_initializer=tf.random_normal_initializer(stddev=0.005)):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
                             padding=padding):

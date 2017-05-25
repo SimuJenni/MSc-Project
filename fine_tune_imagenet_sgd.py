@@ -1,5 +1,5 @@
 from Preprocessor import ImageNetPreprocessor
-from train.ToonNetTrainer_voctest import ToonNetTrainer
+from train.ToonNetTrainer_imnettest import ToonNetTrainer
 from datasets.ImageNet import ImageNet
 from models.ToonNet import ToonNet
 from constants import LOG_DIR

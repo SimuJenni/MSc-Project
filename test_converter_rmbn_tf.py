@@ -60,8 +60,8 @@ model_nb = TN_nb(num_layers=5, batch_size=16)
 
 with sess:
     net, encoded = model_nb.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
-                                                    with_fc=converter.with_fc, training=False,
-                                                    pad=converter.pad)
+                                                       with_fc=converter.with_fc, training=False,
+                                                       pad=converter.pad)
     tf.global_variables_initializer()
     converter.load_and_set_tf(model_nb, sess)
     result_tf_2 = net.eval()

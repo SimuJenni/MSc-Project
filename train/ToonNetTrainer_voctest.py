@@ -230,7 +230,8 @@ class ToonNetTrainer:
             var2restore = []
             for i in range(num_conv2init):
                 vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(i + 1)],
-                                                   exclude=['discriminator/fully_connected', '*/Adam'])
+                                                   exclude=['discriminator/fully_connected'])
+                vs = list(set(vs).intersection(tf.trainable_variables()))
                 var2restore += vs
             init_fn = assign_from_checkpoint_fn(chpt_path, var2restore, ignore_missing_vars=True)
             print('Variables to restore: {}'.format([v.op.name for v in var2restore]))

@@ -43,9 +43,13 @@ class AlexNetConverter:
         saver = tf.train.Saver(var_list=var2restore)
         saver.restore(self.sess, self.ckpt)
 
-    def get_bn_params(self, layer_id):
+    def get_bn_params(self, layer_id, fc_scope=None):
         print('Extracting {}/BatchNorm'.format(layer_id))
-        with tf.variable_scope(self.net_id, reuse=True):
+        if fc_scope:
+            scope = fc_scope
+        else:
+            scope = self.net_id
+        with tf.variable_scope(scope, reuse=True):
             beta = slim.variable('{}/BatchNorm/beta'.format(layer_id))
             moving_mean = slim.variable('{}/BatchNorm/moving_mean'.format(layer_id))
             moving_variance = slim.variable('{}/BatchNorm/moving_variance'.format(layer_id))
@@ -60,18 +64,20 @@ class AlexNetConverter:
             return slim.variable('conv_{}/biases'.format(layer))
 
     def get_fc_weights(self, layer=None):
-        with tf.variable_scope(self.net_id, reuse=True):
+        scope = 'fully_connected' if self.use_classifier else self.net_id
+        with tf.variable_scope(scope, reuse=True):
             if layer:
                 return slim.variable('fc{}/weights'.format(layer))
             else:
-                return slim.variable('fully_connected/weights')
+                return slim.variable('fc3/weights') if self.use_classifier else slim.variable('fully_connected/weights')
 
     def get_fc_biases(self, layer=None):
-        with tf.variable_scope(self.net_id, reuse=True):
+        scope = 'fully_connected' if self.use_classifier else self.net_id
+        with tf.variable_scope(scope, reuse=True):
             if layer:
                 return slim.variable('fc{}/biases'.format(layer))
             else:
-                return slim.variable('fully_connected/biases')
+                return slim.variable('fc3/biases') if self.use_classifier else slim.variable('fully_connected/biases')
 
     def get_conv(self, layer):
         weights = self.get_conv_weights(layer)
@@ -97,7 +103,8 @@ class AlexNetConverter:
 
     def get_fc_rm_bn(self, layer):
         weights = self.get_fc_weights(layer)
-        moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(layer))
+        scope = 'fully_connected' if self.use_classifier else None
+        moving_mean, moving_variance, beta = self.get_bn_params('fc{}'.format(layer), fc_scope=scope)
         alpha = tf.rsqrt(moving_variance + self.bn_eps)
         weights *= alpha
         biases = beta - moving_mean * alpha
@@ -211,7 +218,7 @@ class AlexNetConverter:
                     weights_dict['conv_{}/biases'.format(l+1)])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
-            if self.with_fc:
+            if self.with_fc and not self.use_classifier:
                 for l in range(2):
                     weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
                         weights_dict['fc{}/weights'.format(l+1)])
@@ -221,6 +228,19 @@ class AlexNetConverter:
                     sess.run(bias_assign)
                 weight_assign = slim.variable('fully_connected/weights').assign(weights_dict['fully_connected/weights'])
                 bias_assign = slim.variable('fully_connected/biases').assign(weights_dict['fully_connected/biases'])
+                sess.run(weight_assign)
+                sess.run(bias_assign)
+        if self.use_classifier:
+            with tf.variable_scope('fully_connected', reuse=True):
+                for l in range(2):
+                    weight_assign = slim.variable('fc{}/weights'.format(l+1)).assign(
+                        weights_dict['fc{}/weights'.format(l+1)])
+                    bias_assign = slim.variable('fc{}/biases'.format(l+1)).assign(
+                        weights_dict['fc{}/biases'.format(l+1)])
+                    sess.run(weight_assign)
+                    sess.run(bias_assign)
+                weight_assign = slim.variable('fc3/weights').assign(weights_dict['fully_connected/weights'])
+                bias_assign = slim.variable('fc3/biases').assign(weights_dict['fully_connected/biases'])
                 sess.run(weight_assign)
                 sess.run(bias_assign)
 

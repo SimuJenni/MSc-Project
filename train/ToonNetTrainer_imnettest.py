@@ -232,7 +232,7 @@ class ToonNetTrainer:
                 vs = slim.get_variables_to_restore(include=['discriminator/conv_{}'.format(i + 1)],
                                                    exclude=['discriminator/fully_connected'])
                 var2restore += vs
-
+            var2restore += slim.get_variables_to_restore(include=['fully_connected'])
             init_fn = assign_from_checkpoint_fn(chpt_path, var2restore, ignore_missing_vars=True)
             print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
             sys.stdout.flush()

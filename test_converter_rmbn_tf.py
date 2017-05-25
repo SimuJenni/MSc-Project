@@ -10,17 +10,11 @@ from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
 from models.ToonNet import ToonNet
-from models.ToonNet_noBN import ToonNet as TN_nb
+from models.ToonNet_nobn import ToonNet as TN_nb
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
 im_s = 96
-
-def preprocess(img):
-    out = np.copy(img)
-    out = out[:, :, [2, 1, 0]]  # swap channel from RGB to BGR
-    out = out.transpose((2, 0, 1))  # h, w, c -> c, h, w
-    return out
 
 
 def load_image(path):
@@ -45,9 +39,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy 3.prototxt'
 ckpt = '../test_converter/model.ckpt-800722'
-save_path = os.path.join(model_dir, 'alexnet_v2_3.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
@@ -55,7 +47,7 @@ img = load_image('cat.jpg')
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
                              pad='SAME', im_size=(im_s, im_s), with_fc=False)
 with converter.sess:
-    converter.extract_and_store_remove_batchnorm()
+    converter.extract_and_store()
     net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
                                                     with_fc=converter.with_fc, reuse=True, training=False,
                                                     pad=converter.pad)
@@ -76,6 +68,4 @@ with sess:
     save_path = saver.save(sess, "../test_converter/alexnet_nobn.ckpt")
     print(save_path)
 
-#print(result_caffe)
-#print(result_tf)
 print(np.linalg.norm(result_tf_1 - result_tf_2))

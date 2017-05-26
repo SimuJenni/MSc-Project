@@ -22,17 +22,27 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     Returns:
         An argscope
     """
+    train_bn = training and not fix_bn
+    batch_norm_params = {
+        'is_training': train_bn,
+        'decay': 0.95,
+        'epsilon': 0.001,
+        'center': center,
+    }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
                         activation_fn=activation,
+                        normalizer_fn=slim.batch_norm,
+                        normalizer_params=batch_norm_params,
                         weights_regularizer=slim.l2_regularizer(w_reg),
                         biases_initializer=tf.constant_initializer(0.1),
                         weights_initializer=he):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
                             padding=padding):
-            with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
-                    return arg_sc
+            with slim.arg_scope([slim.batch_norm], **batch_norm_params):
+                with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
+                        return arg_sc
 
 
 class ToonNet:
@@ -44,7 +54,7 @@ class ToonNet:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_noBN_{}'.format(tag)
+        self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -224,9 +234,9 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1')
+                net = slim.fully_connected(net, 4096, scope='fc1', normalizer_fn=None)
                 net = slim.dropout(net, 0.5, is_training=training)
-                net = slim.fully_connected(net, 4096, scope='fc2')
+                net = slim.fully_connected(net, 4096, scope='fc2', normalizer_fn=None)
                 net = slim.dropout(net, 0.5, is_training=training)
                 net = slim.fully_connected(net, num_classes, scope='fc3',
                                            activation_fn=None,
@@ -252,19 +262,19 @@ class AlexNet:
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
-                net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2')
+                net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2', normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
-                net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
-                net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4')
-                net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5')
+                net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3', normalizer_fn=None)
+                net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4', normalizer_fn=None)
+                net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5', normalizer_fn=None)
                 encoded = net
 
                 if with_fc:
                     # Fully connected layers
                     net = slim.flatten(net)
-                    net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
+                    net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc, normalizer_fn=None)
                     net = slim.dropout(net, 0.5, is_training=training)
-                    net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
+                    net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc, normalizer_fn=None)
                     net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,

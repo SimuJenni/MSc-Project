@@ -10,17 +10,11 @@ from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
 from models.ToonNet import ToonNet
-from models.ToonNet_noBN import ToonNet as TN_nb
+from models.ToonNet_nobn import ToonNet as TN_nb
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
-im_s = 96
-
-def preprocess(img):
-    out = np.copy(img)
-    out = out[:, :, [2, 1, 0]]  # swap channel from RGB to BGR
-    out = out.transpose((2, 0, 1))  # h, w, c -> c, h, w
-    return out
+im_s = 224
 
 
 def load_image(path):
@@ -45,37 +39,42 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy 3.prototxt'
 ckpt = '../test_converter/model.ckpt-800722'
-save_path = os.path.join(model_dir, 'alexnet_v2_3.caffemodel')
+ckpt = '../test_converter/model.ckpt-450360'
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
-                             pad='SAME', im_size=(im_s, im_s), with_fc=False)
+                             pad='VALID', im_size=(im_s, im_s), with_fc=True, use_classifier=True)
 with converter.sess:
-    converter.extract_and_store_remove_batchnorm()
-    net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
-                                                    with_fc=converter.with_fc, reuse=True, training=False,
-                                                    pad=converter.pad)
-    result_tf_1 = encoded.eval()
+    converter.extract_and_store()
+    if converter.use_classifier:
+        net = model.build_classifier(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
+                                     converter.num_classes, reuse=True, training=False)
+    else:
+        net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
+                                                        with_fc=converter.with_fc, reuse=True, training=False,
+                                                        pad=converter.pad)
+    result_tf_1 = net.eval()
 
 tf.reset_default_graph()
 sess = tf.Session()
 model_nb = TN_nb(num_layers=5, batch_size=16)
 
 with sess:
-    net, encoded = model_nb.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
-                                                    with_fc=converter.with_fc, training=False,
-                                                    pad=converter.pad)
+    if converter.use_classifier:
+        net = model_nb.build_classifier(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
+                                        converter.num_classes, training=False)
+    else:
+        net, encoded = model_nb.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
+                                                           with_fc=converter.with_fc, training=False,
+                                                           pad=converter.pad)
     tf.global_variables_initializer()
     converter.load_and_set_tf(model_nb, sess)
-    result_tf_2 = encoded.eval()
+    result_tf_2 = net.eval()
     saver = tf.train.Saver()
-    save_path = saver.save(sess, "../test_converter/alexnet_nobn.ckpt")
+    save_path = saver.save(sess, "../test_converter/alexnet_nobn_sup.ckpt")
     print(save_path)
 
-#print(result_caffe)
-#print(result_tf)
 print(np.linalg.norm(result_tf_1 - result_tf_2))

@@ -4,16 +4,15 @@ import caffe
 import numpy as np
 import skimage
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
 
 from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet_LRN import ToonNet
+from models.ToonNet import ToonNet
 from train.ToonNetTrainer import ToonNetTrainer
-from utils import get_checkpoint_path
 
-im_s = 224
+im_s = 227
+
 
 def preprocess(img):
     out = np.copy(img)
@@ -44,17 +43,17 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy LRN.prototxt'
-ckpt = '../test_converter/model.ckpt-900814'
-save_path = os.path.join(model_dir, 'alexnet_v2_LRN.caffemodel')
+proto_path = 'deploy_bn.prototxt'
+ckpt = '../test_converter/model.ckpt-800722'
+save_path = os.path.join(model_dir, 'alexnet_v2_bn.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
-                             pad='SAME', im_size=(im_s, im_s), with_fc=False)
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=False, scale=1.0, bgr=True,
+                             pad='VALID', im_size=(im_s, im_s), with_fc=False)
 with converter.sess:
-    converter.extract_and_store_remove_batchnorm()
+    converter.extract_and_store()
     net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
                                                     with_fc=converter.with_fc, reuse=True, training=False,
                                                     pad=converter.pad)

@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 
 class ToonNetTrainer:
     def __init__(self, model, dataset, pre_processor, num_epochs, optimizer='adam', lr_policy='const', init_lr=0.0002,
-                 tag='default'):
+                 tag='default', reinit_fc=False):
         tf.logging.set_verbosity(tf.logging.DEBUG)
         self.sess = tf.Session()
         self.graph = tf.Graph()
@@ -32,6 +32,7 @@ class ToonNetTrainer:
         self.init_lr = init_lr
         self.is_finetune = False
         self.num_train_steps = None
+        self.reinit_fc = reinit_fc
         with self.sess.as_default():
             with self.graph.as_default():
                 self.global_step = slim.create_global_step()
@@ -230,7 +231,10 @@ class ToonNetTrainer:
             return init_fn
 
     def cont_init_fn(self, chpt_path_all, chpt_path_disc):
-        var2restore = slim.get_variables_to_restore(include=['discriminator'])
+        if self.reinit_fc:
+            var2restore = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
+        else:
+            var2restore = slim.get_variables_to_restore(include=['discriminator'])
         var2restore = remove_missing(var2restore, chpt_path_disc)
         init_assign_op_disc, init_feed_dict_disc = slim.assign_from_checkpoint(chpt_path_disc, var2restore)
         #print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))

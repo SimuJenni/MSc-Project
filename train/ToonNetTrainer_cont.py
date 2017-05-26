@@ -232,12 +232,12 @@ class ToonNetTrainer:
 
     def cont_init_fn(self, chpt_path_all, chpt_path_disc):
         if self.reinit_fc:
-            var2restore = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected'])
+            var2restore = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected', 'discriminator/fc1', 'discriminator/fc2'])
         else:
             var2restore = slim.get_variables_to_restore(include=['discriminator'])
+        print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
         var2restore = remove_missing(var2restore, chpt_path_disc)
         init_assign_op_disc, init_feed_dict_disc = slim.assign_from_checkpoint(chpt_path_disc, var2restore)
-        #print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
         sys.stdout.flush()
 
         var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder', 'generator'])

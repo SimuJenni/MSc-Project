@@ -181,6 +181,14 @@ class AlexNetConverter:
             weights, biases = self.get_conv(l+1)
             weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
             weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
+        if self.with_fc:
+            for l in range(2):
+                weights, biases = self.get_fc(l+1)
+                weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
+                weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
+            weights, biases = self.get_fc()
+            weights_dict['fully_connected/weights'] = weights.eval()
+            weights_dict['fully_connected/biases'] = biases.eval()
         self.save_weights(weights_dict)
 
     def save_weights(self, weights_dict):

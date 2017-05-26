@@ -6,5 +6,5 @@ from models.ToonNet_nobn import ToonNet
 model = ToonNet(num_layers=5, batch_size=24)
 data = ImageNet()
 preprocessor = ImageNetPreprocessor(target_shape=[224, 224, 3])
-tester = ToonNetTester(model, data, preprocessor, tag='continue_224')
+tester = ToonNetTester(model, data, preprocessor, tag='continue_224_wbn')
 tester.test_reconstruction()

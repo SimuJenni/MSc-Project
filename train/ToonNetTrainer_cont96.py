@@ -54,7 +54,7 @@ class ToonNetTrainer:
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
                     'voc': self.learning_rate_voc(),
-                    'cont': self.learning_rate_voc(),
+                    'cont': self.learning_rate_cont(),
                     'linear': self.learning_rate_linear()}
         return policies[self.lr_policy]
 

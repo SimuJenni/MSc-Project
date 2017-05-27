@@ -178,6 +178,7 @@ class ToonNetTester:
         with self.sess.as_default():
             with self.graph.as_default():
                 imgs_test, edges_test, toons_test = self.get_toon_test_batch()
+                labels_disc = self.model.disc_labels()
 
                 # Create the model
                 img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
@@ -189,6 +190,11 @@ class ToonNetTester:
                                tf.image_summary('images/original', montage_tf(imgs_test[:24], 4, 6), max_images=1),
                                tf.image_summary('images/cartoons', montage_tf(toons_test[:24], 4, 6), max_images=1),
                                tf.image_summary('images/edges', montage_tf(edges_test[:24], 4, 6), max_images=1)]
+
+                # Compute accuracy
+                predictions = tf.argmax(disc_out, 1)
+                summary_ops.append(tf.scalar_summary('accuracy/discriminator accuracy',
+                                   slim.metrics.accuracy(predictions, tf.argmax(labels_disc, 1))))
 
                 if not self.model.vgg_discriminator:
                     with tf.variable_scope('discriminator', reuse=True):

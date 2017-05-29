@@ -206,8 +206,8 @@ class ToonNetTrainer:
 
     def learning_rate_cont(self):
         # Define learning rate schedule
-        boundaries = [np.int64(900000), np.int64(1000000), np.int64(1100000)]
-        values = [0.0002, 0.0001, 0.00005, 0.000025]
+        boundaries = [np.int64(900000), np.int64(1000000), np.int64(1100000), np.int64(1200000), np.int64(1300000)]
+        values = [0.0002, 0.0001, 0.00005, 0.000025, 0.0000125, 0.00000625]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self):

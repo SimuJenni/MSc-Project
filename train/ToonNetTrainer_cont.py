@@ -168,11 +168,11 @@ class ToonNetTrainer:
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
         return gen_loss
 
-    def make_train_op(self, loss, vars2train=None, scope=None):
+    def make_train_op(self, loss, vars2train=None, scope=None, summarize_gradients=False):
         if scope:
             vars2train = get_variables_to_train(trainable_scopes=scope)
         train_op = slim.learning.create_train_op(loss, self.optimizer(), variables_to_train=vars2train,
-                                                 global_step=self.global_step, summarize_gradients=False)
+                                                 global_step=self.global_step, summarize_gradients=summarize_gradients)
         return train_op
 
     def make_summaries(self):
@@ -285,7 +285,7 @@ class ToonNetTrainer:
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')
-                train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
+                train_op_disc = self.make_train_op(disc_loss, scope='discriminator', summarize_gradients=True)
 
                 # Start training
                 slim.learning.train(train_op_disc+train_op_gen, self.get_save_dir(),

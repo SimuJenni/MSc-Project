@@ -256,10 +256,10 @@ class AlexNet:
         Returns:
             Resulting logits
         """
-        w_reg = 0.0001
+        w_reg = 0.00001
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=tf.nn.relu, padding='SAME', training=training,
-                                                  fix_bn=self.fix_bn, w_reg=w_reg)):
+                                                  fix_bn=self.fix_bn, w_reg=0.0001)):
                 net *= 127.5
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None, biases_regularizer=slim.l2_regularizer(w_reg))

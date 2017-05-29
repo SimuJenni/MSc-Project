@@ -131,7 +131,7 @@ class ToonNetTrainer:
     def discriminator_loss(self, disc_out, disc_labels):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=10.0)
+        disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)

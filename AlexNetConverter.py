@@ -220,8 +220,12 @@ class AlexNetConverter:
         weights_dict = self.load_weights()
         with tf.variable_scope(self.net_id, reuse=True):
             for l in range(other_model.num_layers):
-                weight_assign = slim.variable('conv_{}/weights'.format(l+1)).assign(
-                    weights_dict['conv_{}/weights'.format(l+1)])
+                if l == 0:
+                    weight_assign = slim.variable('conv_{}/weights'.format(l+1)).assign(
+                        weights_dict['conv_{}/weights'.format(l+1)]/self.scale)
+                else:
+                    weight_assign = slim.variable('conv_{}/weights'.format(l+1)).assign(
+                        weights_dict['conv_{}/weights'.format(l+1)])
                 bias_assign = slim.variable('conv_{}/biases'.format(l+1)).assign(
                     weights_dict['conv_{}/biases'.format(l+1)])
                 sess.run(weight_assign)

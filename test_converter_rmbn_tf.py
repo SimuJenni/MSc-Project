@@ -10,11 +10,11 @@ from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
 from models.ToonNet import ToonNet
-from models.ToonNet_nobn import ToonNet as TN_nb
+from models.ToonNet_wobn import ToonNet as TN_nb
 from train.ToonNetTrainer import ToonNetTrainer
 from utils import get_checkpoint_path
 
-im_s = 224
+im_s = 96
 
 
 def load_image(path):
@@ -40,13 +40,13 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 ckpt = '../test_converter/model.ckpt-800722'
-ckpt = '../test_converter/model.ckpt-450360'
+#ckpt = '../test_converter/model.ckpt-450360'
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
-                             pad='VALID', im_size=(im_s, im_s), with_fc=True, use_classifier=True)
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=127.5, bgr=False,
+                             pad='VALID', im_size=(im_s, im_s), with_fc=False, use_classifier=False)
 with converter.sess:
     converter.extract_and_store()
     if converter.use_classifier:
@@ -56,7 +56,7 @@ with converter.sess:
         net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
                                                         with_fc=converter.with_fc, reuse=True, training=False,
                                                         pad=converter.pad)
-    result_tf_1 = net.eval()
+    result_tf_1 = encoded.eval()
 
 tf.reset_default_graph()
 sess = tf.Session()
@@ -72,9 +72,9 @@ with sess:
                                                            pad=converter.pad)
     tf.global_variables_initializer()
     converter.load_and_set_tf(model_nb, sess)
-    result_tf_2 = net.eval()
+    result_tf_2 = encoded.eval()
     saver = tf.train.Saver()
-    save_path = saver.save(sess, "../test_converter/alexnet_nobn_sup.ckpt")
+    save_path = saver.save(sess, "../test_converter/alexnet_wobn.ckpt")
     print(save_path)
 
 print(np.linalg.norm(result_tf_1 - result_tf_2))

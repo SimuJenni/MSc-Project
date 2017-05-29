@@ -234,9 +234,9 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1', normalizer_fn=None)
+                net = slim.fully_connected(net, 4096, scope='fc1')
                 net = slim.dropout(net, 0.5, is_training=training)
-                net = slim.fully_connected(net, 4096, scope='fc2', normalizer_fn=None)
+                net = slim.fully_connected(net, 4096, scope='fc2')
                 net = slim.dropout(net, 0.5, is_training=training)
                 net = slim.fully_connected(net, num_classes, scope='fc3',
                                            activation_fn=None,
@@ -244,7 +244,7 @@ class AlexNet:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='SAME'):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID'):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -259,13 +259,12 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=tf.nn.relu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn, w_reg=0.0005)):
+                net *= 127.5
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
-                net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 192, kernel_size=[5, 5], scope='conv_2', normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
-                net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3', normalizer_fn=None)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_4', normalizer_fn=None)
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_5', normalizer_fn=None)
@@ -273,7 +272,6 @@ class AlexNet:
 
                 if with_fc:
                     # Fully connected layers
-                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc, normalizer_fn=None)
                     net = slim.dropout(net, 0.5, is_training=training)

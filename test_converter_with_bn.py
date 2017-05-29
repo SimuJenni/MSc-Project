@@ -45,16 +45,16 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 proto_path = 'deploy_bn.prototxt'
-ckpt = '../test_converter/model.ckpt-800722'
+ckpt = '../test_converter/model.ckpt-1201082'
 save_path = os.path.join(model_dir, 'alexnet_v2_bn.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=False, scale=1.0, bgr=True,
-                             pad='SAME', im_size=(im_s, im_s), with_fc=False)
+                             pad='SAME', im_size=(im_s, im_s), with_fc=False, use_classifier=False)
 with converter.sess:
-    converter.extract_and_store_keep_batchnorm()
+    converter.extract_and_store()
     net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),
                                                     with_fc=converter.with_fc, reuse=True, training=False,
                                                     pad=converter.pad)

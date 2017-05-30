@@ -16,4 +16,4 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 all_ckpt = os.path.join(LOG_DIR, 'imagenet_ToonNet_default_refactored/model.ckpt-800722')
 disc_ckpt = os.path.join(LOG_DIR, 'batchnorm_removed/alexnet_wobn.ckpt')
 
-trainer.train(all_ckpt, disc_ckpt)
+trainer.train_cont(all_ckpt, disc_ckpt)

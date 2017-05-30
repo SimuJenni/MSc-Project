@@ -168,11 +168,13 @@ class ToonNetTrainer:
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
         return gen_loss
 
-    def make_train_op(self, loss, vars2train=None, scope=None, summarize_gradients=False):
+    def make_train_op(self, loss, vars2train=None, scope=None, summarize_gradients=False, grad_mul=1.0, grad_clip=0.):
         if scope:
             vars2train = get_variables_to_train(trainable_scopes=scope)
+        grad_multipliers = {v: grad_mul for v in vars2train}
         train_op = slim.learning.create_train_op(loss, self.optimizer(), variables_to_train=vars2train,
-                                                 global_step=self.global_step, summarize_gradients=summarize_gradients)
+                                                 global_step=self.global_step, summarize_gradients=summarize_gradients,
+                                                 gradient_multipliers=grad_multipliers, clip_gradient_norm=grad_clip)
         return train_op
 
     def make_summaries(self):
@@ -232,7 +234,9 @@ class ToonNetTrainer:
 
     def cont_init_fn(self, chpt_path_all, chpt_path_disc):
         if self.reinit_fc:
-            var2restore = slim.get_variables_to_restore(include=['discriminator'], exclude=['discriminator/fully_connected', 'discriminator/fc1', 'discriminator/fc2'])
+            var2restore = slim.get_variables_to_restore(include=['discriminator'],
+                                                        exclude=['discriminator/fully_connected', 'discriminator/fc1',
+                                                                 'discriminator/fc2'])
         else:
             var2restore = slim.get_variables_to_restore(include=['discriminator'])
         print('Variables to restore Disc: {}'.format([v.op.name for v in var2restore]))
@@ -243,12 +247,12 @@ class ToonNetTrainer:
         var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder', 'generator'])
         var2restore = remove_missing(var2restore, chpt_path_all)
         init_assign_op_all, init_feed_dict_all = slim.assign_from_checkpoint(chpt_path_all, var2restore)
-        #print('Variables to restore other: {}'.format([v.op.name for v in var2restore]))
+        # print('Variables to restore other: {}'.format([v.op.name for v in var2restore]))
         sys.stdout.flush()
 
         # Create an initial assignment function.
         def InitAssignFn(sess):
-            #sess.run(tf.global_variables_initializer())
+            # sess.run(tf.global_variables_initializer())
             sess.run(init_assign_op_disc, init_feed_dict_disc)
             sess.run(init_assign_op_all, init_feed_dict_all)
 
@@ -292,6 +296,48 @@ class ToonNetTrainer:
 
                 # Start training
                 slim.learning.train(train_op_disc+train_op_gen+train_op_ae, self.get_save_dir(),
+                                    init_fn=self.cont_init_fn(chpt_path_all, chpt_path_all_disc),
+                                    save_summaries_secs=600,
+                                    save_interval_secs=3000,
+                                    log_every_n_steps=100,
+                                    number_of_steps=self.num_train_steps)
+
+    def train_cont(self, chpt_path_all, chpt_path_all_disc):
+        self.is_finetune = False
+        with self.sess.as_default():
+            with self.graph.as_default():
+                imgs_train, edges_train, toons_train = self.get_toon_train_batch()
+
+                # Get labels for discriminator training
+                labels_disc = self.model.disc_labels()
+                labels_gen = self.model.gen_labels()
+
+                # Create the model
+                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                    self.model.net(imgs_train, toons_train, edges_train)
+
+                # Compute losses
+                disc_loss = self.discriminator_loss(disc_out, labels_disc)
+                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
+
+                # Handle dependencies with update_ops (batch-norm)
+                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+                if update_ops:
+                    updates = tf.group(*update_ops)
+                    gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
+                    disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
+
+                # Make summaries
+                self.make_summaries()
+                self.make_image_summaries(edges_train, img_gen, img_rec, imgs_train, toons_train)
+
+                # Generator training operations
+                train_op_gen = self.make_train_op(gen_loss, scope='generator', grad_mul=0.1)
+                train_op_disc = self.make_train_op(disc_loss, scope='discriminator', summarize_gradients=True,
+                                                   grad_clip=2.0)
+
+                # Start training
+                slim.learning.train(train_op_disc+train_op_gen, self.get_save_dir(),
                                     init_fn=self.cont_init_fn(chpt_path_all, chpt_path_all_disc),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,

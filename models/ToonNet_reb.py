@@ -54,14 +54,14 @@ class ToonNet:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_{}'.format(tag)
+        self.name = 'ToonNet_reb_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
         if vgg_discriminator:
             self.discriminator = VGGA(fix_bn=fix_bn)
         else:
-            self.discriminator = AlexNet_V2(fix_bn=fix_bn)
+            self.discriminator = AlexNet(fix_bn=fix_bn)
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the full ToonNet architecture with the given inputs.

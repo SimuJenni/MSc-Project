@@ -55,3 +55,10 @@ def spatial_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], 1, 1, input_shape[3])
     return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
+
+
+def conv_group(net, num_out, kernel_size, scope):
+    input_groups = tf.split(split_dim=3, num_split=2, value=net)
+    output_groups = [slim.conv2d(j, num_out/2, kernel_size, scope='{}_{}'.format(scope, idx))
+                     for (idx, j) in enumerate(input_groups)]
+    return tf.concat(concat_dim=3, values=output_groups)

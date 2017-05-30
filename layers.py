@@ -59,6 +59,6 @@ def spatial_dropout(net, p):
 
 def conv_group(net, num_out, kernel_size, scope):
     input_groups = tf.split(split_dim=3, num_split=2, value=net)
-    output_groups = [slim.conv2d(j, num_out/2, kernel_size, scope='{}_{}'.format(scope, idx))
+    output_groups = [slim.conv2d(j, num_out/2, kernel_size=kernel_size, scope='{}_{}'.format(scope, idx))
                      for (idx, j) in enumerate(input_groups)]
     return tf.concat(concat_dim=3, values=output_groups)

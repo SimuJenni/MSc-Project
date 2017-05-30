@@ -204,8 +204,8 @@ class ToonNetTester:
                                                         max_images=1))
 
                 slim.evaluation.evaluation_loop('', model_dir, model_dir,
-                                                num_evals=2,
-                                                max_number_of_evaluations=20,
+                                                num_evals=1,
+                                                max_number_of_evaluations=50,
                                                 summary_op=tf.merge_summary(summary_ops))
 
     def make_summaries(self, names_to_values):

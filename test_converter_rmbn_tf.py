@@ -45,7 +45,7 @@ ckpt = '../test_converter/model.ckpt-800722'
 np.random.seed(42)
 img = load_image('cat.jpg')
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=127.5, bgr=False,
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=False,
                              pad='VALID', im_size=(im_s, im_s), with_fc=False, use_classifier=False)
 with converter.sess:
     converter.extract_and_store()

@@ -147,8 +147,8 @@ class ToonNetTrainer:
         ae_loss_scope = 'ae_loss'
         ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
-        losses_ae = slim.losses.get_losses(ae_loss_scope)
-        losses_ae += slim.losses.get_regularization_losses(ae_loss_scope)
+        losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
+        losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
@@ -270,6 +270,7 @@ class ToonNetTrainer:
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
+                ae_loss = self.autoencoder_loss(img_rec, imgs_train)
                 gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
 
                 # Handle dependencies with update_ops (batch-norm)
@@ -277,6 +278,7 @@ class ToonNetTrainer:
                 if update_ops:
                     updates = tf.group(*update_ops)
                     gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
+                    ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
                     disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
                 # Make summaries
@@ -285,10 +287,11 @@ class ToonNetTrainer:
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')
+                train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator', summarize_gradients=True)
 
                 # Start training
-                slim.learning.train(train_op_disc+train_op_gen, self.get_save_dir(),
+                slim.learning.train(train_op_disc+train_op_gen+train_op_ae, self.get_save_dir(),
                                     init_fn=self.cont_init_fn(chpt_path_all, chpt_path_all_disc),
                                     save_summaries_secs=600,
                                     save_interval_secs=3000,

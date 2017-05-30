@@ -1,5 +1,5 @@
 from Preprocessor import Preprocessor
-from eval.ToonNetTester import ToonNetTester
+from eval.ToonNetTester_reb import ToonNetTester
 from datasets.ImageNet import ImageNet
 from models.ToonNet_reb import ToonNet
 

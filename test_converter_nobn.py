@@ -8,10 +8,10 @@ import tensorflow as tf
 from AlexNetConverter import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet_nobn import ToonNet
+from models.ToonNet_wobn import ToonNet
 from train.ToonNetTrainer import ToonNetTrainer
 
-im_s = 224
+im_s = 227
 
 
 def preprocess(img):
@@ -43,15 +43,15 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy_cont.prototxt'
-ckpt = '../test_converter/model.ckpt-89334'
-save_path = os.path.join(model_dir, 'alexnet_v2_cont_nobn.caffemodel')
+proto_path = 'deploy relu.prototxt'
+ckpt = '../test_converter/model.ckpt-200180'
+save_path = os.path.join(model_dir, 'alexnet_v2_wobn.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
 converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
-                             pad='SAME', im_size=(im_s, im_s), with_fc=True, use_classifier=False)
+                             pad='VALID', im_size=(im_s, im_s), with_fc=False, use_classifier=False)
 with converter.sess:
     converter.extract_and_store_nobn()
     net, encoded = model.discriminator.discriminate(tf.constant(img, shape=[1, im_s, im_s, 3], dtype=tf.float32),

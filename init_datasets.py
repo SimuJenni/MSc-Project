@@ -8,4 +8,4 @@ from datasets import convert_voc2007_toon, convert_imagenet_toon_easy
 # convert_imagenet_toon.run(IMAGENET_TRAIN_DIR, IMAGENET_VAL_DIR, IMAGENET_SMALL_TF_DATADIR)
 # convert_imagenet_toon.run(IMAGENET_TRAIN_DIR, IMAGENET_VAL_DIR, IMAGENET_TF_256_TOON_DATADIR, im_size=(256, 256))
 # convert_voc2007_toon.run(VOC2007_TOON_TF_DATADIR, VOC2007_SRC_DIR)
-convert_imagenet_toon_easy.run(IMAGENET_TRAIN_DIR, IMAGENET_VAL_DIR, IMAGENET_SMALL_TF_DATADIR)
+convert_imagenet_toon_easy.run(IMAGENET_TRAIN_DIR, IMAGENET_VAL_DIR, IMAGENET_EASY_TF_DATADIR)

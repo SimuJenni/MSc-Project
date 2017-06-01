@@ -152,7 +152,7 @@ class ToonNetTrainer:
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels_gen, imgs_gen, imgs_train, g_mu, g_var, e_mu, e_var):
+    def generator_loss(self, disc_out, labels_gen, imgs_gen, imgs_train, g_mu, e_mu):
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0, label_smoothing=0.001)
@@ -161,8 +161,6 @@ class ToonNetTrainer:
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
         gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/mu loss (generator)', gen_mu_loss)
-        gen_var_loss = tf.contrib.losses.mean_squared_error(g_var, e_var, scope=gen_loss_scope, weight=1.0)
-        tf.scalar_summary('losses/var loss (generator)', gen_var_loss)
         losses_gen = tf.contrib.losses.get_losses(gen_loss_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -249,13 +247,13 @@ class ToonNetTrainer:
                 labels_gen = self.model.gen_labels()
 
                 # Create the model
-                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
+                img_rec, img_gen, disc_out, e_mu, g_mu = \
                     self.model.net(imgs_train, toons_train, edges_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
                 ae_loss = self.autoencoder_loss(img_rec, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, g_var, e_mu, e_var)
+                gen_loss = self.generator_loss(disc_out, labels_gen, img_gen, imgs_train, g_mu, e_mu)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

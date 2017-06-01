@@ -11,7 +11,7 @@ model = ToonNet(num_layers=5, batch_size=128)
 data = ImageNet(cartoon_data_dir=IMAGENET_EASY_TF_DATADIR)
 preprocessor = ImageNetPreprocessor(target_shape=[96, 96, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=40,
-                         tag='cont_essy', lr_policy='const', optimizer='adam', init_lr=0.0002,
+                         tag='cont_easy', lr_policy='const', optimizer='adam', init_lr=0.0002,
                          reinit_fc=False)
 
 all_ckpt = os.path.join(LOG_DIR, 'imagenet_ToonNet_default_refactored/model.ckpt-800722')

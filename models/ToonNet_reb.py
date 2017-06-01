@@ -328,7 +328,6 @@ class AlexNet:
         Returns:
             Resulting logits
         """
-        net *= 127.5
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
@@ -348,9 +347,9 @@ class AlexNet:
                     # Fully connected layers
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.dropout(net, 0.8, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.dropout(net, 0.8, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

@@ -54,7 +54,8 @@ class ToonNetTrainer:
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
                     'voc': self.learning_rate_voc(),
-                    'linear': self.learning_rate_linear()}
+                    'linear': self.learning_rate_linear()
+                    }
         return policies[self.lr_policy]
 
     def get_toon_train_batch(self):

@@ -8,7 +8,7 @@ NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001, fix_bn=False):
+                      w_reg=0.00001, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:

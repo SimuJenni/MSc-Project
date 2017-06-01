@@ -144,7 +144,7 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=10)
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=10.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)

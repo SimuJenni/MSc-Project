@@ -347,7 +347,10 @@ class AlexNet:
                 if with_fc:
                     # Fully connected layers
                     net = slim.flatten(net)
-                    net = slim.fully_connected(net, 4096, scope='fc1')
+                    net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
+                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
+                    net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

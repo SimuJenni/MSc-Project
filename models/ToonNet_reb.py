@@ -54,7 +54,7 @@ class ToonNet:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_reb_{}'.format(tag)
+        self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -147,7 +147,7 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], stride=1, scope='conv_{}'.format(num_layers+1))
+                net = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_{}'.format(num_layers + 1))
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
@@ -347,9 +347,9 @@ class AlexNet:
                     # Fully connected layers
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
-                    net = slim.dropout(net, 0.8, is_training=training)
+                    net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
-                    net = slim.dropout(net, 0.8, is_training=training)
+                    net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

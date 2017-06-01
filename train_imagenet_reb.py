@@ -1,5 +1,5 @@
 from Preprocessor import ImageNetPreprocessor
-from train.ToonNetTrainer_reb import ToonNetTrainer
+from train.ToonNetTrainer import ToonNetTrainer
 from datasets.ImageNet import ImageNet
 from models.ToonNet_reb import ToonNet
 

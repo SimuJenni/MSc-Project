@@ -46,7 +46,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 class ToonNet:
-    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False):
+    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False,
+                 vanilla_alex=False):
         """Initialises a ToonNet using the provided parameters.
 
         Args:
@@ -61,7 +62,10 @@ class ToonNet:
         if vgg_discriminator:
             self.discriminator = VGGA(fix_bn=fix_bn)
         else:
-            self.discriminator = AlexNet_V2(fix_bn=fix_bn)
+            if vanilla_alex:
+                self.discriminator = AlexNet(fix_bn=fix_bn)
+            else:
+                self.discriminator = AlexNet_V2(fix_bn=fix_bn)
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the full ToonNet architecture with the given inputs.
@@ -329,7 +333,7 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)

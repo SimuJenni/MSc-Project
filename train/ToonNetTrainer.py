@@ -88,8 +88,8 @@ class ToonNetTrainer:
                 train_set = self.dataset.get_trainset()
                 self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
-                                                                      common_queue_capacity=4 * self.model.batch_size,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=5,
+                                                                      common_queue_capacity=5 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
 
             # Parse a serialized Example proto to extract the image and metadata.
@@ -103,7 +103,7 @@ class ToonNetTrainer:
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
                                                       num_threads=10,
-                                                      capacity=2*self.model.batch_size)
+                                                      capacity=5*self.model.batch_size)
             return imgs_train, labels_train
 
     def classification_loss(self, preds_train, labels_train):

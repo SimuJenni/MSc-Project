@@ -19,9 +19,10 @@ class ImageNet(Dataset):
         'label_text': 'The text of the label.',
     }
 
-    def __init__(self):
+    def __init__(self, cartoon_data_dir=IMAGENET_SMALL_TF_DATADIR):
         Dataset.__init__(self)
         self.data_dir = IMAGENET_TF_256_DATADIR
+        self.toon_data_dir = cartoon_data_dir
         self.file_pattern = '%s-*'
         self.num_classes = 1000
         self.label_offset = 1
@@ -58,13 +59,13 @@ class ImageNet(Dataset):
         return self.get_split('train')
 
     def get_toon_train(self):
-        return self.get_split('train', data_dir=IMAGENET_SMALL_TF_DATADIR)
+        return self.get_split('train', data_dir=self.toon_data_dir)
 
     def get_testset(self):
         return self.get_split('validation')
 
     def get_toon_test(self):
-        return self.get_split('validation', data_dir=IMAGENET_SMALL_TF_DATADIR)
+        return self.get_split('validation', data_dir=self.toon_data_dir)
 
     def get_num_train(self):
         return self.SPLITS_TO_SIZES['train']

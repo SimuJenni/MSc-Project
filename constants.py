@@ -10,8 +10,10 @@ LOG_DIR = os.path.join(DATA_DIR, 'Logs/ToonNet')
 # Directories for cartooned datasets
 IMAGENET_TF_256_DATADIR = os.path.join(DATA_DIR, 'TF_Records/imagenet-TFRecords/')
 IMAGENET_SMALL_TF_DATADIR = os.path.join(DATA_DIR, 'TF_Records/imagenet-small-TFRecords/')
+IMAGENET_EASY_TF_DATADIR = os.path.join(DATA_DIR, 'TF_Records/imagenet-easy-TFRecords/')
 IMAGENET_TF_256_TOON_DATADIR = os.path.join(DATA_DIR, 'TF_Records/imagenet-256-toon-TFRecords/')
 VOC2007_TF_DATADIR = os.path.join(DATA_DIR, 'TF_Records/voc2007-TFRecords/')
+VOC2007_TOON_TF_DATADIR = os.path.join(DATA_DIR, 'TF_Records/voc2007-toon-TFRecords/')
 STL10_TF_DATADIR = os.path.join(DATA_DIR, 'TF_Records/stl-10-TFRecords/')
 
 # Source directories for datasets

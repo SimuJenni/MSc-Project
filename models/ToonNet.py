@@ -28,6 +28,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'decay': 0.95,
         'epsilon': 0.001,
         'center': center,
+        'fused': True
     }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -46,7 +47,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 class ToonNet:
-    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False):
+    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False,
+                 vanilla_alex=False):
         """Initialises a ToonNet using the provided parameters.
 
         Args:
@@ -61,7 +63,10 @@ class ToonNet:
         if vgg_discriminator:
             self.discriminator = VGGA(fix_bn=fix_bn)
         else:
-            self.discriminator = AlexNet_V2(fix_bn=fix_bn)
+            if vanilla_alex:
+                self.discriminator = AlexNet(fix_bn=fix_bn)
+            else:
+                self.discriminator = AlexNet_V2(fix_bn=fix_bn)
 
     def net(self, img, cartoon, edges, reuse=None, training=True):
         """Builds the full ToonNet architecture with the given inputs.
@@ -329,13 +334,13 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
-                net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_2')
+                net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_3')

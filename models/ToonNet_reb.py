@@ -28,6 +28,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'decay': 0.95,
         'epsilon': 0.001,
         'center': center,
+        'fused': True
     }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -54,7 +55,7 @@ class ToonNet:
             batch_size: The batch-size used during training (used to generate training labels)
             vgg_discriminator: Whether to use VGG-A instead of AlexNet in the discriminator
         """
-        self.name = 'ToonNet_reb_{}'.format(tag)
+        self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.vgg_discriminator = vgg_discriminator
@@ -82,15 +83,15 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         gen_in = merge(cartoon, edges)
-        gen_dist, gen_mu, gen_logvar, _ = self.generator(gen_in, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_logvar, _ = self.encoder(img, reuse=reuse, training=training)
+        gen_dist, gen_mu, _ = self.generator(gen_in, reuse=reuse, training=training)
+        enc_dist, enc_mu, _ = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
+        return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -145,20 +146,18 @@ class ToonNet:
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training, center=False)):
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
-                    net = add_noise_plane(net, NOISE_CHANNELS[l], training=training)
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
+                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, tf.ones_like(mu))
                 else:
                     net = mu
 
-                return net, mu, log_var, encoded
+                return net, mu, encoded
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.
@@ -182,13 +181,11 @@ class ToonNet:
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
                                  normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, tf.ones_like(mu))
                 else:
                     net = mu
-                return net, mu, log_var, encoded
+                return net, mu, encoded
 
     def decoder(self, net, reuse=None, training=True):
         """Builds a decoder on top of net.
@@ -329,13 +326,13 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
+            with slim.arg_scope(toon_net_argscope(activation=tf.nn.relu, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
-                net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_2')
+                net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_3')
@@ -346,10 +343,11 @@ class AlexNet:
                 if with_fc:
                     # Fully connected layers
                     net = slim.flatten(net)
+                    net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.dropout(net, 0.8, is_training=training)
                     net = slim.fully_connected(net, 4096, scope='fc2', trainable=with_fc)
-                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.dropout(net, 0.8, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

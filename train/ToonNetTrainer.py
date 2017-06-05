@@ -63,7 +63,7 @@ class ToonNetTrainer:
             train_set = self.dataset.get_toon_train()
             self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
                                                                       common_queue_capacity=8*self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])

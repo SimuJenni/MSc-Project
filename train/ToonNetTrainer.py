@@ -63,8 +63,8 @@ class ToonNetTrainer:
             train_set = self.dataset.get_toon_train()
             self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=5,
-                                                                      common_queue_capacity=2 * self.model.batch_size,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=2,
+                                                                      common_queue_capacity=8*self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
             [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
 
@@ -74,8 +74,8 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
                                                                   batch_size=self.model.batch_size,
-                                                                  num_threads=5,
-                                                                  capacity=self.model.batch_size)
+                                                                  num_threads=8,
+                                                                  capacity=4*self.model.batch_size)
         return imgs_train, edges_train, toons_train
 
     def get_finetune_batch(self, dataset_id):

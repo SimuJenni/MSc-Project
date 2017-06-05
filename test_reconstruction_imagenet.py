@@ -1,7 +1,7 @@
 from Preprocessor import Preprocessor
 from eval.ToonNetTester import ToonNetTester
 from datasets.ImageNet import ImageNet
-from models.ToonNet import ToonNet
+from models.ToonNet_vanilla import ToonNet
 
 model = ToonNet(num_layers=5, batch_size=128, vanilla_alex=True)
 data = ImageNet()

@@ -46,7 +46,7 @@ class ToonNetTrainer:
         return os.path.join(LOG_DIR, '{}/'.format(fname))
 
     def optimizer(self):
-        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
+        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-4),
                 'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
         return opts[self.opt_type]
 
@@ -88,8 +88,8 @@ class ToonNetTrainer:
                 train_set = self.dataset.get_trainset()
                 self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=5,
-                                                                      common_queue_capacity=5 * self.model.batch_size,
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
+                                                                      common_queue_capacity=4 * self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
 
             # Parse a serialized Example proto to extract the image and metadata.
@@ -103,7 +103,7 @@ class ToonNetTrainer:
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
                                                       num_threads=10,
-                                                      capacity=5*self.model.batch_size)
+                                                      capacity=2*self.model.batch_size)
             return imgs_train, labels_train
 
     def classification_loss(self, preds_train, labels_train):
@@ -144,7 +144,7 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30)
+        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=1.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
@@ -156,11 +156,11 @@ class ToonNetTrainer:
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = tf.contrib.losses.mean_squared_error(imgs_gen, imgs_train, scope=gen_loss_scope, weight=30.0)
+        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
-        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=3.0)
+        gen_mu_loss = tf.contrib.losses.mean_squared_error(g_mu, e_mu, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/mu loss (generator)', gen_mu_loss)
-        gen_var_loss = tf.contrib.losses.mean_squared_error(g_var, e_var, scope=gen_loss_scope, weight=3.0)
+        gen_var_loss = tf.contrib.losses.mean_squared_error(g_var, e_var, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/var loss (generator)', gen_var_loss)
         losses_gen = tf.contrib.losses.get_losses(gen_loss_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_loss_scope)

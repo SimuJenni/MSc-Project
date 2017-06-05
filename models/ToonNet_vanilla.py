@@ -4,6 +4,7 @@ from layers import lrelu, up_conv2d, sample, merge, add_noise_plane, conv_group
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
+NOISE_CHANNELS = [1, 4, 8, 16, 32, 64, 128]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
@@ -47,7 +48,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 class ToonNet:
     def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False,
-                 vanilla_alex=True):
+                 vanilla_alex=False):
         """Initialises a ToonNet using the provided parameters.
 
         Args:
@@ -151,7 +152,6 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
 
                 encoded = net
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
@@ -349,6 +349,7 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
+                    # Fully connected layers
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 4096, scope='fc1', trainable=with_fc)
                     net = slim.dropout(net, 0.5, is_training=training)
@@ -359,7 +360,6 @@ class AlexNet:
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer,
                                                trainable=with_fc)
-
                 return net, encoded
 
 

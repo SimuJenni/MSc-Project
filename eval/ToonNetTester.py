@@ -34,25 +34,31 @@ class ToonNetTester:
         return os.path.join(LOG_DIR, '{}/'.format(fname))
 
     def get_test_batch(self, dataset_id):
-        # Get the training dataset
-        if dataset_id:
-            test_set = self.dataset.get_split(dataset_id)
-            self.num_eval_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size)
-        else:
-            test_set = self.dataset.get_testset()
-            self.num_eval_steps = (self.dataset.get_num_test() / self.model.batch_size)
-        print('Number of evaluation steps: {}'.format(self.num_eval_steps))
-        provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
-        [img_test, label_test] = provider.get(['image', 'label'])
-        label_test -= self.dataset.label_offset
+        with tf.device('/cpu:0'):
+            if dataset_id:
+                test_set = self.dataset.get_split(dataset_id)
+                self.num_eval_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size)
+            else:
+                test_set = self.dataset.get_testset()
+                self.num_eval_steps = (self.dataset.get_num_test() / self.model.batch_size)
+            print('Number of evaluation steps: {}'.format(self.num_eval_steps))
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False,
+                                                                      common_queue_capacity=20 * self.model.batch_size,
+                                                                      common_queue_min=10 * self.model.batch_size)
 
-        # Pre-process data
-        img_test = self.pre_processor.process_transfer_test(img_test)
+            [img_test, label_test] = provider.get(['image', 'label'])
+            label_test -= self.dataset.label_offset
 
-        # Make batches
-        imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=self.model.batch_size, num_threads=1)
+            # Pre-process data
+            img_test = self.pre_processor.process_transfer_test(img_test)
 
-        return imgs_test, labels_test
+            # Make batches
+            imgs_test, labels_test = tf.train.batch([img_test, label_test], batch_size=self.model.batch_size,
+                                                    num_threads=8,
+                                                    capacity=512)
+            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_test, labels_test])
+
+            return batch_queue.dequeue()
 
     def get_toon_test_batch(self):
         with tf.device('/cpu:0'):

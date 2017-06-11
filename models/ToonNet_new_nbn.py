@@ -356,7 +356,6 @@ class AlexNet:
         """
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(alex_argscope(activation=self.fc_activation, padding='SAME', training=training)):
-                net *= 127.5
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')

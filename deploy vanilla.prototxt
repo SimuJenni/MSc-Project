@@ -35,9 +35,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution1"
   top: "Convolution1"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "pool1"
@@ -64,7 +61,7 @@ layer {
 layer {
   name: "conv2"
   type: "Convolution"
-  bottom: "Pooling1"
+  bottom: "norm1"
   top: "Convolution2"
   param {
     lr_mult: 1
@@ -86,9 +83,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution2"
   top: "Convolution2"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "pool2"
@@ -104,7 +98,7 @@ layer {
 layer {
   name: "norm2"
   type: "LRN"
-  bottom: "pool2"
+  bottom: "Pooling2"
   top: "norm2"
   lrn_param {
     local_size: 5
@@ -115,7 +109,7 @@ layer {
 layer {
   name: "conv3"
   type: "Convolution"
-  bottom: "Pooling2"
+  bottom: "norm2"
   top: "Convolution3"
   param {
     lr_mult: 1
@@ -136,9 +130,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution3"
   top: "Convolution3"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "conv4"
@@ -157,6 +148,7 @@ layer {
     num_output: 384
     pad: 1
     kernel_size: 3
+    group: 2
   }
 }
 layer {
@@ -164,9 +156,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution4"
   top: "Convolution4"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "conv5"
@@ -185,6 +174,7 @@ layer {
     num_output: 256
     pad: 1
     kernel_size: 3
+    group: 2
   }
 }
 layer {
@@ -192,7 +182,4 @@ layer {
   type: "ReLU"
   bottom: "Convolution5"
   top: "Convolution5"
-  relu_param{
-    negative_slope: 0.2
-  }
 }

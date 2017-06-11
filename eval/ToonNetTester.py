@@ -64,7 +64,7 @@ class ToonNetTester:
         with tf.device('/cpu:0'):
             # Get the training dataset
             test_set = self.dataset.get_toon_test()
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=False)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=True)
             [img_test, edge_test, toon_test] = provider.get(['image', 'edges', 'cartoon'])
 
             # Preprocess data

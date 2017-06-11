@@ -27,7 +27,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'decay': 0.95,
         'epsilon': 0.001,
         'center': center,
-        'fused': False
+        'fused': True
     }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -180,10 +180,8 @@ class ToonNet:
                 net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
 
                 encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
-                                 normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
+                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
+                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
                     net = sample(mu, log_var)
                 else:
@@ -211,10 +209,8 @@ class ToonNet:
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
                 encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None,
-                                 normalizer_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None,
-                                      normalizer_fn=None)
+                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
+                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
                     net = sample(mu, log_var)
                 else:

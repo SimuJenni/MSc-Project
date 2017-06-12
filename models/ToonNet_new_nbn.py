@@ -183,7 +183,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
                 log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, 0.05*log_var)
                 else:
                     net = mu
 
@@ -212,7 +212,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
                 log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
-                    net = sample(mu, log_var)
+                    net = sample(mu, 0.05*log_var)
                 else:
                     net = mu
                 return net, mu, log_var, encoded

@@ -183,7 +183,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
                 log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
-                    net = sample(mu, 0.05*log_var)
+                    net = sample(mu, log_var, sigma=0.1)
                 else:
                     net = mu
 
@@ -212,7 +212,7 @@ class ToonNet:
                 mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
                 log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
                 if training:
-                    net = sample(mu, 0.05*log_var)
+                    net = sample(mu, log_var, sigma=0.1)
                 else:
                     net = mu
                 return net, mu, log_var, encoded
@@ -370,6 +370,10 @@ class AlexNet:
 
                 if with_fc:
                     net = slim.flatten(net)
+                    net = slim.fully_connected(net, 4096, scope='fc1')
+                    net = slim.dropout(net, 0.5, is_training=training)
+                    net = slim.fully_connected(net, 4096, scope='fc2')
+                    net = slim.dropout(net, 0.5, is_training=training)
                     net = slim.fully_connected(net, 2,
                                                activation_fn=None,
                                                normalizer_fn=None,

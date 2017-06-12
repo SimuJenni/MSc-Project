@@ -24,7 +24,7 @@ class ToonNetTrainer:
         self.num_epochs = num_epochs
         self.tag = tag
         self.additional_info = None
-        self.im_per_smry = 4
+        self.im_per_smry = 8
         self.summaries = {}
         self.pre_processor = pre_processor
         self.opt_type = optimizer
@@ -67,17 +67,16 @@ class ToonNetTrainer:
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
                                                                       common_queue_capacity=8*self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
-            [img_train, edge_train, toon_train] = provider.get(['image', 'edges', 'cartoon'])
+            [img_train, toon_train] = provider.get(['image', 'cartoon'])
 
             # Preprocess data
-            img_train, edge_train, toon_train = self.pre_processor.process_train_toonnet(img_train, edge_train,
-                                                                                         toon_train)
+            img_train, toon_train = self.pre_processor.process_train_toonnet(img_train, toon_train)
             # Make batches
-            imgs_train, edges_train, toons_train = tf.train.batch([img_train, edge_train, toon_train],
+            imgs_train, toons_train = tf.train.batch([img_train, toon_train],
                                                                   batch_size=self.model.batch_size,
                                                                   num_threads=8,
                                                                   capacity=4*self.model.batch_size)
-        return imgs_train, edges_train, toons_train
+        return imgs_train, toons_train
 
     def get_finetune_batch(self, dataset_id):
         with tf.device('/cpu:0'):
@@ -181,12 +180,11 @@ class ToonNetTrainer:
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', self.learning_rate())
 
-    def make_image_summaries(self, edges_train, img_gen, img_rec, imgs_train, toons_train):
+    def make_image_summaries(self, img_gen, img_rec, imgs_train, toons_train):
         tf.image_summary('imgs/generator out', montage_tf(img_gen, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/autoencoder', montage_tf(img_rec, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/ground truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/cartoons', montage_tf(toons_train, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/edge maps', montage_tf(edges_train, 1, self.im_per_smry), max_images=1)
 
     def learning_rate_alex(self):
         # Define learning rate schedule
@@ -264,15 +262,14 @@ class ToonNetTrainer:
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
-                imgs_train, edges_train, toons_train = self.get_toon_train_batch()
+                imgs_train, toons_train = self.get_toon_train_batch()
 
                 # Get labels for discriminator training
                 labels_disc = self.model.disc_labels()
                 labels_gen = self.model.gen_labels()
 
                 # Create the model
-                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = \
-                    self.model.net(imgs_train, toons_train, edges_train)
+                img_rec, img_gen, disc_out, e_mu, g_mu, e_var, g_var = self.model.net(imgs_train, toons_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc)
@@ -289,7 +286,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(edges_train, img_gen, img_rec, imgs_train, toons_train)
+                self.make_image_summaries(img_gen, img_rec, imgs_train, toons_train)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

@@ -49,7 +49,7 @@ def _parse_xml(xml_file, data_path):
     return image_path, label
 
 
-def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir, im_size, max_im_dim=192):
+def _to_tfrecord(image_ids_file, tfrecord_writer, source_dir, im_size):
     with open(image_ids_file) as f:
         img_ids = f.readlines()
 

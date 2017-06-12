@@ -423,7 +423,7 @@ def _build_synset_lookup(imagenet_metadata_file):
     return synset_to_human
 
 
-def run(train_directory, validation_directory, output_directory, train_shards=1024, validation_shards=128, num_threads=8,
+def run(train_directory, validation_directory, output_directory, train_shards=256, validation_shards=32, num_threads=8,
         labels_file='imagenet_lsvrc_2015_synsets.txt', imagenet_metadata_file='imagenet_metadata.txt'):
     assert not train_shards % num_threads, (
         'Please make the num_threads commensurate with train_shards')

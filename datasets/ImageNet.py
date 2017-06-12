@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from Dataset import Dataset
-from constants import IMAGENET_TF_256_DATADIR, IMAGENET_SMALL_TF_DATADIR
+from constants import IMAGENET_TF_DATADIR, IMAGENET_TOON_TF_DATADIR
 
 slim = tf.contrib.slim
 
@@ -19,9 +19,9 @@ class ImageNet(Dataset):
         'label_text': 'The text of the label.',
     }
 
-    def __init__(self, cartoon_data_dir=IMAGENET_SMALL_TF_DATADIR):
+    def __init__(self, cartoon_data_dir=IMAGENET_TOON_TF_DATADIR):
         Dataset.__init__(self)
-        self.data_dir = IMAGENET_TF_256_DATADIR
+        self.data_dir = IMAGENET_TF_DATADIR
         self.toon_data_dir = cartoon_data_dir
         self.file_pattern = '%s-*'
         self.num_classes = 1000

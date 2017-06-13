@@ -356,9 +356,11 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.conv2d(net, 1, kernel_size=[1, 1], stride=1, scope='conv_6')
-                    net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1, scope='pool_3')
                     net = slim.flatten(net)
+                    net = slim.fully_connected(net, 1, scope='fc',
+                                               activation_fn=None,
+                                               normalizer_fn=None,
+                                               biases_initializer=tf.zeros_initializer)
 
                 return net, encoded
 

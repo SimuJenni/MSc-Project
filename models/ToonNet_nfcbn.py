@@ -37,10 +37,40 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         weights_regularizer=slim.l2_regularizer(w_reg),
                         biases_initializer=tf.constant_initializer(0.1),
                         weights_initializer=he):
-        with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
+        with slim.arg_scope([slim.conv2d],
                             kernel_size=kernel_size,
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):
+                with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
+                                    data_format='NCHW'):
+                    with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
+                            return arg_sc
+
+
+def alexnet_argscope(activation=lrelu, kernel_size=(3, 3), padding='SAME', training=True, w_reg=0.0005):
+    """Defines default parameter values for all the layers used in ToonNet.
+
+    Args:
+        activation: The default activation function
+        kernel_size: The default kernel size for convolution layers
+        padding: The default border mode
+        training: Whether in train or eval mode
+        w_reg: Parameter for weight-decay
+
+    Returns:
+        An argscope
+    """
+    he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
+    with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
+                        activation_fn=activation,
+                        weights_regularizer=slim.l2_regularizer(w_reg),
+                        biases_initializer=tf.constant_initializer(0.1),
+                        weights_initializer=he):
+        with slim.arg_scope([slim.conv2d],
+                            kernel_size=kernel_size,
+                            padding=padding):
+            with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
+                                data_format='NCHW'):
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                         return arg_sc
 
@@ -73,6 +103,7 @@ class ToonNet:
         Args:
             img: Placeholder for input images
             cartoon: Placeholder for cartooned images
+            edges: Placeholder for edge-maps
             reuse: Whether to reuse already defined variables.
             training: Whether in train or eval mode
 
@@ -84,15 +115,15 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        gen_dist = self.generator(cartoon, reuse=reuse, training=training)
-        enc_dist = self.encoder(img, reuse=reuse, training=training)
+        gen_dist, gen_mu = self.generator(cartoon, reuse=reuse, training=training)
+        enc_dist, enc_mu = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out
+        return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -149,9 +180,8 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
-
-                return net
+                encoded = net
+                return net, encoded
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.
@@ -171,8 +201,8 @@ class ToonNet:
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
-
-                return net
+                encoded = net
+                return net, encoded
 
     def decoder(self, net, reuse=None, training=True):
         """Builds a decoder on top of net.
@@ -286,8 +316,7 @@ class AlexNet:
             Resulting logits for all the classes
         """
         with tf.variable_scope(scope, reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
-                                                  fix_bn=self.fix_bn)):
+            with slim.arg_scope(alexnet_argscope(activation=self.fc_activation, training=training)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')
@@ -313,8 +342,7 @@ class AlexNet:
             Resulting logits
         """
         with tf.variable_scope('discriminator', reuse=reuse):
-            with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
-                                                  fix_bn=self.fix_bn)):
+            with slim.arg_scope(alexnet_argscope(activation=self.fc_activation, padding='SAME', training=training)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
@@ -329,7 +357,7 @@ class AlexNet:
 
                 if with_fc:
                     net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6')
-                    net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1,)
+                    net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1, scope='pool_3')
                     net = slim.flatten(net)
 
                 return net, encoded

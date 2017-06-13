@@ -125,17 +125,17 @@ class ToonNet:
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         return dec_im, dec_gen, disc_out, enc_mu, gen_mu
 
-    def disc_labels(self):
+    def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
 
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,)),
+                                                             tf.ones(shape=(self.batch_size,))]))
+        return labels
 
-    def gen_labels(self):
+    def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
 
         Returns:
@@ -143,7 +143,7 @@ class ToonNet:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        return labels
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.
@@ -356,7 +356,7 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6')
+                    net = slim.conv2d(net, 1, kernel_size=[1, 1], stride=1, scope='conv_6')
                     net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1, scope='pool_3')
                     net = slim.flatten(net)
 

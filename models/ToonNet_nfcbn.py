@@ -41,8 +41,8 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                             kernel_size=kernel_size,
                             padding=padding):
             with slim.arg_scope([slim.batch_norm], **batch_norm_params):
-                with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
-                                    data_format='NCHW'):
+                # with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
+                #                     data_format='NCHW'):
                     with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                             return arg_sc
 
@@ -69,8 +69,8 @@ def alexnet_argscope(activation=lrelu, kernel_size=(3, 3), padding='SAME', train
         with slim.arg_scope([slim.conv2d],
                             kernel_size=kernel_size,
                             padding=padding):
-            with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
-                                data_format='NCHW'):
+            # with slim.arg_scope([slim.conv2d, slim.batch_norm, slim.max_pool2d, slim.avg_pool2d],
+            #                     data_format='NCHW'):
                 with slim.arg_scope([slim.dropout], is_training=training) as arg_sc:
                         return arg_sc
 

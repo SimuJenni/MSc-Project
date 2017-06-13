@@ -84,15 +84,15 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        gen_dist, gen_mu, gen_logvar, _ = self.generator(cartoon, reuse=reuse, training=training)
-        enc_dist, enc_mu, enc_logvar, _ = self.encoder(img, reuse=reuse, training=training)
+        gen_dist = self.generator(cartoon, reuse=reuse, training=training)
+        enc_dist  = self.encoder(img, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
         dec_gen = self.decoder(gen_dist, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out, enc_mu, gen_mu, enc_logvar, gen_logvar
+        return dec_im, dec_gen, disc_out
 
     def disc_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -149,16 +149,9 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
+                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
 
-                encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
-                if training:
-                    net = sample(mu, log_var, sigma=0.1)
-                else:
-                    net = mu
-
-                return net, mu, log_var, encoded
+                return net
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.
@@ -179,14 +172,7 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
-                encoded = net
-                mu = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_mu', activation_fn=None)
-                log_var = slim.conv2d(net, num_outputs=f_dims[num_layers - 1], scope='conv_sigma', activation_fn=None)
-                if training:
-                    net = sample(mu, log_var, sigma=0.1)
-                else:
-                    net = mu
-                return net, mu, log_var, encoded
+                return net
 
     def decoder(self, net, reuse=None, training=True):
         """Builds a decoder on top of net.

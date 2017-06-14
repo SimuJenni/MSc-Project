@@ -7,6 +7,6 @@ model = ToonNet(num_layers=5, batch_size=128, vanilla_alex=True)
 data = ImageNet()
 preprocessor = Preprocessor(target_shape=[96, 96, 3])
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=90, tag='nfcbn',
-                         lr_policy='linear', optimizer='adam', init_lr=0.0003, end_lr=0.0001)
+                         lr_policy='linear', optimizer='RMSProp', init_lr=0.0005, end_lr=0.0001)
 trainer.train()
 

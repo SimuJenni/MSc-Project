@@ -131,9 +131,7 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size, 1)),
-                                                             tf.ones(shape=(self.batch_size, 1))]))
-        return labels
+        return tf.zeros(shape=(self.batch_size*2, 1))
 
     def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -142,7 +140,7 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size, 1)),
-                                                             tf.zeros(shape=(self.batch_size, 1))]))
+                                                             -tf.ones(shape=(self.batch_size, 1))]))
         return labels
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
@@ -358,7 +356,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 1, scope='fc',
-                                               activation_fn=tf.nn.sigmoid,
+                                               activation_fn=None,
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer)
 

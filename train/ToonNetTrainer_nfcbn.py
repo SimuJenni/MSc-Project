@@ -47,7 +47,8 @@ class ToonNetTrainer:
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
-                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
+                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9),
+                'RMSProp': tf.train.RMSPropOptimizer(learning_rate=self.learning_rate(), momentum=0.00001, decay=0.995)}
         return opts[self.opt_type]
 
     def learning_rate(self):

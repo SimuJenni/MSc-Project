@@ -9,7 +9,7 @@ slim = tf.contrib.slim
 
 
 class Preprocessor:
-    def __init__(self, target_shape, augment_color=False, aspect_ratio_range=(0.9, 1.1), area_range=(0.2, 1.0)):
+    def __init__(self, target_shape, augment_color=False, aspect_ratio_range=(0.8, 1.2), area_range=(0.1, 1.0)):
         self.target_shape = target_shape
         self.augment_color = augment_color
         self.aspect_ratio_range = aspect_ratio_range
@@ -32,7 +32,10 @@ class Preprocessor:
         # Crop the image to the specified bounding box.
         image = tf.slice(img, bbox_begin, bbox_size)
         image = tf.expand_dims(image, 0)
-        resized_image = tf.image.resize_bilinear(image, self.target_shape[:2], align_corners=False)
+        resized_image = tf.cond(
+            tf.random_uniform(shape=(), minval=0.0, maxval=1.0) > 0.5,
+            fn1=lambda: tf.image.resize_bilinear(image, self.target_shape[:2], align_corners=False),
+            fn2=lambda: tf.image.resize_bicubic(image, self.target_shape[:2], align_corners=False))
         image = tf.squeeze(resized_image)
         image.set_shape(self.target_shape)
         return image
@@ -48,6 +51,13 @@ class Preprocessor:
 
         image = self.extract_and_resize_bbox(image, bbox_begin, bbox_size)
         cartoon = self.extract_and_resize_bbox(cartoon, bbox_begin, bbox_size)
+
+        if self.augment_color:
+            bright_delta, sat, hue_delta, cont = sample_color_params()
+            image = dist_color(image, bright_delta, sat, hue_delta, cont)
+            image = tf.clip_by_value(image, 0.0, 1.0)
+            cartoon = dist_color(cartoon, bright_delta, sat, hue_delta, cont)
+            cartoon = tf.clip_by_value(cartoon, 0.0, 1.0)
 
         # Scale to [-1, 1]
         image = tf.to_float(image) * (2. / 255.) - 1.
@@ -78,7 +88,7 @@ class Preprocessor:
         # Color and contrast augmentation
         image = tf.to_float(image) / 255.
         if self.augment_color:
-            image = dist_color(image, thread_id)
+            image = dist_color_random(image, thread_id)
             image = tf.clip_by_value(image, 0.0, 1.0)
 
         # Scale to [-1, 1]
@@ -163,7 +173,16 @@ def distort_image(image, height, width, aspect_ratio_range=(0.9, 1.1), area_rang
     return distorted_image
 
 
-def dist_color(image, thread_id):
+def sample_color_params(bright_max_delta=16./255., lower_sat=0.8, upper_sat=1.2, hue_max_delta=0.05, lower_cont=0.8,
+                        upper_cont=1.2):
+    bright_delta = tf.random_uniform([], -bright_max_delta, bright_max_delta)
+    sat = tf.random_uniform([], lower_sat, upper_sat)
+    hue_delta = tf.random_uniform([], -hue_max_delta, hue_max_delta)
+    cont = tf.random_uniform([], lower_cont, upper_cont)
+    return bright_delta, sat, hue_delta, cont
+
+
+def dist_color_random(image, thread_id):
     color_ordering = thread_id % 2
 
     if color_ordering == 0:
@@ -176,6 +195,22 @@ def dist_color(image, thread_id):
         image = tf.image.random_contrast(image, lower=0.7, upper=1.3)
         image = tf.image.random_saturation(image, lower=0.7, upper=1.3)
         image = tf.image.random_hue(image, max_delta=0.1)
+
+    return image
+
+
+def dist_color(image, bright_delta, sat, hue_delta, cont, thread_id=0):
+    color_ordering = thread_id % 2
+    if color_ordering == 0:
+        image = tf.image.adjust_brightness(image, delta=bright_delta)
+        image = tf.image.adjust_saturation(image, saturation_factor=sat)
+        image = tf.image.adjust_hue(image, delta=hue_delta)
+        image = tf.image.adjust_contrast(image, contrast_factor=cont)
+    elif color_ordering == 1:
+        image = tf.image.adjust_brightness(image, delta=bright_delta)
+        image = tf.image.adjust_contrast(image, contrast_factor=cont)
+        image = tf.image.adjust_saturation(image, saturation_factor=sat)
+        image = tf.image.adjust_hue(image, delta=hue_delta)
 
     return image
 

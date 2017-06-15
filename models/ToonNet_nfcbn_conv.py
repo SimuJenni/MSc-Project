@@ -180,6 +180,7 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
                 net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
+                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
                 encoded = net
                 return net, encoded
 
@@ -356,8 +357,8 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
-                                      biases_initializer=tf.zeros_initializer)
+                    net = slim.conv2d(net, 2, kernel_size=[3, 3], stride=1, padding='VALID', scope='conv_6',
+                                      activation_fn=None, biases_initializer=tf.zeros_initializer)
                     net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1)
                     net = slim.flatten(net)
                 return net, encoded

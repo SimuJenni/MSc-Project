@@ -73,10 +73,12 @@ class ToonNetTrainer:
             img_train, toon_train = self.pre_processor.process_train_toonnet(img_train, toon_train)
             # Make batches
             imgs_train, toons_train = tf.train.batch([img_train, toon_train],
-                                                                  batch_size=self.model.batch_size,
-                                                                  num_threads=8,
-                                                                  capacity=4*self.model.batch_size)
-        return imgs_train, toons_train
+                                                     batch_size=self.model.batch_size,
+                                                     num_threads=8,
+                                                     capacity=4*self.model.batch_size)
+            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_train, toons_train])
+
+        return batch_queue.dequeue()
 
     def get_finetune_batch(self, dataset_id):
         with tf.device('/cpu:0'):

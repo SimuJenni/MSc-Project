@@ -356,7 +356,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 1, scope='fc',
-                                               activation_fn=None,
+                                               activation_fn=tf.nn.tanh,
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer)
                 return net, encoded

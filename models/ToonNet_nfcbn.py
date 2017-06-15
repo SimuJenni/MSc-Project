@@ -140,7 +140,7 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size, 1)),
-                                                             -tf.ones(shape=(self.batch_size, 1))]))
+                                                             -1.0*tf.ones(shape=(self.batch_size, 1))]))
         return labels
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
@@ -356,7 +356,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.flatten(net)
                     net = slim.fully_connected(net, 1, scope='fc',
-                                               activation_fn=tf.nn.tanh,
+                                               activation_fn=None,
                                                normalizer_fn=None,
                                                biases_initializer=tf.zeros_initializer)
                 return net, encoded

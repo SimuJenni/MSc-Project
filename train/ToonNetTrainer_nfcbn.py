@@ -132,7 +132,7 @@ class ToonNetTrainer:
     def discriminator_loss(self, disc_out, disc_labels):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = tf.contrib.losses.mean_squared_error(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
+        disc_loss = tf.contrib.losses.absolute_difference(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
@@ -156,7 +156,7 @@ class ToonNetTrainer:
     def generator_loss(self, disc_out, labels_gen, imgs_gen, imgs_train, g_mu, e_mu):
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
-        gen_disc_loss = tf.contrib.losses.mean_squared_error(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
+        gen_disc_loss = tf.contrib.losses.absolute_difference(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
         gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=10.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)

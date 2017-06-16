@@ -6,5 +6,5 @@ from models.ToonNet_nfcbn import ToonNet
 model = ToonNet(num_layers=5, batch_size=128, vanilla_alex=True)
 data = ImageNet()
 preprocessor = Preprocessor(target_shape=[96, 96, 3])
-tester = ToonNetTester(model, data, preprocessor, tag='nfcbn_absdiff')
+tester = ToonNetTester(model, data, preprocessor, tag='nfcbn')
 tester.test_reconstruction()

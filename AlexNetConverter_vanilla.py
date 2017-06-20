@@ -79,9 +79,9 @@ class AlexNetConverter:
             else:
                 return slim.variable('fc3/biases') if self.use_classifier else slim.variable('fully_connected/biases')
 
-    def get_conv(self, layer):
-        weights = self.get_conv_weights(layer)
-        biases = self.get_conv_biases(layer)
+    def get_conv(self, layer, scope='conv_{}'):
+        weights = self.get_conv_weights(layer, scope='{}/weights'.format(scope))
+        biases = self.get_conv_biases(layer, scope='{}/biases'.format(scope))
         return weights, biases
 
     def get_conv_rm_bn(self, layer, scope='conv_{}'):
@@ -90,6 +90,13 @@ class AlexNetConverter:
         alpha = tf.rsqrt(moving_variance + self.bn_eps)
         weights *= alpha
         biases = beta - moving_mean * alpha
+        return weights, biases
+
+    def get_group_conv(self, layer):
+        weights_0, biases_0 = self.get_conv(layer, scope='conv_{}_0')
+        weights_1, biases_1 = self.get_conv(layer, scope='conv_{}_1')
+        weights = tf.concat(3, [weights_0, weights_1])
+        biases = tf.concat(0, [biases_0, biases_1])
         return weights, biases
 
     def get_group_conv_rm_bn(self, layer):
@@ -121,7 +128,10 @@ class AlexNetConverter:
 
     def extract_and_store(self):
         self.init_model()
-        self.extract_and_store_remove_batchnorm()
+        if self.remove_bn:
+            self.extract_and_store_remove_batchnorm()
+        else:
+            self.extract_and_store_nobn()
 
     def extract_and_store_remove_batchnorm(self):
         num_conv = self.model.num_layers
@@ -138,6 +148,26 @@ class AlexNetConverter:
         if self.with_fc:
             for l in range(2):
                 weights, biases = self.get_fc_rm_bn(l+1)
+                weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
+                weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
+            weights, biases = self.get_fc()
+            weights_dict['fully_connected/weights'] = weights.eval()
+            weights_dict['fully_connected/biases'] = biases.eval()
+        self.save_weights(weights_dict)
+
+    def extract_and_store_nobn(self):
+        num_conv = self.model.num_layers
+        weights_dict = {}
+        for l in range(num_conv):
+            if l in [0, 2]:
+                weights, biases = self.get_conv(l+1)
+            else:
+                weights, biases = self.get_group_conv(l+1)
+            weights_dict['conv_{}/weights'.format(l+1)] = weights.eval()
+            weights_dict['conv_{}/biases'.format(l+1)] = biases.eval()
+        if self.with_fc:
+            for l in range(2):
+                weights, biases = self.get_fc(l+1)
                 weights_dict['fc{}/weights'.format(l+1)] = weights.eval()
                 weights_dict['fc{}/biases'.format(l+1)] = biases.eval()
             weights, biases = self.get_fc()

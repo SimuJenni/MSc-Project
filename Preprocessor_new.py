@@ -52,6 +52,9 @@ class Preprocessor:
         image = self.extract_and_resize_bbox(image, bbox_begin, bbox_size)
         cartoon = self.extract_and_resize_bbox(cartoon, bbox_begin, bbox_size)
 
+        image = tf.to_float(image) / 255.
+        cartoon = tf.to_float(cartoon) / 255.
+
         if self.augment_color:
             bright_delta, sat, hue_delta, cont = sample_color_params()
             image = dist_color(image, bright_delta, sat, hue_delta, cont)
@@ -60,8 +63,8 @@ class Preprocessor:
             cartoon = tf.clip_by_value(cartoon, 0.0, 1.0)
 
         # Scale to [-1, 1]
-        image = tf.to_float(image) * (2. / 255.) - 1.
-        cartoon = tf.to_float(cartoon) * (2. / 255.) - 1.
+        image = tf.to_float(image) * 2. - 1.
+        cartoon = tf.to_float(cartoon) * 2. - 1.
 
         # Flip left-right
         p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)

@@ -8,8 +8,8 @@ import tensorflow as tf
 from AlexNetConverter_vanilla import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet_nfcbn import ToonNet
-from train.ToonNetTrainer_nfcbn import ToonNetTrainer
+from models.ToonNet_nofc2 import ToonNet
+from train.ToonNetTrainer_nofc import ToonNetTrainer
 
 im_s = 227
 
@@ -44,13 +44,13 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 proto_path = 'deploy vanilla lrelu.prototxt'
-ckpt = '../test_converter/model.ckpt-900810'
+ckpt = '../test_converter/model.ckpt-1201050'
 save_path = os.path.join(model_dir, 'alexnet.caffemodel')
 
 np.random.seed(42)
 img = load_image('cat.jpg')
 
-converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=False, scale=127.5, bgr=True,
+converter = AlexNetConverter(model_dir, model, trainer.sess, ckpt=ckpt, remove_bn=True, scale=1.0, bgr=True,
                              pad='VALID', im_size=(im_s, im_s), with_fc=False, use_classifier=False)
 with converter.sess:
     converter.extract_and_store()
@@ -63,7 +63,7 @@ converter.load_and_set_caffe_weights(proto_path=proto_path, save_path=save_path)
 
 net_caffe = caffe.Net(proto_path, save_path, caffe.TEST)
 
-net_caffe.blobs['data'].data[0] = preprocess(img)*127.5
+net_caffe.blobs['data'].data[0] = preprocess(img)
 assert net_caffe.blobs['data'].data[0].shape == (3, im_s, im_s)
 # show_caffe_net_input()
 net_caffe.forward()

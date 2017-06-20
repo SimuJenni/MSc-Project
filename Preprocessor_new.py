@@ -202,20 +202,20 @@ def dist_color_random(image, thread_id):
     return image
 
 
-def dist_color(image, bright_delta, sat, hue_delta, cont, thread_id=0):
-    color_ordering = thread_id % 2
-    if color_ordering == 0:
-        image = tf.image.adjust_brightness(image, delta=bright_delta)
-        image = tf.image.adjust_saturation(image, saturation_factor=sat)
-        image = tf.image.adjust_hue(image, delta=hue_delta)
-        image = tf.image.adjust_contrast(image, contrast_factor=cont)
-    elif color_ordering == 1:
-        image = tf.image.adjust_brightness(image, delta=bright_delta)
-        image = tf.image.adjust_contrast(image, contrast_factor=cont)
-        image = tf.image.adjust_saturation(image, saturation_factor=sat)
-        image = tf.image.adjust_hue(image, delta=hue_delta)
+def dist_color(image, bright_delta, sat, hue_delta, cont):
+    image1 = tf.image.adjust_brightness(image, delta=bright_delta)
+    image1 = tf.image.adjust_saturation(image1, saturation_factor=sat)
+    image1 = tf.image.adjust_hue(image1, delta=hue_delta)
+    image1 = tf.image.adjust_contrast(image1, contrast_factor=cont)
 
-    return image
+    image2 = tf.image.adjust_brightness(image, delta=bright_delta)
+    image2 = tf.image.adjust_contrast(image2, contrast_factor=cont)
+    image2 = tf.image.adjust_saturation(image2, saturation_factor=sat)
+    image2 = tf.image.adjust_hue(image2, delta=hue_delta)
+
+    aug_image = tf.cond(tf.random_uniform(shape=(), minval=0.0, maxval=1.0)>0.5, fn1=lambda: image1, fn2=lambda: image2)
+
+    return aug_image
 
 
 def flip_lr(image, p):

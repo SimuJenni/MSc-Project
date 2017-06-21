@@ -9,11 +9,12 @@ slim = tf.contrib.slim
 
 
 class Preprocessor:
-    def __init__(self, target_shape, augment_color=False, aspect_ratio_range=(0.8, 1.2), area_range=(0.2, 1.0)):
+    def __init__(self, target_shape, augment_color=False, aspect_ratio_range=(0.8, 1.2), area_range=(0.2, 1.0), hsv_color=False):
         self.target_shape = target_shape
         self.augment_color = augment_color
         self.aspect_ratio_range = aspect_ratio_range
         self.area_range = area_range
+        self.hsv = hsv_color
 
     def central_crop(self, image):
         # Crop the central region of the image with an area containing 85% of the original image.
@@ -61,6 +62,10 @@ class Preprocessor:
             image = tf.clip_by_value(image, 0.0, 1.0)
             cartoon = dist_color(cartoon, bright_delta, sat, hue_delta, cont)
             cartoon = tf.clip_by_value(cartoon, 0.0, 1.0)
+
+        if self.hsv:
+            image = tf.image.rgb_to_hsv(image)
+            cartoon = tf.image.rgb_to_hsv(cartoon)
 
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.

@@ -177,6 +177,12 @@ class ToonNetTrainer:
         tf.scalar_summary('learning rate', self.learning_rate())
 
     def make_image_summaries(self, img_gen, img_rec, imgs_train, toons_train):
+        if self.pre_processor.hsv:
+            img_gen = tf.image.hsv_to_rgb(img_gen)
+            img_rec = tf.image.hsv_to_rgb(img_rec)
+            imgs_train = tf.image.hsv_to_rgb(imgs_train)
+            toons_train = tf.image.hsv_to_rgb(toons_train)
+
         tf.image_summary('imgs/generator out', montage_tf(img_gen, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/autoencoder', montage_tf(img_rec, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/ground truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)

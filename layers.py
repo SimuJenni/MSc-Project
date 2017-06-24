@@ -62,3 +62,14 @@ def conv_group(net, num_out, kernel_size, scope):
     output_groups = [slim.conv2d(j, num_out/2, kernel_size=kernel_size, scope='{}_{}'.format(scope, idx))
                      for (idx, j) in enumerate(input_groups)]
     return tf.concat(concat_dim=3, values=output_groups)
+
+
+def res_block(inputs, depth, depth_bottleneck, scope=None):
+    with slim.variable_scope.variable_scope(scope):
+        preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
+        shortcut = inputs
+        residual = slim.conv2d(preact, depth_bottleneck, [1, 1], stride=1, scope='conv1')
+        residual = slim.conv2d(residual, depth_bottleneck, [3, 3], stride=1, scope='conv2')
+        residual = slim.conv2d(residual, depth, [1, 1], stride=1, normalizer_fn=None, activation_fn=None, scope='conv3')
+        output = shortcut + residual
+        return output

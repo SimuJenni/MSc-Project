@@ -68,8 +68,9 @@ def res_block(inputs, depth, depth_bottleneck, scope=None):
     with slim.variable_scope.variable_scope(scope):
         preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
         shortcut = inputs
-        residual = slim.conv2d(preact, depth_bottleneck, [1, 1], stride=1, scope='conv1')
-        residual = slim.conv2d(residual, depth_bottleneck, [3, 3], stride=1, scope='conv2')
-        residual = slim.conv2d(residual, depth, [1, 1], stride=1, normalizer_fn=None, activation_fn=None, scope='conv3')
+        residual = slim.conv2d(preact, depth_bottleneck, kernel_size=[1, 1], stride=1, scope='conv1')
+        residual = slim.conv2d(residual, depth_bottleneck, kernel_size=[3, 3], stride=1, scope='conv2')
+        residual = slim.conv2d(residual, depth, kernel_size=[1, 1], stride=1, normalizer_fn=None, activation_fn=None,
+                               scope='conv3')
         output = shortcut + residual
         return output

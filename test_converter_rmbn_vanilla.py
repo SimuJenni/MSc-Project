@@ -11,7 +11,7 @@ from datasets.ImageNet import ImageNet
 from models.ToonNet_nofc2 import ToonNet
 from train.ToonNetTrainer_nofc import ToonNetTrainer
 
-im_s = 227
+im_s = 224
 
 
 def preprocess(img):
@@ -44,7 +44,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
 
 model_dir = '../test_converter'
 proto_path = 'deploy vanilla lrelu.prototxt'
-ckpt = '../test_converter/model.ckpt-1201050'
+ckpt = '../test_converter/model.ckpt-1801576'
 save_path = os.path.join(model_dir, 'alexnet.caffemodel')
 
 np.random.seed(42)

@@ -74,3 +74,11 @@ def res_block(inputs, depth, depth_bottleneck, scope=None):
                                scope='conv3')
         output = shortcut + residual
         return output
+
+
+def maxpool2d_valid(inputs, kernel_size, stride, scope=None):
+    pad_total = kernel_size[0] - 1
+    pad_beg = pad_total // 2
+    pad_end = pad_total - pad_beg
+    inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+    return slim.max_pool2d(inputs, kernel_size, stride=stride, padding='VALID', scope=scope)

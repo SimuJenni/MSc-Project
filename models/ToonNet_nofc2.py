@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, sample, merge, add_noise_plane, conv_group
+from layers import lrelu, up_conv2d, merge, conv_group
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -317,7 +317,7 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')

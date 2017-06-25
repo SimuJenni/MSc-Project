@@ -146,8 +146,8 @@ class ToonNet:
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, num_layers):
-                    net = res_block(net, f_dims[num_layers - 1], 64, scope='conv_{}'.format(l + 1))
+                for l in range(0, 3):
+                    net = res_block(net, f_dims[num_layers - 1], 128, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):
@@ -314,7 +314,7 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')

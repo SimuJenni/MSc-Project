@@ -309,6 +309,7 @@ class AlexNet:
         Returns:
             Resulting logits
         """
+        net *= 127.5
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):

@@ -11,7 +11,7 @@ from datasets.ImageNet import ImageNet
 from models.ToonNet_nofc2 import ToonNet
 from train.ToonNetTrainer_nofc import ToonNetTrainer
 
-im_s = 224
+im_s = 227
 
 
 def preprocess(img):

@@ -1,13 +1,13 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, merge, conv_group
+from layers import lrelu, up_conv2d, merge, conv_group, res_block
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001, fix_bn=False):
+                      w_reg=0.00004, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -24,7 +24,6 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        #'decay': 0.95,
         'epsilon': 0.001,
         'center': center,
         'fused': True
@@ -148,8 +147,8 @@ class ToonNet:
                 net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
+                for l in range(0, 3):
+                    net = res_block(net, f_dims[num_layers - 1], 128, scope='res_{}'.format(l + 1))
 
                 return net
 
@@ -312,12 +311,13 @@ class AlexNet:
         Returns:
             Resulting logits
         """
+        net *= 127.5
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
@@ -329,7 +329,7 @@ class AlexNet:
 
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                    net = slim.conv2d(net, 2, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None, padding='VALID')
+                    net = slim.conv2d(net, 2, kernel_size=[3, 3], stride=1, scope='conv_6', activation_fn=None, padding='VALID')
                     net = slim.flatten(net)
 
                 return net, encoded

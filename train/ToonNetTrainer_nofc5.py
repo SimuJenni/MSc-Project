@@ -295,7 +295,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_gen, dec_im, imgs_train, toons_train)
+                self.make_image_summaries(dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, dec_im, imgs_train, toons_train)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

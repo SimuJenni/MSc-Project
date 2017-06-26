@@ -259,7 +259,7 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.conv2d(net, 2, kernel_size=[3, 3], stride=1, scope='conv_6', activation_fn=None,
+                net = slim.conv2d(net, 2, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None,
                                   padding='VALID')
                 net = slim.flatten(net)
                 return net

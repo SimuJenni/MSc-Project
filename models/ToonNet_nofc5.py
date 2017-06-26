@@ -87,8 +87,8 @@ class ToonNet:
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_toon = self.encoder(cartoon, reuse=True, training=training)
         gen_toon = self.generator(enc_toon, reuse=reuse, training=training)
-        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.75), reuse=True, training=training)
-        enc_feature_drop = self.generator(feature_dropout(enc_im, 0.75), reuse=True, training=training)
+        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=True, training=training)
+        enc_feature_drop = self.generator(feature_dropout(enc_im, 0.5), reuse=True, training=training)
         enc_shuffle = self.generator(spatial_shuffle(enc_im), reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder
@@ -334,8 +334,8 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                    net = slim.conv2d(net, 2, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None, padding='VALID')
+                    net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', normalizer_fn=None)
+                    net = slim.avg_pool2d(net, kernel_size=[4, 4], stride=1)
                     net = slim.flatten(net)
 
                 return net, encoded

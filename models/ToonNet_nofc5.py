@@ -101,7 +101,7 @@ class ToonNet:
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = tf.concat(0, [dec_im, dec_gen, dec_eature_drop, dec_spatial_drop, dec_shuffle])
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        return dec_im, dec_gen, disc_out
+        return dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle,  disc_out
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

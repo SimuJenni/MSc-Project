@@ -334,7 +334,7 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None,
+                    net = slim.conv2d(net, 2, kernel_size=[3, 3], stride=1, scope='conv_6', activation_fn=None,
                                       padding='VALID', normalizer_fn=None)
                     net = slim.flatten(net)
 

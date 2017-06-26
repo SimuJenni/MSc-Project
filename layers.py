@@ -45,6 +45,14 @@ def merge(a, b, dim=3):
     return tf.concat(concat_dim=dim, values=[a, b])
 
 
+def swap_merge(a, b):
+    a1, a2 = tf.split(0, 2, a)
+    b1, b2 = tf.split(0, 2, b)
+    m1 = merge(a1, b1)
+    m2 = merge(b2, a2)
+    return merge(m1, m2, dim=0)
+
+
 def feature_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], input_shape[1], input_shape[2], 1)

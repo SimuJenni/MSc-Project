@@ -305,7 +305,7 @@ class ToonNetTrainer:
                 # Start training
                 slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.get_save_dir(),
                                     init_fn=self.cont_init_fn(chpt_path),
-                                    save_summaries_secs=600,
+                                    save_summaries_secs=300,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,
                                     number_of_steps=self.num_train_steps)

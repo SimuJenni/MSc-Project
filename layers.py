@@ -76,10 +76,21 @@ def spatial_dropout(net, p):
     return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
 
 
+def coords2indices(coords, batch_size, size=32):
+    center_idx = tf.concat(1, values=[tf.reshape(tf.range(batch_size), [batch_size, 1]), tf.to_int32(tf.squeeze(coords))])
+    offsets = [[[0, i, j] for i in range(-size/2, size/2)] for j in range(-size/2, size/2)]
+    patch_idx = [center_idx+o for o in offsets]
+    return patch_idx
+
+
 def img_patch_dropout(img, size, p):
     input_shape = img.get_shape().as_list()
-    noise_shape = (input_shape[0], size, size, input_shape[3])
-    return tf.nn.dropout(img, p, noise_shape=noise_shape, name='spatial_dropout')
+    coord = tf.random_uniform((1, 2), minval=size/2, maxval=input_shape[1]-size/2, dtype=tf.int32)
+    center_idx = tf.concat(1, values=[tf.reshape(tf.range(input_shape[0]), [input_shape[0], 1]), coord])
+    offsets = [[[0, i, j] for i in range(-size / 2, size / 2)] for j in range(-size / 2, size / 2)]
+    patch_idx = [center_idx + o for o in offsets]
+    img = tf.scatter_mul(img, patch_idx, tf.zeros((len(patch_idx))))
+    return img
 
 
 def conv_group(net, num_out, kernel_size, scope):

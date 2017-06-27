@@ -85,7 +85,7 @@ def coords2indices(coords, batch_size, size=32):
 
 def img_patch_dropout(img, size, p):
     input_shape = img.get_shape().as_list()
-    coord = tf.random_uniform((1, 2), minval=size/2, maxval=input_shape[1]-size/2, dtype=tf.int32)
+    coord = tf.random_uniform((input_shape[0], 1, 2), minval=size/2, maxval=input_shape[1]-size/2, dtype=tf.int32)
     center_idx = tf.concat(1, values=[tf.reshape(tf.range(input_shape[0]), [input_shape[0], 1]), coord])
     offsets = [[[0, i, j] for i in range(-size / 2, size / 2)] for j in range(-size / 2, size / 2)]
     patch_idx = [center_idx + o for o in offsets]

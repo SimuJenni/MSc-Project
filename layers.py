@@ -38,7 +38,7 @@ def ordered_merge(a, b, order):
 
 def random_select(a, b, p, batch_size):
     rand_vec = tf.random_uniform((batch_size,), minval=0.0, maxval=1.0)
-    return tf.select(tf.python.math_ops.greater(rand_vec, p), a, b)
+    return tf.select(tf.greater(rand_vec, p), a, b)
 
 
 def merge(a, b, dim=3):

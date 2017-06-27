@@ -89,7 +89,7 @@ class ToonNet:
         gen_toon = self.generator(enc_toon, reuse=reuse, training=training)
         enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=True, training=training)
         enc_feature_drop = self.generator(feature_dropout(enc_im, 0.5), reuse=True, training=training)
-        enc_shuffle = self.generator(spatial_shuffle(enc_im, 0.25), reuse=True, training=training)
+        enc_shuffle = self.generator(spatial_shuffle(enc_im, 0.5), reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, swap_merge, conv_group, res_block
+from layers import lrelu, up_conv2d, swap_merge, conv_group, res_block_bottleneck
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -147,7 +147,7 @@ class ToonNet:
                 for l in range(0, num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
                 for l in range(0, 3):
-                    net = res_block(net, f_dims[num_layers - 1], 128, scope='res_{}'.format(l + 1))
+                    net = res_block_bottleneck(net, f_dims[num_layers - 1], 128, scope='res_{}'.format(l + 1))
 
                 return net
 

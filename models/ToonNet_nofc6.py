@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, conv_group, res_block, spatial_dropout, feature_dropout, spatial_shuffle
+from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, spatial_dropout, feature_dropout, spatial_shuffle
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -166,7 +166,7 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                 for l in range(0, 5):
-                    net = res_block(net, f_dims[num_layers - 1], 64, scope='conv_{}'.format(l + 1))
+                    net = res_block_bottleneck(net, f_dims[num_layers - 1], 64, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):

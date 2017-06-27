@@ -76,6 +76,12 @@ def spatial_dropout(net, p):
     return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
 
 
+def img_patch_dropout(img, size, p):
+    input_shape = img.get_shape().as_list()
+    noise_shape = (input_shape[0], size, size, input_shape[3])
+    return tf.nn.dropout(img, p, noise_shape=noise_shape, name='spatial_dropout')
+
+
 def conv_group(net, num_out, kernel_size, scope):
     input_groups = tf.split(split_dim=3, num_split=2, value=net)
     output_groups = [slim.conv2d(j, num_out/2, kernel_size=kernel_size, scope='{}_{}'.format(scope, idx))
@@ -83,7 +89,7 @@ def conv_group(net, num_out, kernel_size, scope):
     return tf.concat(concat_dim=3, values=output_groups)
 
 
-def res_block(inputs, depth, depth_bottleneck, scope=None):
+def res_block_bottleneck(inputs, depth, depth_bottleneck, scope=None):
     with slim.variable_scope.variable_scope(scope):
         preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
         shortcut = inputs

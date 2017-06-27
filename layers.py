@@ -83,13 +83,21 @@ def coords2indices(coords, batch_size, size=32):
     return patch_idx
 
 
-def img_patch_dropout(img, size, p):
+def img_patch_dropout(img, size=32):
     input_shape = img.get_shape().as_list()
+    print(input_shape)
     coord = tf.random_uniform((input_shape[0], 1, 2), minval=size/2, maxval=input_shape[1]-size/2, dtype=tf.int32)
-    center_idx = tf.concat(1, values=[tf.reshape(tf.range(input_shape[0]), [input_shape[0], 1]), coord])
-    offsets = [[[0, i, j] for i in range(-size / 2, size / 2)] for j in range(-size / 2, size / 2)]
-    patch_idx = [center_idx + o for o in offsets]
-    img = tf.scatter_mul(img, patch_idx, tf.zeros((len(patch_idx))))
+    print(coord.get_shape().as_list())
+    center_idx = tf.concat(2, values=[tf.reshape(tf.range(input_shape[0]), [input_shape[0], 1, 1]), coord])
+    print(center_idx.get_shape().as_list())
+    offsets = []
+    for i in range(-size / 2, size / 2):
+        for j in range(-size / 2, size / 2):
+            offsets.append([0, i, j])
+    patch_idx = tf.concat(1, [center_idx + o for o in offsets])
+    print(patch_idx.get_shape().as_list())
+    p_shape = patch_idx.get_shape().as_list()
+    img = tf.scatter_nd_update(tf.Variable(img, trainable=False), patch_idx, tf.zeros((p_shape[:2]+[3])))
     return img
 
 

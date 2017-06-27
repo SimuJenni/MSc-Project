@@ -1,13 +1,13 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, merge, conv_group
+from layers import lrelu, up_conv2d, merge, conv_group, res_block
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
 
 
 def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME', training=True, center=True,
-                      w_reg=0.0001, fix_bn=False):
+                      w_reg=0.00004, fix_bn=False):
     """Defines default parameter values for all the layers used in ToonNet.
 
     Args:
@@ -24,10 +24,10 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        #'decay': 0.95,
+        'decay': 0.999,
         'epsilon': 0.001,
         'center': center,
-        'fused': not fix_bn
+        'fused': train_bn
     }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -35,7 +35,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params,
                         weights_regularizer=slim.l2_regularizer(w_reg),
-                        biases_initializer=tf.constant_initializer(0.1),
+                        biases_regularizer=slim.l2_regularizer(w_reg),
                         weights_initializer=he):
         with slim.arg_scope([slim.conv2d, slim.convolution2d_transpose],
                             kernel_size=kernel_size,
@@ -84,11 +84,12 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        gen_dist = self.generator(cartoon, reuse=reuse, training=training)
-        enc_dist = self.encoder(img, reuse=reuse, training=training)
+        enc_im = self.encoder(img, reuse=reuse, training=training)
+        enc_toon = self.encoder(cartoon, reuse=True, training=training)
+        gen_toon = self.generator(enc_toon, reuse=reuse, training=training)
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_dist, reuse=reuse, training=training)
-        dec_gen = self.decoder(gen_dist, reuse=True, training=training)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
+        dec_gen = self.decoder(gen_toon, reuse=True, training=training)
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = merge(dec_im, dec_gen, dim=0)
         disc_out, _ = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
@@ -145,12 +146,8 @@ class ToonNet:
         num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
-                for l in range(0, num_layers):
-                    net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+1))
-                net = slim.conv2d(net, num_outputs=f_dims[num_layers-1], stride=1, scope='conv_{}'.format(num_layers+2))
-
+                for l in range(0, 3):
+                    net = res_block(net, f_dims[num_layers - 1], 128, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):
@@ -312,12 +309,13 @@ class AlexNet:
         Returns:
             Resulting logits
         """
+        net *= 127.5
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')

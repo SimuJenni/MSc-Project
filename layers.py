@@ -38,11 +38,30 @@ def ordered_merge(a, b, order):
 
 def random_select(a, b, p, batch_size):
     rand_vec = tf.random_uniform((batch_size,), minval=0.0, maxval=1.0)
-    return tf.select(tf.python.math_ops.greater(rand_vec, p), a, b)
+    return tf.select(tf.greater(rand_vec, p), a, b)
 
 
 def merge(a, b, dim=3):
     return tf.concat(concat_dim=dim, values=[a, b])
+
+
+def swap_merge(a, b):
+    a1, a2 = tf.split(0, 2, a)
+    b1, b2 = tf.split(0, 2, b)
+    m1 = merge(a1, b1)
+    m2 = merge(b2, a2)
+    return merge(m1, m2, dim=0)
+
+
+def spatial_shuffle(net, p):
+    in_shape = net.get_shape().as_list()
+    net = tf.transpose(net, [1, 2, 0, 3])
+    net = tf.reshape(net, shape=[-1, in_shape[0], in_shape[3]])
+    net_shuffled = tf.random_shuffle(net)
+    net = random_select(net, net_shuffled, p, net.get_shape().as_list()[0])
+    net = tf.reshape(net, [in_shape[1], in_shape[2], in_shape[0], in_shape[3]])
+    net = tf.transpose(net, [2, 0, 1, 3])
+    return net
 
 
 def feature_dropout(net, p):
@@ -62,3 +81,23 @@ def conv_group(net, num_out, kernel_size, scope):
     output_groups = [slim.conv2d(j, num_out/2, kernel_size=kernel_size, scope='{}_{}'.format(scope, idx))
                      for (idx, j) in enumerate(input_groups)]
     return tf.concat(concat_dim=3, values=output_groups)
+
+
+def res_block(inputs, depth, depth_bottleneck, scope=None):
+    with slim.variable_scope.variable_scope(scope):
+        preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
+        shortcut = inputs
+        residual = slim.conv2d(preact, depth_bottleneck, kernel_size=[1, 1], stride=1, scope='conv1')
+        residual = slim.conv2d(residual, depth_bottleneck, kernel_size=[3, 3], stride=1, scope='conv2')
+        residual = slim.conv2d(residual, depth, kernel_size=[1, 1], stride=1, normalizer_fn=None, activation_fn=None,
+                               scope='conv3')
+        output = shortcut + residual
+        return output
+
+
+def maxpool2d_valid(inputs, kernel_size, stride, scope=None):
+    pad_total = kernel_size[0] - 1
+    pad_beg = pad_total // 2
+    pad_end = pad_total - pad_beg
+    inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+    return slim.max_pool2d(inputs, kernel_size, stride=stride, padding='VALID', scope=scope)

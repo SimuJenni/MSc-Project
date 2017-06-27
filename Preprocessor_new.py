@@ -194,8 +194,8 @@ def distort_image(image, height, width, aspect_ratio_range=(0.9, 1.1), area_rang
     return distorted_image
 
 
-def sample_color_params(bright_max_delta=16./255., lower_sat=0.8, upper_sat=1.2, hue_max_delta=0.05, lower_cont=0.8,
-                        upper_cont=1.2):
+def sample_color_params(bright_max_delta=16./255., lower_sat=0.7, upper_sat=1.3, hue_max_delta=0.05, lower_cont=0.7,
+                        upper_cont=1.3):
     bright_delta = tf.random_uniform([], -bright_max_delta, bright_max_delta)
     sat = tf.random_uniform([], lower_sat, upper_sat)
     hue_delta = tf.random_uniform([], -hue_max_delta, hue_max_delta)

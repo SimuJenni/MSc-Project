@@ -99,6 +99,9 @@ class Preprocessor:
             image = dist_color_random(image, thread_id)
             image = tf.clip_by_value(image, 0.0, 1.0)
 
+        if self.hsv:
+            image = tf.image.rgb_to_hsv(image)
+
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.
 
@@ -110,23 +113,33 @@ class Preprocessor:
     def process_transfer_test(self, image):
         image = self.central_crop(image)
 
+        image = tf.to_float(image) / 255.
+
+        if self.hsv:
+            image = tf.image.rgb_to_hsv(image)
+
         # Scale to [-1, 1]
-        image = tf.to_float(image) * (2. / 255.) - 1.
+        image = tf.to_float(image) * 2. - 1.
 
         return image
 
 
 class VOCPreprocessor(Preprocessor):
-    def __init__(self, target_shape, augment_color=True, aspect_ratio_range=(0.9, 1.1), area_range=(0.1, 1.0)):
-        Preprocessor.__init__(self, target_shape, augment_color, aspect_ratio_range, area_range)
+    def __init__(self, target_shape, augment_color=True, aspect_ratio_range=(0.9, 1.1), area_range=(0.1, 1.0), hsv_color=False):
+        Preprocessor.__init__(self, target_shape, augment_color, aspect_ratio_range, area_range, hsv_color)
 
     def process_transfer_test(self, image):
         # Select random crops
         image = distort_image(image, self.target_shape[0], self.target_shape[1],
                               self.aspect_ratio_range, self.area_range)
 
+        image = tf.to_float(image) / 255.
+
+        if self.hsv:
+            image = tf.image.rgb_to_hsv(image)
+
         # Scale to [-1, 1]
-        image = tf.to_float(image) * (2. / 255.) - 1.
+        image = tf.to_float(image) * 2. - 1.
 
         # Flip left-right
         image = tf.image.random_flip_left_right(image)

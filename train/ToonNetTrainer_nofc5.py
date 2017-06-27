@@ -144,7 +144,7 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=4.0)
+        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=8.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
@@ -156,10 +156,10 @@ class ToonNetTrainer:
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=1.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_spatial_drop, imgs_train, scope=gen_loss_scope, weight=1.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_eature_drop, imgs_train, scope=gen_loss_scope, weight=1.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_shuffle, imgs_train, scope=gen_loss_scope, weight=1.0)
+        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=2.0)
+        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_spatial_drop, imgs_train, scope=gen_loss_scope, weight=2.0)
+        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_eature_drop, imgs_train, scope=gen_loss_scope, weight=2.0)
+        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_shuffle, imgs_train, scope=gen_loss_scope, weight=2.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
         losses_gen = tf.contrib.losses.get_losses(gen_loss_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_loss_scope)

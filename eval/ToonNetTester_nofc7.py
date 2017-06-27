@@ -187,7 +187,7 @@ class ToonNetTester:
                 labels_disc = self.model.disc_labels()
 
                 # Create the model
-                dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, disc_out, domain_out = \
+                dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, _, disc_out, domain_out = \
                     self.model.net(imgs_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:

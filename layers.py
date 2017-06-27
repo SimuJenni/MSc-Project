@@ -53,11 +53,12 @@ def swap_merge(a, b):
     return merge(m1, m2, dim=0)
 
 
-def spatial_shuffle(net):
+def spatial_shuffle(net, p):
     in_shape = net.get_shape().as_list()
     net = tf.transpose(net, [1, 2, 0, 3])
     net = tf.reshape(net, shape=[-1, in_shape[0], in_shape[3]])
-    net = tf.random_shuffle(net)
+    net_shuffled = tf.random_shuffle(net)
+    net = random_select(net, net_shuffled, p, net.get_shape().as_list()[0])
     net = tf.reshape(net, [in_shape[1], in_shape[2], in_shape[0], in_shape[3]])
     net = tf.transpose(net, [2, 0, 1, 3])
     return net

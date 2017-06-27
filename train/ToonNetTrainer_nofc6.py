@@ -133,20 +133,21 @@ class ToonNetTrainer:
         disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         disc_loss -= tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_loss_scope,
-                                                             weight=0.25, label_smoothing=0.5)
+                                                             weight=0.5, label_smoothing=0.25)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
         disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
 
         # Compute accuracy
         predictions = tf.argmax(disc_out, 1)
-        tf.scalar_summary('accuracy/discriminator accuracy', slim.metrics.accuracy(predictions, tf.argmax(disc_labels, 1)))
+        tf.scalar_summary('accuracy/discriminator accuracy',
+                          slim.metrics.accuracy(predictions, tf.argmax(disc_labels, 1)))
         return disc_total_loss
 
     def domain_loss(self, domain_out, domain_labels):
         # Define loss for discriminator training
         dom_loss_scope = 'domain_loss'
-        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.25)
+        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.5)
         tf.scalar_summary('losses/domain loss', dom_loss)
         losses_disc = tf.contrib.losses.get_losses(dom_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(dom_loss_scope)

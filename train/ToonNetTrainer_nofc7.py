@@ -129,7 +129,7 @@ class ToonNetTrainer:
         disc_loss_scope = 'disc_loss'
         disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
-        disc_loss -= tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_loss_scope, weight=0.5)
+        disc_loss -= tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_loss_scope, weight=1.0)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
         disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
@@ -143,7 +143,7 @@ class ToonNetTrainer:
     def domain_loss(self, domain_out, domain_labels):
         # Define loss for discriminator training
         dom_loss_scope = 'domain_loss'
-        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.5)
+        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=1.0)
         tf.scalar_summary('losses/domain loss', dom_loss)
         losses_disc = tf.contrib.losses.get_losses(dom_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(dom_loss_scope)
@@ -157,22 +157,21 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=8.0)
+        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=9.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels_gen, imgs_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, imgs_train):
+    def generator_loss(self, disc_out, labels_gen, imgs_gen, dec_spatial_drop, dec_eature_drop, imgs_train):
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=2.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_spatial_drop, imgs_train, scope=gen_loss_scope, weight=2.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_eature_drop, imgs_train, scope=gen_loss_scope, weight=2.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_shuffle, imgs_train, scope=gen_loss_scope, weight=2.0)
+        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=3.0)
+        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_spatial_drop, imgs_train, scope=gen_loss_scope, weight=3.0)
+        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_eature_drop, imgs_train, scope=gen_loss_scope, weight=3.0)
         tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
         losses_gen = tf.contrib.losses.get_losses(gen_loss_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_loss_scope)
@@ -297,7 +296,7 @@ class ToonNetTrainer:
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc, domain_out, domain_labels)
                 ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, imgs_train)
+                gen_loss = self.generator_loss(disc_out, labels_gen, dec_gen, dec_spatial_drop, dec_eature_drop, imgs_train)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
 
                 # Handle dependencies with update_ops (batch-norm)

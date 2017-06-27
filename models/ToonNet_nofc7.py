@@ -84,7 +84,7 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        drop_im = spatial_dropout(img, p=0.5)
+        drop_im = feature_dropout(img, p=0.5)
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_drop = self.encoder(drop_im, reuse=True, training=training)
         enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=reuse, training=training)

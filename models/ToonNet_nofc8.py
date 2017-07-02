@@ -163,7 +163,7 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                 for l in range(0, num_layers):
-                    net = res_block_bottleneck(net, f_dims[num_layers - 1], 96, scope='conv_{}'.format(l + 1))
+                    net = res_block_bottleneck(net, f_dims[num_layers - 1], 64, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):

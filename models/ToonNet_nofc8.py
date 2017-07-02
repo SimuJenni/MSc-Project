@@ -84,12 +84,9 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        drop_im = feature_dropout(img, p=0.3)
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        enc_drop = self.encoder(drop_im, reuse=True, training=training)
         enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.3), reuse=reuse, training=training)
         enc_feature_drop = self.generator(feature_dropout(enc_im, 0.3), reuse=True, training=training)
-        enc_im_drop = self.generator(enc_drop, reuse=True, training=training)
         enc_shuffle = spatial_shuffle(enc_im, 0.3)
 
         # Decode both encoded images and generator output using the same decoder
@@ -97,17 +94,16 @@ class ToonNet:
         dec_spatial_drop = self.decoder(enc_spatial_drop, reuse=True, training=training)
         dec_eature_drop = self.decoder(enc_feature_drop, reuse=True, training=training)
         dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=training)
-        dec_im_drop = self.decoder(enc_im_drop, reuse=True, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_im_drop, dec_eature_drop, dec_spatial_drop, dec_shuffle])
+        disc_in = tf.concat(0, [dec_im, dec_eature_drop, dec_spatial_drop, dec_shuffle])
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         _, disc_enc_im = self.discriminator.discriminate(img, reuse=True, training=training)
 
         domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 6,
                                                             reuse=reuse, training=training)
 
-        return dec_im, dec_im_drop, dec_spatial_drop, dec_eature_drop, dec_shuffle, drop_im, disc_out, domain_class
+        return dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle, disc_out, domain_class
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -116,7 +112,7 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(4 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
     def disc_labels(self):
@@ -126,7 +122,7 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.zeros(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
     def domain_labels(self):

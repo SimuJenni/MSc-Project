@@ -165,15 +165,11 @@ class ToonNetTrainer:
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels_gen, imgs_gen, dec_spatial_drop, dec_eature_drop, imgs_train):
+    def generator_loss(self, disc_out, labels_gen):
         # Define the losses for generator training
         gen_loss_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels_gen, scope=gen_loss_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        gen_ae_loss = tf.contrib.losses.absolute_difference(imgs_gen, imgs_train, scope=gen_loss_scope, weight=3.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_spatial_drop, imgs_train, scope=gen_loss_scope, weight=3.0)
-        gen_ae_loss += tf.contrib.losses.absolute_difference(dec_eature_drop, imgs_train, scope=gen_loss_scope, weight=3.0)
-        tf.scalar_summary('losses/autoencoder loss (generator)', gen_ae_loss)
         losses_gen = tf.contrib.losses.get_losses(gen_loss_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_loss_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -192,20 +188,12 @@ class ToonNetTrainer:
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', self.learning_rate())
 
-    def make_image_summaries(self, img_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, img_rec, imgs_train, toons_train):
-        if self.pre_processor.hsv:
-            img_gen = tf.image.hsv_to_rgb(0.5*img_gen+0.5)
-            img_rec = tf.image.hsv_to_rgb(0.5*img_rec+0.5)
-            imgs_train = tf.image.hsv_to_rgb(0.5*imgs_train+0.5)
-            toons_train = tf.image.hsv_to_rgb(0.5*toons_train+0.5)
-
-        tf.image_summary('imgs/generator out', montage_tf(img_gen, 1, self.im_per_smry), max_images=1)
+    def make_image_summaries(self, dec_spatial_drop, dec_eature_drop, dec_shuffle, img_rec, imgs_train):
         tf.image_summary('imgs/gdec_spatial_drop', montage_tf(dec_spatial_drop, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/dec_eature_drop', montage_tf(dec_eature_drop, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/dec_shuffle', montage_tf(dec_shuffle, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/autoencoder', montage_tf(img_rec, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/ground truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/cartoons', montage_tf(toons_train, 1, self.im_per_smry), max_images=1)
 
     def learning_rate_alex(self):
         # Define learning rate schedule
@@ -291,13 +279,13 @@ class ToonNetTrainer:
                 domain_labels = self.model.domain_labels()
 
                 # Create the model
-                dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, drop_im, disc_out, domain_out = \
+                dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle, disc_out, domain_out = \
                     self.model.net(imgs_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc, domain_out, domain_labels)
                 ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, dec_gen, dec_spatial_drop, dec_eature_drop, imgs_train)
+                gen_loss = self.generator_loss(disc_out, labels_gen)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
 
                 # Handle dependencies with update_ops (batch-norm)
@@ -311,7 +299,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, dec_im, imgs_train, drop_im)
+                self.make_image_summaries(dec_spatial_drop, dec_eature_drop, dec_shuffle, dec_im, imgs_train)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

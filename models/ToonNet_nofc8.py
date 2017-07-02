@@ -100,7 +100,7 @@ class ToonNet:
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         _, disc_enc_im = self.discriminator.discriminate(img, reuse=True, training=training)
 
-        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 6,
+        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 5,
                                                             reuse=reuse, training=training)
 
         return dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle, disc_out, domain_class
@@ -128,8 +128,8 @@ class ToonNet:
     def domain_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0,
                                        values=[i * tf.ones(shape=(self.batch_size,), dtype=tf.int32) for i in
-                                               range(6)]))
-        return slim.one_hot_encoding(labels, 6)
+                                               range(5)]))
+        return slim.one_hot_encoding(labels, 5)
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.

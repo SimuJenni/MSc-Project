@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, spatial_dropout, feature_dropout, spatial_shuffle, img_patch_dropout
 
-DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 1024]
+DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
 
 
@@ -162,7 +162,7 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                 for l in range(0, self.num_layers):
-                    net = res_block_bottleneck(net, f_dims[self.num_layers - 1], 128, scope='conv_{}'.format(l + 1))
+                    net = res_block_bottleneck(net, f_dims[self.num_layers - 1], 64, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):
@@ -196,12 +196,15 @@ class ToonNet:
             Decoded image with 3 channels.
         """
         f_dims = DEFAULT_FILTER_DIMS
+        in_shape = net.get_shape().as_list()
         with tf.variable_scope('decoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, self.num_layers-1):
+                for l in range(0, self.num_layers-2):
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
-                net = up_conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers),
-                                activation_fn=tf.nn.tanh, normalizer_fn=None)
+
+                net = tf.image.resize_images(net, (in_shape[1], in_shape[2]), tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers), stride=1,
+                                  activation_fn=tf.nn.tanh, normalizer_fn=None)
                 return net
 
 

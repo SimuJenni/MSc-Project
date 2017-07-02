@@ -8,10 +8,10 @@ import tensorflow as tf
 from AlexNetConverter_vanilla import AlexNetConverter
 from Preprocessor import ImageNetPreprocessor
 from datasets.ImageNet import ImageNet
-from models.ToonNet_nofc2 import ToonNet
+from models.ToonNet_nofc7 import ToonNet
 from train.ToonNetTrainer_nofc import ToonNetTrainer
 
-im_s = 227
+im_s = 256
 
 
 def preprocess(img):
@@ -43,7 +43,7 @@ trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, 
                          lr_policy='const', optimizer='adam')
 
 model_dir = '../test_converter'
-proto_path = 'deploy vanilla lrelu.prototxt'
+proto_path = 'deploy vanilla.prototxt'
 ckpt = '../test_converter/model.ckpt-1801576'
 save_path = os.path.join(model_dir, 'alexnet.caffemodel')
 

@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, spatial_dropout, feature_dropout, spatial_shuffle, img_patch_dropout
 
-DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
+DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 1024]
 REPEATS = [1, 1, 2, 2, 2]
 
 
@@ -159,11 +159,10 @@ class ToonNet:
             Encoding of the input.
         """
         f_dims = DEFAULT_FILTER_DIMS
-        num_layers = min(self.num_layers, 4)
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, num_layers):
-                    net = res_block_bottleneck(net, f_dims[num_layers - 1], 64, scope='conv_{}'.format(l + 1))
+                for l in range(0, self.num_layers):
+                    net = res_block_bottleneck(net, f_dims[self.num_layers - 1], 128, scope='conv_{}'.format(l + 1))
                 return net
 
     def encoder(self, net, reuse=None, training=True):
@@ -178,11 +177,9 @@ class ToonNet:
             Encoding of the input image.
         """
         f_dims = DEFAULT_FILTER_DIMS
-        num_layers = min(self.num_layers, 4)
         with tf.variable_scope('encoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
-                for l in range(0, num_layers):
+                for l in range(0, self.num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
                 return net
@@ -199,13 +196,12 @@ class ToonNet:
             Decoded image with 3 channels.
         """
         f_dims = DEFAULT_FILTER_DIMS
-        num_layers = min(self.num_layers, 4)
         with tf.variable_scope('decoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                for l in range(0, num_layers):
-                    net = up_conv2d(net, num_outputs=f_dims[num_layers - l - 1], scope='deconv_{}'.format(l))
-                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(num_layers),
-                                  activation_fn=tf.nn.tanh, normalizer_fn=None)
+                for l in range(0, self.num_layers-1):
+                    net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
+                net = up_conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers),
+                                activation_fn=tf.nn.tanh, normalizer_fn=None)
                 return net
 
 

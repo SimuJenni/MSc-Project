@@ -199,14 +199,14 @@ class ToonNetTester:
         print('Restoring from: {}'.format(model_dir))
         with self.sess.as_default():
             with self.graph.as_default():
-                #imgs_test, _ = self.get_toon_test_batch()
-                imgs_test = self.get_toon_train_batch()
+                imgs_test, _ = self.get_toon_test_batch()
+                #imgs_test = self.get_toon_train_batch()
 
                 labels_disc = self.model.disc_labels()
 
                 # Create the model
                 dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, _, disc_out, domain_out = \
-                    self.model.net(imgs_test, training=True)
+                    self.model.net(imgs_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:
                 summary_ops = [tf.image_summary('images/generator', montage_tf(dec_gen[:24], 4, 6), max_images=1),

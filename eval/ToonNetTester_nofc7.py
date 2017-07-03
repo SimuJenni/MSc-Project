@@ -206,7 +206,7 @@ class ToonNetTester:
 
                 # Create the model
                 dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, _, disc_out, domain_out = \
-                    self.model.net(imgs_test, training=False)
+                    self.model.net(imgs_test, training=True)
 
                 # Create the summary ops such that they also print out to std output:
                 summary_ops = [tf.image_summary('images/generator', montage_tf(dec_gen[:24], 4, 6), max_images=1),

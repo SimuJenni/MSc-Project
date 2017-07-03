@@ -72,25 +72,9 @@ class ToonNetTester:
 
             # Make batches
             imgs_test, toons_test = tf.train.batch([img_test, toon_test],
-                                                                  batch_size=self.model.batch_size,
-                                                                  num_threads=1)
+                                                   batch_size=self.model.batch_size,
+                                                   num_threads=1)
         return imgs_test, toons_test
-
-    def get_toon_train_batch(self):
-        with tf.device('/cpu:0'):
-            # Get the training dataset
-            train_set = self.dataset.get_toon_train()
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                      common_queue_capacity=8*self.model.batch_size,
-                                                                      common_queue_min=self.model.batch_size)
-            [img_train, toon_train] = provider.get(['image', 'cartoon'])
-
-            # Preprocess data
-            img_train, toon_train = self.pre_processor.process_train_toonnet(img_train, toon_train)
-            # Make batches
-            imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size, num_threads=8,
-                                        capacity=4*self.model.batch_size)
-        return imgs_train
 
     def get_random_test_crops(self):
         with tf.device('/cpu:0'):
@@ -200,7 +184,6 @@ class ToonNetTester:
         with self.sess.as_default():
             with self.graph.as_default():
                 imgs_test, _ = self.get_toon_test_batch()
-                #imgs_test = self.get_toon_train_batch()
 
                 labels_disc = self.model.disc_labels()
 

@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.975,
+        'decay': 0.99,
         'epsilon': 0.001,
         'center': center,
         'fused': train_bn
@@ -93,39 +93,39 @@ class ToonNet:
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_spatial_drop = self.decoder(enc_spatial_drop, reuse=True, training=False)
-        dec_eature_drop = self.decoder(enc_feature_drop, reuse=True, training=False)
+        dec_sdrop = self.decoder(enc_spatial_drop, reuse=True, training=False)
+        dec_fdrop = self.decoder(enc_feature_drop, reuse=True, training=False)
         dec_shuffle1 = self.decoder(enc_shuffle1, reuse=True, training=False)
         dec_shuffle2 = self.decoder(enc_shuffle2, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_eature_drop, dec_spatial_drop, dec_shuffle1, dec_shuffle2])
-        disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        _, disc_enc_im = self.discriminator.discriminate(img, reuse=True, training=training)
-
-        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 6,
+        disc_in_fake = tf.concat(0, [dec_fdrop, dec_sdrop, dec_shuffle1, dec_shuffle2])
+        disc_in_real = tf.concat(0, [dec_im, img])
+        disc_out_real, disc_enc_real = self.discriminator.discriminate(disc_in_real, reuse=reuse, training=training,
+                                                                       fix_bn=False)
+        disc_out_fake, disc_enc_fake = self.discriminator.discriminate(disc_in_fake, reuse=reuse, training=training,
+                                                                       fix_bn=True)
+        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc_real, disc_enc_fake]), 6,
                                                             reuse=reuse, training=training)
 
-        return dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle1, dec_shuffle2, disc_out, domain_class
+        return dec_im, dec_sdrop, dec_fdrop, dec_shuffle1, dec_shuffle2, disc_out_real, disc_out_fake, domain_class
 
-    def gen_labels(self):
+    def real_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
 
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(4 * self.batch_size,), dtype=tf.int32)]))
+        labels = tf.ones(shape=(2 * self.batch_size,), dtype=tf.int32)
         return slim.one_hot_encoding(labels, 2)
 
-    def disc_labels(self):
+    def fake_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
 
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)]))
+        labels = tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)
         return slim.one_hot_encoding(labels, 2)
 
     def domain_labels(self):
@@ -242,7 +242,7 @@ class AlexNet_V2:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID'):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID', fix_bn=False):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -256,7 +256,7 @@ class AlexNet_V2:
         """
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=lrelu, padding='SAME', training=training,
-                                                  fix_bn=self.fix_bn)):
+                                                  fix_bn=self.fix_bn or fix_bn)):
                 net = slim.conv2d(net, 64, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
@@ -317,7 +317,7 @@ class AlexNet:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID'):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID', fix_bn=False):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -332,7 +332,7 @@ class AlexNet:
         net *= 127.5
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
-                                                  fix_bn=self.fix_bn)):
+                                                  fix_bn=self.fix_bn or fix_bn)):
                 net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
                                   normalizer_fn=None)
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding='SAME')

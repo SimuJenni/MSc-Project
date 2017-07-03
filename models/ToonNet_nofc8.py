@@ -46,7 +46,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 class ToonNet:
-    def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False,
+    def __init__(self, num_layers, batch_size, im_shape, tag='default', vgg_discriminator=False, fix_bn=False,
                  vanilla_alex=True):
         """Initialises a ToonNet using the provided parameters.
 
@@ -58,6 +58,7 @@ class ToonNet:
         self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
+        self.im_shape = im_shape
         self.vgg_discriminator = vgg_discriminator
         if vgg_discriminator:
             self.discriminator = VGGA(fix_bn=fix_bn)
@@ -196,13 +197,12 @@ class ToonNet:
             Decoded image with 3 channels.
         """
         f_dims = DEFAULT_FILTER_DIMS
-        in_shape = net.get_shape().as_list()
         with tf.variable_scope('decoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                 for l in range(0, self.num_layers-2):
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
-
-                net = tf.image.resize_images(net, (in_shape[1], in_shape[2]), tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                net = tf.image.resize_images(net, (self.im_shape[1], self.im_shape[2]),
+                                             tf.image.ResizeMethod.NEAREST_NEIGHBOR)
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers), stride=1,
                                   activation_fn=tf.nn.tanh, normalizer_fn=None)
                 return net

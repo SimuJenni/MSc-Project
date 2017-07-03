@@ -86,25 +86,27 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.3), reuse=reuse, training=training)
+        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=reuse, training=training)
         enc_feature_drop = self.generator(feature_dropout(enc_im, 0.3), reuse=True, training=training)
-        enc_shuffle = self.generator(spatial_shuffle(enc_im, 0.3), reuse=True, training=training)
+        enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.3), reuse=True, training=training)
+        enc_shuffle2 = spatial_shuffle(enc_im, 0.1)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_spatial_drop = self.decoder(enc_spatial_drop, reuse=True, training=training)
-        dec_eature_drop = self.decoder(enc_feature_drop, reuse=True, training=training)
-        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=training)
+        dec_spatial_drop = self.decoder(enc_spatial_drop, reuse=True, training=False)
+        dec_eature_drop = self.decoder(enc_feature_drop, reuse=True, training=False)
+        dec_shuffle1 = self.decoder(enc_shuffle1, reuse=True, training=False)
+        dec_shuffle2 = self.decoder(enc_shuffle2, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_eature_drop, dec_spatial_drop, dec_shuffle])
+        disc_in = tf.concat(0, [dec_im, dec_eature_drop, dec_spatial_drop, dec_shuffle1, dec_shuffle2])
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         _, disc_enc_im = self.discriminator.discriminate(img, reuse=True, training=training)
 
-        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 5,
+        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc, disc_enc_im]), 6,
                                                             reuse=reuse, training=training)
 
-        return dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle, disc_out, domain_class
+        return dec_im, dec_spatial_drop, dec_eature_drop, dec_shuffle1, dec_shuffle2, disc_out, domain_class
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -113,7 +115,7 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.ones(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
     def disc_labels(self):
@@ -123,14 +125,14 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(3 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
     def domain_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0,
                                        values=[i * tf.ones(shape=(self.batch_size,), dtype=tf.int32) for i in
-                                               range(5)]))
-        return slim.one_hot_encoding(labels, 5)
+                                               range(6)]))
+        return slim.one_hot_encoding(labels, 6)
 
     def build_classifier(self, img, num_classes, reuse=None, training=True):
         """Builds a classifier on top either the encoder, generator or discriminator trained in the AEGAN.

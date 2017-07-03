@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.99,
+        'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
         'fused': train_bn
@@ -87,7 +87,7 @@ class ToonNet:
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.3), reuse=reuse, training=training)
         enc_feature_drop = self.generator(feature_dropout(enc_im, 0.3), reuse=True, training=training)
-        enc_shuffle = spatial_shuffle(enc_im, 0.3)
+        enc_shuffle = self.generator(spatial_shuffle(enc_im, 0.3), reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
@@ -344,8 +344,7 @@ class AlexNet:
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
 
                 if with_fc:
-                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                    net = slim.conv2d(net, 2, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None,
+                    net = slim.conv2d(net, 2, kernel_size=[4, 4], stride=1, scope='conv_6', activation_fn=None,
                                       padding='VALID', normalizer_fn=None)
                     net = slim.flatten(net)
 

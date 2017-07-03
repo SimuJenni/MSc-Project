@@ -100,10 +100,11 @@ class ToonNet:
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in_fake = tf.concat(0, [dec_pdrop, dec_cdrop, dec_shuffle1, dec_shuffle2])
-        disc_in_real = tf.concat(0, [dec_im, img])
-        disc_in = tf.concat(0, [disc_in_real, disc_in_fake])
+        disc_in = tf.concat(0, [dec_im, disc_in_fake])
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        domain_class = self.discriminator.domain_classifier(disc_enc, 6, reuse=reuse, training=training)
+        _, disc_enc_im = self.discriminator.discriminate(img, reuse=True, training=training)
+        domain_in = tf.concat(0, [disc_enc, disc_enc_im])
+        domain_class = self.discriminator.domain_classifier(domain_in, 6, reuse=reuse, training=training)
 
         return dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, disc_out, domain_class
 
@@ -113,7 +114,7 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(2 * self.batch_size,), dtype=tf.int32),
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
@@ -123,7 +124,7 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(2 * self.batch_size,), dtype=tf.int32),
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 

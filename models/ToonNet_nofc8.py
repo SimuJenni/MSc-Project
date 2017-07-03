@@ -103,7 +103,7 @@ class ToonNet:
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         domain_in = tf.concat(0, [img, dec_im])
         _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
-        domain_class = self.discriminator.domain_classifier(domain_in_enc, 6, reuse=reuse, training=training)
+        domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
         return dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, disc_out, domain_class
 

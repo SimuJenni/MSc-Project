@@ -344,9 +344,9 @@ class AlexNet:
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
+                encoded = net
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
-                encoded = net
 
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')

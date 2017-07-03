@@ -344,7 +344,7 @@ class AlexNet:
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[4, 4], stride=1, scope='conv_6', activation_fn=None,
+                    net = slim.conv2d(net, 2, kernel_size=[5, 5], stride=1, scope='conv_6', activation_fn=None,
                                       padding='VALID', normalizer_fn=None)
                     net = slim.flatten(net)
 
@@ -365,8 +365,8 @@ class AlexNet:
         with tf.variable_scope(scope, reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                net = slim.conv2d(net, num_classes, kernel_size=[2, 2], stride=1, scope='conv_6', activation_fn=None,
+                net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_4')
+                net = slim.conv2d(net, num_classes, kernel_size=[5, 5], stride=1, scope='conv_5', activation_fn=None,
                                   padding='VALID', normalizer_fn=None)
                 net = slim.flatten(net)
                 return net

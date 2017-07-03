@@ -67,13 +67,13 @@ def spatial_shuffle(net, p):
 def feature_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], input_shape[1], input_shape[2], 1)
-    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='feature_dropout')
+    return slim.dropout(net, p, noise_shape=noise_shape, name='feature_dropout', is_training=True)
 
 
 def spatial_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], 1, 1, input_shape[3])
-    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout')
+    return slim.dropout(net, p, noise_shape=noise_shape, name='spatial_dropout', is_training=True)
 
 
 def coords2indices(coords, batch_size, size=32):

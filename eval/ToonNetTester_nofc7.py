@@ -68,7 +68,7 @@ class ToonNetTester:
             [img_test, toon_test] = provider.get(['image', 'cartoon'])
 
             # Preprocess data
-            img_test, toon_test = self.pre_processor.process_test_toonnet(img_test, toon_test)
+            img_test, toon_test = self.pre_processor.process_train_toonnet(img_test, toon_test)
 
             # Make batches
             imgs_test, toons_test = tf.train.batch([img_test, toon_test],
@@ -188,7 +188,7 @@ class ToonNetTester:
 
                 # Create the model
                 dec_im, dec_gen, dec_spatial_drop, dec_eature_drop, dec_shuffle, _, disc_out, domain_out = \
-                    self.model.net(imgs_test, training=True)
+                    self.model.net(imgs_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:
                 summary_ops = [tf.image_summary('images/generator', montage_tf(dec_gen[:24], 4, 6), max_images=1),

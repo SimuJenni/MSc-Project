@@ -101,10 +101,8 @@ class ToonNet:
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in_fake = tf.concat(0, [dec_fdrop, dec_sdrop, dec_shuffle1, dec_shuffle2])
         disc_in_real = tf.concat(0, [dec_im, img])
-        disc_out_real, disc_enc_real = self.discriminator.discriminate(disc_in_real, reuse=reuse, training=training,
-                                                                       fix_bn=False)
-        disc_out_fake, disc_enc_fake = self.discriminator.discriminate(disc_in_fake, reuse=True, training=training,
-                                                                       fix_bn=True)
+        disc_out_real, disc_enc_real = self.discriminator.discriminate(disc_in_real, reuse=reuse, training=training)
+        disc_out_fake, disc_enc_fake = self.discriminator.discriminate(disc_in_fake, reuse=True, training=training)
         domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc_real, disc_enc_fake]), 6,
                                                             reuse=reuse, training=training)
 

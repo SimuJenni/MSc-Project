@@ -201,7 +201,7 @@ class ToonNet:
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                 for l in range(0, self.num_layers-2):
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
-                net = tf.image.resize_images(net, (self.im_shape[1], self.im_shape[2]),
+                net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),
                                              tf.image.ResizeMethod.NEAREST_NEIGHBOR)
                 net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers), stride=1,
                                   activation_fn=tf.nn.tanh, normalizer_fn=None)

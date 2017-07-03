@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, channel_dropout, pixel_dropout, spatial_shuffle, img_patch_dropout
+from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, channel_dropout, pixel_dropout, spatial_shuffle, merge
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -87,7 +87,7 @@ class ToonNet:
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_channel_drop = self.generator(channel_dropout(enc_im, 0.5), reuse=reuse, training=training)
-        enc_pixel_drop = self.generator(pixel_dropout(enc_im, 0.3), reuse=True, training=training)
+        enc_pixel_drop = self.generator(pixel_dropout(enc_im, 0.7), reuse=True, training=training)
         enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.3), reuse=True, training=training)
         enc_shuffle2 = spatial_shuffle(enc_im, 0.1)
 
@@ -101,29 +101,30 @@ class ToonNet:
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in_fake = tf.concat(0, [dec_pdrop, dec_cdrop, dec_shuffle1, dec_shuffle2])
         disc_in_real = tf.concat(0, [dec_im, img])
-        disc_out_real, disc_enc_real = self.discriminator.discriminate(disc_in_real, reuse=reuse, training=training)
-        disc_out_fake, disc_enc_fake = self.discriminator.discriminate(disc_in_fake, reuse=True, training=training)
-        domain_class = self.discriminator.domain_classifier(tf.concat(0, [disc_enc_real, disc_enc_fake]), 6,
-                                                            reuse=reuse, training=training)
+        disc_in = tf.concat(0, [disc_in_real, disc_in_fake])
+        disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
+        domain_class = self.discriminator.domain_classifier(disc_enc, 6, reuse=reuse, training=training)
 
-        return dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, disc_out_real, disc_out_fake, domain_class
+        return dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, disc_out, domain_class
 
-    def real_labels(self):
+    def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
 
         Returns:
             One-hot encoded labels
         """
-        labels = tf.ones(shape=(2 * self.batch_size,), dtype=tf.int32)
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(2 * self.batch_size,), dtype=tf.int32),
+                                                             tf.ones(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
-    def fake_labels(self):
+    def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
 
         Returns:
             One-hot encoded labels
         """
-        labels = tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(2 * self.batch_size,), dtype=tf.int32),
+                                                             tf.zeros(shape=(4 * self.batch_size,), dtype=tf.int32)]))
         return slim.one_hot_encoding(labels, 2)
 
     def domain_labels(self):

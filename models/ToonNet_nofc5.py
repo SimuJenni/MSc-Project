@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, spatial_dropout, feature_dropout, spatial_shuffle
+from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, channel_dropout, pixel_dropout, spatial_shuffle
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -87,8 +87,8 @@ class ToonNet:
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_toon = self.encoder(cartoon, reuse=True, training=training)
         gen_toon = self.generator(enc_toon, reuse=reuse, training=training)
-        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=True, training=training)
-        enc_feature_drop = self.generator(feature_dropout(enc_im, 0.5), reuse=True, training=training)
+        enc_spatial_drop = self.generator(channel_dropout(enc_im, 0.5), reuse=True, training=training)
+        enc_feature_drop = self.generator(pixel_dropout(enc_im, 0.5), reuse=True, training=training)
         enc_shuffle = self.generator(spatial_shuffle(enc_im, 0.2), reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder

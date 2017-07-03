@@ -131,7 +131,7 @@ class ToonNetTrainer:
         tf.scalar_summary('losses/discriminator loss (real)', disc_real)
         disc_fake = tf.contrib.losses.softmax_cross_entropy(disc_out_fake, labels_fake, scope=disc_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (fake)', disc_fake)
-        tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_scope, weight=0.5,
+        tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_scope, weight=1.0,
                                                 label_smoothing=1.0)
         losses_disc = tf.contrib.losses.get_losses(disc_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_scope)
@@ -149,7 +149,7 @@ class ToonNetTrainer:
     def domain_loss(self, domain_out, domain_labels):
         # Define loss for discriminator training
         dom_loss_scope = 'domain_loss'
-        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.5)
+        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=1.0)
         tf.scalar_summary('losses/domain loss', dom_loss)
         losses_disc = tf.contrib.losses.get_losses(dom_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(dom_loss_scope)
@@ -163,19 +163,20 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=9.0)
+        ae_loss = tf.contrib.losses.absolute_difference(imgs_rec, imgs_train, scope=ae_loss_scope, weight=1.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out_fake, labels_fake):
+    def generator_loss(self, disc_out_fake, labels_fake, dec_cdrop, imgs_train):
         # Define the losses for generator training
         gen_scope = 'gen_loss'
         train_label = tf.ones_like(labels_fake) - labels_fake
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out_fake, train_label, scope=gen_scope, weight=1.0)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
+        tf.contrib.losses.absolute_difference(dec_cdrop, imgs_train, scope=gen_scope, weight=1.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -286,14 +287,14 @@ class ToonNetTrainer:
                 domain_labels = self.model.domain_labels()
 
                 # Create the model
-                dec_im, dec_sdrop, dec_fdrop, dec_shuffle1, dec_shuffle2, disc_out_real, disc_out_fake, domain_out = \
+                dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, disc_out_real, disc_out_fake, domain_out = \
                     self.model.net(imgs_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out_real, labels_real, disc_out_fake, labels_fake, domain_out,
                                                     domain_labels)
                 ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out_fake, labels_fake)
+                gen_loss = self.generator_loss(disc_out_fake, labels_fake, dec_cdrop, imgs_train)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
 
                 # Handle dependencies with update_ops (batch-norm)
@@ -307,7 +308,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_sdrop, dec_fdrop, dec_shuffle1, dec_shuffle2, dec_im, imgs_train)
+                self.make_image_summaries(dec_pdrop, dec_cdrop, dec_shuffle1, dec_shuffle2, dec_im, imgs_train)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

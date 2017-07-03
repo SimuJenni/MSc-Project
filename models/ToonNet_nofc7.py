@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, spatial_dropout, feature_dropout, spatial_shuffle, img_patch_dropout
+from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, channel_dropout, pixel_dropout, spatial_shuffle, img_patch_dropout
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -84,11 +84,11 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         # Concatenate cartoon and edge for input to generator
-        drop_im = feature_dropout(img, p=0.5)
+        drop_im = pixel_dropout(img, p=0.5)
         enc_im = self.encoder(img, reuse=reuse, training=training)
         enc_drop = self.encoder(drop_im, reuse=True, training=training)
-        enc_spatial_drop = self.generator(spatial_dropout(enc_im, 0.5), reuse=reuse, training=training)
-        enc_feature_drop = self.generator(feature_dropout(enc_im, 0.5), reuse=True, training=training)
+        enc_spatial_drop = self.generator(channel_dropout(enc_im, 0.5), reuse=reuse, training=training)
+        enc_feature_drop = self.generator(pixel_dropout(enc_im, 0.5), reuse=True, training=training)
         enc_im_drop = self.generator(enc_drop, reuse=True, training=training)
         enc_shuffle = spatial_shuffle(enc_im, 0.25)
 

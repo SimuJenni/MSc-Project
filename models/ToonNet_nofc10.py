@@ -312,15 +312,16 @@ class AlexNet:
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
+                net = slim.conv2d(net, 4096, kernel_size=[6, 6], padding='VALID', scope='fc6')
+                net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
+                net = slim.conv2d(net, 4096, kernel_size=[1, 1], scope='fc7')
+                net = slim.dropout(net, 0.5, is_training=training, scope='dropout7')
+                net = slim.conv2d(net, num_classes, kernel_size=[1, 1],
+                                  activation_fn=None,
+                                  normalizer_fn=None,
+                                  biases_initializer=tf.zeros_initializer,
+                                  scope='fc8')
                 net = slim.flatten(net)
-                net = slim.fully_connected(net, 4096, scope='fc1')
-                net = slim.dropout(net, 0.5, is_training=training)
-                net = slim.fully_connected(net, 4096, scope='fc2')
-                net = slim.dropout(net, 0.5, is_training=training)
-                net = slim.fully_connected(net, num_classes, scope='fc3',
-                                           activation_fn=None,
-                                           normalizer_fn=None,
-                                           biases_initializer=tf.zeros_initializer)
         return net
 
     def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID', fix_bn=False):
@@ -353,7 +354,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
 
-                    net = slim.conv2d(net, 4096, kernel_size=[5, 5], padding='VALID', scope='fc6')
+                    net = slim.conv2d(net, 4096, kernel_size=[6, 6], padding='VALID', scope='fc6')
                     net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
                     net = slim.conv2d(net, 4096, kernel_size=[1, 1], scope='fc7')
                     net = slim.dropout(net, 0.5, is_training=training, scope='dropout7')

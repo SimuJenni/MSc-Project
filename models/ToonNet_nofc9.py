@@ -86,11 +86,11 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        enc_channel_drop = self.generator(channel_dropout(enc_im, 0.3), tag='cdrop', reuse=reuse, training=training)
+        enc_channel_drop = self.generator(channel_dropout(enc_im, 0.25), tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_dropout(enc_im, 0.5), tag='pdrop', reuse=reuse, training=training)
         enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.4), tag='shuffle', reuse=reuse, training=training)
         enc_shuffle2 = spatial_shuffle(enc_im, 0.2)
-        enc_pool = self.generator(slim.max_pool2d(enc_im, [2, 2], stride=1, padding='VALID'), tag='pool', reuse=reuse,
+        enc_pool = self.generator(slim.avg_pool2d(enc_im, [3, 3], stride=1, padding='VALID'), tag='pool', reuse=reuse,
                                   training=training)
 
         # Decode both encoded images and generator output using the same decoder
@@ -348,14 +348,21 @@ class AlexNet:
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
-                encoded = net
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
+                encoded = net
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[5, 5], stride=1, scope='conv_6', activation_fn=None,
-                                      padding='VALID', normalizer_fn=None)
+                    net = slim.conv2d(net, 4096, kernel_size=[6, 6], padding='VALID', scope='fc6')
+                    net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
+                    net = slim.conv2d(net, 4096, kernel_size=[1, 1], scope='fc7')
+                    net = slim.dropout(net, 0.5, is_training=training, scope='dropout7')
+                    net = slim.conv2d(net, 2, kernel_size=[1, 1],
+                                      activation_fn=None,
+                                      normalizer_fn=None,
+                                      biases_initializer=tf.zeros_initializer,
+                                      scope='fc8')
                     net = slim.flatten(net)
 
                 return net, encoded
@@ -376,7 +383,7 @@ class AlexNet:
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_3')
-                net = slim.conv2d(net, num_classes, kernel_size=[5, 5], stride=1, scope='conv_4', activation_fn=None,
+                net = slim.conv2d(net, num_classes, kernel_size=[6, 6], stride=1, scope='conv_4', activation_fn=None,
                                   padding='VALID', normalizer_fn=None)
                 net = slim.flatten(net)
                 return net

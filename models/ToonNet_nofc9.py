@@ -118,7 +118,9 @@ class ToonNet:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.ones(shape=(5 * self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        weights = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                              0.2*tf.ones(shape=(5*self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2), weights
 
     def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -128,7 +130,9 @@ class ToonNet:
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
                                                              tf.zeros(shape=(5 * self.batch_size,), dtype=tf.int32)]))
-        return slim.one_hot_encoding(labels, 2)
+        weights = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                              0.2*tf.ones(shape=(5*self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2), weights
 
     def domain_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0,

@@ -78,6 +78,36 @@ class Preprocessor:
 
         return image, cartoon
 
+    def process_train(self, image):
+        sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
+            [144, 144, 3],
+            [[[0, 0, 1, 1]]],
+            aspect_ratio_range=self.aspect_ratio_range,
+            area_range=self.area_range,
+            use_image_if_no_bounding_boxes=True)
+        bbox_begin, bbox_size, distort_bbox = sample_distorted_bounding_box
+
+        image = self.extract_and_resize_bbox(image, bbox_begin, bbox_size)
+
+        image = tf.to_float(image) / 255.
+
+        if self.augment_color:
+            bright_delta, sat, hue_delta, cont = sample_color_params()
+            image = dist_color(image, bright_delta, sat, hue_delta, cont)
+            image = tf.clip_by_value(image, 0.0, 1.0)
+
+        if self.hsv:
+            image = tf.image.rgb_to_hsv(image)
+
+        # Scale to [-1, 1]
+        image = tf.to_float(image) * 2. - 1.
+
+        # Flip left-right
+        p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
+        image = flip_lr(image, p)
+
+        return image
+
     def process_test_toonnet(self, image, cartoon):
         image = self.central_crop(image)
         cartoon = self.central_crop(cartoon)

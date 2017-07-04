@@ -57,19 +57,19 @@ class ToonNetTrainer:
                     'linear': self.learning_rate_linear()}
         return policies[self.lr_policy]
 
-    def get_toon_train_batch(self):
+    def get_train_batch(self):
         with tf.device('/cpu:0'):
             # Get the training dataset
-            train_set = self.dataset.get_toon_train()
+            train_set = self.dataset.get_trainset()
             self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
                                                                       common_queue_capacity=8*self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
-            [img_train, toon_train] = provider.get(['image', 'cartoon'])
+            [img_train] = provider.get(['image'])
 
             # Preprocess data
-            img_train, toon_train = self.pre_processor.process_train_toonnet(img_train, toon_train)
+            img_train = self.pre_processor.process_train(img_train)
             # Make batches
             imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size, num_threads=8,
                                         capacity=4*self.model.batch_size)
@@ -275,7 +275,7 @@ class ToonNetTrainer:
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
-                imgs_train = self.get_toon_train_batch()
+                imgs_train = self.get_train_batch()
 
                 # Get labels for discriminator training
                 labels_disc, disc_weights = self.model.disc_labels()

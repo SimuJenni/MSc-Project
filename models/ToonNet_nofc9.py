@@ -164,7 +164,7 @@ class ToonNet:
             Encoding of the input.
         """
         with tf.variable_scope('generator', reuse=reuse):
-            with tf.name_scope(tag):
+            with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                     shortcut = net
                     residual = slim.conv2d(net, 512, kernel_size=[3, 3], stride=1, scope='conv1')

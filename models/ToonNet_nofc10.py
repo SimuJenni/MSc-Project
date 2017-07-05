@@ -73,7 +73,6 @@ class ToonNet:
 
         Args:
             img: Placeholder for input images
-            cartoon: Placeholder for cartooned images
             reuse: Whether to reuse already defined variables.
             training: Whether in train or eval mode
 
@@ -86,26 +85,24 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        enc_channel_drop = self.generator(channel_dropout(enc_im, 0.3), tag='cdrop', reuse=reuse, training=training)
+        enc_channel_drop = self.generator(channel_dropout(enc_im, 0.25), tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_dropout(enc_im, 0.5), tag='pdrop', reuse=reuse, training=training)
-        enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.4), tag='shuffle', reuse=reuse, training=training)
-        enc_shuffle2 = spatial_shuffle(enc_im, 0.2)
-        enc_pool = self.generator(slim.max_pool2d(enc_im, [2, 2], stride=1, padding='VALID'), tag='pool', reuse=reuse,
-                                  training=training)
+        enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.5), tag='shuffle', reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
         dec_cdrop = self.decoder(enc_channel_drop, reuse=True, training=False)
         dec_pdrop = self.decoder(enc_pixel_drop, reuse=True, training=False)
-        dec_shuffle1 = self.decoder(enc_shuffle1, reuse=True, training=False)
-        dec_shuffle2 = self.decoder(enc_shuffle2, reuse=True, training=False)
-        dec_pool = self.decoder(enc_pool, reuse=True, training=False)
+        dec_shuffle = self.decoder(enc_shuffle1, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_cdrop, dec_shuffle1, dec_shuffle2, dec_pool])
+        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_cdrop, dec_shuffle])
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
+        domain_in = tf.concat(0, [img, dec_im])
+        _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
+        domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
-        return dec_im, dec_cdrop, dec_pdrop, dec_shuffle1, dec_shuffle2, dec_pool, disc_out
+        return dec_im, dec_cdrop, dec_pdrop, dec_shuffle, disc_out, domain_class
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -114,9 +111,9 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(5 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         weights = tf.concat(concat_dim=0,
-                            values=[tf.ones(shape=(self.batch_size,)), 0.2*tf.ones(shape=(5*self.batch_size,))])
+                            values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
         return slim.one_hot_encoding(labels, 2), weights
 
     def disc_labels(self):
@@ -126,9 +123,9 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(5 * self.batch_size,), dtype=tf.int32)]))
+                                                             tf.zeros(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         weights = tf.concat(concat_dim=0,
-                            values=[tf.ones(shape=(self.batch_size,)), 0.2*tf.ones(shape=(5*self.batch_size,))])
+                            values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
         return slim.one_hot_encoding(labels, 2), weights
 
     def domain_labels(self):
@@ -188,6 +185,7 @@ class ToonNet:
         f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('encoder', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+                net = slim.conv2d(net, num_outputs=32, stride=1, scope='conv_0')
                 for l in range(0, self.num_layers):
                     net = slim.conv2d(net, num_outputs=f_dims[l], stride=2, scope='conv_{}'.format(l + 1))
 
@@ -211,7 +209,8 @@ class ToonNet:
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
                 net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),
                                              tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers), stride=1,
+                net = slim.conv2d(net, num_outputs=32, scope='deconv_{}'.format(self.num_layers), stride=1)
+                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers+1), stride=1,
                                   activation_fn=tf.nn.tanh, normalizer_fn=None)
                 return net
 
@@ -312,16 +311,15 @@ class AlexNet:
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                net = slim.conv2d(net, 4096, kernel_size=[6, 6], padding='VALID', scope='fc6')
-                net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
-                net = slim.conv2d(net, 4096, kernel_size=[1, 1], scope='fc7')
-                net = slim.dropout(net, 0.5, is_training=training, scope='dropout7')
-                net = slim.conv2d(net, num_classes, kernel_size=[1, 1],
-                                  activation_fn=None,
-                                  normalizer_fn=None,
-                                  biases_initializer=tf.zeros_initializer,
-                                  scope='fc8')
                 net = slim.flatten(net)
+                net = slim.fully_connected(net, 4096, scope='fc1')
+                net = slim.dropout(net, 0.5, is_training=training)
+                net = slim.fully_connected(net, 4096, scope='fc2')
+                net = slim.dropout(net, 0.5, is_training=training)
+                net = slim.fully_connected(net, num_classes, scope='fc3',
+                                           activation_fn=None,
+                                           normalizer_fn=None,
+                                           biases_initializer=tf.zeros_initializer)
         return net
 
     def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID', fix_bn=False):
@@ -346,23 +344,20 @@ class AlexNet:
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
-                encoded = net
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
+                encoded = net
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
 
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-
-                    net = slim.conv2d(net, 4096, kernel_size=[6, 6], padding='VALID', scope='fc6')
+                    net = slim.conv2d(net, 4096, kernel_size=[2, 2], padding='VALID', scope='fc6')
                     net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
-                    net = slim.conv2d(net, 4096, kernel_size=[1, 1], scope='fc7')
-                    net = slim.dropout(net, 0.5, is_training=training, scope='dropout7')
                     net = slim.conv2d(net, 2, kernel_size=[1, 1],
                                       activation_fn=None,
                                       normalizer_fn=None,
                                       biases_initializer=tf.zeros_initializer,
-                                      scope='fc8')
+                                      scope='fc7')
                     net = slim.flatten(net)
 
                 return net, encoded
@@ -383,7 +378,7 @@ class AlexNet:
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_3')
-                net = slim.conv2d(net, num_classes, kernel_size=[5, 5], stride=1, scope='conv_4', activation_fn=None,
+                net = slim.conv2d(net, num_classes, kernel_size=[6, 6], stride=1, scope='conv_4', activation_fn=None,
                                   padding='VALID', normalizer_fn=None)
                 net = slim.flatten(net)
                 return net

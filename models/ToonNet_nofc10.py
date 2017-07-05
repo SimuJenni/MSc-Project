@@ -351,7 +351,7 @@ class AlexNet:
 
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
-                    net = slim.conv2d(net, 4096, kernel_size=[2, 2], padding='VALID', scope='fc6')
+                    net = slim.conv2d(net, 1024, kernel_size=[2, 2], padding='VALID', scope='fc6')
                     net = slim.dropout(net, 0.5, is_training=training, scope='dropout6')
                     net = slim.conv2d(net, 2, kernel_size=[1, 1],
                                       activation_fn=None,

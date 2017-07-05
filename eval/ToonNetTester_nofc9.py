@@ -200,11 +200,6 @@ class ToonNetTester:
                                tf.image_summary('images/dec_pool', montage_tf(dec_pool[:24], 4, 6), max_images=1),
                                tf.image_summary('images/original', montage_tf(imgs_test[:24], 4, 6), max_images=1)]
 
-                # Compute accuracy
-                predictions = tf.argmax(disc_out, 1)
-                summary_ops.append(tf.scalar_summary('accuracy/discriminator accuracy',
-                                   slim.metrics.accuracy(predictions, tf.argmax(labels_disc, 1))))
-
                 if not self.model.vgg_discriminator:
                     with tf.variable_scope('discriminator', reuse=True):
                         weights_disc_1 = slim.variable('conv_1/weights')

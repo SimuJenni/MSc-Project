@@ -170,9 +170,9 @@ class ToonNetTrainer:
         gen_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels, scope=gen_scope, weight=weights)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        tf.contrib.losses.absolute_difference(dec_cdrop, imgs_train, scope=gen_scope, weight=1.0)
-        tf.contrib.losses.absolute_difference(dec_pdrop, imgs_train, scope=gen_scope, weight=1.0)
-        tf.contrib.losses.absolute_difference(dec_shuffle, imgs_train, scope=gen_scope, weight=1.0)
+        tf.contrib.losses.absolute_difference(dec_cdrop, imgs_train, scope=gen_scope, weight=5.0)
+        tf.contrib.losses.absolute_difference(dec_pdrop, imgs_train, scope=gen_scope, weight=5.0)
+        tf.contrib.losses.absolute_difference(dec_shuffle, imgs_train, scope=gen_scope, weight=5.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

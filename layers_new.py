@@ -23,6 +23,12 @@ def my_dropout(x, keep_prob, noise_shape=None, seed=None, name=None):
         return ret, binary_tensor
 
 
+def random_select(a, b, keep_prob, batch_size):
+    rand_vec = tf.random_uniform((batch_size,), minval=0.0, maxval=1.0)
+    binary_tensor = tf.greater(rand_vec, keep_prob)
+    return tf.select(binary_tensor, b, a), binary_tensor
+
+
 def lrelu(x, leak=0.2):
     return tf.maximum(x, leak * x)
 
@@ -56,11 +62,6 @@ def ordered_merge(a, b, order):
     return tf.select(tf.python.math_ops.greater(order, 0), merge(a, b), merge(b, a))
 
 
-def random_select(a, b, p, batch_size):
-    rand_vec = tf.random_uniform((batch_size,), minval=0.0, maxval=1.0)
-    return tf.select(tf.greater(rand_vec, p), a, b)
-
-
 def merge(a, b, dim=3):
     return tf.concat(concat_dim=dim, values=[a, b])
 
@@ -78,22 +79,24 @@ def spatial_shuffle(net, p):
     net = tf.transpose(net, [1, 2, 0, 3])
     net = tf.reshape(net, shape=[-1, in_shape[0], in_shape[3]])
     net_shuffled = tf.random_shuffle(net)
-    net = random_select(net, net_shuffled, p, net.get_shape().as_list()[0])
+    net, binary_tensor = random_select(net, net_shuffled, p, net.get_shape().as_list()[0])
     net = tf.reshape(net, [in_shape[1], in_shape[2], in_shape[0], in_shape[3]])
     net = tf.transpose(net, [2, 0, 1, 3])
-    return net
+    binary_tensor = tf.reshape(binary_tensor, [in_shape[1], in_shape[2], in_shape[0], -1])
+    binary_tensor = tf.transpose(binary_tensor, [2, 0, 1, 3])
+    return net, binary_tensor
 
 
 def pixel_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], input_shape[1], input_shape[2], 1)
-    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='pixel_dropout')
+    return my_dropout(net, p, noise_shape=noise_shape, name='pixel_dropout')
 
 
 def channel_dropout(net, p):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], 1, 1, input_shape[3])
-    return tf.nn.dropout(net, p, noise_shape=noise_shape, name='channel_dropout')
+    return my_dropout(net, p, noise_shape=noise_shape, name='channel_dropout')
 
 
 def coords2indices(coords, batch_size, size=32):
@@ -102,24 +105,6 @@ def coords2indices(coords, batch_size, size=32):
     offsets = [[[0, i, j] for i in range(-size / 2, size / 2)] for j in range(-size / 2, size / 2)]
     patch_idx = [center_idx + o for o in offsets]
     return patch_idx
-
-
-def img_patch_dropout(img, size=32):
-    input_shape = img.get_shape().as_list()
-    print(input_shape)
-    coord = tf.random_uniform((input_shape[0], 1, 2), minval=size / 2, maxval=input_shape[1] - size / 2, dtype=tf.int32)
-    print(coord.get_shape().as_list())
-    center_idx = tf.concat(2, values=[tf.reshape(tf.range(input_shape[0]), [input_shape[0], 1, 1]), coord])
-    print(center_idx.get_shape().as_list())
-    offsets = []
-    for i in range(-size / 2, size / 2):
-        for j in range(-size / 2, size / 2):
-            offsets.append([0, i, j])
-    patch_idx = tf.concat(1, [center_idx + o for o in offsets])
-    print(patch_idx.get_shape().as_list())
-    p_shape = patch_idx.get_shape().as_list()
-    img = tf.scatter_nd_update(tf.Variable(img, trainable=False), patch_idx, tf.zeros((p_shape[:2] + [3])))
-    return img
 
 
 def conv_group(net, num_out, kernel_size, scope):

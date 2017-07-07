@@ -83,7 +83,7 @@ def spatial_shuffle(net, p):
     net = tf.reshape(net, [in_shape[1], in_shape[2], in_shape[0], in_shape[3]])
     net = tf.transpose(net, [2, 0, 1, 3])
     binary_tensor = tf.reshape(binary_tensor, [1, in_shape[1], in_shape[2], 1])
-    return net, tf.to_int32(binary_tensor)
+    return net, tf.to_float(binary_tensor)
 
 
 def pixel_dropout(net, p):

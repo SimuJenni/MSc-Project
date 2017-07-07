@@ -82,8 +82,7 @@ def spatial_shuffle(net, p):
     net, binary_tensor = random_select(net, net_shuffled, p, net.get_shape().as_list()[0])
     net = tf.reshape(net, [in_shape[1], in_shape[2], in_shape[0], in_shape[3]])
     net = tf.transpose(net, [2, 0, 1, 3])
-    binary_tensor = tf.reshape(binary_tensor, [in_shape[1], in_shape[2], in_shape[0], -1])
-    binary_tensor = tf.transpose(binary_tensor, [2, 0, 1, 3])
+    binary_tensor = tf.reshape(binary_tensor, [1, in_shape[1], in_shape[2], 1])
     return net, binary_tensor
 
 

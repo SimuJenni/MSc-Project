@@ -349,13 +349,13 @@ class AlexNet:
                 net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
-                encoded = net
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
 
                 if with_fc:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                     net = slim.conv2d(net, 1024, kernel_size=[2, 2], padding='VALID', scope='fc6')
+                    encoded = net
                     net = slim.conv2d(net, 2, kernel_size=[1, 1],
                                       activation_fn=None,
                                       normalizer_fn=None,
@@ -380,9 +380,11 @@ class AlexNet:
         with tf.variable_scope(scope, reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.conv2d(net, 256, kernel_size=[3, 3], scope='conv_3')
-                net = slim.conv2d(net, num_classes, kernel_size=[6, 6], stride=1, scope='conv_4', activation_fn=None,
-                                  padding='VALID', normalizer_fn=None)
+                net = slim.conv2d(net, num_classes, kernel_size=[1, 1],
+                                  activation_fn=None,
+                                  normalizer_fn=None,
+                                  biases_initializer=tf.zeros_initializer,
+                                  scope='fc7')
                 net = slim.flatten(net)
                 return net
 

@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.99,
+        'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
         'fused': train_bn
@@ -85,10 +85,10 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        channel_drop, channel_noise = channel_dropout(enc_im, 0.66)
+        channel_drop, __ = channel_dropout(enc_im, 0.66)
         pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.66)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.66)
-        enc_channel_drop = self.generator(channel_drop, channel_noise, tag='cdrop', reuse=reuse, training=training)
+        enc_channel_drop = self.generator(channel_drop, None, tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
@@ -152,7 +152,7 @@ class ToonNet:
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def generator(self, net, binary_vector, tag='default', reuse=None, training=True):
+    def generator(self, net, binary_vector=None, tag='default', reuse=None, training=True):
         """Builds a generator with the given inputs. Noise is induced in all convolutional layers.
 
         Args:
@@ -170,7 +170,8 @@ class ToonNet:
                     residual = slim.conv2d(net, 256, kernel_size=[3, 3], stride=1, scope='conv1')
                     residual = slim.conv2d(residual, 256, kernel_size=[3, 3], stride=1, scope='conv2',
                                            normalizer_fn=None, activation_fn=None)
-                    residual *= (tf.ones_like(binary_vector) - binary_vector)
+                    if binary_vector:
+                        residual *= (tf.ones_like(binary_vector) - binary_vector)
                     output = slim.batch_norm(shortcut + residual, activation_fn=tf.nn.relu, scope='out')
                     return output
 

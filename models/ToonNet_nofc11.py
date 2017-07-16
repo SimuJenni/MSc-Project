@@ -85,9 +85,9 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        channel_drop, channel_noise = channel_dropout(enc_im, 0.5)
+        channel_drop, channel_noise = channel_dropout(enc_im, 0.75)
         pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.5)
-        shuffle, shuffle_noise = spatial_shuffle(enc_im, 0.5)
+        shuffle, shuffle_noise = spatial_shuffle(enc_im, 0.75)
         enc_channel_drop = self.generator(channel_drop, channel_noise, tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
         enc_shuffle = self.generator(shuffle, shuffle_noise, tag='shuffle', reuse=reuse, training=training)

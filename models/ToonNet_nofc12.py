@@ -87,7 +87,7 @@ class ToonNet:
         enc_im = self.encoder(img, reuse=reuse, training=training)
         channel_drop, __ = channel_dropout(enc_im, 0.75)
         pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
+        enc_shuffle, __ = spatial_shuffle(enc_im, 0.75)
         enc_channel_drop = self.generator(channel_drop, None, tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
 

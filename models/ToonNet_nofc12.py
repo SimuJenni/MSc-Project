@@ -85,9 +85,9 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        channel_drop, channel_noise = channel_dropout(enc_im, 1.0)
-        pixel_drop, pixel_noise = pixel_dropout(enc_im, 1.0)
-        shuffle, shuffle_noise = spatial_shuffle(enc_im, 1.0)
+        channel_drop, channel_noise = channel_dropout(enc_im, 0.66)
+        pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.66)
+        shuffle, shuffle_noise = spatial_shuffle(enc_im, 0.66)
         enc_channel_drop = self.generator(channel_drop, channel_noise, tag='cdrop', reuse=reuse, training=training)
         enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
         enc_shuffle = self.generator(shuffle, shuffle_noise, tag='shuffle', reuse=reuse, training=training)
@@ -168,10 +168,10 @@ class ToonNet:
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                     shortcut = net
-                    residual = slim.conv2d(net, 512, kernel_size=[3, 3], stride=1, scope='conv1')
-                    residual = slim.conv2d(residual, 512, kernel_size=[3, 3], stride=1, scope='conv2',
+                    residual = slim.conv2d(net, 256, kernel_size=[3, 3], stride=1, scope='conv1')
+                    residual = slim.conv2d(residual, 256, kernel_size=[3, 3], stride=1, scope='conv2',
                                            normalizer_fn=None, activation_fn=None)
-                    residual *= (1-binary_vector)
+                    residual *= (tf.ones_like(binary_vector) - binary_vector)
                     output = slim.batch_norm(shortcut + residual, activation_fn=tf.nn.relu, scope='out')
                     return output
 

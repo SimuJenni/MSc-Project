@@ -167,8 +167,8 @@ class ToonNet:
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                     shortcut = net
-                    residual = slim.conv2d(net, 256, kernel_size=[3, 3], stride=1, scope='conv1')
-                    residual = slim.conv2d(residual, 256, kernel_size=[3, 3], stride=1, scope='conv2',
+                    residual = slim.conv2d(net, 512, kernel_size=[3, 3], stride=1, scope='conv1')
+                    residual = slim.conv2d(residual, 512, kernel_size=[3, 3], stride=1, scope='conv2',
                                            normalizer_fn=None, activation_fn=None)
                     if binary_vector is not None:
                         residual *= (tf.ones_like(binary_vector) - binary_vector)

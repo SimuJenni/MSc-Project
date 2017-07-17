@@ -3,7 +3,7 @@ from tensorflow.contrib import slim as slim
 from tensorflow.python.ops import math_ops
 
 
-def my_dropout(x, keep_prob, noise_shape=None, seed=None, name=None):
+def my_dropout(x, keep_prob, kernel=None, noise_shape=None, seed=None, name=None):
     with tf.name_scope(name, "dropout", [x]):
         x = tf.convert_to_tensor(x, name="x")
         keep_prob = tf.convert_to_tensor(keep_prob,
@@ -16,6 +16,8 @@ def my_dropout(x, keep_prob, noise_shape=None, seed=None, name=None):
         random_tensor += tf.random_uniform(noise_shape,
                                            seed=seed,
                                            dtype=x.dtype)
+        if kernel:
+            random_tensor = -slim.max_pool2d(-random_tensor, kernel, stride=1, padding='SAME')
         # 0. if [keep_prob, 1.0) and 1. if [1.0, 1.0 + keep_prob)
         binary_tensor = math_ops.floor(random_tensor)
         ret = math_ops.div(x, keep_prob) * binary_tensor
@@ -86,10 +88,10 @@ def spatial_shuffle(net, shuffle_prob):
     return net, tf.to_float(binary_tensor)
 
 
-def pixel_dropout(net, p):
+def pixel_dropout(net, p, kernel=None):
     input_shape = net.get_shape().as_list()
     noise_shape = (input_shape[0], input_shape[1], input_shape[2], 1)
-    return my_dropout(net, p, noise_shape=noise_shape, name='pixel_dropout')
+    return my_dropout(net, p, kernel, noise_shape=noise_shape, name='pixel_dropout')
 
 
 def channel_dropout(net, p):

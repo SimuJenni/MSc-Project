@@ -85,26 +85,26 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        channel_drop, __ = channel_dropout(enc_im, 0.75)
-        pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.5)
+        pixel_drop1, pixel_noise1 = pixel_dropout(enc_im, 0.5)
+        pixel_drop2, pixel_noise2 = pixel_dropout(enc_im, 0.75, kernel=2)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.75)
-        enc_channel_drop = self.generator(channel_drop, None, tag='cdrop', reuse=reuse, training=training)
-        enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
+        enc_pixel_drop1 = self.generator(pixel_drop1, pixel_noise1, tag='pdrop', reuse=reuse, training=training)
+        enc_pixel_drop2 = self.generator(pixel_drop2, pixel_noise2, tag='pdrop', reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_cdrop = self.decoder(enc_channel_drop, reuse=True, training=False)
-        dec_pdrop = self.decoder(enc_pixel_drop, reuse=True, training=False)
+        dec_pdrop1 = self.decoder(enc_pixel_drop1, reuse=True, training=False)
+        dec_pdrop2 = self.decoder(enc_pixel_drop2, reuse=True, training=False)
         dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_cdrop, dec_shuffle])
+        disc_in = tf.concat(0, [dec_im, dec_pdrop1, dec_pdrop2, dec_shuffle])
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
         domain_in = tf.concat(0, [img, dec_im])
         _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
         domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
-        return dec_im, dec_cdrop, dec_pdrop, dec_shuffle, disc_out, domain_class
+        return dec_im, dec_pdrop1, dec_pdrop2, dec_shuffle, disc_out, domain_class
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

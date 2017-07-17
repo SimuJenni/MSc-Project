@@ -16,10 +16,10 @@ def my_dropout(x, keep_prob, kernel=None, noise_shape=None, seed=None, name=None
         random_tensor += tf.random_uniform(noise_shape,
                                            seed=seed,
                                            dtype=x.dtype)
-        if kernel:
-            random_tensor = -slim.max_pool2d(-random_tensor, kernel, stride=1, padding='SAME')
         # 0. if [keep_prob, 1.0) and 1. if [1.0, 1.0 + keep_prob)
         binary_tensor = math_ops.floor(random_tensor)
+        if kernel:
+            binary_tensor = slim.max_pool2d(binary_tensor*-1.0, kernel, stride=1, padding='SAME')*-1.0
         ret = math_ops.div(x, keep_prob) * binary_tensor
         ret.set_shape(x.get_shape())
         return ret, binary_tensor

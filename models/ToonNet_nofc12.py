@@ -279,7 +279,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                       normalizer_fn=None,)
-                    net = slim.avg_pool2d(net, kernel_size=[5, 5], stride=1)
+                    net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                     net = slim.flatten(net)
 
                 return net, encoded
@@ -301,7 +301,7 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, num_classes, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                   normalizer_fn=None, )
-                net = slim.avg_pool2d(net, kernel_size=[5, 5], stride=1)
+                net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                 net = slim.flatten(net)
                 return net
 

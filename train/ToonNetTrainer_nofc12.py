@@ -57,19 +57,19 @@ class ToonNetTrainer:
                     'linear': self.learning_rate_linear()}
         return policies[self.lr_policy]
 
-    def get_toon_train_batch(self):
+    def get_train_batch(self):
         with tf.device('/cpu:0'):
             # Get the training dataset
-            train_set = self.dataset.get_toon_train()
-            self.num_train_steps = (self.dataset.get_num_train_toon() / self.model.batch_size) * self.num_epochs
+            train_set = self.dataset.get_trainset()
+            self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
                                                                       common_queue_capacity=8*self.model.batch_size,
                                                                       common_queue_min=self.model.batch_size)
-            [img_train, toon_train] = provider.get(['image', 'cartoon'])
+            [img_train] = provider.get(['image'])
 
             # Preprocess data
-            img_train, toon_train = self.pre_processor.process_train_toonnet(img_train, toon_train)
+            img_train = self.pre_processor.process_train(img_train)
             # Make batches
             imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size, num_threads=8,
                                         capacity=4*self.model.batch_size)
@@ -144,7 +144,7 @@ class ToonNetTrainer:
     def domain_loss(self, domain_out, domain_labels):
         # Define loss for discriminator training
         dom_loss_scope = 'domain_loss'
-        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.2)
+        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.5)
         tf.scalar_summary('losses/domain loss', dom_loss)
         losses_disc = tf.contrib.losses.get_losses(dom_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(dom_loss_scope)
@@ -165,13 +165,13 @@ class ToonNetTrainer:
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels, dec_cdrop, dec_pdrop, imgs_train, weights):
+    def generator_loss(self, disc_out, labels, dec_pdrop, dec_avg_pool, imgs, weights):
         # Define the losses for generator training
         gen_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels, scope=gen_scope, weight=weights)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        tf.contrib.losses.mean_squared_error(dec_cdrop, imgs_train, scope=gen_scope, weight=30.0)
-        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs_train, scope=gen_scope, weight=30.0)
+        tf.contrib.losses.mean_squared_error(dec_avg_pool, imgs, scope=gen_scope, weight=30.0)
+        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=30.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -190,12 +190,12 @@ class ToonNetTrainer:
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', self.learning_rate())
 
-    def make_image_summaries(self, dec_spatial_drop, dec_eature_drop, dec_shuffle, img_rec, imgs_train):
-        tf.image_summary('imgs/gdec_spatial_drop', montage_tf(dec_spatial_drop, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/dec_eature_drop', montage_tf(dec_eature_drop, 1, self.im_per_smry), max_images=1)
+    def make_image_summaries(self, dec_pdrop, dec_avg_pool, dec_shuffle, dec_im, imgs_scaled):
+        tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 1, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/dec_avg_pool', montage_tf(dec_avg_pool, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/dec_shuffle', montage_tf(dec_shuffle, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/autoencoder', montage_tf(img_rec, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/ground truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/ground truth', montage_tf(imgs_scaled, 1, self.im_per_smry), max_images=1)
 
     def learning_rate_alex(self):
         # Define learning rate schedule
@@ -273,7 +273,7 @@ class ToonNetTrainer:
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
-                imgs_train = self.get_toon_train_batch()
+                imgs_train = self.get_train_batch()
 
                 # Get labels for discriminator training
                 labels_disc, disc_weights = self.model.disc_labels()
@@ -281,12 +281,13 @@ class ToonNetTrainer:
                 domain_labels = self.model.domain_labels()
 
                 # Create the model
-                dec_im, dec_cdrop, dec_pdrop, dec_shuffle, disc_out, domain_out = self.model.net(imgs_train)
+                dec_im, imgs_scaled, dec_pdrop, dec_shuffle, dec_avg_pool, disc_out, domain_out = \
+                    self.model.net(imgs_train)
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc, domain_out, domain_labels, disc_weights)
-                ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, dec_cdrop, dec_pdrop, imgs_train, gen_weights)
+                ae_loss = self.autoencoder_loss(dec_im, imgs_scaled)
+                gen_loss = self.generator_loss(disc_out, labels_gen, dec_pdrop, dec_avg_pool, imgs_scaled, gen_weights)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
 
                 # Handle dependencies with update_ops (batch-norm)
@@ -300,7 +301,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_pdrop, dec_cdrop, dec_shuffle, dec_im, imgs_train)
+                self.make_image_summaries(dec_pdrop, dec_avg_pool, dec_shuffle, dec_im, imgs_scaled)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

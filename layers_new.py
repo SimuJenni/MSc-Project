@@ -3,7 +3,7 @@ from tensorflow.contrib import slim as slim
 from tensorflow.python.ops import math_ops
 
 
-def my_dropout(x, keep_prob, kernel=None, noise_shape=None, seed=None, name=None):
+def my_dropout(x, keep_prob, scale=None, noise_shape=None, seed=None, name=None):
     with tf.name_scope(name, "dropout", [x]):
         x = tf.convert_to_tensor(x, name="x")
         keep_prob = tf.convert_to_tensor(keep_prob,
@@ -11,6 +11,9 @@ def my_dropout(x, keep_prob, kernel=None, noise_shape=None, seed=None, name=None
                                          name="keep_prob")
 
         noise_shape = noise_shape if noise_shape is not None else tf.shape(x)
+        if scale:
+            noise_shape = noise_shape/[1.0, scale, scale, 1.0]
+
         # uniform [keep_prob, 1.0 + keep_prob)
         random_tensor = keep_prob
         random_tensor += tf.random_uniform(noise_shape,
@@ -18,8 +21,6 @@ def my_dropout(x, keep_prob, kernel=None, noise_shape=None, seed=None, name=None
                                            dtype=x.dtype)
         # 0. if [keep_prob, 1.0) and 1. if [1.0, 1.0 + keep_prob)
         binary_tensor = math_ops.floor(random_tensor)
-        if kernel:
-            binary_tensor = slim.max_pool2d(binary_tensor*-1.0, kernel, stride=1, padding='SAME')*-1.0
         ret = math_ops.div(x, keep_prob) * binary_tensor
         ret.set_shape(x.get_shape())
         return ret, binary_tensor

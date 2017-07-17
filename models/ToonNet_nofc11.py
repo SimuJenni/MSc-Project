@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers import lrelu, up_conv2d, conv_group, res_block_bottleneck, channel_dropout, pixel_dropout, spatial_shuffle, merge
+from layers_new import lrelu, up_conv2d, conv_group, channel_dropout, pixel_dropout, spatial_shuffle
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -85,15 +85,17 @@ class ToonNet:
         """
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(img, reuse=reuse, training=training)
-        enc_channel_drop = self.generator(channel_dropout(enc_im, 0.333), tag='cdrop', reuse=reuse, training=training)
-        enc_pixel_drop = self.generator(pixel_dropout(enc_im, 0.5), tag='pdrop', reuse=reuse, training=training)
-        enc_shuffle1 = self.generator(spatial_shuffle(enc_im, 0.5), tag='shuffle', reuse=reuse, training=training)
+        channel_drop, channel_noise = channel_dropout(enc_im, 0.75)
+        pixel_drop, pixel_noise = pixel_dropout(enc_im, 0.5)
+        shuffle, __ = spatial_shuffle(enc_im, 0.75)
+        enc_channel_drop = self.generator(channel_drop, channel_noise, tag='cdrop', reuse=reuse, training=training)
+        enc_pixel_drop = self.generator(pixel_drop, pixel_noise, tag='pdrop', reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
         dec_cdrop = self.decoder(enc_channel_drop, reuse=True, training=False)
         dec_pdrop = self.decoder(enc_pixel_drop, reuse=True, training=False)
-        dec_shuffle = self.decoder(enc_shuffle1, reuse=True, training=False)
+        dec_shuffle = self.decoder(shuffle, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_cdrop, dec_shuffle])
@@ -150,7 +152,7 @@ class ToonNet:
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def generator(self, net, tag='default', reuse=None, training=True):
+    def generator(self, net, binary_vector, tag='default', reuse=None, training=True):
         """Builds a generator with the given inputs. Noise is induced in all convolutional layers.
 
         Args:
@@ -168,6 +170,7 @@ class ToonNet:
                     residual = slim.conv2d(net, 512, kernel_size=[3, 3], stride=1, scope='conv1')
                     residual = slim.conv2d(residual, 512, kernel_size=[3, 3], stride=1, scope='conv2',
                                            normalizer_fn=None, activation_fn=None)
+                    residual *= (tf.ones_like(binary_vector) - binary_vector)
                     output = slim.batch_norm(shortcut + residual, activation_fn=tf.nn.relu, scope='out')
                     return output
 

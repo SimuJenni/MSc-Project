@@ -165,14 +165,13 @@ class ToonNetTrainer:
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels, dec_cdrop, dec_pdrop, dec_shuffle, imgs_train, weights):
+    def generator_loss(self, disc_out, labels, dec_cdrop, dec_pdrop, imgs_train, weights):
         # Define the losses for generator training
         gen_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, labels, scope=gen_scope, weight=weights)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
         tf.contrib.losses.mean_squared_error(dec_cdrop, imgs_train, scope=gen_scope, weight=30.0)
         tf.contrib.losses.mean_squared_error(dec_pdrop, imgs_train, scope=gen_scope, weight=30.0)
-        tf.contrib.losses.mean_squared_error(dec_shuffle, imgs_train, scope=gen_scope, weight=30.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -287,7 +286,7 @@ class ToonNetTrainer:
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc, domain_out, domain_labels, disc_weights)
                 ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out, labels_gen, dec_cdrop, dec_pdrop, dec_shuffle, imgs_train, gen_weights)
+                gen_loss = self.generator_loss(disc_out, labels_gen, dec_cdrop, dec_pdrop, imgs_train, gen_weights)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
 
                 # Handle dependencies with update_ops (batch-norm)

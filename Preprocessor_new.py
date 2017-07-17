@@ -114,7 +114,7 @@ class Preprocessor:
         # Scale to [-1, 1]
         image = tf.to_float(image) * (2. / 255.) - 1.
 
-        return image, cartoon
+        return image
 
     def process_test_toonnet(self, image, cartoon):
         image = self.central_crop(image)

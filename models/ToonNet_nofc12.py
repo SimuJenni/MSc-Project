@@ -79,7 +79,7 @@ class ToonNet:
             enc_im: Encoding of the image
             gen_enc: Output of the generator
         """
-        imgs_scl = tf.image.resize_bilinear(imgs, (112, 112))
+        imgs_scl = tf.image.resize_bilinear(imgs, self.im_shape)
         imgs_avg_pool = slim.avg_pool2d(imgs_scl, (11, 11), stride=1, padding='SAME')
 
         # Concatenate cartoon and edge for input to generator

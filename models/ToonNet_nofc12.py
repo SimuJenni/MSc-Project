@@ -80,11 +80,11 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         imgs_scl = tf.image.resize_bilinear(imgs, self.im_shape)
-        imgs_avg_pool = slim.avg_pool2d(imgs_scl, (11, 11), stride=1, padding='SAME')
+        imgs_pool = slim.avg_pool2d(imgs_scl, (11, 11), stride=1, padding='SAME')
 
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
-        enc_pool = self.encoder(imgs_avg_pool, reuse=True, training=training)
+        enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
@@ -107,7 +107,7 @@ class ToonNet:
         _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
         domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
-        return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool
+        return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool, imgs_pool
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

@@ -283,7 +283,7 @@ class ToonNetTrainer:
                 domain_labels = self.model.domain_labels()
 
                 # Create the model
-                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool = \
+                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool, imgs_pool = \
                     self.model.net(imgs_train)
 
                 # Compute losses

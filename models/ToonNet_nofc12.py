@@ -279,7 +279,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                       normalizer_fn=None,)
-                    net = pixel_dropout(net, 0.5)
+                    net, __ = pixel_dropout(net, 0.5)
                     net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                     net = slim.flatten(net)
 

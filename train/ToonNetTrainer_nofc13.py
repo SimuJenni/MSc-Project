@@ -335,7 +335,7 @@ class ToonNetTrainer:
                 imgs_train = self.get_train_batch()
 
                 # Create the model
-                dec_im, imgs_scl = self.model.net(imgs_train)
+                dec_im, imgs_scl = self.model.autoencoder(imgs_train)
 
                 # Compute loss
                 ae_loss = self.autoencoder_loss(dec_im, imgs_scl)

@@ -27,7 +27,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
         'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
-        'fused': train_bn
+        'fused': True
     }
     he = tf.contrib.layers.variance_scaling_initializer(mode='FAN_AVG')
     with slim.arg_scope([slim.conv2d, slim.fully_connected, slim.convolution2d_transpose],
@@ -87,7 +87,7 @@ class ToonNet:
         enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
+        enc_shuffle, __ = spatial_shuffle(enc_im, 0.85)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
 

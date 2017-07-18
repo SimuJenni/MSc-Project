@@ -94,7 +94,7 @@ class ToonNet:
 
         # Decode both encoded images and generator output using the same decoder
         disc_in = self.decoder(dec_in, reuse=reuse, training=training)
-        dec_im, dec_pdrop, dec_shuffle, dec_pool = tf.split(0, 4, disc_in)
+        [dec_im, dec_pdrop, dec_shuffle, dec_pool] = tf.split(0, 4, disc_in)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = tf.image.resize_bilinear(disc_in, size=(227, 227))

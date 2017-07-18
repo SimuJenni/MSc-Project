@@ -86,9 +86,9 @@ class ToonNet:
         enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
         enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
 
-        pixel_drop, pdrop_mask = pixel_dropout(enc_im, 0.5)
+        pixel_drop, __ = pixel_dropout(enc_im, 0.5)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
-        enc_pdrop = self.generator(pixel_drop, pdrop_mask, tag='pdrop', reuse=reuse, training=training)
+        enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
@@ -154,7 +154,7 @@ class ToonNet:
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def generator(self, net, drop_mask=None, tag='default', reuse=None, training=True):
+    def generator(self, net, tag='default', reuse=None, training=True):
         """Builds a generator with the given inputs. Noise is induced in all convolutional layers.
 
         Args:
@@ -170,8 +170,6 @@ class ToonNet:
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                     for l in range(0, 3):
                         net = res_block_bottleneck(net, 512, 128, scope='conv_{}'.format(l + 1))
-                    if drop_mask is not None:
-                        net *= (tf.ones_like(drop_mask) - drop_mask)
                     return net
 
     def encoder(self, net, reuse=None, training=True):

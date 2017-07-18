@@ -90,15 +90,13 @@ class ToonNet:
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
+        dec_in = tf.concat(0, [enc_im, enc_pdrop, enc_shuffle, enc_pool])
 
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=training)
-        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=training)
-        dec_pool = self.decoder(enc_pool, reuse=True, training=training)
+        disc_in = self.decoder(dec_in, reuse=reuse, training=training)
+        dec_im, dec_pdrop, dec_shuffle, dec_pool = tf.split(0, 4, disc_in)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_shuffle, dec_pool])
         disc_in = tf.image.resize_bilinear(disc_in, size=(227, 227))
 
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)

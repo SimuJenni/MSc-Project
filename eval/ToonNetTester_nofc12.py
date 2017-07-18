@@ -64,11 +64,11 @@ class ToonNetTester:
         with tf.device('/cpu:0'):
             # Get the training dataset
             test_set = self.dataset.get_testset()
-            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1, shuffle=True)
+            provider = slim.dataset_data_provider.DatasetDataProvider(test_set, num_readers=1)
             [img_test] = provider.get(['image'])
 
             # Preprocess data
-            img_test = self.pre_processor.process_test(img_test)
+            img_test = self.pre_processor.process_train(img_test)
 
             # Make batches
             imgs_test = tf.train.batch([img_test], batch_size=self.model.batch_size, num_threads=1)

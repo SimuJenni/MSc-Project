@@ -35,9 +35,6 @@ layer {
   type: "ReLU"
   bottom: "Convolution1"
   top: "Convolution1"
-  relu_param{
-    negative_slope: 0.2
-  }
 }
 layer {
   name: "pool1"

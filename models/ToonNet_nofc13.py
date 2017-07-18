@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers_new import lrelu, up_conv2d, conv_group, pixel_dropout, spatial_shuffle, res_block_bottleneck
+from layers_new import lrelu, up_conv2d, conv_group, pixel_dropout, spatial_shuffle, res_block_bottleneck, add_noise_plane
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -79,34 +79,32 @@ class ToonNet:
             enc_im: Encoding of the image
             gen_enc: Output of the generator
         """
-        imgs_scl = tf.image.resize_bilinear(imgs, self.im_shape)
-        imgs_pool = slim.avg_pool2d(imgs_scl, (11, 11), stride=1, padding='SAME')
 
         # Concatenate cartoon and edge for input to generator
-        enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
-        enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
+        enc_im = self.encoder(imgs, reuse=reuse, training=False)
+        enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.85)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
-        enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
+        enc_pool = self.generator(enc_pool, tag='pool', reuse=True, training=training)
 
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=training)
-        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=training)
-        dec_pool = self.decoder(enc_pool, reuse=True, training=training)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=False)
+        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=False)
+        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=False)
+        dec_pool = self.decoder(enc_pool, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_shuffle, dec_pool])
-        disc_in = tf.image.resize_bilinear(disc_in, size=(227, 227))
-
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        domain_in = tf.concat(0, [imgs, tf.image.resize_bilinear(dec_im, size=(227, 227))])
-        _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
-        domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
-        return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool, imgs_pool
+        return dec_im, dec_pdrop, dec_shuffle, dec_pool, disc_out, enc_im, enc_pdrop, enc_pool, imgs_pool
+
+    def autoencoder(self, imgs, reuse=None, training=True):
+        enc_im = self.encoder(imgs, reuse=reuse, training=training)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
+        return dec_im
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -168,7 +166,8 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    for l in range(0, 2):
+                    net = add_noise_plane(net, 64)
+                    for l in range(0, 5):
                         net = res_block_bottleneck(net, 512, 128, scope='conv_{}'.format(l + 1))
                     return net
 
@@ -217,7 +216,7 @@ class ToonNet:
 
 
 class AlexNet:
-    def __init__(self, fc_activation=tf.nn.relu, fix_bn=False):
+    def __init__(self, fc_activation=lrelu, fix_bn=False):
         self.fix_bn = fix_bn
         self.fc_activation = fc_activation
 
@@ -277,10 +276,9 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.dropout(net, 0.75, is_training=training)
                     net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                       normalizer_fn=None,)
-                    net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
+                    net = slim.avg_pool2d(net, kernel_size=[3, 3], stride=1)
                     net = slim.flatten(net)
 
                 return net, encoded
@@ -302,7 +300,7 @@ class AlexNet:
                                                   fix_bn=self.fix_bn)):
                 net = slim.conv2d(net, num_classes, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                   normalizer_fn=None, )
-                net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
+                net = slim.avg_pool2d(net, kernel_size=[3, 3], stride=1)
                 net = slim.flatten(net)
                 return net
 

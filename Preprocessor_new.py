@@ -80,7 +80,7 @@ class Preprocessor:
 
     def process_train(self, image):
         sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
-            [144, 144, 3],
+            [256, 256, 3],
             [[[0, 0, 1, 1]]],
             aspect_ratio_range=self.aspect_ratio_range,
             area_range=self.area_range,
@@ -105,6 +105,14 @@ class Preprocessor:
         # Flip left-right
         p = tf.random_uniform(shape=(), minval=0.0, maxval=1.0)
         image = flip_lr(image, p)
+
+        return image
+
+    def process_test(self, image):
+        image = self.central_crop(image)
+
+        # Scale to [-1, 1]
+        image = tf.to_float(image) * (2. / 255.) - 1.
 
         return image
 

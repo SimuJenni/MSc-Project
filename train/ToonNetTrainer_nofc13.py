@@ -70,30 +70,35 @@ class ToonNetTrainer:
             self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                      common_queue_capacity=8*self.model.batch_size,
-                                                                      common_queue_min=self.model.batch_size)
+                                                                      common_queue_capacity=20 * self.model.batch_size,
+                                                                      common_queue_min=10 * self.model.batch_size)
             [img_train] = provider.get(['image'])
 
             # Preprocess data
             img_train = self.pre_processor.process_train(img_train)
+
             # Make batches
-            imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size, num_threads=8,
-                                        capacity=4*self.model.batch_size)
-        return imgs_train
+            imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size,
+                                        num_threads=8,
+                                        capacity=5 * self.model.batch_size)
+            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_train])
+
+            return batch_queue.dequeue()
 
     def get_finetune_batch(self, dataset_id):
         with tf.device('/cpu:0'):
             # Get the training dataset
             if dataset_id:
                 train_set = self.dataset.get_split(dataset_id)
-                self.num_train_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size) * self.num_epochs
+                self.num_train_steps = (self.dataset.get_num_dataset(
+                    dataset_id) / self.model.batch_size) * self.num_epochs
             else:
                 train_set = self.dataset.get_trainset()
                 self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
-                                                                      common_queue_capacity=4 * self.model.batch_size,
-                                                                      common_queue_min=self.model.batch_size)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
+                                                                      common_queue_capacity=20 * self.model.batch_size,
+                                                                      common_queue_min=10 * self.model.batch_size)
 
             # Parse a serialized Example proto to extract the image and metadata.
             [img_train, label_train] = provider.get(['image', 'label'])
@@ -105,9 +110,11 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
-                                                      num_threads=10,
-                                                      capacity=2*self.model.batch_size)
-            return imgs_train, labels_train
+                                                      num_threads=8,
+                                                      capacity=5 * self.model.batch_size)
+            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_train, labels_train])
+
+            return batch_queue.dequeue()
 
     def classification_loss(self, preds_train, labels_train):
         # Define the loss
@@ -133,7 +140,8 @@ class ToonNetTrainer:
     def discriminator_loss(self, disc_out, disc_labels, domain_out, domain_labels, weights):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope, weight=weights)
+        disc_loss = tf.contrib.losses.softmax_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope,
+                                                            weight=weights)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
         tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=disc_loss_scope, weight=0.2,
                                                 label_smoothing=1.0)
@@ -206,7 +214,6 @@ class ToonNetTrainer:
         tf.image_summary('imgs/ground_truth', montage_tf(imgs_scaled, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/imgs_pool', montage_tf(imgs_pool, 1, self.im_per_smry), max_images=1)
 
-
     def learning_rate_alex(self):
         # Define learning rate schedule
         num_train_steps = self.num_train_steps
@@ -219,8 +226,8 @@ class ToonNetTrainer:
     def learning_rate_voc(self):
         # Define learning rate schedule
         num_train_steps = self.num_train_steps
-        boundaries = [np.int64(10000*i) for i in range(1, np.int64(num_train_steps/10000))]
-        values = [self.init_lr*0.5**i for i in range(np.int64(num_train_steps/10000))]
+        boundaries = [np.int64(10000 * i) for i in range(1, np.int64(num_train_steps / 10000))]
+        values = [self.init_lr * 0.5 ** i for i in range(np.int64(num_train_steps / 10000))]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self):
@@ -279,7 +286,20 @@ class ToonNetTrainer:
         else:
             return None
 
-    def train(self, chpt_path=None):
+    def init_AE_fn(self):
+        var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
+        print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
+        var2restore = remove_missing(var2restore, self.get_autoencoder_save_dir())
+        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(self.get_autoencoder_save_dir(), var2restore)
+        sys.stdout.flush()
+
+        # Create an initial assignment function.
+        def InitAssignFn(sess):
+            sess.run(init_assign_op, init_feed_dict)
+
+        return InitAssignFn
+
+    def train(self):
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
@@ -296,7 +316,6 @@ class ToonNetTrainer:
 
                 # Compute losses
                 disc_loss = self.discriminator_loss(disc_out, labels_disc, domain_out, domain_labels, disc_weights)
-                ae_loss = self.autoencoder_loss(dec_im, imgs_scl)
                 gen_loss = self.generator_loss(disc_out, labels_gen, dec_pdrop, dec_pool, imgs_scl, gen_weights,
                                                enc_im, enc_pdrop, enc_pool)
                 dom_loss = self.domain_loss(domain_out, domain_labels)
@@ -306,7 +325,6 @@ class ToonNetTrainer:
                 if update_ops:
                     updates = tf.group(*update_ops)
                     gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
-                    ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
                     disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
                     dom_loss = control_flow_ops.with_dependencies([updates], dom_loss)
 
@@ -316,13 +334,12 @@ class ToonNetTrainer:
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')
-                train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
                 train_op_dom = self.make_train_op(dom_loss, scope='dom_class')
 
                 # Start training
-                slim.learning.train(train_op_ae + train_op_gen + train_op_disc + train_op_dom, self.get_save_dir(),
-                                    init_fn=self.cont_init_fn(chpt_path),
+                slim.learning.train(train_op_gen + train_op_disc + train_op_dom, self.get_save_dir(),
+                                    init_fn=self.init_AE_fn(),
                                     save_summaries_secs=300,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,

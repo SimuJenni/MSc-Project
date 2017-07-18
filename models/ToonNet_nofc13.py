@@ -83,20 +83,22 @@ class ToonNet:
         imgs_pool = slim.avg_pool2d(imgs_scl, (7, 7), stride=1, padding='SAME')
 
         # Concatenate cartoon and edge for input to generator
-        enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
-        enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
+        enc_im = self.encoder(imgs_scl, reuse=reuse, training=False)
+        enc_pool = self.encoder(imgs_pool, reuse=True, training=False)
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.8)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
-        dec_in = tf.concat(0, [enc_im, enc_pdrop, enc_shuffle, enc_pool])
 
         # Decode both encoded images and generator output using the same decoder
-        disc_in = self.decoder(dec_in, reuse=reuse, training=training)
-        [dec_im, dec_pdrop, dec_shuffle, dec_pool] = tf.split(0, 4, disc_in)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=False)
+        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=False)
+        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=False)
+        dec_pool = self.decoder(enc_pool, reuse=True, training=False)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
+        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_shuffle, dec_pool])
         disc_in = tf.image.resize_bilinear(disc_in, size=(227, 227))
 
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
@@ -105,6 +107,12 @@ class ToonNet:
         domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
         return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool, imgs_pool
+
+    def autoencoder(self, imgs, reuse=None, training=True):
+        imgs_scl = tf.image.resize_bilinear(imgs, self.im_shape)
+        enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
+        return dec_im, imgs_scl
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)

@@ -102,8 +102,7 @@ class ToonNet:
         disc_in = tf.image.resize_bilinear(disc_in, size=(227, 227))
 
         disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        domain_in = tf.concat(0, [imgs, tf.image.resize_bilinear(dec_im, size=(227, 227))
-])
+        domain_in = tf.concat(0, [imgs, tf.image.resize_bilinear(dec_im, size=(227, 227))])
         _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
         domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 

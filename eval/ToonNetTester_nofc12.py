@@ -68,7 +68,7 @@ class ToonNetTester:
             [img_test] = provider.get(['image'])
 
             # Preprocess data
-            img_test = self.pre_processor.process_test(img_test)
+            img_test = self.pre_processor.process_train(img_test)
 
             # Make batches
             imgs_test = tf.train.batch([img_test], batch_size=self.model.batch_size, num_threads=1)

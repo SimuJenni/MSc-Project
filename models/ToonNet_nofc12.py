@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.985,
+        'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
         'fused': train_bn
@@ -279,6 +279,7 @@ class AlexNet:
                 if with_fc:
                     net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
                                       normalizer_fn=None,)
+                    net = pixel_dropout(net, 0.5)
                     net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                     net = slim.flatten(net)
 

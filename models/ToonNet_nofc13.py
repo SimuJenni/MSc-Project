@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.985,
+        'decay': 0.975,
         'epsilon': 0.001,
         'center': center,
         'fused': train_bn

@@ -83,7 +83,7 @@ class ToonNet:
 
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
-        enc_pool = slim.avg_pool2d(enc_im, (3, 3), stride=1, padding='SAME')
+        enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
         enc_shuffle, __ = spatial_shuffle(enc_im, 0.9)

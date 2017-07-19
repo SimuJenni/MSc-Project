@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from layers_new import lrelu, up_conv2d, conv_group, pixel_dropout, spatial_shuffle, res_block_bottleneck
+from layers_new import lrelu, up_conv2d, conv_group, pixel_dropout, spatial_shuffle, res_block_bottleneck, add_noise_plane
 
 DEFAULT_FILTER_DIMS = [64, 128, 256, 512, 512]
 REPEATS = [1, 1, 2, 2, 2]
@@ -24,7 +24,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
     train_bn = training and not fix_bn
     batch_norm_params = {
         'is_training': train_bn,
-        'decay': 0.975,
+        'decay': 0.99,
         'epsilon': 0.001,
         'center': center,
         'fused': True
@@ -80,14 +80,13 @@ class ToonNet:
             gen_enc: Output of the generator
         """
         imgs_scl = tf.image.resize_bilinear(imgs, self.im_shape)
-        imgs_pool = slim.avg_pool2d(imgs_scl, (11, 11), stride=1, padding='SAME')
 
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs_scl, reuse=reuse, training=training)
-        enc_pool = self.encoder(imgs_pool, reuse=True, training=training)
+        enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
 
-        pixel_drop, __ = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.85)
+        pixel_drop, __ = pixel_dropout(enc_im, 0.66)
+        enc_shuffle, __ = spatial_shuffle(enc_im, 0.9)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, tag='avg_pool', reuse=reuse, training=training)
 
@@ -106,7 +105,7 @@ class ToonNet:
         _, domain_in_enc = self.discriminator.discriminate(domain_in, reuse=True, training=training)
         domain_class = self.discriminator.domain_classifier(domain_in_enc, 2, reuse=reuse, training=training)
 
-        return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool, imgs_pool
+        return dec_im, imgs_scl, dec_pdrop, dec_shuffle, dec_pool, disc_out, domain_class, enc_im, enc_pdrop, enc_pool
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -168,7 +167,8 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    for l in range(0, 2):
+                    net = add_noise_plane(net, 64)
+                    for l in range(0, 5):
                         net = res_block_bottleneck(net, 512, 128, scope='conv_{}'.format(l + 1))
                     return net
 
@@ -217,7 +217,7 @@ class ToonNet:
 
 
 class AlexNet:
-    def __init__(self, fc_activation=tf.nn.relu, fix_bn=False):
+    def __init__(self, fc_activation=lrelu, fix_bn=False):
         self.fix_bn = fix_bn
         self.fc_activation = fc_activation
 
@@ -276,11 +276,11 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.dropout(net, 0.75, is_training=training)
-                    net = slim.conv2d(net, 2, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
-                                      normalizer_fn=None,)
-                    net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                     net = slim.flatten(net)
+                    net = slim.fully_connected(net, 2, scope='fc',
+                                               activation_fn=None,
+                                               normalizer_fn=None,
+                                               biases_initializer=tf.zeros_initializer)
 
                 return net, encoded
 
@@ -299,10 +299,11 @@ class AlexNet:
         with tf.variable_scope(scope, reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.conv2d(net, num_classes, kernel_size=[1, 1], stride=1, scope='conv_6', activation_fn=None,
-                                  normalizer_fn=None, )
-                net = slim.avg_pool2d(net, kernel_size=[6, 6], stride=1)
                 net = slim.flatten(net)
+                net = slim.fully_connected(net, num_classes, scope='fc',
+                                           activation_fn=None,
+                                           normalizer_fn=None,
+                                           biases_initializer=tf.zeros_initializer)
                 return net
 
 

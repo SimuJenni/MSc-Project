@@ -5,7 +5,7 @@ from models.ToonNet_nofc13 import ToonNet
 
 model = ToonNet(num_layers=3, batch_size=200, im_shape=[64, 64, 3])
 data = STL10()
-preprocessor = Preprocessor(target_shape=[64, 64, 3], augment_color=True)
+preprocessor = Preprocessor(target_shape=[64, 64, 3], im_shape=[96, 96, 3], augment_color=True)
 trainer = ToonNetTrainer(model=model, dataset=data, pre_processor=preprocessor, num_epochs=300, tag='refactored',
                          lr_policy='linear', optimizer='adam', init_lr=0.0003, end_lr=1e-8)
 trainer.train_autoencoder()

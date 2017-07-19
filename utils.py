@@ -186,4 +186,6 @@ def montage(images, gray=False):
 
 def get_checkpoint_path(checkpoint_dir):
     ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
+    if not ckpt:
+        print("Ooops, no checkpoint in {}".format(checkpoint_dir))
     return ckpt.model_checkpoint_path

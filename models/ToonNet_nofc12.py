@@ -86,7 +86,7 @@ class ToonNet:
         enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.85)
+        enc_shuffle, __ = spatial_shuffle(enc_im, 0.825)
         enc_pdrop = self.generator(pixel_drop, reuse=reuse, training=training)
         enc_pool = self.generator(enc_pool, reuse=True, training=training)
 

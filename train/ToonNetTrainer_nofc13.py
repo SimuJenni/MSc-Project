@@ -346,10 +346,10 @@ class ToonNetTrainer:
                 imgs_train = self.get_train_batch()
 
                 # Create the model
-                dec_im, imgs_scl = self.model.autoencoder(imgs_train)
+                dec_im = self.model.autoencoder(imgs_train)
 
                 # Compute loss
-                ae_loss = self.autoencoder_loss(dec_im, imgs_scl)
+                ae_loss = self.autoencoder_loss(dec_im, imgs_train)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -360,7 +360,7 @@ class ToonNetTrainer:
                 # Make summaries
                 self.make_summaries()
                 tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
-                tf.image_summary('imgs/ground_truth', montage_tf(imgs_scl, 1, self.im_per_smry), max_images=1)
+                tf.image_summary('imgs/ground_truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
 
                 # Generator training operations
                 train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')

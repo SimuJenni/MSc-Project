@@ -236,7 +236,6 @@ class AlexNet:
         with tf.variable_scope(scope, reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, training=training,
                                                   fix_bn=self.fix_bn)):
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 net = slim.flatten(net)
                 net = slim.fully_connected(net, 4096, scope='fc1')
                 net = slim.dropout(net, 0.5, is_training=training)

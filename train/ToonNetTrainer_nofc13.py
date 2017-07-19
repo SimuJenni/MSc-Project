@@ -9,6 +9,8 @@ import numpy as np
 
 from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn, remove_missing
 from constants import LOG_DIR
+from utils import get_checkpoint_path
+
 
 slim = tf.contrib.slim
 
@@ -50,7 +52,7 @@ class ToonNetTrainer:
         fname = '{}_{}_AE'.format(self.dataset.name, self.model.name)
         if self.additional_info:
             fname = '{}_{}'.format(fname, self.additional_info)
-        return os.path.join(LOG_DIR, '{}/'.format(fname))
+        return get_checkpoint_path(os.path.join(LOG_DIR, '{}/'.format(fname)))
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
@@ -305,7 +307,6 @@ class ToonNetTrainer:
                 # Get labels for discriminator training
                 labels_disc, disc_weights = self.model.disc_labels()
                 labels_gen, gen_weights = self.model.gen_labels()
-                domain_labels = self.model.domain_labels()
 
                 # Create the model
                 dec_im, dec_pdrop, dec_shuffle, dec_pool, disc_out, enc_im, enc_pdrop, enc_pool =\

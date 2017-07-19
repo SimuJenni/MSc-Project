@@ -58,7 +58,7 @@ class STL10(Dataset):
         return items_to_handlers
 
     def get_trainset(self):
-        return self.get_split('train')
+        return self.get_split('train_unlabeled')
 
     def get_toon_train(self):
         return self.get_split('train_unlabeled')
@@ -73,7 +73,7 @@ class STL10(Dataset):
         return 'test_fold_{}'.format(fold_idx)
 
     def get_num_train(self):
-        return self.SPLITS_TO_SIZES['train']
+        return self.SPLITS_TO_SIZES['train_unlabeled']
 
     def get_num_train_toon(self):
         return self.SPLITS_TO_SIZES['train_unlabeled']

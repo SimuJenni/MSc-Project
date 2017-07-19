@@ -52,7 +52,7 @@ class ToonNetTrainer:
         fname = '{}_{}_AE'.format(self.dataset.name, self.model.name)
         if self.additional_info:
             fname = '{}_{}'.format(fname, self.additional_info)
-        return get_checkpoint_path(os.path.join(LOG_DIR, '{}/'.format(fname)))
+        return os.path.join(LOG_DIR, '{}/'.format(fname))
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
@@ -289,7 +289,8 @@ class ToonNetTrainer:
         var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
         print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
         var2restore = remove_missing(var2restore, self.get_autoencoder_save_dir())
-        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(self.get_autoencoder_save_dir(), var2restore)
+        ckpt = get_checkpoint_path(self.get_autoencoder_save_dir())
+        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(ckpt, var2restore)
         sys.stdout.flush()
 
         # Create an initial assignment function.

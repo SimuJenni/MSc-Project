@@ -116,10 +116,12 @@ def conv_group(net, num_out, kernel_size, scope):
     return tf.concat(concat_dim=3, values=output_groups)
 
 
-def res_block_bottleneck(inputs, depth, depth_bottleneck, scope=None):
+def res_block_bottleneck(inputs, depth, depth_bottleneck, noise_channels=None, scope=None):
     with slim.variable_scope.variable_scope(scope):
-        preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
         shortcut = inputs
+        preact = slim.batch_norm(inputs, activation_fn=tf.nn.relu, scope='preact')
+        if noise_channels:
+            preact = add_noise_plane(preact, noise_channels)
         residual = slim.conv2d(preact, depth_bottleneck, kernel_size=[1, 1], stride=1, scope='conv1')
         residual = slim.conv2d(residual, depth_bottleneck, kernel_size=[3, 3], stride=1, scope='conv2')
         residual = slim.conv2d(residual, depth, kernel_size=[1, 1], stride=1, normalizer_fn=None, activation_fn=None,

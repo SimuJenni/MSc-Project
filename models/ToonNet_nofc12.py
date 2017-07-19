@@ -167,9 +167,8 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    net = add_noise_plane(net, 64)
                     for l in range(0, 5):
-                        net = res_block_bottleneck(net, 512, 128, scope='conv_{}'.format(l + 1))
+                        net = res_block_bottleneck(net, 512, 128, noise_channels=32, scope='conv_{}'.format(l + 1))
                     return net
 
     def encoder(self, net, reuse=None, training=True):

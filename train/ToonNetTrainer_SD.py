@@ -124,19 +124,17 @@ class ToonNetTrainer:
             tf.histogram_summary('predictions', predictions)
         return total_train_loss
 
-    def discriminator_loss(self, disc_out, disc_labels):
+    def discriminator_loss(self, disc_real, disc_fake, drop_pred, drop_label):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_out, disc_labels, scope=disc_loss_scope)
+        disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_real, tf.ones_like(disc_real), scope=disc_loss_scope)
+        disc_loss += tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.zeros_like(disc_real), scope=disc_loss_scope)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope)
+        tf.scalar_summary('losses/drop_pred loss', drop_pred_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
         disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
-
-        # Compute accuracy
-        predictions = tf.argmax(disc_out, 1)
-        tf.scalar_summary('accuracy/discriminator accuracy',
-                          slim.metrics.accuracy(predictions, tf.argmax(disc_labels, 1)))
         return disc_total_loss
 
     def autoencoder_loss(self, imgs_rec, imgs_train):
@@ -149,11 +147,13 @@ class ToonNetTrainer:
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels, dec_pdrop, imgs, enc_im, enc_pdrop):
+    def generator_loss(self, disc_fake, drop_pred, drop_label, dec_pdrop, imgs, enc_im, enc_pdrop):
         # Define the losses for generator training
         gen_scope = 'gen_loss'
-        gen_disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_out, labels, scope=gen_scope)
+        gen_disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.ones_like(disc_fake), scope=gen_scope)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, 1.0-drop_label, scope=gen_scope)
+        tf.scalar_summary('losses/drop_pred loss (generator)', drop_pred_loss)
         tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=30.0)
         tf.contrib.losses.mean_squared_error(enc_pdrop, enc_im, scope=gen_scope, weight=3.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
@@ -258,12 +258,13 @@ class ToonNetTrainer:
                 imgs_train = self.get_train_batch()
 
                 # Create the model
-                dec_im, dec_pdrop, disc_out, disc_label, enc_im, enc_pdrop = self.model.net(imgs_train)
+                dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label, enc_im, enc_pdrop = \
+                    self.model.net(imgs_train)
 
                 # Compute losses
-                disc_loss = self.discriminator_loss(disc_out, disc_label)
+                disc_loss = self.discriminator_loss(disc_real, disc_fake, drop_pred, drop_label)
                 ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-                gen_loss = self.generator_loss(disc_out, 1.0-disc_label, dec_pdrop, imgs_train, enc_im, enc_pdrop)
+                gen_loss = self.generator_loss(disc_fake, drop_pred, drop_label, dec_pdrop, imgs_train, enc_im, enc_pdrop)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

@@ -81,7 +81,7 @@ class ToonNet:
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs, reuse=reuse, training=training)
 
-        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.5)
+        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.75)
         enc_pdrop = self.generator(pixel_drop, drop_mask, reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
@@ -89,11 +89,11 @@ class ToonNet:
         dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_pdrop])
-        disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
-        disc_label = slim.flatten(drop_mask)
+        disc_real, __, __ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
+        disc_fake, drop_pred, __ = self.discriminator.discriminate(dec_pdrop, reuse=True, training=training)
+        drop_label = slim.flatten(drop_mask)
 
-        return dec_im, dec_pdrop, disc_out, disc_label, enc_im, enc_pdrop
+        return dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label, enc_im, enc_pdrop
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -102,10 +102,8 @@ class ToonNet:
             One-hot encoded labels
         """
         labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
-        weights = tf.concat(concat_dim=0,
-                            values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
-        return slim.one_hot_encoding(labels, 2), weights
+                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
 
     def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -152,12 +150,13 @@ class ToonNet:
         Returns:
             Encoding of the input.
         """
+        res_dim = DEFAULT_FILTER_DIMS[self.num_layers-1]
         with tf.variable_scope('generator', reuse=reuse):
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
                     shortcut = net
-                    for l in range(0, 5):
-                        net = res_block_bottleneck(net, 512, 128, noise_channels=32, scope='conv_{}'.format(l + 1))
+                    for l in range(0, 3):
+                        net = res_block_bottleneck(net, res_dim, res_dim/4, noise_channels=32, scope='conv_{}'.format(l + 1))
                     output = shortcut + (1.0 - drop_mask) * net
                     return output
 
@@ -264,12 +263,18 @@ class AlexNet:
                 if self.use_pool5:
                     net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
                 encoded = net
+                drop_pred = None
 
                 if with_fc:
-                    net = slim.conv2d(net, 1, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
-                    net = slim.flatten(net)
+                    drop_pred = slim.conv2d(net, 1, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
+                    drop_pred = slim.flatten(drop_pred)
 
-                return net, encoded
+                    net = slim.flatten(net)
+                    net = slim.fully_connected(net, 2, scope='fc',
+                                               activation_fn=None,
+                                               normalizer_fn=None,
+                                               biases_initializer=tf.zeros_initializer)
+                return net, drop_pred, encoded
 
     def domain_classifier(self, net, num_classes, reuse=None, training=True, scope='dom_class'):
         """Builds a classifier on top of inputs consisting of 3 fully connected layers.

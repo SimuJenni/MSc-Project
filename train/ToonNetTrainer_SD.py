@@ -130,7 +130,7 @@ class ToonNetTrainer:
         disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_real, tf.ones_like(disc_real), scope=disc_loss_scope)
         disc_loss += tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.zeros_like(disc_real), scope=disc_loss_scope)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
-        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope, weight=0.3)
         tf.scalar_summary('losses/drop_pred loss', drop_pred_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)

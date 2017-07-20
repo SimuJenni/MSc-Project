@@ -152,7 +152,6 @@ class ToonNet:
         f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                net = slim.conv2d(net, num_outputs=f_dims[self.num_layers-1], scope='conv')
                 for l in range(0, self.num_layers-1):
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
                 net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),

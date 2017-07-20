@@ -150,8 +150,10 @@ class ToonNet:
             Encoding of the input.
         """
         f_dims = DEFAULT_FILTER_DIMS
+        res_dim = DEFAULT_FILTER_DIMS[self.num_layers-1]
         with tf.variable_scope('generator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+                net = res_block_bottleneck(net, res_dim, res_dim / 4, noise_channels=32, scope='res_block')
                 for l in range(0, self.num_layers-1):
                     net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
                 net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),

@@ -175,9 +175,9 @@ class ToonNetTrainer:
         tf.scalar_summary('learning rate', self.learning_rate())
 
     def make_image_summaries(self, dec_pdrop, dec_im, imgs):
-        tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/ground_truth', montage_tf(imgs, 1, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 2, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 2, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/ground_truth', montage_tf(imgs, 2, self.im_per_smry), max_images=1)
 
     def learning_rate_alex(self):
         # Define learning rate schedule

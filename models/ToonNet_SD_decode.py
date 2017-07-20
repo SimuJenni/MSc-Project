@@ -81,7 +81,7 @@ class ToonNet:
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs, reuse=reuse, training=training)
 
-        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.75)
+        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.5)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)

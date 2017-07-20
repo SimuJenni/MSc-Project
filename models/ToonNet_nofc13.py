@@ -111,11 +111,10 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
+        labels = tf.Variable(tf.zeros(shape=(4*self.batch_size,), dtype=tf.int32))
         weights = tf.concat(concat_dim=0,
                             values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
-        return slim.one_hot_encoding(labels, 2), weights
+        return labels, weights
 
     def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -123,11 +122,12 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
-                                                             tf.zeros(shape=(3 * self.batch_size,), dtype=tf.int32)]))
+        labels = tf.Variable(tf.concat(concat_dim=0,
+                                       values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                               -1.0*tf.ones(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         weights = tf.concat(concat_dim=0,
                             values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
-        return slim.one_hot_encoding(labels, 2), weights
+        return labels, weights
 
     def domain_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0,
@@ -276,7 +276,7 @@ class AlexNet:
                 encoded = net
 
                 if with_fc:
-                    net = slim.conv2d(net, 2, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
+                    net = slim.conv2d(net, 1, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
                     enc_shape = net.get_shape().as_list()
                     net = slim.avg_pool2d(net, kernel_size=enc_shape[1:3], stride=1)
                     net = slim.flatten(net)

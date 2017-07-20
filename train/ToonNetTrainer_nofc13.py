@@ -289,6 +289,7 @@ class ToonNetTrainer:
         var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
         print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
         ckpt = get_checkpoint_path(self.get_autoencoder_save_dir())
+        print('Restoring from: {}'.format(ckpt))
         var2restore = remove_missing(var2restore, ckpt)
         init_assign_op, init_feed_dict = slim.assign_from_checkpoint(ckpt, var2restore)
         sys.stdout.flush()

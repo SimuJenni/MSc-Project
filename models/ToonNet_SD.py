@@ -236,7 +236,7 @@ class AlexNet:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True, fix_bn=False):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='SAME', fix_bn=False):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -251,17 +251,18 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn or fix_bn)):
-                net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, scope='conv_1', normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, scope='conv_1', padding=pad,
+                                  normalizer_fn=None)
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding=pad)
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2', padding=pad)
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
                 if self.use_pool5:
-                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
+                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5', padding=pad)
                 encoded = net
                 drop_pred = None
 

@@ -185,7 +185,7 @@ class ToonNetTester:
                 imgs_test = self.get_toon_test_batch()
 
                 # Create the model
-                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool, imgs_pool = \
+                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool = \
                     self.model.net(imgs_test, training=False)
 
                 # Create the summary ops such that they also print out to std output:
@@ -193,7 +193,6 @@ class ToonNetTester:
                                tf.image_summary('images/dec_spatial_drop', montage_tf(dec_pdrop[:24], 4, 6), max_images=1),
                                tf.image_summary('images/dec_pool', montage_tf(dec_pool[:24], 4, 6), max_images=1),
                                tf.image_summary('images/dec_shuff', montage_tf(dec_shuff[:24], 4, 6), max_images=1),
-                               tf.image_summary('images/imgs_pool', montage_tf(imgs_pool[:24], 4, 6), max_images=1),
                                tf.image_summary('images/original', montage_tf(imgs_scl[:24], 4, 6), max_images=1)]
 
                 if not self.model.vgg_discriminator:

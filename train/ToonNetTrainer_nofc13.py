@@ -9,6 +9,8 @@ import numpy as np
 
 from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn, remove_missing
 from constants import LOG_DIR
+from utils import get_checkpoint_path
+
 
 slim = tf.contrib.slim
 
@@ -287,7 +289,8 @@ class ToonNetTrainer:
         var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
         print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
         var2restore = remove_missing(var2restore, self.get_autoencoder_save_dir())
-        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(self.get_autoencoder_save_dir(), var2restore)
+        ckpt = get_checkpoint_path(self.get_autoencoder_save_dir())
+        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(ckpt, var2restore)
         sys.stdout.flush()
 
         # Create an initial assignment function.
@@ -305,7 +308,6 @@ class ToonNetTrainer:
                 # Get labels for discriminator training
                 labels_disc, disc_weights = self.model.disc_labels()
                 labels_gen, gen_weights = self.model.gen_labels()
-                domain_labels = self.model.domain_labels()
 
                 # Create the model
                 dec_im, dec_pdrop, dec_shuffle, dec_pool, disc_out, enc_im, enc_pdrop, enc_pool =\
@@ -346,10 +348,10 @@ class ToonNetTrainer:
                 imgs_train = self.get_train_batch()
 
                 # Create the model
-                dec_im, imgs_scl = self.model.autoencoder(imgs_train)
+                dec_im = self.model.autoencoder(imgs_train)
 
                 # Compute loss
-                ae_loss = self.autoencoder_loss(dec_im, imgs_scl)
+                ae_loss = self.autoencoder_loss(dec_im, imgs_train)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -360,7 +362,7 @@ class ToonNetTrainer:
                 # Make summaries
                 self.make_summaries()
                 tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
-                tf.image_summary('imgs/ground_truth', montage_tf(imgs_scl, 1, self.im_per_smry), max_images=1)
+                tf.image_summary('imgs/ground_truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
 
                 # Generator training operations
                 train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')

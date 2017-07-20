@@ -46,7 +46,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 
 class ToonNet:
-    def __init__(self, num_layers, batch_size, pool5=True, tag='default', vgg_discriminator=False, fix_bn=False):
+    def __init__(self, num_layers, batch_size, im_shape, pool5=True, tag='default', vgg_discriminator=False, fix_bn=False):
         """Initialises a ToonNet using the provided parameters.
 
         Args:
@@ -57,11 +57,11 @@ class ToonNet:
         self.name = 'ToonNet_{}'.format(tag)
         self.num_layers = num_layers
         self.batch_size = batch_size
-        self.vgg_discriminator = vgg_discriminator
+        self.im_shape = im_shape
         if vgg_discriminator:
             self.discriminator = VGGA(fix_bn=fix_bn)
         else:
-            self.discriminator = AlexNet(fix_bn=fix_bn)
+            self.discriminator = AlexNet(fix_bn=fix_bn, pool5=pool5)
 
     def net(self, imgs, reuse=None, training=True):
         """Builds the full ToonNet architecture with the given inputs.

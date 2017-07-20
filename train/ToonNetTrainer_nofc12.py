@@ -192,14 +192,12 @@ class ToonNetTrainer:
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', self.learning_rate())
 
-    def make_image_summaries(self, dec_pdrop, dec_avg_pool, dec_shuffle, dec_im, imgs_scaled, imgs_pool):
+    def make_image_summaries(self, dec_pdrop, dec_avg_pool, dec_shuffle, dec_im, imgs_scaled):
         tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/dec_avg_pool', montage_tf(dec_avg_pool, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/dec_shuffle', montage_tf(dec_shuffle, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
         tf.image_summary('imgs/ground_truth', montage_tf(imgs_scaled, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/imgs_pool', montage_tf(imgs_pool, 1, self.im_per_smry), max_images=1)
-
 
     def learning_rate_alex(self):
         # Define learning rate schedule
@@ -285,7 +283,7 @@ class ToonNetTrainer:
                 domain_labels = self.model.domain_labels()
 
                 # Create the model
-                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool, imgs_pool = \
+                dec_im, imgs_scl, dec_pdrop, dec_shuff, dec_pool, disc_out, domain_out, enc_im, enc_pdrop, enc_pool = \
                     self.model.net(imgs_train)
 
                 # Compute losses
@@ -306,7 +304,7 @@ class ToonNetTrainer:
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_pdrop, dec_pool, dec_shuff, dec_im, imgs_scl, imgs_pool)
+                self.make_image_summaries(dec_pdrop, dec_pool, dec_shuff, dec_im, imgs_scl)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')

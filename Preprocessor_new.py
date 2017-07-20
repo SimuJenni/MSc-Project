@@ -3,18 +3,17 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.python.ops import control_flow_ops
 
 slim = tf.contrib.slim
 
 
 class Preprocessor:
-    def __init__(self, target_shape, augment_color=False, aspect_ratio_range=(0.8, 1.2), area_range=(0.2, 1.0), hsv_color=False):
+    def __init__(self, target_shape, im_shape, augment_color=False, aspect_ratio_range=(0.8, 1.2), area_range=(0.2, 1.0)):
         self.target_shape = target_shape
+        self.im_shape = im_shape
         self.augment_color = augment_color
         self.aspect_ratio_range = aspect_ratio_range
         self.area_range = area_range
-        self.hsv = hsv_color
 
     def central_crop(self, image):
         # Crop the central region of the image with an area containing 85% of the original image.
@@ -43,7 +42,7 @@ class Preprocessor:
 
     def process_train_toonnet(self, image, cartoon):
         sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
-            [144, 144, 3],
+            self.im_shape,
             [[[0, 0, 1, 1]]],
             aspect_ratio_range=self.aspect_ratio_range,
             area_range=self.area_range,
@@ -63,10 +62,6 @@ class Preprocessor:
             cartoon = dist_color(cartoon, bright_delta, sat, hue_delta, cont)
             cartoon = tf.clip_by_value(cartoon, 0.0, 1.0)
 
-        if self.hsv:
-            image = tf.image.rgb_to_hsv(image)
-            cartoon = tf.image.rgb_to_hsv(cartoon)
-
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.
         cartoon = tf.to_float(cartoon) * 2. - 1.
@@ -80,7 +75,7 @@ class Preprocessor:
 
     def process_train(self, image):
         sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
-            [256, 256, 3],
+            self.im_shape,
             [[[0, 0, 1, 1]]],
             aspect_ratio_range=self.aspect_ratio_range,
             area_range=self.area_range,
@@ -95,9 +90,6 @@ class Preprocessor:
             bright_delta, sat, hue_delta, cont = sample_color_params()
             image = dist_color(image, bright_delta, sat, hue_delta, cont)
             image = tf.clip_by_value(image, 0.0, 1.0)
-
-        if self.hsv:
-            image = tf.image.rgb_to_hsv(image)
 
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.
@@ -137,9 +129,6 @@ class Preprocessor:
             image = dist_color_random(image, thread_id)
             image = tf.clip_by_value(image, 0.0, 1.0)
 
-        if self.hsv:
-            image = tf.image.rgb_to_hsv(image)
-
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.
 
@@ -153,9 +142,6 @@ class Preprocessor:
 
         image = tf.to_float(image) / 255.
 
-        if self.hsv:
-            image = tf.image.rgb_to_hsv(image)
-
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.
 
@@ -163,8 +149,8 @@ class Preprocessor:
 
 
 class VOCPreprocessor(Preprocessor):
-    def __init__(self, target_shape, augment_color=True, aspect_ratio_range=(0.9, 1.1), area_range=(0.1, 1.0), hsv_color=False):
-        Preprocessor.__init__(self, target_shape, augment_color, aspect_ratio_range, area_range, hsv_color)
+    def __init__(self, target_shape, augment_color=True, aspect_ratio_range=(0.9, 1.1), area_range=(0.1, 1.0)):
+        Preprocessor.__init__(self, target_shape, augment_color, aspect_ratio_range, area_range)
 
     def process_transfer_test(self, image):
         # Select random crops
@@ -172,9 +158,6 @@ class VOCPreprocessor(Preprocessor):
                               self.aspect_ratio_range, self.area_range)
 
         image = tf.to_float(image) / 255.
-
-        if self.hsv:
-            image = tf.image.rgb_to_hsv(image)
 
         # Scale to [-1, 1]
         image = tf.to_float(image) * 2. - 1.

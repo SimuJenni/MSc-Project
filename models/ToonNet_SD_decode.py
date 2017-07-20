@@ -81,19 +81,18 @@ class ToonNet:
         # Concatenate cartoon and edge for input to generator
         enc_im = self.encoder(imgs, reuse=reuse, training=training)
 
-        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.5)
-        enc_pdrop = self.generator(pixel_drop, drop_mask, reuse=reuse, training=training)
+        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.75)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=training)
+        dec_pdrop = self.generator(pixel_drop, reuse=reuse, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
         disc_real, __, __ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
         disc_fake, drop_pred, __ = self.discriminator.discriminate(dec_pdrop, reuse=True, training=training)
         drop_label = slim.flatten(drop_mask)
 
-        return dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label, enc_im, enc_pdrop
+        return dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -139,7 +138,7 @@ class ToonNet:
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def generator(self, net, drop_mask, tag='default', reuse=None, training=True):
+    def generator(self, net, reuse=None, training=True):
         """Builds a generator with the given inputs. Noise is induced in all convolutional layers.
 
         Args:
@@ -150,15 +149,18 @@ class ToonNet:
         Returns:
             Encoding of the input.
         """
-        res_dim = DEFAULT_FILTER_DIMS[self.num_layers-1]
+        f_dims = DEFAULT_FILTER_DIMS
         with tf.variable_scope('generator', reuse=reuse):
-            with tf.variable_scope(tag, reuse=reuse):
-                with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    shortcut = net
-                    for l in range(0, 3):
-                        net = res_block_bottleneck(net, res_dim, res_dim/4, noise_channels=32, scope='conv_{}'.format(l + 1))
-                    output = shortcut + (1.0 - drop_mask) * net
-                    return output
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+                net = slim.conv2d(net, num_outputs=f_dims[self.num_layers-1], scope='conv')
+                for l in range(0, self.num_layers-1):
+                    net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
+                net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),
+                                             tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                net = slim.conv2d(net, num_outputs=32, scope='deconv_{}'.format(self.num_layers), stride=1)
+                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers+1), stride=1,
+                                  activation_fn=tf.nn.tanh, normalizer_fn=None)
+                return net
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.

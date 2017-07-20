@@ -84,9 +84,9 @@ class ToonNet:
         enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
 
         pixel_drop, __ = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.9)
+        enc_shuffle, __ = spatial_shuffle(enc_im, 0.825)
         enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
-        enc_pool = self.generator(enc_pool, tag='pool', reuse=True, training=training)
+        enc_pool = self.generator(enc_pool, tag='pool', reuse=reuse, training=training)
 
         # Decode both encoded images and generator output using the same decoder
         dec_im = self.decoder(enc_im, reuse=reuse, training=False)
@@ -166,7 +166,7 @@ class ToonNet:
         with tf.variable_scope('generator', reuse=reuse):
             with tf.variable_scope(tag, reuse=reuse):
                 with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    for l in range(0, 5):
+                    for l in range(0, 3):
                         net = res_block_bottleneck(net, res_dim, res_dim/4, noise_channels=32, scope='conv_{}'.format(l + 1))
                     return net
 

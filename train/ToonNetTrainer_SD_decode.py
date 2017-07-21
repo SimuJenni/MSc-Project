@@ -130,7 +130,7 @@ class ToonNetTrainer:
         disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_real, tf.ones_like(disc_real), scope=disc_loss_scope)
         disc_loss += tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.zeros_like(disc_real), scope=disc_loss_scope)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
-        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope, weight=0.3)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope, weight=0.1)
         tf.scalar_summary('losses/drop_pred loss', drop_pred_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
@@ -140,7 +140,7 @@ class ToonNetTrainer:
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30.0)
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=10.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
@@ -152,9 +152,9 @@ class ToonNetTrainer:
         gen_scope = 'gen_loss'
         gen_disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.ones_like(disc_fake), scope=gen_scope)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, 1.0-drop_label, scope=gen_scope)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, 1.0-drop_label, scope=gen_scope, weight=0.1)
         tf.scalar_summary('losses/drop_pred loss (generator)', drop_pred_loss)
-        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=30.0)
+        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=10.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')

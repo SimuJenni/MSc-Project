@@ -78,32 +78,21 @@ class ToonNet:
             enc_im: Encoding of the image
             gen_enc: Output of the generator
         """
-
         # Concatenate cartoon and edge for input to generator
-        enc_im = self.encoder(imgs, reuse=reuse, training=False)
-        enc_pool = slim.avg_pool2d(enc_im, (2, 2), stride=1, padding='SAME')
+        enc_im = self.encoder(imgs, reuse=reuse, training=training)
 
-        pixel_drop, __ = pixel_dropout(enc_im, 0.5)
-        enc_shuffle, __ = spatial_shuffle(enc_im, 0.825)
-        enc_pdrop = self.generator(pixel_drop, tag='pdrop', reuse=reuse, training=training)
-        enc_pool = self.generator(enc_pool, tag='pool', reuse=reuse, training=training)
+        pixel_drop, drop_mask = pixel_dropout(enc_im, 0.666)
 
         # Decode both encoded images and generator output using the same decoder
-        dec_im = self.decoder(enc_im, reuse=reuse, training=False)
-        dec_pdrop = self.decoder(enc_pdrop, reuse=True, training=False)
-        dec_shuffle = self.decoder(enc_shuffle, reuse=True, training=False)
-        dec_pool = self.decoder(enc_pool, reuse=True, training=False)
+        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
+        dec_pdrop = self.generator(pixel_drop, reuse=reuse, training=training)
 
         # Build input for discriminator (discriminator tries to guess order of real/fake)
-        disc_in = tf.concat(0, [dec_im, dec_pdrop, dec_shuffle, dec_pool])
-        disc_out, disc_enc = self.discriminator.discriminate(disc_in, reuse=reuse, training=training)
+        disc_real, __, __ = self.discriminator.discriminate(dec_im, reuse=reuse, training=training)
+        disc_fake, drop_pred, __ = self.discriminator.discriminate(dec_pdrop, reuse=True, training=training)
+        drop_label = slim.flatten(drop_mask)
 
-        return dec_im, dec_pdrop, dec_shuffle, dec_pool, disc_out, enc_im, enc_pdrop, enc_pool
-
-    def autoencoder(self, imgs, reuse=None, training=True):
-        enc_im = self.encoder(imgs, reuse=reuse, training=training)
-        dec_im = self.decoder(enc_im, reuse=reuse, training=training)
-        return dec_im
+        return dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label
 
     def gen_labels(self):
         """Generates labels for discriminator training (see discriminator input!)
@@ -111,10 +100,9 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.zeros(shape=(4*self.batch_size, 1))
-        weights = tf.concat(concat_dim=0,
-                            values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
-        return labels, weights
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.zeros(shape=(self.batch_size,), dtype=tf.int32),
+                                                             tf.ones(shape=(self.batch_size,), dtype=tf.int32)]))
+        return slim.one_hot_encoding(labels, 2)
 
     def disc_labels(self):
         """Generates labels for generator training (see discriminator input!). Exact opposite of disc_labels
@@ -122,11 +110,11 @@ class ToonNet:
         Returns:
             One-hot encoded labels
         """
-        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size, 1)),
-                                                             -1.0*tf.ones(shape=(3 * self.batch_size, 1))]))
+        labels = tf.Variable(tf.concat(concat_dim=0, values=[tf.ones(shape=(self.batch_size,), dtype=tf.int32),
+                                                             tf.zeros(shape=(3 * self.batch_size,), dtype=tf.int32)]))
         weights = tf.concat(concat_dim=0,
                             values=[tf.ones(shape=(self.batch_size,)), 0.33*tf.ones(shape=(3*self.batch_size,))])
-        return labels, weights
+        return slim.one_hot_encoding(labels, 2), weights
 
     def domain_labels(self):
         labels = tf.Variable(tf.concat(concat_dim=0,
@@ -150,7 +138,7 @@ class ToonNet:
         model = self.discriminator.classify(model, num_classes, reuse=reuse, training=training)
         return model
 
-    def generator(self, net, tag='default', reuse=None, training=True):
+    def generator(self, net, reuse=None, training=True):
         """Builds a generator with the given inputs. Noise is induced in all convolutional layers.
 
         Args:
@@ -161,13 +149,19 @@ class ToonNet:
         Returns:
             Encoding of the input.
         """
+        f_dims = DEFAULT_FILTER_DIMS
         res_dim = DEFAULT_FILTER_DIMS[self.num_layers-1]
         with tf.variable_scope('generator', reuse=reuse):
-            with tf.variable_scope(tag, reuse=reuse):
-                with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
-                    for l in range(0, 3):
-                        net = res_block_bottleneck(net, res_dim, res_dim/4, noise_channels=32, scope='conv_{}'.format(l + 1))
-                    return net
+            with slim.arg_scope(toon_net_argscope(padding='SAME', training=training)):
+                net = res_block_bottleneck(net, res_dim, res_dim / 4, noise_channels=32, scope='res_block')
+                for l in range(0, self.num_layers-1):
+                    net = up_conv2d(net, num_outputs=f_dims[self.num_layers - l - 2], scope='deconv_{}'.format(l))
+                net = tf.image.resize_images(net, (self.im_shape[0], self.im_shape[1]),
+                                             tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                net = slim.conv2d(net, num_outputs=32, scope='deconv_{}'.format(self.num_layers), stride=1)
+                net = slim.conv2d(net, num_outputs=3, scope='deconv_{}'.format(self.num_layers+1), stride=1,
+                                  activation_fn=tf.nn.tanh, normalizer_fn=None)
+                return net
 
     def encoder(self, net, reuse=None, training=True):
         """Builds an encoder of the given inputs.
@@ -245,7 +239,7 @@ class AlexNet:
                                            biases_initializer=tf.zeros_initializer)
         return net
 
-    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='VALID', fix_bn=False):
+    def discriminate(self, net, reuse=None, training=True, with_fc=True, pad='SAME', fix_bn=False):
         """Builds a discriminator network on top of inputs.
 
         Args:
@@ -260,26 +254,31 @@ class AlexNet:
         with tf.variable_scope('discriminator', reuse=reuse):
             with slim.arg_scope(toon_net_argscope(activation=self.fc_activation, padding='SAME', training=training,
                                                   fix_bn=self.fix_bn or fix_bn)):
-                net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, padding=pad, scope='conv_1',
+                net = slim.conv2d(net, 96, kernel_size=[11, 11], stride=4, scope='conv_1', padding=pad,
                                   normalizer_fn=None)
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_1', padding=pad)
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = conv_group(net, 256, kernel_size=[5, 5], scope='conv_2')
-                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2')
+                net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_2', padding=pad)
                 net = tf.nn.lrn(net, depth_radius=2, alpha=0.00002, beta=0.75)
                 net = slim.conv2d(net, 384, kernel_size=[3, 3], scope='conv_3')
                 net = conv_group(net, 384, kernel_size=[3, 3], scope='conv_4')
                 net = conv_group(net, 256, kernel_size=[3, 3], scope='conv_5')
                 if self.use_pool5:
-                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5')
+                    net = slim.max_pool2d(net, kernel_size=[3, 3], stride=2, scope='pool_5', padding=pad)
                 encoded = net
+                drop_pred = None
 
                 if with_fc:
-                    net = slim.conv2d(net, 1, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
-                    enc_shape = net.get_shape().as_list()
-                    net = slim.avg_pool2d(net, kernel_size=enc_shape[1:3], stride=1)
+                    drop_pred = slim.conv2d(net, 1, kernel_size=[1, 1], activation_fn=None, normalizer_fn=None)
+                    drop_pred = slim.flatten(drop_pred)
+
                     net = slim.flatten(net)
-                return net, encoded
+                    net = slim.fully_connected(net, 2, scope='fc',
+                                               activation_fn=None,
+                                               normalizer_fn=None,
+                                               biases_initializer=tf.zeros_initializer)
+                return net, drop_pred, encoded
 
     def domain_classifier(self, net, num_classes, reuse=None, training=True, scope='dom_class'):
         """Builds a classifier on top of inputs consisting of 3 fully connected layers.

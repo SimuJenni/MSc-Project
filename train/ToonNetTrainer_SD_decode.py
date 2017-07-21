@@ -9,8 +9,6 @@ import numpy as np
 
 from utils import montage_tf, get_variables_to_train, assign_from_checkpoint_fn, remove_missing
 from constants import LOG_DIR
-from utils import get_checkpoint_path
-
 
 slim = tf.contrib.slim
 
@@ -48,14 +46,8 @@ class ToonNetTrainer:
             fname = '{}_{}'.format(fname, self.additional_info)
         return os.path.join(LOG_DIR, '{}/'.format(fname))
 
-    def get_autoencoder_save_dir(self):
-        fname = '{}_{}_AE'.format(self.dataset.name, self.model.name)
-        if self.additional_info:
-            fname = '{}_{}'.format(fname, self.additional_info)
-        return os.path.join(LOG_DIR, '{}/'.format(fname))
-
     def optimizer(self):
-        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-4),
+        opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
                 'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
         return opts[self.opt_type]
 
@@ -72,35 +64,30 @@ class ToonNetTrainer:
             self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
             provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                      common_queue_capacity=20 * self.model.batch_size,
-                                                                      common_queue_min=10 * self.model.batch_size)
+                                                                      common_queue_capacity=8*self.model.batch_size,
+                                                                      common_queue_min=self.model.batch_size)
             [img_train] = provider.get(['image'])
 
             # Preprocess data
             img_train = self.pre_processor.process_train(img_train)
-
             # Make batches
-            imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size,
-                                        num_threads=8,
-                                        capacity=5 * self.model.batch_size)
-            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_train])
-
-            return batch_queue.dequeue()
+            imgs_train = tf.train.batch([img_train], batch_size=self.model.batch_size, num_threads=8,
+                                        capacity=4*self.model.batch_size)
+        return imgs_train
 
     def get_finetune_batch(self, dataset_id):
         with tf.device('/cpu:0'):
             # Get the training dataset
             if dataset_id:
                 train_set = self.dataset.get_split(dataset_id)
-                self.num_train_steps = (self.dataset.get_num_dataset(
-                    dataset_id) / self.model.batch_size) * self.num_epochs
+                self.num_train_steps = (self.dataset.get_num_dataset(dataset_id) / self.model.batch_size) * self.num_epochs
             else:
                 train_set = self.dataset.get_trainset()
                 self.num_train_steps = (self.dataset.get_num_train() / self.model.batch_size) * self.num_epochs
             print('Number of training steps: {}'.format(self.num_train_steps))
-            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=4,
-                                                                      common_queue_capacity=20 * self.model.batch_size,
-                                                                      common_queue_min=10 * self.model.batch_size)
+            provider = slim.dataset_data_provider.DatasetDataProvider(train_set, num_readers=1,
+                                                                      common_queue_capacity=4 * self.model.batch_size,
+                                                                      common_queue_min=self.model.batch_size)
 
             # Parse a serialized Example proto to extract the image and metadata.
             [img_train, label_train] = provider.get(['image', 'label'])
@@ -112,11 +99,9 @@ class ToonNetTrainer:
             # Make batches
             imgs_train, labels_train = tf.train.batch([img_train, label_train],
                                                       batch_size=self.model.batch_size,
-                                                      num_threads=8,
-                                                      capacity=5 * self.model.batch_size)
-            batch_queue = slim.prefetch_queue.prefetch_queue([imgs_train, labels_train])
-
-            return batch_queue.dequeue()
+                                                      num_threads=10,
+                                                      capacity=2*self.model.batch_size)
+            return imgs_train, labels_train
 
     def classification_loss(self, preds_train, labels_train):
         # Define the loss
@@ -139,54 +124,37 @@ class ToonNetTrainer:
             tf.histogram_summary('predictions', predictions)
         return total_train_loss
 
-    def discriminator_loss(self, disc_out, disc_labels, weights):
+    def discriminator_loss(self, disc_real, disc_fake, drop_pred, drop_label):
         # Define loss for discriminator training
         disc_loss_scope = 'disc_loss'
-        disc_loss = tf.contrib.losses.mean_squared_error(disc_out, disc_labels, scope=disc_loss_scope, weight=weights)
+        disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_real, tf.ones_like(disc_real), scope=disc_loss_scope)
+        disc_loss += tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.zeros_like(disc_real), scope=disc_loss_scope)
         tf.scalar_summary('losses/discriminator loss', disc_loss)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, drop_label, scope=disc_loss_scope, weight=0.1)
+        tf.scalar_summary('losses/drop_pred loss', drop_pred_loss)
         losses_disc = tf.contrib.losses.get_losses(disc_loss_scope)
         losses_disc += tf.contrib.losses.get_regularization_losses(disc_loss_scope)
         disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
-
-        # Compute accuracy
-        predictions = tf.argmax(disc_out, 1)
-        tf.scalar_summary('accuracy/discriminator accuracy',
-                          slim.metrics.accuracy(predictions, tf.argmax(disc_labels, 1)))
-        return disc_total_loss
-
-    def domain_loss(self, domain_out, domain_labels):
-        # Define loss for discriminator training
-        dom_loss_scope = 'domain_loss'
-        dom_loss = tf.contrib.losses.softmax_cross_entropy(domain_out, domain_labels, scope=dom_loss_scope, weight=0.5)
-        tf.scalar_summary('losses/domain loss', dom_loss)
-        losses_disc = tf.contrib.losses.get_losses(dom_loss_scope)
-        losses_disc += tf.contrib.losses.get_regularization_losses(dom_loss_scope)
-        disc_total_loss = math_ops.add_n(losses_disc, name='disc_total_loss')
-
-        # Compute accuracy
-        predictions = tf.argmax(domain_out, 1)
-        tf.scalar_summary('accuracy/domain accuracy', slim.metrics.accuracy(predictions, tf.argmax(domain_labels, 1)))
         return disc_total_loss
 
     def autoencoder_loss(self, imgs_rec, imgs_train):
         # Define the losses for AE training
         ae_loss_scope = 'ae_loss'
-        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=5.0)
+        ae_loss = tf.contrib.losses.mean_squared_error(imgs_rec, imgs_train, scope=ae_loss_scope, weight=30.0)
         tf.scalar_summary('losses/autoencoder loss (encoder+decoder)', ae_loss)
         losses_ae = tf.contrib.losses.get_losses(ae_loss_scope)
         losses_ae += tf.contrib.losses.get_regularization_losses(ae_loss_scope)
         ae_total_loss = math_ops.add_n(losses_ae, name='ae_total_loss')
         return ae_total_loss
 
-    def generator_loss(self, disc_out, labels, dec_pdrop, dec_avg_pool, imgs, weights, enc_im, enc_pdrop, enc_pool):
+    def generator_loss(self, disc_fake, drop_pred, drop_label, dec_pdrop, imgs):
         # Define the losses for generator training
         gen_scope = 'gen_loss'
-        gen_disc_loss = tf.contrib.losses.mean_squared_error(disc_out, labels, scope=gen_scope, weight=weights)
+        gen_disc_loss = tf.contrib.losses.sigmoid_cross_entropy(disc_fake, tf.ones_like(disc_fake), scope=gen_scope)
         tf.scalar_summary('losses/discriminator loss (generator)', gen_disc_loss)
-        tf.contrib.losses.mean_squared_error(dec_avg_pool, imgs, scope=gen_scope, weight=5.0)
-        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=5.0)
-        tf.contrib.losses.mean_squared_error(enc_pool, enc_im, scope=gen_scope, weight=1.0)
-        tf.contrib.losses.mean_squared_error(enc_pdrop, enc_im, scope=gen_scope, weight=1.0)
+        drop_pred_loss = tf.contrib.losses.sigmoid_cross_entropy(drop_pred, 1.0-drop_label, scope=gen_scope, weight=0.1)
+        tf.scalar_summary('losses/drop_pred loss (generator)', drop_pred_loss)
+        tf.contrib.losses.mean_squared_error(dec_pdrop, imgs, scope=gen_scope, weight=30.0)
         losses_gen = tf.contrib.losses.get_losses(gen_scope)
         losses_gen += tf.contrib.losses.get_regularization_losses(gen_scope)
         gen_loss = math_ops.add_n(losses_gen, name='gen_total_loss')
@@ -205,12 +173,10 @@ class ToonNetTrainer:
             tf.histogram_summary(variable.op.name, variable)
         tf.scalar_summary('learning rate', self.learning_rate())
 
-    def make_image_summaries(self, dec_pdrop, dec_avg_pool, dec_shuffle, dec_im, imgs_scaled):
-        tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/dec_avg_pool', montage_tf(dec_avg_pool, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/dec_shuffle', montage_tf(dec_shuffle, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
-        tf.image_summary('imgs/ground_truth', montage_tf(imgs_scaled, 1, self.im_per_smry), max_images=1)
+    def make_image_summaries(self, dec_pdrop, dec_im, imgs):
+        tf.image_summary('imgs/dec_pixel_drop', montage_tf(dec_pdrop, 2, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 2, self.im_per_smry), max_images=1)
+        tf.image_summary('imgs/ground_truth', montage_tf(imgs, 2, self.im_per_smry), max_images=1)
 
     def learning_rate_alex(self):
         # Define learning rate schedule
@@ -224,8 +190,8 @@ class ToonNetTrainer:
     def learning_rate_voc(self):
         # Define learning rate schedule
         num_train_steps = self.num_train_steps
-        boundaries = [np.int64(10000 * i) for i in range(1, np.int64(num_train_steps / 10000))]
-        values = [self.init_lr * 0.5 ** i for i in range(np.int64(num_train_steps / 10000))]
+        boundaries = [np.int64(10000*i) for i in range(1, np.int64(num_train_steps/10000))]
+        values = [self.init_lr*0.5**i for i in range(np.int64(num_train_steps/10000))]
         return tf.train.piecewise_constant(self.global_step, boundaries=boundaries, values=values)
 
     def learning_rate_linear(self):
@@ -284,91 +250,41 @@ class ToonNetTrainer:
         else:
             return None
 
-    def init_AE_fn(self):
-        var2restore = slim.get_variables_to_restore(include=['encoder', 'decoder'])
-        print('Variables to restore: {}'.format([v.op.name for v in var2restore]))
-        ckpt = get_checkpoint_path(self.get_autoencoder_save_dir())
-        print('Restoring from: {}'.format(ckpt))
-        var2restore = remove_missing(var2restore, ckpt)
-        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(ckpt, var2restore)
-        sys.stdout.flush()
-
-        # Create an initial assignment function.
-        def InitAssignFn(sess):
-            sess.run(init_assign_op, init_feed_dict)
-
-        return InitAssignFn
-
-    def train(self):
+    def train(self, chpt_path=None):
         self.is_finetune = False
         with self.sess.as_default():
             with self.graph.as_default():
                 imgs_train = self.get_train_batch()
 
-                # Get labels for discriminator training
-                labels_disc, disc_weights = self.model.disc_labels()
-                labels_gen, gen_weights = self.model.gen_labels()
-
                 # Create the model
-                dec_im, dec_pdrop, dec_shuffle, dec_pool, disc_out, enc_im, enc_pdrop, enc_pool =\
+                dec_im, dec_pdrop, disc_real, disc_fake, drop_pred, drop_label = \
                     self.model.net(imgs_train)
 
                 # Compute losses
-                disc_loss = self.discriminator_loss(disc_out, labels_disc, disc_weights)
-                gen_loss = self.generator_loss(disc_out, labels_gen, dec_pdrop, dec_pool, imgs_train, gen_weights,
-                                               enc_im, enc_pdrop, enc_pool)
+                disc_loss = self.discriminator_loss(disc_real, disc_fake, drop_pred, drop_label)
+                ae_loss = self.autoencoder_loss(dec_im, imgs_train)
+                gen_loss = self.generator_loss(disc_fake, drop_pred, drop_label, dec_pdrop, imgs_train)
 
                 # Handle dependencies with update_ops (batch-norm)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
                 if update_ops:
                     updates = tf.group(*update_ops)
                     gen_loss = control_flow_ops.with_dependencies([updates], gen_loss)
+                    ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
                     disc_loss = control_flow_ops.with_dependencies([updates], disc_loss)
 
                 # Make summaries
                 self.make_summaries()
-                self.make_image_summaries(dec_pdrop, dec_pool, dec_shuffle, dec_im, imgs_train)
+                self.make_image_summaries(dec_pdrop, dec_im, imgs_train)
 
                 # Generator training operations
                 train_op_gen = self.make_train_op(gen_loss, scope='generator')
+                train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
                 train_op_disc = self.make_train_op(disc_loss, scope='discriminator')
 
                 # Start training
-                slim.learning.train(train_op_gen + train_op_disc, self.get_save_dir(),
-                                    init_fn=self.init_AE_fn(),
-                                    save_summaries_secs=300,
-                                    save_interval_secs=3000,
-                                    log_every_n_steps=100,
-                                    number_of_steps=self.num_train_steps)
-
-    def train_autoencoder(self):
-        self.is_finetune = False
-        with self.sess.as_default():
-            with self.graph.as_default():
-                imgs_train = self.get_train_batch()
-
-                # Create the model
-                dec_im = self.model.autoencoder(imgs_train)
-
-                # Compute loss
-                ae_loss = self.autoencoder_loss(dec_im, imgs_train)
-
-                # Handle dependencies with update_ops (batch-norm)
-                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-                if update_ops:
-                    updates = tf.group(*update_ops)
-                    ae_loss = control_flow_ops.with_dependencies([updates], ae_loss)
-
-                # Make summaries
-                self.make_summaries()
-                tf.image_summary('imgs/autoencoder', montage_tf(dec_im, 1, self.im_per_smry), max_images=1)
-                tf.image_summary('imgs/ground_truth', montage_tf(imgs_train, 1, self.im_per_smry), max_images=1)
-
-                # Generator training operations
-                train_op_ae = self.make_train_op(ae_loss, scope='encoder, decoder')
-
-                # Start training
-                slim.learning.train(train_op_ae, self.get_autoencoder_save_dir(),
+                slim.learning.train(train_op_ae + train_op_gen + train_op_disc, self.get_save_dir(),
+                                    init_fn=self.cont_init_fn(chpt_path),
                                     save_summaries_secs=300,
                                     save_interval_secs=3000,
                                     log_every_n_steps=100,

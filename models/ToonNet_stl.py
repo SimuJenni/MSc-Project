@@ -48,7 +48,7 @@ def toon_net_argscope(activation=tf.nn.relu, kernel_size=(3, 3), padding='SAME',
 
 class ToonNet:
     def __init__(self, num_layers, batch_size, tag='default', vgg_discriminator=False, fix_bn=False,
-                 vanilla_alex=False):
+                 vanilla_alex=True):
         """Initialises a ToonNet using the provided parameters.
 
         Args:

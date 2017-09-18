@@ -64,7 +64,7 @@ class STL10(Dataset):
         return self.get_split('train_unlabeled')
 
     def get_testset(self):
-        return self.get_split('eval')
+        return self.get_split('test')
 
     def get_train_fold_id(self, fold_idx):
         return 'train_fold_{}'.format(fold_idx)

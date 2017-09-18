@@ -48,12 +48,13 @@ class ToonNetTrainer:
 
     def optimizer(self):
         opts = {'adam': tf.train.AdamOptimizer(learning_rate=self.learning_rate(), beta1=0.5, epsilon=1e-5),
-                'sgd+momentum': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
+                'sgd': tf.train.MomentumOptimizer(learning_rate=self.learning_rate(), momentum=0.9)}
         return opts[self.opt_type]
 
     def learning_rate(self):
         policies = {'const': self.init_lr,
                     'step': self.learning_rate_alex(),
+                    'voc': self.learning_rate_voc(),
                     'linear': self.learning_rate_linear()}
         return policies[self.lr_policy]
 
